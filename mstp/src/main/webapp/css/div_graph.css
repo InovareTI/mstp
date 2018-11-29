@@ -1,0 +1,101 @@
+
+		 body { font-size: 62.5%; }
+		
+		.blended_grid{
+		 display : block;
+		 width : 100%;
+		 overflow : auto;
+		 
+		}
+		.pageHeader{
+		 background-color : white;
+		
+		float : left;
+		 clear : none;
+		 height : 15%;
+		 width : 100%;
+		}
+		.pageHeader img{
+		max-width:100%; 
+		max-height:100%;
+		margin:auto;
+		display:block;
+		
+		}
+		.pageLeftMenu{
+		 background-color : white;
+		 float : left;
+		 clear : none;
+		 height : 75%;
+		 width : 15%;
+		}
+		.pageFooter{
+		 text-align: center;
+		 background-color : white;
+		 float : left;
+		 clear : none;
+		 height : 10%;
+		 width : 100%;
+		}
+		.pageContent{
+		 float : left;
+		 clear : none;
+		 height : 75%;
+		 width : 100%;
+		}
+		.tudo {
+			display: table;
+			overflow: auto;
+			width: 100%;
+			height: auto;
+			background-color: white ;
+			padding: 10px;
+		}
+		.tudo1 {
+			position:relative;
+			border-radius: 10px;
+    		border: 1px solid #E0E0E0;
+			width: 50%;
+			height: 250px;
+			background-color: white;
+			float: left;
+			padding: 5px;
+		}
+		.tudo2 {
+			position: relative;
+			border-radius: 10px;
+    		border: 1px solid #E0E0E0;
+			width: 50%;
+			height: 250px;
+			background-color: white;
+			float: left;
+			padding: 5px;
+		}
+		.peq {
+			display: table;
+			width: 100%;
+			height: 50px;
+			background-color: white;
+		}
+		.peq1 {
+			position:relative;
+			width: 50%;
+			height: 50px;
+			background-color: white;
+			float: left;
+		}
+		.peq2 {
+			position: relative;
+			width: 50%;
+			height: 50px;
+			background-color: white;
+			float: left;
+		}
+		.peq3 {
+			position: relative;
+			width: 30%;
+			height: 50px;
+			background-color: white;
+			float: left;
+		}
+		

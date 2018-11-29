@@ -1,0 +1,246 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    
+    
+}
+#header {
+    background-color: #E0E0E0;
+    color:white;
+    
+	width: 100%;
+    
+    /*text-align:Left;*/
+    padding:5px;
+}
+#footer {
+    background-color:black;
+    color:white;
+    clear:both;
+    text-align:center;
+    padding:5px; 
+}
+.glyphicon-refresh-animate {
+    -animation: spin .7s infinite linear;
+    -webkit-animation: spin2 .7s infinite linear;
+}
+
+@-webkit-keyframes spin2 {
+    from { -webkit-transform: rotate(0deg);}
+    to { -webkit-transform: rotate(360deg);}
+}
+
+@keyframes spin {
+    from { transform: scale(1) rotate(0deg);}
+    to { transform: scale(1) rotate(360deg);}
+}
+.span_Class{
+
+
+}
+.panel-stat {
+    background: none;
+}
+
+.panel-stat .panel-heading {
+    padding: 15px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+}
+
+.panel-stat .stat {
+    color: #fff;
+    max-width: 250px;
+}
+
+.panel-stat .stat img {
+    text-align: center;
+}
+
+.panel-stat i {
+    font-size: 30px;
+    border: 1px solid #fff;
+    padding: 15px;
+    border-radius: 50px;
+    opacity: 0.5;
+}
+
+.panel-stat .stat-label {
+    text-transform: uppercase;
+    font-size: 11px;
+    opacity: 0.75;
+    display: block;
+    line-height: normal;
+    margin-bottom: 2px;
+}
+
+.panel-stat h1 {
+    margin: 0;
+    line-height: 36px;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 38px;
+}
+
+.panel-stat h4 {
+    margin: 0;
+    font-family: 'Helvetica Neue', sans-serif;
+}
+.contentpanel {
+    padding: 20px;
+    position: relative;
+}
+
+.contentpanel::after {
+    clear: both;
+    display: block;
+    content: '';
+}
+.panel-dark .panel-heading {
+   background-color: #1d2939;
+}
+.panel-primary .panel-heading,
+.panel-success .panel-heading,
+.panel-warning .panel-heading,
+.panel-danger .panel-heading,
+.panel-info .panel-heading {
+   border-bottom: 0;
+}
+
+.panel-success .panel-heading {
+   background-color: #1CAF9A;
+}
+
+.panel-warning .panel-heading {
+   background-color: #F0AD4E;
+}
+
+.panel-danger .panel-heading {
+   background-color: #D9534F;
+}
+
+.panel-info .panel-heading {
+   background-color: #5BC0DE;
+}
+
+.panel-dark .panel-heading {
+   background-color: #1d2939;
+}
+.panel-light .panel-heading {
+   background-color: #812fff;
+}
+.mainpanel {
+   /* margin-left: 240px;*/
+    background: #e4e7ea;
+  /*  min-height: 1000px;*/
+}
+.col-sm-6 {
+        width: 20%
+    }
+.container {
+    overflow: visible;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    left: 0;
+    -webkit-transition:  left 0.4s ease-in-out;
+    -moz-transition:  left 0.4s ease-in-out;
+    -ms-transition:  left 0.4s ease-in-out;
+    -o-transition:  left 0.4s ease-in-out;
+    transition:  left 0.4s ease-in-out;
+}
+
+.open-sidebar {
+	
+    left: 220px;
+}
+ 
+#sidebar {
+    
+    position: absolute;
+    left: -215px;
+    background-color: #DF314D;
+    width: 220px;
+    height: 100%;
+    
+}
+#sidebar ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+#sidebar ul li {
+    margin: 0;
+}
+#sidebar ul li a {
+    padding: 15px 20px;
+    font-size: 16px;
+    font-weight: 100;
+    color: white;
+    text-decoration: none;
+    display: block;
+    border-bottom: 1px solid #C9223D;
+    -webkit-transition:  background 0.3s ease-in-out;
+    -moz-transition:  background 0.3s ease-in-out;
+    -ms-transition:  background 0.3s ease-in-out;
+    -o-transition:  background 0.3s ease-in-out;
+    transition:  background 0.3s ease-in-out;
+}
+#sidebar ul li:hover a {
+    background-color: #C9223D;
+}
+.main-content {
+    width: 100%;
+    height: 100%;
+    padding: 5px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    position: relative;
+}
+.main-content .content{
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+padding-left: 60px;
+width: 100%;
+}
+.main-content .content h1{
+    font-weight: 100;
+}
+.main-content .content p{
+    width: 100%;
+    line-height: 160%;
+}
+.main-content #sidebar-toggle {
+    background: #DF314D;
+    border-radius: 3px;
+    display: block;
+    position: relative;
+    padding: 10px 7px;
+    float: left;
+}
+.main-content #sidebar-toggle .bar{
+     display: block;
+    width: 18px;
+    margin-bottom: 3px;
+    height: 2px;
+    background-color: #fff;
+    border-radius: 1px;   
+}
+.main-content #sidebar-toggle .bar:last-child{
+     margin-bottom: 0;   
+}
+.swipe-area {
+    position: absolute;
+    width: 50px;
+    left: 0;
+top: 0;
+    height: 100%;
+    background: #f3f3f3;
+    z-index: 0;
+}
+.w2ui-field input {
+    width: 90px;
+}
+.w2ui-field > div > span {
+    margin-left: 20px;
+}
