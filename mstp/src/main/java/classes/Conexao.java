@@ -32,20 +32,17 @@ public class Conexao
 	private PreparedStatement stmtBatchInsertAtributo;
 	
 	public Conexao() {
+		connection =null;
 		try	{
 			
-			Class.forName ("com.mysql.jdbc.Driver");
-			String databaseURL = "jdbc:mysql://node21665-inovareti.jelastic.saveincloud.net/mstpDB";
+			 Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			String databaseURL = "jdbc:mysql://node21665-inovareti.jelastic.saveincloud.net/mstpDB?user=mstpwebDB&password=Xmqxf9qdCXusVYsH";
 			//String databaseURL = "jdbc:mysql://localhost/mstpDB";
-			Connection c = DriverManager.getConnection(databaseURL , "mstpwebDB", "Xmqxf9qdCXusVYsH");
-			c.setAutoCommit(false);
-			this.connection=c;
+			connection = DriverManager.getConnection(databaseURL);
+			connection.setAutoCommit(false);
+			//this.connection=c;
 			} 
-			catch (ClassNotFoundException e) {
-				//Driver não encontrado
-				System.out.println("Classe não encontrada.");
-				e.printStackTrace(); 
-			}
+			
 			catch (SQLException e) {
 				//Não estã conseguindo se conectar ao banco 
 				System.out.println("Não foi possivel abrir a conexao. Motivo: "+e.getCause()+"-"+e.getErrorCode()+"-"+e.getMessage());
@@ -278,7 +275,7 @@ public class Conexao
 	public void fecharConexao()
 	{
 		try{
-			this.connection.close();
+			connection.close();
 			System.out.println("Conexao encerrada.");
 			
 		}
