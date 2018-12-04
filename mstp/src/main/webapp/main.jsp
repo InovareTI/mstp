@@ -132,6 +132,11 @@ response.setDateHeader ("Expires", -1);
     <script type="text/javascript" src="js/jqwidgets/jqxexpander.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxscheduler.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxscheduler.api.js"></script>
+     <script type="text/javascript" src="js/jqwidgets/jqxinput.js"></script>
+      <script type="text/javascript" src="js/jqwidgets/jqxdragdrop.js"></script>
+    <script type="text/javascript" src="js/jqwidgets/jqxpivot.js"></script>
+    <script type="text/javascript" src="js/jqwidgets/jqxpivotdesigner.js"></script>
+    <script type="text/javascript" src="js/jqwidgets/jqxpivotgrid.js"></script>
     <script type="text/javascript" src="js/jqwidgets/globalization/globalize.js"></script>
  
     
@@ -150,6 +155,7 @@ response.setDateHeader ("Expires", -1);
 	<script type="text/javascript" src="js/TemplateVistoria.js"></script>
 	<script type="text/javascript" src="js/scheduler.js"></script>
 	<script type="text/javascript" src="js/importacoes.js"></script>
+	<script type="text/javascript" src="js/pivot.js"></script>
 	<script src='https://api.mapbox.com/mapbox-gl-js/v0.47.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v0.47.0/mapbox-gl.css' rel='stylesheet' />
 	<style>
@@ -311,7 +317,11 @@ response.setDateHeader ("Expires", -1);
 										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_banco_hh')">Banco de Horas</a></li>
 										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_extra_hh')">Horas Extras</a></li>
 										<li><a class="icon icon-key" href="#" onclick="menu('mstp_mobile_report_diario');g5('category','grafico_container_mstp_mobile_report')">Registros MSTP Mobile</a></li>
-										<li><a class="icon icon-user" href="#">GAP</a></li>
+										<li class="icon icon-arrow-left">
+											<a class="icon icon-note" href="#">Rollout</a>
+											<div class="mp-level">
+												<h2 class="icon icon-settings">Relatórios rollout</h2>
+												<ul><li><a class="icon icon-key" href="#" onclick="menu('pivot_design_div')">Construcao de Pivot</a></li></ul></div></li>
 									</ul>
 								</div>
 							</li>
@@ -468,6 +478,27 @@ response.setDateHeader ("Expires", -1);
 						}
 						}
 						</script>
+					</div>
+					<div class="janelas" id="pivot_design_div" style="display:none;width:100%;height:100%;">
+					<div class="panel panel-default" style="width:90%;margin:0 auto">
+	        				<div class="panel-heading">Construcao de Pivot (limitado em 100 linhas)</div>
+		        				<div class="panel-body">
+		        				<div > 
+		        				<table>
+								        <tr>
+								            <td>
+								                <div id="divPivotGridDesigner" style="height: 400px; width: 250px;">
+								                </div>
+								            </td>
+								            <td>
+								                <div id="divPivotGrid" style="height: 400px; width: 550px;">
+								                </div>
+								            </td>
+								        </tr>
+								    </table>
+								    </div>
+		        				</div>
+	        		</div>
 					</div>
 					<div class="janelas" id="vistoria_campos" style="display:none;width:100%;height:100%;">
 					<div class="panel panel-default" style="width:90%;margin:0 auto">

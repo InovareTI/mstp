@@ -255,6 +255,10 @@ function menu(opt){
 	}else if(opt=="rollout" && geral.perfil.search("RolloutManager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
+	}else if(opt=="pivot_design_div" && geral.perfil.search("RolloutManager")>=0){
+		$(".janelas").hide();
+		document.getElementById(opt).style.display = "block";
+		init_pivot();
 	}else if(opt=="usuarios" && geral.perfil.search("Usuarios Manager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
