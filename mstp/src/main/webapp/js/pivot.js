@@ -4,7 +4,7 @@ function init_pivot(){
     $.getJSON('./RolloutServlet?opt=10', function(data) {	
     var source =
     {
-        localdata: data1,
+        localdata: data.records,
         datatype: "array",
         datafields:data.campos
     };

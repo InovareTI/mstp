@@ -1602,6 +1602,8 @@ public class RolloutServlet extends HttpServlet {
 					
 
 			}else if(opt.equals("10")) {
+				
+			String imagem_status="";
 				rs= conn.Consulta("select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" order by ordenacao");
     			
     			dados_tabela= dados_tabela+"{\n"+"\"campos\":[";
@@ -1671,7 +1673,45 @@ public class RolloutServlet extends HttpServlet {
     			}
     			dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
     			
-    			dados_tabela= dados_tabela+"\n"+"]}";
+    			dados_tabela= dados_tabela+"\n"+"],";
+    			
+    			dados_tabela= dados_tabela+"\n"+"\"records\":[";
+    			rs2= conn.Consulta("select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" order by recid,siteID,ordenacao limit "+(r.getCampos().get_campos_quantidade(conn, p))*100+" ");
+    			if(rs2.next()){
+    				String site_aux=rs2.getString("siteID");
+    				dados_tabela=dados_tabela+"\n{\"id\":"+rs2.getInt("recid")+",";
+    				rs2.beforeFirst();
+    				while(rs2.next() ){
+    					if (rs2.getString("siteID").equals(site_aux)){
+    						if(rs2.getString("tipo_campo").equals("Milestone")){
+    							if(rs2.getString("status_atividade").equals("Finalizada")) {
+    								imagem_status="Finalizada";
+    							}else if(rs2.getString("status_atividade").equals("parada")) {
+    								imagem_status="Parada";
+    							}else if(rs2.getString("status_atividade").equals("iniciada")) {
+    								imagem_status="Iniciada";
+    							}else {
+    								imagem_status="Nao Iniciada";
+    							}
+    							dados_tabela=dados_tabela+"\"sdate_"+rs2.getString(6)+"\":\""+rs2.getString("dt_inicio")+"\",\"edate_"+rs2.getString(6)+"\":\""+rs2.getString("dt_fim")+"\",\"sdate_pre_"+rs2.getString(6)+"\":\""+rs2.getString("dt_inicio_bl")+"\",\"edate_pre_"+rs2.getString(6)+"\":\""+rs2.getString("dt_fim_bl")+"\",\"udate_"+rs2.getString(6)+"\":\""+rs2.getString(21)+"\",\"resp_"+rs2.getString(6)+"\": \""+rs2.getString("responsavel")+"\",\"status_"+rs2.getString(6)+"\":\""+imagem_status+"\",";
+	    					}else{
+	    						dados_tabela=dados_tabela+"\""+rs2.getString(6)+"\":\""+rs2.getString(23)+"\",";
+	    					}
+    					}else{
+    						dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+    						dados_tabela=dados_tabela+"},";
+    						dados_tabela=dados_tabela+"\n{\"id\":"+rs2.getInt("recid")+",";
+    						site_aux=rs2.getString("siteID");
+    						rs2.previous();
+    					}
+    				}
+    			}else{
+    				dados_tabela="[]";
+    			}
+    				dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+    				dados_tabela= dados_tabela+"}";
+	    			dados_tabela= dados_tabela+"\n"+"]}";
+    			//System.out.println(dados_tabela);
     			resp.setContentType("application/json");  
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();

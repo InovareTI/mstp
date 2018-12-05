@@ -60,6 +60,23 @@ public class CamposRollout {
 	public void setCampo_data_tipo(String campo_data_tipo) {
 		this.campo_data_tipo = campo_data_tipo;
 	}
+	public int get_campos_quantidade(Conexao c, Pessoa p) {
+		
+		ResultSet rs;
+		rs=c.Consulta("select count(field_name) from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and field_status='ATIVO'");
+		try {
+			if(rs.next()) {
+				return rs.getInt(1);
+			}else {
+				return 0;
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return 0;
+		}
+	
+	}
 	
 	
 }
