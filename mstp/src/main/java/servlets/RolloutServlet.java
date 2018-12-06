@@ -1750,6 +1750,140 @@ public class RolloutServlet extends HttpServlet {
 		  		    PrintWriter out = resp.getWriter();
 				    out.print(dados_tabela);
 				}
+			}else if(opt.equals("13")) {
+				param1=req.getParameter("id");
+				
+				String imagem_status="";
+				rs= conn.Consulta("select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" order by ordenacao");
+    			
+    			dados_tabela= dados_tabela+"{\n"+"\"campos\":[";
+    			
+    			rs.beforeFirst();
+    			if(rs.next()){
+    				rs.beforeFirst();
+    				
+    				while(rs.next()){
+    					if(rs.getString("field_type").equals("Milestone")){
+    						dados_tabela=dados_tabela+"{ \"name\": \"sdate_pre_"+rs.getString("field_name")+"\", \"type\": \"date\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"name\": \"edate_pre_"+rs.getString("field_name")+"\", \"type\": \"date\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"name\": \"sdate_"+rs.getString("field_name")+"\", \"type\": \"date\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"name\": \"edate_"+rs.getString("field_name")+"\", \"type\": \"date\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"name\": \"udate_"+rs.getString("field_name")+"\", \"type\": \"string\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"name\": \"resp_"+rs.getString("field_name")+"\", \"type\": \"string\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"name\": \"status_"+rs.getString("field_name")+"\", \"type\": \"string\"},"+ "\n";
+    						
+    						}else{
+    						if(rs.getString("tipo").equals("Texto")){
+    							dados_tabela=dados_tabela+"{ \"name\": \""+rs.getString("field_name")+"\", \"type\": \"string\"},"+ "\n";
+    							
+    						}else if(rs.getString("tipo").equals("Data")){
+    							dados_tabela=dados_tabela+"{ \"name\": \""+rs.getString("field_name")+"\", \"type\": \"date\"},"+ "\n";	
+    							
+    						}else if(rs.getString("tipo").equals("Numero")){
+    							dados_tabela=dados_tabela+"{ \"name\": \""+rs.getString("field_name")+"\", \"type\": \"string\"},"+ "\n";
+    							
+    						}else if(rs.getString("tipo").equals("Lista")){
+    							dados_tabela=dados_tabela+"{ \"name\": \""+rs.getString("field_name")+"\", \"type\": \"string\"},"+ "\n";
+    							
+    						}
+    					}
+    				}
+    				dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+    				dados_tabela= dados_tabela+"\n"+"],";
+    				dados_tabela= dados_tabela+"\n"+"\"campos2\":[";
+    				rs.beforeFirst();
+    				while(rs.next()) {
+    					if(rs.getString("field_type").equals("Milestone")){
+    						dados_tabela=dados_tabela+"{ \"dataField\": \"sdate_pre_"+rs.getString("field_name")+"\", \"text\": \"InicioPlanejado_"+rs.getString("field_name")+"\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"dataField\": \"edate_pre_"+rs.getString("field_name")+"\", \"text\": \"FimPlanejado_"+rs.getString("field_name")+"\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"dataField\": \"sdate_"+rs.getString("field_name")+"\", \"text\": \"InicioReal_"+rs.getString("field_name")+"\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"dataField\": \"edate_"+rs.getString("field_name")+"\", \"text\": \"FimReal_"+rs.getString("field_name")+"\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"dataField\": \"udate_"+rs.getString("field_name")+"\", \"text\": \"Comentarios_"+rs.getString("field_name")+"\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"dataField\": \"resp_"+rs.getString("field_name")+"\", \"text\": \"Responsavel_"+rs.getString("field_name")+"\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"dataField\": \"status_"+rs.getString("field_name")+"\", \"text\": \"Status_"+rs.getString("field_name")+"\"},"+ "\n";
+    						
+    						}else{
+    						if(rs.getString("tipo").equals("Texto")){
+    							dados_tabela=dados_tabela+"{ \"dataField\": \""+rs.getString("field_name")+"\", \"text\": \""+rs.getString("field_name")+"\"},"+ "\n";
+    							
+    						}else if(rs.getString("tipo").equals("Data")){
+    							dados_tabela=dados_tabela+"{ \"dataField\": \""+rs.getString("field_name")+"\", \"text\": \""+rs.getString("field_name")+"\"},"+ "\n";	
+    							
+    						}else if(rs.getString("tipo").equals("Numero")){
+    							dados_tabela=dados_tabela+"{ \"dataField\": \""+rs.getString("field_name")+"\", \"text\": \""+rs.getString("field_name")+"\"},"+ "\n";
+    							
+    						}else if(rs.getString("tipo").equals("Lista")){
+    							dados_tabela=dados_tabela+"{ \"dataField\": \""+rs.getString("field_name")+"\", \"text\": \""+rs.getString("field_name")+"\"},"+ "\n";
+    							
+    						}
+    					}
+    				}
+    			}else{
+    				dados_tabela="[]";
+    			}
+    			dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+    			
+    			dados_tabela= dados_tabela+"\n"+"],";
+    			
+    			dados_tabela= dados_tabela+"\n"+"\"records\":[";
+    			rs2= conn.Consulta("select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" order by recid,siteID,ordenacao");
+    			if(rs2.next()){
+    				String site_aux=rs2.getString("siteID");
+    				dados_tabela=dados_tabela+"\n{\"id\":"+rs2.getInt("recid")+",";
+    				rs2.beforeFirst();
+    				while(rs2.next() ){
+    					if (rs2.getString("siteID").equals(site_aux)){
+    						if(rs2.getString("tipo_campo").equals("Milestone")){
+    							if(rs2.getString("status_atividade").equals("Finalizada")) {
+    								imagem_status="Finalizada";
+    							}else if(rs2.getString("status_atividade").equals("parada")) {
+    								imagem_status="Parada";
+    							}else if(rs2.getString("status_atividade").equals("iniciada")) {
+    								imagem_status="Iniciada";
+    							}else {
+    								imagem_status="Nao Iniciada";
+    							}
+    							dados_tabela=dados_tabela+"\"sdate_"+rs2.getString(6)+"\":\""+rs2.getString("dt_inicio")+"\",\"edate_"+rs2.getString(6)+"\":\""+rs2.getString("dt_fim")+"\",\"sdate_pre_"+rs2.getString(6)+"\":\""+rs2.getString("dt_inicio_bl")+"\",\"edate_pre_"+rs2.getString(6)+"\":\""+rs2.getString("dt_fim_bl")+"\",\"udate_"+rs2.getString(6)+"\":\""+rs2.getString(21)+"\",\"resp_"+rs2.getString(6)+"\": \""+rs2.getString("responsavel")+"\",\"status_"+rs2.getString(6)+"\":\""+imagem_status+"\",";
+	    					}else{
+	    						dados_tabela=dados_tabela+"\""+rs2.getString(6)+"\":\""+rs2.getString(23)+"\",";
+	    					}
+    					}else{
+    						dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+    						dados_tabela=dados_tabela+"},";
+    						dados_tabela=dados_tabela+"\n{\"id\":"+rs2.getInt("recid")+",";
+    						site_aux=rs2.getString("siteID");
+    						rs2.previous();
+    					}
+    				}
+    			}else{
+    				dados_tabela="[]";
+    			}
+    				dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+    				dados_tabela= dados_tabela+"}";
+	    			dados_tabela= dados_tabela+"\n"+"],";
+	    			query="select * from pivot_table where id_pivot="+param1; 
+	    			rs=conn.Consulta(query);
+	    			if(rs.next()) {
+	    				JSONObject jObj = new JSONObject(rs.getString("pivot_source"));
+	    				dados_tabela= dados_tabela+"\n \"rows\":";
+	    				dados_tabela= dados_tabela+jObj.get("rows").toString();
+	    				dados_tabela= dados_tabela+"," ;
+	    				dados_tabela= dados_tabela+"\n \"columns\":";
+	    				dados_tabela= dados_tabela+jObj.get("columns").toString();
+	    				dados_tabela= dados_tabela+"," ;
+	    				dados_tabela= dados_tabela+"\n \"values\":";
+	    				dados_tabela= dados_tabela+jObj.get("values").toString();
+	    				dados_tabela= dados_tabela+"," ;
+	    				dados_tabela= dados_tabela+"\n \"filters\":";
+	    				dados_tabela= dados_tabela+jObj.get("filters").toString();
+	    				dados_tabela= dados_tabela+"}" ;
+	    			}
+    			System.out.println(dados_tabela);
+    			resp.setContentType("application/json");  
+	  		    resp.setCharacterEncoding("UTF-8"); 
+	  		    PrintWriter out = resp.getWriter();
+			    out.print(dados_tabela);
+				 
 			}
 		}catch (SQLException e) {
 			conn.fecharConexao();
