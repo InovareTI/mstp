@@ -1717,6 +1717,39 @@ public class RolloutServlet extends HttpServlet {
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
     			
+			}else if(opt.equals("11")) {
+				param1=req.getParameter("pivot");
+				param2=req.getParameter("nome");
+				//System.out.println(param1);
+				//System.out.println(param2);
+				query="";
+				query="insert into pivot_table(name_pivot,dt_add,ativo,user_add,empresa,pivot_source) values ('"+param2+"','"+time+"','Y','"+p.get_PessoaUsuario()+"',"+p.getEmpresa().getEmpresa_id()+",'"+param1+"')";
+				if(conn.Inserir_simples(query)) {
+					resp.setContentType("application/html");  
+		  		    resp.setCharacterEncoding("UTF-8"); 
+		  		    PrintWriter out = resp.getWriter();
+				    out.print("Relatório Salvo com sucesso.");
+				}else {
+					resp.setContentType("application/html");  
+		  		    resp.setCharacterEncoding("UTF-8"); 
+		  		    PrintWriter out = resp.getWriter();
+				    out.print("Erro no salvamento do relatório");
+				}
+			}else if(opt.equals("12")) {
+				query="";
+				dados_tabela="";
+				query="select * from pivot_table where ativo='Y' and empresa="+p.getEmpresa().getEmpresa_id();
+				rs=conn.Consulta(query);
+				if(rs.next()) {
+					rs.beforeFirst();
+					while(rs.next()) {
+						dados_tabela=dados_tabela+"<option value='"+rs.getInt(1)+"'>"+rs.getString("name_pivot")+"</option>";
+					}
+					resp.setContentType("application/html");  
+		  		    resp.setCharacterEncoding("UTF-8"); 
+		  		    PrintWriter out = resp.getWriter();
+				    out.print(dados_tabela);
+				}
 			}
 		}catch (SQLException e) {
 			conn.fecharConexao();

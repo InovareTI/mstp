@@ -321,7 +321,10 @@ response.setDateHeader ("Expires", -1);
 											<a class="icon icon-note" href="#">Rollout</a>
 											<div class="mp-level">
 												<h2 class="icon icon-settings">Relatórios rollout</h2>
-												<ul><li><a class="icon icon-key" href="#" onclick="menu('pivot_design_div')">Construcao de Pivot</a></li></ul></div></li>
+												<ul>
+													<li><a class="icon icon-key" href="#" onclick="menu('pivot_design_div')">Construcao de Pivot</a></li>
+													<li><a class="icon icon-key" href="#" onclick="menu('pivot_view_div')">Pivots</a></li>
+												</ul></div></li>
 									</ul>
 								</div>
 							</li>
@@ -479,19 +482,43 @@ response.setDateHeader ("Expires", -1);
 						}
 						</script>
 					</div>
+					<div class="janelas" id="pivot_view_div" style="display:none;width:100%;height:100%;">
+					<div class="panel panel-default" style="width:90%;margin:0 auto">
+	        				<div class="panel-heading">PIvots de rollout</div>
+		        				<div class="panel-body">
+		        				<div><select id="select_pivot_view" class="selectpicker" data-live-search="true" title="Escolha sua Pivot" onchange="carrega_pivot(this.value)">
+		        			
+		        			</select></div>
+		        				<hr>
+		        				<div > 
+		        				<table>
+								        <tr>
+								            
+								            <td>
+								                <div id="divPivotGridView" style="height: 700px; width: 850px;">
+								                </div>
+								            </td>
+								        </tr>
+								    </table>
+								    </div>
+		        				</div>
+	        		</div>
+					</div>
 					<div class="janelas" id="pivot_design_div" style="display:none;width:100%;height:100%;">
 					<div class="panel panel-default" style="width:90%;margin:0 auto">
-	        				<div class="panel-heading">Construcao de Pivot (limitado em 100 linhas)</div>
+	        				<div class="panel-heading">Construção de Pivot (limitado em 100 linhas do rollout)</div>
 		        				<div class="panel-body">
+		        				<div><button class="btn btn-primary" onclick="salvar_pivot()">Salvar Pivot</button><input type="text" class="form-control" id="report_pivot_nome" placeholder="Informe o nome do relatório" style="width:400px;display: inline;"></div>
+		        				<hr>
 		        				<div > 
 		        				<table>
 								        <tr>
 								            <td>
-								                <div id="divPivotGridDesigner" style="height: 400px; width: 250px;">
+								                <div id="divPivotGridDesigner" style="height: 700px; width: 350px;">
 								                </div>
 								            </td>
 								            <td>
-								                <div id="divPivotGrid" style="height: 400px; width: 550px;">
+								                <div id="divPivotGrid" style="height: 700px; width: 850px;">
 								                </div>
 								            </td>
 								        </tr>
