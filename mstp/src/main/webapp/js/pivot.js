@@ -65,8 +65,9 @@ function salvar_pivot(){
 		$.alert("Nome do report é Obrigatório");
 		return;
 	}
+	var myPivotGridInstance2 = $('#divPivotGrid').jqxPivotGrid('getInstance');
 	var myPivotGridInstance = $('#divPivotGrid').jqxPivotGrid('getInstance').source._pivot;
-	//console.log(myPivotGridInstance);
+	console.log(myPivotGridInstance2);
 	$.ajax({
 		  type: "POST",
 		  data: {"opt":"11",
