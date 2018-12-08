@@ -619,7 +619,7 @@ function carrega_gant(){
 	}
 		
 function registra_mudança_campos(index,campo,valor,tipo){
-	
+	//alert(tipo);
 	if(campo=="check_linha"){
 		$("#jqxgrid").jqxGrid('selectrow', index);
 		aux=deletar.indexOf($("#jqxgrid").jqxGrid('getrowid', index));
