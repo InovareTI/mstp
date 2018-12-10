@@ -1,45 +1,22 @@
+var myPivot_design;
 function init_pivot(){
 	var data1 = new Array();
 	 var localization = getLocalization('pt-BR');
-    $.getJSON('./RolloutServlet?opt=10', function(data) {	
-    var source =
-    {
-        localdata: data.records,
-        datatype: "array",
-        datafields:data.campos
-    };
-    var dataAdapter = new $.jqx.dataAdapter(source);
-    dataAdapter.dataBind();
-    // create a pivot data source from the dataAdapter
-    var pivotDataSource = new $.jqx.pivot(
-        dataAdapter,
-        {
-            
-            pivotValuesOnRows: false,
-            totals: {rows: {subtotals: true, grandtotals: true}, columns: {subtotals: false, grandtotals: true}},
-            fields: data.campos2,
-            rows: [],
-            columns: [],
-            filters: [],
-            values: []
-        });
-    //var localization = { 'var': 'Variance' };
-    // create a pivot grid
-    $('#divPivotGrid').jqxPivotGrid(
-    {
-        localization: localization,
-        source: pivotDataSource,
-        treeStyleRows: true,
-        autoResize: false,
-        multipleSelectionEnabled: true
+    $.getJSON('./RolloutServlet?opt=10', function(data) {
+    	myPivot_design = new dhx.Pivot("divPivotGrid", {
+    	    data: data.records,                 
+    	    fields: {
+    	        rows: [],
+    	        columns: [],
+    	        values: [],
+    	    },
+    	    fieldList: data.campos2
+    	});
     });
-    var pivotGridInstance = $('#divPivotGrid').jqxPivotGrid('getInstance');
-    // create a pivot grid
-    $('#divPivotGridDesigner').jqxPivotDesigner(
-    {
-        type: 'pivotGrid',
-        target: pivotGridInstance
-    });
+    $button = $('#salvar_pivot_btn');
+    $button.click(function () {
+    	var fields = myPivot_design.getFields();
+    	console.log(fields);
     });
 }
 function salvar_pivot(){
@@ -50,6 +27,7 @@ function salvar_pivot(){
 		return;
 	}""
 	var myPivotGridInstance2="";
+	
 	var tamanho_filtros=$('#divPivotGrid').jqxPivotGrid('getInstance').source.filters.length;
 	//console.log("tamanho:"+tamanho_filtros);
 	for(var i=0;i<tamanho_filtros;i++){

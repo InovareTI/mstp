@@ -139,7 +139,8 @@ response.setDateHeader ("Expires", -1);
     <script type="text/javascript" src="js/jqwidgets/jqxpivotgrid.js"></script>
     <script type="text/javascript" src="js/jqwidgets/globalization/globalize.js"></script>
     <script type="text/javascript" src="js/jqwidgets/localization.js"></script>
- 
+    <link rel="stylesheet" type="text/css" href="js/dhtmlx/pivot.css" />
+  <script type="text/javascript" src="js/dhtmlx/pivot.js"></script>
     
 	<script type="text/javascript" src="js/starter.js"></script>
 	<script type="text/javascript" src="js/portal.js"></script>
@@ -509,17 +510,14 @@ response.setDateHeader ("Expires", -1);
 					<div class="panel panel-default" style="width:90%;margin:0 auto">
 	        				<div class="panel-heading">Construção de Pivot (limitado em 100 linhas do rollout)</div>
 		        				<div class="panel-body">
-		        				<div><button class="btn btn-primary" onclick="salvar_pivot()">Salvar Pivot</button><input type="text" class="form-control" id="report_pivot_nome" placeholder="Informe o nome do relatório" style="width:400px;display: inline;"></div>
+		        				<div><button class="btn btn-primary" id="salvar_pivot_btn">Salvar Pivot</button><input type="text" class="form-control" id="report_pivot_nome" placeholder="Informe o nome do relatório" style="width:400px;display: inline;"></div>
 		        				<hr>
 		        				<div > 
 		        				<table>
 								        <tr>
+								            
 								            <td>
-								                <div id="divPivotGridDesigner" style="height: 700px; width: 350px;">
-								                </div>
-								            </td>
-								            <td>
-								                <div id="divPivotGrid" style="height: 700px; width: 850px;">
+								                <div id="divPivotGrid" style="height: 700px; width: 100%;">
 								                </div>
 								            </td>
 								        </tr>
