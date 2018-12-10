@@ -138,6 +138,7 @@ response.setDateHeader ("Expires", -1);
     <script type="text/javascript" src="js/jqwidgets/jqxpivotdesigner.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxpivotgrid.js"></script>
     <script type="text/javascript" src="js/jqwidgets/globalization/globalize.js"></script>
+    <script type="text/javascript" src="js/jqwidgets/localization.js"></script>
  
     
 	<script type="text/javascript" src="js/starter.js"></script>

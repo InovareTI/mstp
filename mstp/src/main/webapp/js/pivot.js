@@ -1,6 +1,6 @@
 function init_pivot(){
 	var data1 = new Array();
-    
+	 var localization = getLocalization('pt-BR');
     $.getJSON('./RolloutServlet?opt=10', function(data) {	
     var source =
     {
@@ -14,38 +14,22 @@ function init_pivot(){
     var pivotDataSource = new $.jqx.pivot(
         dataAdapter,
         {
-            customAggregationFunctions: {
-                'var': function (values) {
-                    if (values.length <= 1)
-                        return 0;
-                    // sample's mean
-                    var mean = 0;
-                    for (var i = 0; i < values.length; i++)
-                        mean += values[i];
-                    mean /= values.length;
-                    // calc squared sum
-                    var ssum = 0;
-                    for (var i = 0; i < values.length; i++)
-                        ssum += Math.pow(values[i] - mean, 2)
-                    // calc the variance
-                    var variance = ssum / values.length;
-                    return variance;
-                }
-            },
+            
             pivotValuesOnRows: false,
+            totals: {rows: {subtotals: true, grandtotals: true}, columns: {subtotals: false, grandtotals: true}},
             fields: data.campos2,
             rows: [],
             columns: [],
             filters: [],
             values: []
         });
-    var localization = { 'var': 'Variance' };
+    //var localization = { 'var': 'Variance' };
     // create a pivot grid
     $('#divPivotGrid').jqxPivotGrid(
     {
         localization: localization,
         source: pivotDataSource,
-        treeStyleRows: false,
+        treeStyleRows: true,
         autoResize: false,
         multipleSelectionEnabled: true
     });
@@ -64,14 +48,20 @@ function salvar_pivot(){
 	if(nome==""){
 		$.alert("Nome do report é Obrigatório");
 		return;
+	}""
+	var myPivotGridInstance2="";
+	var tamanho_filtros=$('#divPivotGrid').jqxPivotGrid('getInstance').source.filters.length;
+	//console.log("tamanho:"+tamanho_filtros);
+	for(var i=0;i<tamanho_filtros;i++){
+		myPivotGridInstance2 = myPivotGridInstance2 + i +" : " + $('#divPivotGrid').jqxPivotGrid('getInstance').source.filters[i].filterFunction.toString();
 	}
-	var myPivotGridInstance2 = $('#divPivotGrid').jqxPivotGrid('getInstance').source.filters[0].filterFunction;
 	var myPivotGridInstance = $('#divPivotGrid').jqxPivotGrid('getInstance').source._pivot;
-	console.log(myPivotGridInstance2);
+	//console.log(myPivotGridInstance2);
 	$.ajax({
 		  type: "POST",
 		  data: {"opt":"11",
 			  "pivot":JSON.stringify(myPivotGridInstance),
+			  "filtros":JSON.stringify(myPivotGridInstance2),
 			  "nome":nome
 			 },		  
 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
@@ -152,4 +142,6 @@ function carrega_pivot(id){
 		    	    });
 		    
 	  });
+	  $('#divPivotGridView').jqxPivotGrid('getPivotRows').items[0].setHeight(100);
+      $('#divPivotGridView').jqxPivotGrid('refresh');
 }
