@@ -1798,26 +1798,26 @@ public class RolloutServlet extends HttpServlet {
     				rs.beforeFirst();
     				while(rs.next()) {
     					if(rs.getString("field_type").equals("Milestone")){
-    						dados_tabela=dados_tabela+"{ \"dataField\": \"sdate_pre_"+rs.getString("field_name")+"\", \"text\": \"InicioPlanejado_"+rs.getString("field_name")+"\"},"+ "\n";
-    						dados_tabela=dados_tabela+"{ \"dataField\": \"edate_pre_"+rs.getString("field_name")+"\", \"text\": \"FimPlanejado_"+rs.getString("field_name")+"\"},"+ "\n";
-    						dados_tabela=dados_tabela+"{ \"dataField\": \"sdate_"+rs.getString("field_name")+"\", \"text\": \"InicioReal_"+rs.getString("field_name")+"\"},"+ "\n";
-    						dados_tabela=dados_tabela+"{ \"dataField\": \"edate_"+rs.getString("field_name")+"\", \"text\": \"FimReal_"+rs.getString("field_name")+"\"},"+ "\n";
-    						dados_tabela=dados_tabela+"{ \"dataField\": \"udate_"+rs.getString("field_name")+"\", \"text\": \"Comentarios_"+rs.getString("field_name")+"\"},"+ "\n";
-    						dados_tabela=dados_tabela+"{ \"dataField\": \"resp_"+rs.getString("field_name")+"\", \"text\": \"Responsavel_"+rs.getString("field_name")+"\"},"+ "\n";
-    						dados_tabela=dados_tabela+"{ \"dataField\": \"status_"+rs.getString("field_name")+"\", \"text\": \"Status_"+rs.getString("field_name")+"\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"id\": \"sdate_pre_"+rs.getString("field_name")+"\", \"label\": \"InicioPlanejado_"+rs.getString("field_name")+"\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"id\": \"edate_pre_"+rs.getString("field_name")+"\", \"label\": \"FimPlanejado_"+rs.getString("field_name")+"\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"id\": \"sdate_"+rs.getString("field_name")+"\", \"label\": \"InicioReal_"+rs.getString("field_name")+"\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"id\": \"edate_"+rs.getString("field_name")+"\", \"label\": \"FimReal_"+rs.getString("field_name")+"\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"id\": \"udate_"+rs.getString("field_name")+"\", \"label\": \"Comentarios_"+rs.getString("field_name")+"\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"id\": \"resp_"+rs.getString("field_name")+"\", \"label\": \"Responsavel_"+rs.getString("field_name")+"\"},"+ "\n";
+    						dados_tabela=dados_tabela+"{ \"id\": \"status_"+rs.getString("field_name")+"\", \"label\": \"Status_"+rs.getString("field_name")+"\"},"+ "\n";
     						
     						}else{
     						if(rs.getString("tipo").equals("Texto")){
-    							dados_tabela=dados_tabela+"{ \"dataField\": \""+rs.getString("field_name")+"\", \"text\": \""+rs.getString("field_name")+"\"},"+ "\n";
+    							dados_tabela=dados_tabela+"{ \"id\": \""+rs.getString("field_name")+"\", \"label\": \""+rs.getString("field_name")+"\"},"+ "\n";
     							
     						}else if(rs.getString("tipo").equals("Data")){
-    							dados_tabela=dados_tabela+"{ \"dataField\": \""+rs.getString("field_name")+"\", \"text\": \""+rs.getString("field_name")+"\"},"+ "\n";	
+    							dados_tabela=dados_tabela+"{ \"id\": \""+rs.getString("field_name")+"\", \"label\": \""+rs.getString("field_name")+"\"},"+ "\n";	
     							
     						}else if(rs.getString("tipo").equals("Numero")){
-    							dados_tabela=dados_tabela+"{ \"dataField\": \""+rs.getString("field_name")+"\", \"text\": \""+rs.getString("field_name")+"\"},"+ "\n";
+    							dados_tabela=dados_tabela+"{ \"id\": \""+rs.getString("field_name")+"\", \"label\": \""+rs.getString("field_name")+"\"},"+ "\n";
     							
     						}else if(rs.getString("tipo").equals("Lista")){
-    							dados_tabela=dados_tabela+"{ \"dataField\": \""+rs.getString("field_name")+"\", \"text\": \""+rs.getString("field_name")+"\"},"+ "\n";
+    							dados_tabela=dados_tabela+"{ \"id\": \""+rs.getString("field_name")+"\", \"label\": \""+rs.getString("field_name")+"\"},"+ "\n";
     							
     						}
     					}
@@ -1830,11 +1830,11 @@ public class RolloutServlet extends HttpServlet {
     			dados_tabela= dados_tabela+"\n"+"],";
     			
     			dados_tabela= dados_tabela+"\n"+"\"records\":[";
-    			query="select * from pivot_table where id_pivot="+param1;
-    			rs=conn.Consulta(query);
-    			if(rs.next()) {
+    			//query="select * from pivot_table where id_pivot="+param1;
+    			//rs=conn.Consulta(query);
+    			//if(rs.next()) {
     				
-    				int posicao_inicio=0;
+    				/*int posicao_inicio=0;
     				int posicao_fim=0;
     				int filtro_posicao=0;
     				int filtro_posicao_final=0;
@@ -1923,7 +1923,7 @@ public class RolloutServlet extends HttpServlet {
     				filtro_posicao=filtro_posicao+1;
     				query="select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" and "+campo_nome+" not in ("+valor_filtros_aux+")"+recid_aux;
     				}
-    			}
+    			}*/
     			rs2= conn.Consulta("select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+recid_aux+" order by recid,siteID,ordenacao");
     			if(rs2.next()){
     				String site_aux=rs2.getString("siteID");
@@ -1971,12 +1971,10 @@ public class RolloutServlet extends HttpServlet {
 	    				dados_tabela= dados_tabela+"," ;
 	    				dados_tabela= dados_tabela+"\n \"values\":";
 	    				dados_tabela= dados_tabela+jObj.get("values").toString();
-	    				dados_tabela= dados_tabela+"," ;
-	    				dados_tabela= dados_tabela+"\n \"filters\":";
-	    				dados_tabela= dados_tabela+jObj.get("filters").toString();
+	    				
 	    				dados_tabela= dados_tabela+"}" ;
 	    			}
-    			//System.out.println(dados_tabela);
+    			System.out.println(dados_tabela);
     			resp.setContentType("application/json");  
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
