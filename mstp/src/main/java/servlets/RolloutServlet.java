@@ -1755,6 +1755,7 @@ public class RolloutServlet extends HttpServlet {
 				    out.print(dados_tabela);
 				}
 			}else if(opt.equals("13")) {
+				System.out.println("Carregando pivot 1");
 				param1=req.getParameter("id");
 				String recid_aux="";
 				String imagem_status="";
@@ -1794,6 +1795,7 @@ public class RolloutServlet extends HttpServlet {
     				}
     				dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
     				dados_tabela= dados_tabela+"\n"+"],";
+    				System.out.println("Campos 1 definido");
     				dados_tabela= dados_tabela+"\n"+"\"campos2\":[";
     				rs.beforeFirst();
     				while(rs.next()) {
@@ -1828,7 +1830,7 @@ public class RolloutServlet extends HttpServlet {
     			dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
     			
     			dados_tabela= dados_tabela+"\n"+"],";
-    			
+    			System.out.println("Campos 2 definido");
     			dados_tabela= dados_tabela+"\n"+"\"records\":[";
     			//query="select * from pivot_table where id_pivot="+param1;
     			//rs=conn.Consulta(query);
@@ -1924,32 +1926,37 @@ public class RolloutServlet extends HttpServlet {
     				query="select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" and "+campo_nome+" not in ("+valor_filtros_aux+")"+recid_aux;
     				}
     			}*/
-    			rs2= conn.Consulta("select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+recid_aux+" order by recid,siteID,ordenacao");
+    			time = new Timestamp(System.currentTimeMillis());
+    			System.out.println("iniciando consulta no rollout:"+f3.format(time));
+    			rs2= conn.Consulta("select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+recid_aux+" order by recid,siteID,ordenacao limit "+(r.getCampos().get_campos_quantidade(conn, p))*3000+" ");
     			if(rs2.next()){
+    				time = new Timestamp(System.currentTimeMillis());
+    				System.out.println("Consulta finalizada no rollout:"+f3.format(time));
     				String site_aux=rs2.getString("siteID");
     				dados_tabela=dados_tabela+"\n{\"id\":"+rs2.getInt("recid")+",";
     				rs2.beforeFirst();
     				while(rs2.next() ){
-    					if (rs2.getString("siteID").equals(site_aux)){
-    						if(rs2.getString("tipo_campo").equals("Milestone")){
-    							if(rs2.getString("status_atividade").equals("Finalizada")) {
+    					if (rs2.getString(3).equals(site_aux)){
+    						if(rs2.getString(22).equals("Milestone")){
+    							imagem_status=rs2.getString(30);
+    							if(imagem_status.equals("Finalizada")) {
     								imagem_status="Finalizada";
-    							}else if(rs2.getString("status_atividade").equals("parada")) {
+    							}else if(imagem_status.equals("parada")) {
     								imagem_status="Parada";
-    							}else if(rs2.getString("status_atividade").equals("iniciada")) {
+    							}else if(imagem_status.equals("iniciada")) {
     								imagem_status="Iniciada";
     							}else {
     								imagem_status="Nao Iniciada";
     							}
-    							dados_tabela=dados_tabela+"\"sdate_"+rs2.getString(6)+"\":\""+rs2.getString("dt_inicio")+"\",\"edate_"+rs2.getString(6)+"\":\""+rs2.getString("dt_fim")+"\",\"sdate_pre_"+rs2.getString(6)+"\":\""+rs2.getString("dt_inicio_bl")+"\",\"edate_pre_"+rs2.getString(6)+"\":\""+rs2.getString("dt_fim_bl")+"\",\"udate_"+rs2.getString(6)+"\":\""+rs2.getString(21)+"\",\"resp_"+rs2.getString(6)+"\": \""+rs2.getString("responsavel")+"\",\"status_"+rs2.getString(6)+"\":\""+imagem_status+"\",";
+    							dados_tabela=dados_tabela+"\"sdate_"+rs2.getString(6)+"\":\""+rs2.getString(7)+"\",\"edate_"+rs2.getString(6)+"\":\""+rs2.getString(8)+"\",\"sdate_pre_"+rs2.getString(6)+"\":\""+rs2.getString(11)+"\",\"edate_pre_"+rs2.getString(6)+"\":\""+rs2.getString(12)+"\",\"udate_"+rs2.getString(6)+"\":\""+rs2.getString(21)+"\",\"resp_"+rs2.getString(6)+"\": \""+rs2.getString(10)+"\",\"status_"+rs2.getString(6)+"\":\""+imagem_status+"\",";
 	    					}else{
 	    						dados_tabela=dados_tabela+"\""+rs2.getString(6)+"\":\""+rs2.getString(23)+"\",";
 	    					}
     					}else{
     						dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
     						dados_tabela=dados_tabela+"},";
-    						dados_tabela=dados_tabela+"\n{\"id\":"+rs2.getInt("recid")+",";
-    						site_aux=rs2.getString("siteID");
+    						dados_tabela=dados_tabela+"\n{\"id\":"+rs2.getInt(2)+",";
+    						site_aux=rs2.getString(3);
     						rs2.previous();
     					}
     				}
@@ -1959,6 +1966,9 @@ public class RolloutServlet extends HttpServlet {
     				dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
     				dados_tabela= dados_tabela+"}";
 	    			dados_tabela= dados_tabela+"\n"+"],";
+	    			time = new Timestamp(System.currentTimeMillis());
+    				System.out.println("MOntagem de linhas da pivot finalizada:"+f3.format(time));
+	    			System.out.println("records definido");
 	    			query="select * from pivot_table where id_pivot="+param1; 
 	    			rs=conn.Consulta(query);
 	    			if(rs.next()) {
@@ -1974,7 +1984,7 @@ public class RolloutServlet extends HttpServlet {
 	    				
 	    				dados_tabela= dados_tabela+"}" ;
 	    			}
-    			System.out.println(dados_tabela);
+    			//System.out.println(dados_tabela);
     			resp.setContentType("application/json");  
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();

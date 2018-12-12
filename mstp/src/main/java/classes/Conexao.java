@@ -293,7 +293,7 @@ public class Conexao
 	    
 	    try{
 	    	ResultSet rs_funcao;
-	        Statement stm = this.connection.createStatement(); 
+	        Statement stm = this.connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY); 
 	        
 	        rs_funcao = stm.executeQuery(query);
 	        //System.out.println("Estou aqui3");
