@@ -13,6 +13,7 @@ import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -51,11 +52,13 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.bson.Document;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import classes.Conexao;
+import classes.ConexaoMongo;
 import classes.Pessoa;
 import classes.Rollout;
 import classes.Semail;
@@ -1990,6 +1993,50 @@ public class RolloutServlet extends HttpServlet {
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
 				 
+			}else if(opt.equals("14")) {
+				System.out.println("iniciando sincronia de rollout com MongoDB");
+				String imagem_status="";
+				ConexaoMongo c = new ConexaoMongo();
+				Document document;
+				Document milestone = new Document();
+				Document atividade = new Document();
+				List<Document> lista_atividade = new ArrayList<Document>();
+				rs2= conn.Consulta("select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" order by recid,siteID,ordenacao");
+    			if(rs2.next()){
+    				time = new Timestamp(System.currentTimeMillis());
+    				System.out.println("Consulta finalizada no rollout:"+f3.format(time));
+    				String site_aux=rs2.getString("siteID");
+    				document = new Document("recid", rs2.getInt("recid"));
+    				
+    				rs2.beforeFirst();
+    				while(rs2.next() ){
+    					if (rs2.getString(3).equals(site_aux)){
+    						if(rs2.getString(22).equals("Milestone")){
+    							imagem_status=rs2.getString(30);
+    							atividade=new Document("Milestone", rs2.getString(6))
+    									.append("sdate_"+rs2.getString(6), rs2.getString(7))
+    									.append("edate_"+rs2.getString(6), rs2.getString(8))
+    									.append("sdate_pre_"+rs2.getString(6), rs2.getString(11))
+    									.append("edate_pre_"+rs2.getString(6), rs2.getString(12))
+    									.append("udate_"+rs2.getString(6), rs2.getString(21))
+    									.append("resp_"+rs2.getString(6), rs2.getString(10))
+    									.append("status_"+rs2.getString(6), imagem_status);
+    							lista_atividade.add(atividade);
+    						}else{
+    							document.append(rs2.getString(6), rs2.getString(23));
+	    						
+	    					}
+    					}else{
+    						document.append("Milestone", lista_atividade);
+    						c.InserirSimpels("rollout", document);
+    						milestone = new Document();
+    						lista_atividade.clear();
+    						document = new Document("recid", rs2.getInt("recid"));
+    						site_aux=rs2.getString(3);
+    						rs2.previous();
+    					}
+    				}
+			}
 			}
 		}catch (SQLException e) {
 			conn.fecharConexao();

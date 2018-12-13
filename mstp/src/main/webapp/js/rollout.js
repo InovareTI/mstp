@@ -412,6 +412,7 @@ function carrega_gant(){
 	                    syncButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Sync</a>");
 	                    downloadButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Exportar</a>");
 	                    uploadButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_upload_rollout\">Importar</a>");
+	                    syncMongoButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href=\"#\" >Sync TO Mongo</a>");
 	                    container.append(save_button);
 	                    container.append(addButton);
 	                    container.append(batchButton);
@@ -420,6 +421,7 @@ function carrega_gant(){
 	                    container.append(uploadButton);
 	                    container.append(syncButton);
 	                    container.append(deleteButton);
+	                    container.append(syncMongoButton);
 	                    toolbar.append(container);
 	                    save_button.jqxButton();
 	                    batchButton.jqxButton();
@@ -428,7 +430,22 @@ function carrega_gant(){
 	                    downloadButton.jqxButton();
 	                    uploadButton.jqxButton();
 	                    syncButton.jqxButton();
+	                    syncMongoButton.jqxButton();
 	                    deleteButton.jqxButton({template: "danger"});
+	                    syncMongoButton.click(function (event) {
+	                    	$.ajax({
+	                   		  type: "POST",
+	                   		  data: {"opt":"14"
+	                   			
+	                   			},		  
+	                   		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+	                   		  url: "./RolloutServlet",
+	                   		  cache: false,
+	                   		  dataType: "text"
+	                   		  
+	                   		});
+	                    	
+	                    });
 	                    downloadButton.click(function(event){
 	                    	filtros={"filtros":[]};
 	                    	var rows = $('#jqxgrid').jqxGrid('getdisplayrows');

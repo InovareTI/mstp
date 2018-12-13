@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import classes.Conexao;
+import classes.ConexaoMongo;
 import classes.Pessoa;
 
 /**
@@ -61,8 +62,8 @@ public void run_login(HttpServletRequest req, HttpServletResponse resp) throws S
 		
 		Conexao con = new Conexao();
 		//System.out.println("conexao com bd ok");
-		
-        
+		ConexaoMongo c = new ConexaoMongo();
+        c.fecharConexao();
         MessageDigest md;
         ResultSet rs ;
         
