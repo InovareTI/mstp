@@ -1867,6 +1867,10 @@ public class RolloutServlet extends HttpServlet {
 	    				dados_tabela= dados_tabela+"," ;
 	    				dados_tabela= dados_tabela+"\n \"values\":";
 	    				dados_tabela= dados_tabela+jObj.get("values").toString();
+	    				dados_tabela= dados_tabela+"," ;
+	    				jObj = new JSONObject(rs.getString("filter_pivot"));
+	    				dados_tabela= dados_tabela+"\n \"Filters\":";
+	    				dados_tabela= dados_tabela+jObj.toString();
 	    				
 	    				dados_tabela= dados_tabela+"}" ;
 	    			}

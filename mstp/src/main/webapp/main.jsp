@@ -486,7 +486,7 @@ response.setDateHeader ("Expires", -1);
 					</div>
 					<div class="janelas" id="pivot_view_div" style="display:none;width:100%;height:100%;">
 					<div class="panel panel-default" style="width:90%;margin:0 auto">
-	        				<div class="panel-heading">PIvots de rollout</div>
+	        				<div class="panel-heading">Pivots de rollout</div>
 		        				<div class="panel-body">
 		        				<div><select id="select_pivot_view" class="selectpicker" data-live-search="true" title="Escolha sua Pivot" onchange="carrega_pivot(this.value)">
 		        			
@@ -497,7 +497,7 @@ response.setDateHeader ("Expires", -1);
 								        <tr>
 								            
 								            <td>
-								                <div id="divPivotGridView" style="height: 700px; width: 850px;">
+								                <div id="divPivotGridView" style="height: 700px; width: 1200px;">
 								                </div>
 								            </td>
 								        </tr>

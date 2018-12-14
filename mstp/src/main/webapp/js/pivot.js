@@ -72,8 +72,9 @@ function carrega_select_pivot(){
 }
 function carrega_pivot(id){
 	
+	$("#divPivotGridView").html("<div class='loader'></div>");
 	  $.getJSON('./RolloutServlet?opt=13&id='+id, function(data) {
-		  
+		  $("#divPivotGridView").html("");
 		  myPivot_design = new dhx.Pivot("divPivotGridView", {
 	    	    data: data.records,                 
 	    	    fields: {
@@ -83,10 +84,12 @@ function carrega_pivot(id){
 	    	    },
 	    	    fieldList: data.campos2,
 	    	    layout: {                       
-	    	    	readonly: true            
+	    	    	readonly: true,
+	    	    	
 	    	        // other attributes         
 	    	    }   
 	    	});
+		  myPivot_design.setFiltersValues(data.Filters);
 	    });
 	  
 }
