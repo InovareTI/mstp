@@ -57,6 +57,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCursor;
+
 import classes.Conexao;
 import classes.ConexaoMongo;
 import classes.Pessoa;
@@ -1761,7 +1764,7 @@ public class RolloutServlet extends HttpServlet {
 				System.out.println("Carregando pivot 1");
 				param1=req.getParameter("id");
 				String recid_aux="";
-				String imagem_status="";
+				String json_aux="";
 				rs= conn.Consulta("select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" order by ordenacao");
     			
     			dados_tabela= dados_tabela+"{\n"+"\"campos\":[";
@@ -1834,140 +1837,20 @@ public class RolloutServlet extends HttpServlet {
     			
     			dados_tabela= dados_tabela+"\n"+"],";
     			System.out.println("Campos 2 definido");
+    			ConexaoMongo c = new ConexaoMongo();
+    			FindIterable<Document> findIterable = c.ConsultaSimplesSemFiltro("rollout");
     			dados_tabela= dados_tabela+"\n"+"\"records\":[";
-    			//query="select * from pivot_table where id_pivot="+param1;
-    			//rs=conn.Consulta(query);
-    			//if(rs.next()) {
+    			MongoCursor<Document> doccursor = findIterable.iterator();
+    			while(doccursor.hasNext()) {
+    				json_aux=doccursor.next().toJson();
+    				json_aux=json_aux.replace("\"Milestone\" : [{", "");
+    				json_aux=json_aux.replace("\" }, {", "\",");
+    				json_aux=json_aux.replace("}]", "");
+    				dados_tabela= dados_tabela+"\n"+json_aux+",";
     				
-    				/*int posicao_inicio=0;
-    				int posicao_fim=0;
-    				int filtro_posicao=0;
-    				int filtro_posicao_final=0;
-    				int filtro_posicao_incial=0;
-    				String valor_filtros2="";
-    				String valor_filtros="";
-    				String valor_filtros_aux="";
-    				String campo_nome="";
-    				
-    				
-    				valor_filtros=rs.getString("filter_pivot");
-    				
-    				JSONObject jObj = new JSONObject(rs.getString("pivot_source"));
-    				JSONArray jObj_filtros = jObj.getJSONArray("filters");
-    				
-    				valor_filtros=rs.getString("filter_pivot");
-    				filtro_posicao=0;
-    				
-    				while(filtro_posicao<jObj_filtros.length()) {
-    					if(jObj_filtros.length()>1) {
-    						filtro_posicao_incial=valor_filtros.indexOf(Integer.toString(filtro_posicao)+" :");
-    						filtro_posicao_final=valor_filtros.indexOf(Integer.toString(filtro_posicao+1)+" :");
-    						if(filtro_posicao_final>0) {
-    							
-    						}else {
-    							filtro_posicao_final=valor_filtros.length();
-    						}
-    					}else {
-    						filtro_posicao_final=0;
-    					}
-    				valor_filtros2=valor_filtros.substring(filtro_posicao_incial,filtro_posicao_final);
-    				posicao_inicio=valor_filtros2.indexOf("*")+1;
-    				posicao_fim=valor_filtros2.indexOf("*",posicao_inicio);
-    				//System.out.println(posicao_inicio);
-    				//System.out.println(posicao_fim);
-    				while(posicao_fim>0) {
-    					//System.out.println("posicao inicio:"+posicao_inicio);
-        				//System.out.println("posicao fim:"+posicao_fim);
-    					valor_filtros_aux=valor_filtros_aux+"'"+valor_filtros2.substring(posicao_inicio,valor_filtros2.indexOf("*",posicao_fim))+"',";
-    					posicao_inicio=posicao_fim+1;
-    					posicao_inicio=valor_filtros2.indexOf("*",posicao_inicio)+1;
-    					if(posicao_inicio>0) {
-    						posicao_fim=valor_filtros2.indexOf("*",posicao_inicio);
-	    					if(posicao_inicio>posicao_fim) {
-	    						posicao_fim=0;
-	    					}
-	    					
-    					}else {
-    						posicao_fim=0;
-    					}
-    					//System.out.println(valor_filtros_aux);
-    				}
-    				//System.out.println("examinando conteudo dos filtros posicao:"+filtro_posicao);
-    				//System.out.println(valor_filtros_aux);
-    				valor_filtros_aux=valor_filtros_aux.substring(0,valor_filtros_aux.length()-1);
-    				campo_nome=jObj_filtros.getJSONObject(filtro_posicao).getString("dataField");
-    				if(campo_nome.contains("sdate_")) {
-    					campo_nome="dt_inicio";
-    				}else if(campo_nome.contains("edate_")) {
-    					campo_nome="dt_fim";
-    				}else if(campo_nome.contains("sdate_pre_")) {
-    					campo_nome="dt_inicio_bl";
-    				}else if(campo_nome.contains("edate_pre_")) {
-    					campo_nome="dt_fim_bl";
-    				}else if(campo_nome.contains("udate_")) {
-    					campo_nome="remark";
-    				}else if(campo_nome.contains("resp_")) {
-    					campo_nome="responsavel";
-    				}else if(campo_nome.contains("status_")) {
-    					campo_nome="status_atividade";
-    				}
-    				
-    				query="select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" and "+campo_nome+" not in ("+valor_filtros_aux+")"+recid_aux;
-    				System.out.println(query);
-    				rs2=conn.Consulta(query);
-    				if(rs2.next()) {
-    					rs2.beforeFirst();
-    					recid_aux=" and recid in (";
-    					while(rs2.next()) {
-    						recid_aux=recid_aux+Integer.toString(rs2.getInt("recid"))+",";
-    					}
-    					recid_aux=recid_aux.substring(0,recid_aux.length()-1);
-    					recid_aux=recid_aux+") ";
-    				}
-    				valor_filtros_aux="";
-    				filtro_posicao=filtro_posicao+1;
-    				query="select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" and "+campo_nome+" not in ("+valor_filtros_aux+")"+recid_aux;
-    				}
-    			}*/
-    			time = new Timestamp(System.currentTimeMillis());
-    			System.out.println("iniciando consulta no rollout:"+f3.format(time));
-    			rs2= conn.Consulta("select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+recid_aux+" order by recid,siteID,ordenacao limit "+(r.getCampos().get_campos_quantidade(conn, p))*3000+" ");
-    			if(rs2.next()){
-    				time = new Timestamp(System.currentTimeMillis());
-    				System.out.println("Consulta finalizada no rollout:"+f3.format(time));
-    				String site_aux=rs2.getString("siteID");
-    				dados_tabela=dados_tabela+"\n{\"id\":"+rs2.getInt("recid")+",";
-    				rs2.beforeFirst();
-    				while(rs2.next() ){
-    					if (rs2.getString(3).equals(site_aux)){
-    						if(rs2.getString(22).equals("Milestone")){
-    							imagem_status=rs2.getString(30);
-    							if(imagem_status.equals("Finalizada")) {
-    								imagem_status="Finalizada";
-    							}else if(imagem_status.equals("parada")) {
-    								imagem_status="Parada";
-    							}else if(imagem_status.equals("iniciada")) {
-    								imagem_status="Iniciada";
-    							}else {
-    								imagem_status="Nao Iniciada";
-    							}
-    							dados_tabela=dados_tabela+"\"sdate_"+rs2.getString(6)+"\":\""+rs2.getString(7)+"\",\"edate_"+rs2.getString(6)+"\":\""+rs2.getString(8)+"\",\"sdate_pre_"+rs2.getString(6)+"\":\""+rs2.getString(11)+"\",\"edate_pre_"+rs2.getString(6)+"\":\""+rs2.getString(12)+"\",\"udate_"+rs2.getString(6)+"\":\""+rs2.getString(21)+"\",\"resp_"+rs2.getString(6)+"\": \""+rs2.getString(10)+"\",\"status_"+rs2.getString(6)+"\":\""+imagem_status+"\",";
-	    					}else{
-	    						dados_tabela=dados_tabela+"\""+rs2.getString(6)+"\":\""+rs2.getString(23)+"\",";
-	    					}
-    					}else{
-    						dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
-    						dados_tabela=dados_tabela+"},";
-    						dados_tabela=dados_tabela+"\n{\"id\":"+rs2.getInt(2)+",";
-    						site_aux=rs2.getString(3);
-    						rs2.previous();
-    					}
-    				}
-    			}else{
-    				dados_tabela="[]";
     			}
-    				dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
-    				dados_tabela= dados_tabela+"}";
+    			
+    			    dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
 	    			dados_tabela= dados_tabela+"\n"+"],";
 	    			time = new Timestamp(System.currentTimeMillis());
     				System.out.println("MOntagem de linhas da pivot finalizada:"+f3.format(time));
@@ -1997,6 +1880,7 @@ public class RolloutServlet extends HttpServlet {
 				System.out.println("iniciando sincronia de rollout com MongoDB");
 				String imagem_status="";
 				ConexaoMongo c = new ConexaoMongo();
+				c.RemoverMuitosSemFiltro("rollout");
 				Document document;
 				Document milestone = new Document();
 				Document atividade = new Document();
@@ -2006,7 +1890,7 @@ public class RolloutServlet extends HttpServlet {
     				time = new Timestamp(System.currentTimeMillis());
     				System.out.println("Consulta finalizada no rollout:"+f3.format(time));
     				String site_aux=rs2.getString("siteID");
-    				document = new Document("recid", rs2.getInt("recid"));
+    				document = new Document("recid", rs2.getInt("recid")).append("Empresa",rs2.getInt(28)).append("Linha_ativa", rs2.getString(26));
     				
     				rs2.beforeFirst();
     				while(rs2.next() ){
@@ -2020,7 +1904,8 @@ public class RolloutServlet extends HttpServlet {
     									.append("edate_pre_"+rs2.getString(6), rs2.getString(12))
     									.append("udate_"+rs2.getString(6), rs2.getString(21))
     									.append("resp_"+rs2.getString(6), rs2.getString(10))
-    									.append("status_"+rs2.getString(6), imagem_status);
+    									.append("status_"+rs2.getString(6), imagem_status)
+    							        .append("duracao", "");
     							lista_atividade.add(atividade);
     						}else{
     							document.append(rs2.getString(6), rs2.getString(23));
@@ -2028,15 +1913,18 @@ public class RolloutServlet extends HttpServlet {
 	    					}
     					}else{
     						document.append("Milestone", lista_atividade);
+    						document.append("Update_by", "masteradmin");
+    						document.append("Update_time", time.toString());
     						c.InserirSimpels("rollout", document);
     						milestone = new Document();
     						lista_atividade.clear();
-    						document = new Document("recid", rs2.getInt("recid"));
+    						document = new Document("recid", rs2.getInt("recid")).append("Empresa",rs2.getInt(28)).append("Linha_ativa", rs2.getString(26));
     						site_aux=rs2.getString(3);
     						rs2.previous();
     					}
     				}
 			}
+    			c.fecharConexao();
 			}
 		}catch (SQLException e) {
 			conn.fecharConexao();

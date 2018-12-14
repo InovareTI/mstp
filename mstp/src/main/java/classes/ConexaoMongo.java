@@ -10,6 +10,7 @@ import com.mongodb.MongoCredential;
 import com.mongodb.MongoWriteException;
 import com.mongodb.ServerAddress;
 import com.mongodb.async.SingleResultCallback;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
@@ -41,6 +42,20 @@ public class ConexaoMongo {
 		System.out.println("Inserção OK!");
 		}catch(MongoWriteException e) {
 			e.getMessage();
+		}
+		return true;
+	}
+	public FindIterable<Document> ConsultaSimplesSemFiltro(String Collection){
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(new Document());
+		return findIterable;
+	}
+	public boolean RemoverMuitosSemFiltro(String Collection) {
+		MongoCollection<Document> coll = db.getCollection(Collection);
+		try {
+		coll.deleteMany(new Document());
+		System.out.println("Todos os documentos foram removidos, de "+ Collection );
+		}catch(Exception e) {
+			System.out.println(e.getMessage());
 		}
 		return true;
 	}
