@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.Date;
 
 import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.json.JSONObject;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
@@ -13,6 +15,7 @@ import com.mongodb.async.SingleResultCallback;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.result.UpdateResult;
 
 public class ConexaoMongo {
 	
@@ -57,6 +60,16 @@ public class ConexaoMongo {
 		}catch(Exception e) {
 			System.out.println(e.getMessage());
 		}
+		return true;
+	}
+	public boolean AtualizaUm(String Collection,Document campo_condicao, Document campo_valor) {
+		MongoCollection<Document> coll = db.getCollection(Collection);
+		UpdateResult resultado;
+		System.out.println("chegou na funcao do update");
+		//coll.findOneAndUpdate(campo_condicao, campo_valor);
+		resultado=coll.updateOne(campo_condicao, campo_valor);
+		System.out.println(resultado.getMatchedCount()+ " - Foram encontrados no MongoDB");
+		System.out.println(resultado.getModifiedCount() + " - Foram modificados no MongoDB");
 		return true;
 	}
 	public void fecharConexao() {

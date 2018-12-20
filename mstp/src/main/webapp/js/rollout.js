@@ -774,10 +774,10 @@ function registra_mudancas_bd(changes){
 	if(g_changes.atualizacoes>0){
 	$.ajax({
 		  type: "POST",
-		  data: {"opt":"16",
+		  data: {"opt":"15",
 			"mudancas":JSON.stringify(changes) 
 			},		  
-		  url: "./POControl_Servlet",
+		  url: "./RolloutServlet",
 		  cache: false,
 		  dataType: "text",
 		  success: onSuccess16

@@ -84,9 +84,7 @@ function carrega_pivot(id){
 	    	    },
 	    	    fieldList: data.campos2,
 	    	    layout: {                       
-	    	    	readonly: true,
-	    	    	
-	    	        // other attributes         
+	    	    	readonly: true
 	    	    }   
 	    	});
 		  myPivot_design.setFiltersValues(data.Filters);
