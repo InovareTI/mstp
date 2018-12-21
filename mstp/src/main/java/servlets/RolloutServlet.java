@@ -1912,7 +1912,7 @@ public class RolloutServlet extends HttpServlet {
     									.append("udate_"+rs2.getString(6), rs2.getString(21))
     									.append("resp_"+rs2.getString(6), rs2.getString(10))
     									.append("status_"+rs2.getString(6), imagem_status)
-    							        .append("duracao", "");
+    							        .append("duracao_"+rs2.getString(6), "");
     							lista_atividade.add(atividade);
     						}else{
     							document.append(rs2.getString(6), rs2.getString(23));
@@ -1943,6 +1943,7 @@ public class RolloutServlet extends HttpServlet {
                 int tamanho2=0;
                 Document filtros=new Document();
                 Document updates=new Document();
+                Document update = new Document();
                 String plano;
                 String cmp;
                 String[] elementNames;
@@ -1973,10 +1974,18 @@ public class RolloutServlet extends HttpServlet {
 						plano=jObj2.getString("value");
 						//ldate = LocalDate.parse(plano.toString(), formatter);
 						query="update rollout set dt_inicio_bl='"+plano+"',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id() ;
-						//System.out.println(query);
-						//filtros.append("recid" , jObj2.getInt("id"));
-						//filtros.append("Milestone" , jObj2.getInt("id"));
-						//filtros.append("empresa" , p.getEmpresa().getEmpresa_id());
+						filtros.append("recid" , jObj2.getInt("id"));
+						filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
+						filtros.append("Milestone.Milestone" , cmp);
+						updates.append("Milestone.$.sdate_pre_"+cmp, plano);
+						updates.append("update_by", p.get_PessoaUsuario());
+						updates.append("update_time", time.toString());
+						update = new Document();
+				        update.append("$set", updates);
+				       
+					//System.out.println(filtros.toJson().toString());
+					//System.out.println(update.toJson().toString());
+					c.AtualizaUm("rollout", filtros, update);
 						if(!conn.Alterar(query)){
 							//System.out.println("Erro de Update");
 							query="insert into rollout (recid,siteID,dt_inicio_bl,milestone,tipo_campo,empresa,update_by,update_time) values("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+plano+"','"+cmp+"','Milestone',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"')";
@@ -1988,7 +1997,18 @@ public class RolloutServlet extends HttpServlet {
 						plano=jObj2.getString("value");
 						//ldate = LocalDate.parse(plano.toString(), formatter);
 						query="update rollout set dt_fim_bl='"+plano+"',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id() ;
-						//System.out.println(query);
+						filtros.append("recid" , jObj2.getInt("id"));
+						filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
+						filtros.append("Milestone.Milestone" , cmp);
+						updates.append("Milestone.$.edate_pre_"+cmp, plano);
+						updates.append("update_by", p.get_PessoaUsuario());
+						updates.append("update_time", time.toString());
+						update = new Document();
+				        update.append("$set", updates);
+				       
+					//System.out.println(filtros.toJson().toString());
+					//System.out.println(update.toJson().toString());
+					c.AtualizaUm("rollout", filtros, update);
 						if(!conn.Alterar(query)){
 							//System.out.println("Erro de Update");
 							query="insert into rollout (recid,siteID,dt_fim_bl,milestone,tipo_campo,empresa,update_by,update_time) values("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+plano+"','"+cmp+"','Milestone',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"')";
@@ -2001,32 +2021,58 @@ public class RolloutServlet extends HttpServlet {
     						plano=jObj2.getString("value");
     						//ldate = LocalDate.parse(plano.toString(), formatter);
     						query="update rollout set dt_inicio='"+plano+"',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id() ;
-    						//System.out.println(query);
+    						filtros.append("recid" , jObj2.getInt("id"));
+    						filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
+    						filtros.append("Milestone.Milestone" , cmp);
+    						updates.append("Milestone.$.sdate_"+cmp, plano);
+    						updates.append("update_by", p.get_PessoaUsuario());
+    						updates.append("update_time", time.toString());
+    						
+    				       
+    					//System.out.println(filtros.toJson().toString());
+    					//System.out.println(update.toJson().toString());
+    					
     						if(!conn.Alterar(query)){
     							//System.out.println("Erro de Update");
     							query="insert into rollout (recid,siteID,dt_inicio,milestone,tipo_campo,empresa,update_by,update_time,status_atividade) values("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+plano+"','"+cmp+"','Milestone',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"','iniciada')";
     							conn.Inserir_simples(query);
-    						}else {
+    						}
     							if(!plano.equals("")) {
     								conn.Alterar("update rollout set status_atividade='iniciada',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id());
+    								updates.append("Milestone.$.status_"+cmp, "iniciada");
     							}
-    						}
+    							update = new Document();
+        				        update.append("$set", updates);
+        				        c.AtualizaUm("rollout", filtros, update);
     					}else if(jObj2.getString("colum").contains("edate")){
     						//System.out.println("segundo if fim plan");
     						cmp=jObj2.getString("colum").substring(jObj2.getString("colum").indexOf("_")+1);
     						plano=jObj2.getString("value");
     						//ldate = LocalDate.parse(plano.toString(), formatter);
     						query="update rollout set dt_fim='"+plano+"',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id() ;
-    						//System.out.println(query);
+    						filtros.append("recid" , jObj2.getInt("id"));
+    						filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
+    						filtros.append("Milestone.Milestone" , cmp);
+    						updates.append("Milestone.$.edate_"+cmp, plano);
+    						updates.append("update_by", p.get_PessoaUsuario());
+    						updates.append("update_time", time.toString());
+    						
+    				       
+    					//System.out.println(filtros.toJson().toString());
+    					//System.out.println(update.toJson().toString());
+    					
     						if(!conn.Alterar(query)){
     							//System.out.println("Erro de Update");
     							query="insert into rollout (recid,siteID,dt_fim,milestone,tipo_campo,empresa,update_by,update_time) values("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+plano+"','"+cmp+"','Milestone',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"')";
     							conn.Inserir_simples(query);
-    						}else {
+    						}
     							if(!plano.equals("")) {
     								conn.Alterar("update rollout set status_atividade='Finalizada',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id());
+    								updates.append("Milestone.$.status_"+cmp, "Finalizada");
     							}
-    						}
+    							update = new Document();
+        				        update.append("$set", updates);
+        				        c.AtualizaUm("rollout", filtros, update);
     						query="update faturamento set milestone_data_fim_real='"+plano+"',status_faturamento='Liberado para Faturar' where id_rollout='site"+jObj2.getInt("id")+ "' and milestones_trigger='"+cmp+"'";
     						if(conn.Alterar(query)){
     							System.out.println("tabela de Faturamento Atualizada!");
@@ -2036,7 +2082,18 @@ public class RolloutServlet extends HttpServlet {
     						cmp=jObj2.getString("colum").substring(jObj2.getString("colum").indexOf("_")+1);
     						//time = new Timestamp(jObj2.getString(jObj2.getString("colum")));
     						query="update rollout set remark='"+jObj2.getString("value")+"',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id() ;
-    						//System.out.println(query);
+    						filtros.append("recid" , jObj2.getInt("id"));
+    						filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
+    						filtros.append("Milestone.Milestone" , cmp);
+    						updates.append("Milestone.$.udate_"+cmp, jObj2.getString("value"));
+    						updates.append("update_by", p.get_PessoaUsuario());
+    						updates.append("update_time", time.toString());
+    						update = new Document();
+    				        update.append("$set", updates);
+    				       
+    					//System.out.println(filtros.toJson().toString());
+    					//System.out.println(update.toJson().toString());
+    					c.AtualizaUm("rollout", filtros, update);
     						if(!conn.Alterar(query)){
     							System.out.println("Erro de Update");
     							query="insert into rollout (recid,siteID,remark,milestone,tipo_campo,empresa,update_by,update_time) values("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+jObj2.getString("value")+"','"+cmp+"','Milestone',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"')";
@@ -2049,7 +2106,12 @@ public class RolloutServlet extends HttpServlet {
     						if(jObj2.getString("tipoc").equals("textbox")||jObj2.getString("tipoc").equals("combobox")){
     							if(cmp.contains("resp_")) {
     								query="update rollout set responsavel='"+jObj2.getString("value")+"',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp.substring(5, cmp.length())+"' and empresa="+p.getEmpresa().getEmpresa_id() ;
-    								//System.out.println(query);
+    								filtros.append("recid" , jObj2.getInt("id"));
+    								filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
+    								filtros.append("Milestone.Milestone" , cmp.substring(5, cmp.length()));
+    								updates.append("Milestone.$."+cmp, jObj2.getString("value"));
+    								updates.append("update_by", p.get_PessoaUsuario());
+    								updates.append("update_time", time.toString());
     							}else {
     								query="update rollout set value_atbr_field='"+jObj2.getString("value")+"',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id() ;
     								query2="insert into rollout (recid,siteID,milestone,value_atbr_field,tipo_campo,empresa,update_by,update_time) values ("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+cmp+"','"+jObj2.getString("value")+"','Atributo',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"')";
@@ -2057,7 +2119,7 @@ public class RolloutServlet extends HttpServlet {
     								filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
     								updates.append(cmp, jObj2.getString("value"));
     								updates.append("update_by", p.get_PessoaUsuario());
-    								
+    								updates.append("update_time", time.toString());
     							}
     						}else if(jObj2.getString("tipoc").equals("datetimeinput")){
     							plano=jObj2.getString("value");
@@ -2068,6 +2130,7 @@ public class RolloutServlet extends HttpServlet {
 								filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
 								updates.append(cmp, jObj2.getString("value"));
 								updates.append("update_by", p.get_PessoaUsuario());
+								updates.append("update_time", time.toString());
     						}else if(jObj2.getString("tipoc").equals("int")){
     							query="update rollout set value_atbr_field='"+jObj2.getInt("value")+"',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id() ;
     							query2="insert into rollout (recid,siteID,milestone,value_atbr_field,tipo_campo,empresa,update_by,update_time) values ("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+cmp+"','"+jObj2.getInt("value")+"','Atributo',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"')";
@@ -2075,10 +2138,11 @@ public class RolloutServlet extends HttpServlet {
 								filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
 								updates.append(cmp, jObj2.getString("value"));
 								updates.append("update_by", p.get_PessoaUsuario());
+								updates.append("update_time", time.toString());
     						
     						}
     						
-    						Document update = new Document();
+    						    update = new Document();
     					        update.append("$set", updates);
     					       
     						System.out.println(filtros.toJson().toString());
