@@ -1932,7 +1932,28 @@ public class RolloutServlet extends HttpServlet {
     					}
     				}
 			}
+    			c.RemoverMuitosSemFiltro("rolloutCampos");
+    			document= new Document();
+    			rs=conn.Consulta("select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and field_status='ATIVO'");
+    			if(rs.next()) {
+    				System.out.println("entrou no if do rs");
+    				String CampoNome="";
+    				int colunas = rs.getMetaData().getColumnCount();
+    				rs.beforeFirst();
+    				while(rs.next()) {
+    					System.out.println("entrou no while do rs");
+    					for (int i=1;i<=colunas;i++) {
+    						CampoNome=rs.getMetaData().getColumnName(i);
+        					document.append(CampoNome, rs.getObject(i));
+    					}
+    					document.append("Update_by", "masteradmin");
+						document.append("Update_time", time.toString());
+    					c.InserirSimpels("rolloutCampos", document);
+    					document.clear();
+    				}
+    			}
     			c.fecharConexao();
+    			System.out.println("Sicronia com Mongo Finalizada");
 			}else if(opt.equals("15")) {
 				ConexaoMongo c = new ConexaoMongo();
 				//System.out.println("Salvando Campos...");
