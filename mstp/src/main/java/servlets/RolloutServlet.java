@@ -1887,18 +1887,46 @@ public class RolloutServlet extends HttpServlet {
 				System.out.println("iniciando sincronia de rollout com MongoDB");
 				String imagem_status="";
 				ConexaoMongo c = new ConexaoMongo();
-				c.RemoverMuitosSemFiltro("rollout");
+				
 				Document document;
-				Document milestone = new Document();
+				//Document milestone = new Document();
 				Document atividade = new Document();
 				List<Document> lista_atividade = new ArrayList<Document>();
+				rs=conn.Consulta("select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and field_status='ATIVO'");
+				
+    			document=new Document();
+    			//System.out.println("Documento inicializado");
+    			//System.out.println("select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and field_status='ATIVO'");
+    			//System.out.println("query executada");
+    			if(rs.next()) {
+    				c.RemoverMuitosSemFiltro("rolloutCampos");
+    				//System.out.println("entrou no if do rs");
+    				String CampoNome="";
+    				int colunas = rs.getMetaData().getColumnCount();
+    				rs.beforeFirst();
+    				while(rs.next()) {
+    					//System.out.println("entrou no while do rs");
+    					for (int i=1;i<=colunas;i++) {
+    						CampoNome=rs.getMetaData().getColumnName(i);
+        					document.append(CampoNome, rs.getObject(i));
+    					}
+    					document.append("Update_by", "masteradmin");
+						document.append("Update_time", time.toString());
+    					c.InserirSimpels("rolloutCampos", document);
+    					document.clear();
+    				}
+    			}else {
+    				System.out.println("Sicronia com Mongo Finalizada porém sem sincronia dos campos do rollout");
+    			}
+    			System.out.println("Iniciando sincronia do rollout");
 				rs2= conn.Consulta("select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" order by recid,siteID,ordenacao");
     			if(rs2.next()){
+    				c.RemoverMuitosSemFiltro("rollout");
     				time = new Timestamp(System.currentTimeMillis());
     				System.out.println("Consulta finalizada no rollout:"+f3.format(time));
     				String site_aux=rs2.getString("siteID");
     				document = new Document("recid", rs2.getInt("recid")).append("Empresa",rs2.getInt(28)).append("Linha_ativa", rs2.getString(26));
-    				
+    				System.out.println("Sincronia em andamento");
     				rs2.beforeFirst();
     				while(rs2.next() ){
     					if (rs2.getString(3).equals(site_aux)){
@@ -1924,7 +1952,7 @@ public class RolloutServlet extends HttpServlet {
     						document.append("Update_time", time.toString());
     						
     						c.InserirSimpels("rollout", document);
-    						milestone = new Document();
+    						//milestone = new Document();
     						lista_atividade.clear();
     						document = new Document("recid", rs2.getInt("recid")).append("Empresa",rs2.getInt(28)).append("Linha_ativa", rs2.getString(26));
     						site_aux=rs2.getString(3);
@@ -1932,26 +1960,7 @@ public class RolloutServlet extends HttpServlet {
     					}
     				}
 			}
-    			c.RemoverMuitosSemFiltro("rolloutCampos");
-    			document= new Document();
-    			rs=conn.Consulta("select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and field_status='ATIVO'");
-    			if(rs.next()) {
-    				System.out.println("entrou no if do rs");
-    				String CampoNome="";
-    				int colunas = rs.getMetaData().getColumnCount();
-    				rs.beforeFirst();
-    				while(rs.next()) {
-    					System.out.println("entrou no while do rs");
-    					for (int i=1;i<=colunas;i++) {
-    						CampoNome=rs.getMetaData().getColumnName(i);
-        					document.append(CampoNome, rs.getObject(i));
-    					}
-    					document.append("Update_by", "masteradmin");
-						document.append("Update_time", time.toString());
-    					c.InserirSimpels("rolloutCampos", document);
-    					document.clear();
-    				}
-    			}
+    			
     			c.fecharConexao();
     			System.out.println("Sicronia com Mongo Finalizada");
 			}else if(opt.equals("15")) {

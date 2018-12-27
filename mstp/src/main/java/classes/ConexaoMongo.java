@@ -42,8 +42,9 @@ public class ConexaoMongo {
 		MongoCollection<Document> coll = db.getCollection(Collection);
 		try {
 		coll.insertOne(document);
-		System.out.println("Inserção OK!");
+		
 		}catch(MongoWriteException e) {
+			System.out.println("Inserção NOK!");
 			e.getMessage();
 		}
 		return true;

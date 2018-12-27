@@ -159,6 +159,20 @@ response.setDateHeader ("Expires", -1);
 	<script type="text/javascript" src="js/importacoes.js"></script>
 	<script type="text/javascript" src="js/pivot.js"></script>
 	<script src='https://api.mapbox.com/mapbox-gl-js/v0.47.0/mapbox-gl.js'></script>
+	<link rel="manifest" href="js/manifest.json" />
+	<script type="text/javascript" src="js/OneSignalSDKWorker.js"></script>
+	<script>
+		  var OneSignal = window.OneSignal || [];
+		  OneSignal.push(function() {
+		    OneSignal.init({
+		      appId: "ae9ad50e-520d-436a-b0b0-23aaddedee7b",
+		      autoRegister: false,
+		      notifyButton: {
+		        enable: true,
+		      },
+		    });
+		  });
+		</script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v0.47.0/mapbox-gl.css' rel='stylesheet' />
 	<style>
 	.card {
