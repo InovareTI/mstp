@@ -284,7 +284,7 @@ function carrega_ponto_usuario(){
 	        	{
 	                extend: 'print',
 	                text: 'Imprimir',
-	                title:'Folha de Ponto - período '+ mes_aux+'/2018',
+	                title:'Folha de Ponto - período '+ mes_aux+'/2019',
 	                messageTop: part1,
 	                //messageTop: 'Funcionário: '+geral.nome+'<br>Usuário de registro: '+geral.usuario+'<br><b>Folha de Ponto Periodo relativo '+ mes_aux+'/2018</b>',
 	                messageBottom:part2,
@@ -309,7 +309,7 @@ function carrega_ponto_usuario(){
 	        	},
 	            {
 	                extend: 'pdfHtml5',
-	                title:'Folha de Ponto - período '+ mes_aux+'/2018',
+	                title:'Folha de Ponto - período '+ mes_aux+'/2019',
 	                messageBottom:'\nObservações: \n Bando de Horas do Mes:'+geral.banco+' | Horas Extras (50%):'+geral.horas_sabado + ' | Horas Extras (100%):'+geral.horas_domingo,
 	                exportOptions: {
 	                    columns: [ 0, 1, 2, 3, 4, 5, 6 ]
@@ -341,7 +341,7 @@ function carrega_ponto_usuario(){
 		        	{
 		                extend: 'print',
 		                text: 'Imprimir',
-		                title:'Folha de Ponto - período '+ mes_aux+'/2018',
+		                title:'Folha de Ponto - período '+ mes_aux+'/2019',
 		                messageTop: part1,
 		                //messageTop: 'Funcionário: '+geral.nome+'<br>Usuário de registro: '+geral.usuario+'<br><b>Folha de Ponto Periodo relativo '+ mes_aux+'/2018</b>',
 		                messageBottom:part2,
@@ -366,7 +366,7 @@ function carrega_ponto_usuario(){
 		        	},
 		            {
 		                extend: 'pdfHtml5',
-		                title:'Folha de Ponto - período '+ mes_aux+'/2018',
+		                title:'Folha de Ponto - período '+ mes_aux+'/2019',
 		                messageBottom:'\nObservações: \n Bando de Horas do Mes:'+geral.banco+' | Horas Extras (50%):'+geral.horas_sabado + ' | Horas Extras (100%):'+geral.horas_domingo,
 		                exportOptions: {
 		                    columns: [ 0, 1, 2, 3, 4, 5, 6 ]

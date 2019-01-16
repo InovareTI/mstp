@@ -393,11 +393,41 @@ function carrega_gant(){
 	                columnsresize: true,
 	                pageable: true,
 	                editable: true,
-	                showfilterrow: true,
+	                //showfilterrow: true,
 	                showtoolbar: true,
 	                filterable: true,
 	                pagesize: 40,
 	                autoshowfiltericon: true,
+	                ready: function () {
+	                    
+	                    var localizationObject = {
+	                        filterstringcomparisonoperators: ['contem', 'não contem'],
+	                        // filter numeric comparison operators.
+	                        filternumericcomparisonoperators: ['less than', 'greater than'],
+	                        // filter date comparison operators.
+	                        filterdatecomparisonoperators: ['menor que', 'maior que','maior ou igual a','menor ou igual a','igual a'],
+	                        // filter bool comparison operators.
+	                        filterbooleancomparisonoperators: ['equal', 'not equal']
+	                    }
+	                    $("#jqxgrid").jqxGrid('localizestrings', localizationObject);
+	                },
+	                updatefilterconditions: function (type, defaultconditions) {
+	                    var stringcomparisonoperators = ['CONTAINS', 'DOES_NOT_CONTAIN'];
+	                    var numericcomparisonoperators = ['LESS_THAN', 'GREATER_THAN'];
+	                    var datecomparisonoperators = ['LESS_THAN', 'GREATER_THAN','GREATER_THAN_OR_EQUAL','LESS_THAN_OR_EQUAL','EQUAL'];
+	                    var booleancomparisonoperators = ['EQUAL', 'NOT_EQUAL'];
+	                    switch (type) {
+	                        case 'stringfilter':
+	                            return stringcomparisonoperators;
+	                        case 'numericfilter':
+	                            return numericcomparisonoperators;
+	                        case 'datefilter':
+	                            return datecomparisonoperators;
+	                        case 'booleanfilter':
+	                            return booleancomparisonoperators;
+	                    }
+	                },
+	               
 	                selectionmode: 'checkbox',
 	                pagesizeoptions: ['40', '100', '300'],
 	                rendertoolbar: function (toolbar) {

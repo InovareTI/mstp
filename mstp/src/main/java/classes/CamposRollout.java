@@ -57,6 +57,20 @@ public class CamposRollout {
 	public String getCampo_data_tipo() {
 		return campo_data_tipo;
 	}
+	public String getCampo_data_tipo(Conexao c,String nome_campo,Pessoa p) {
+		ResultSet rs;
+		String query="select field_name,field_type,tipo from rollout_campos where field_name='"+nome_campo+"' and empresa="+p.getEmpresa().getEmpresa_id();
+		rs=c.Consulta(query);
+		try {
+		if(rs.next()) {
+			return rs.getString("tipo");
+		}else {
+			return "";
+		}
+		}catch(SQLException e) {
+			return "";
+		}
+	}
 	public void setCampo_data_tipo(String campo_data_tipo) {
 		this.campo_data_tipo = campo_data_tipo;
 	}
