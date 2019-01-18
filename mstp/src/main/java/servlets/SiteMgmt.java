@@ -417,7 +417,7 @@ public class SiteMgmt extends HttpServlet {
 				}
 			}else if(opt.equals("10")) {
 				System.out.println("Carregando TODOS os sites no mapa");
-				rs=conn.Consulta("select distinct site_operadora from sites where site_ativo='Y' and site_latitude<>'' and site_longitude<>'' and site_operadora<>'' and empresa='"+p.getEmpresa().getEmpresa_id()+"' limit 3");
+				rs=conn.Consulta("select distinct site_operadora from sites where site_ativo='Y' and site_latitude<>'' and site_longitude<>'' and site_operadora<>'' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
 				dados_tabela="";
 				if(rs.next()) {
 					rs.beforeFirst();
@@ -429,7 +429,7 @@ public class SiteMgmt extends HttpServlet {
 							    "\"type\": \"FeatureCollection\","+
 							    "\"operadora\": \""+rs.getString("site_operadora")+"\","+
 							    "\"features\": [";
-						rs2=conn.Consulta("select * from sites where site_operadora='"+rs.getString("site_operadora")+"' and site_ativo='Y' and site_latitude<>'' and site_longitude<>'' and empresa='"+p.getEmpresa().getEmpresa_id()+"' limit 200");
+						rs2=conn.Consulta("select * from sites where site_operadora='"+rs.getString("site_operadora")+"' and site_ativo='Y' and site_latitude<>'' and site_longitude<>'' and empresa='"+p.getEmpresa().getEmpresa_id()+"' limit 600");
 						if(rs2.next()) {
 										rs2.beforeFirst();
 										while(rs2.next()) {

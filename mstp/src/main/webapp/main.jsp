@@ -467,7 +467,7 @@ response.setDateHeader ("Expires", -1);
 						//}
 						map.addControl(new mapboxgl.FullscreenControl());
 						map.addControl(new mapboxgl.NavigationControl());
-						var toggleableLayerIds = [ 'VIVO', 'TIM','CLARO','USUARIOS' ];
+						var toggleableLayerIds = [ 'VIVO', 'TIM','CLARO','NEXTEL','USUARIOS' ];
 
 						for (var i = 0; i < toggleableLayerIds.length; i++) {
 						    var id = toggleableLayerIds[i];
@@ -485,11 +485,16 @@ response.setDateHeader ("Expires", -1);
 						        var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
 
 						        if (visibility === 'visible') {
-						            map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+						        	
+						            	map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+						        	    map.setLayoutProperty('clusters_'+clickedLayer, 'visibility', 'none');
+						        	    map.setLayoutProperty('cluster-count_'+clickedLayer, 'visibility', 'none');
 						            this.className = 'btn btn-danger';
 						        } else {
 						            this.className = 'btn btn-info active';
 						            map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+						            map.setLayoutProperty('clusters_'+clickedLayer, 'visibility', 'visible');
+					        	    map.setLayoutProperty('cluster-count_'+clickedLayer, 'visibility', 'visible');
 						        }
 						    };
 
