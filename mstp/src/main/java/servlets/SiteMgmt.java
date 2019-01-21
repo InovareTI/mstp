@@ -528,7 +528,8 @@ public class SiteMgmt extends HttpServlet {
 				
 				
 			}else if(opt.equals("11")) {
-				System.out.println("Iniciando export de Sites");
+				param1=req.getParameter("operadora");
+				System.out.println("Iniciando export de Sites da Operadora - " + param1);
 				XSSFWorkbook workbook = new XSSFWorkbook();
 				XSSFSheet sheet = workbook.createSheet("SitesMSTP");
 				Row row;
@@ -537,7 +538,7 @@ public class SiteMgmt extends HttpServlet {
 				int contador=1;
 				int total_colunas;
 				Cell cell;
-				query="Select sys_id,site_id,site_latitude,site_longitude,site_municipio,site_bairro,site_uf,site_nome,site_sequencial,site_operadora,site_cep,site_owner from sites where empresa="+p.getEmpresa().getEmpresa_id()+" order by sys_id asc";
+				query="Select sys_id,site_id,site_latitude,site_longitude,site_municipio,site_bairro,site_uf,site_nome,site_sequencial,site_operadora,site_cep,site_owner from sites where site_operadora='"+param1+"' and empresa="+p.getEmpresa().getEmpresa_id()+" order by sys_id asc";
 				System.out.println(query);
 				rs=conn.Consulta(query);
 				if(rs.next()) {
@@ -604,6 +605,7 @@ public class SiteMgmt extends HttpServlet {
                 workbook.write(resp.getOutputStream());
                 workbook.close();
 				}else {
+					System.out.println("Arquivo Exportde Sites Criado & finalizado - Vazio");
 					resp.setContentType("application/html");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();

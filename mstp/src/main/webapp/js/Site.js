@@ -83,7 +83,20 @@ function carrega_tabela_site(){
     		     " <li><a class=\"dropdown-item\" href=\"#\">Atualizar informações existentes</a></li>"+
     		    "</ul>"+
     		  "</div>"+
-    		  "<button id=\"btn_exportar_sites\" type=\"button\" class=\"btn btn-danger\" onclick=\"exportarTodosSites()\">Exportar</button>"+
+    		  "<div class=\"btn-group\" role=\"group\">"+
+  		    "<button id=\"btnGroupDrop2\" type=\"button\" class=\"btn btn-secondary aria-haspopup=\"true\" dropdown-toggle\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">"+
+  		     "Exportar"+
+  		     "<span class=\"caret\"></span> "+
+  		    "</button>"+
+  		    "<ul class=\"dropdown-menu\" aria-labelledby=\"btnGroupDrop1\">"+
+  		    "  <li><a class=\"dropdown-item\" href=\"#\" onclick=\"exportarTodosSites('VIVO')\">VIVO</a></li>"+
+  		  "  <li><a class=\"dropdown-item\" href=\"#\" onclick=\"exportarTodosSites('NEXTEL')\">NEXTEL</a></li>"+
+  		"  <li><a class=\"dropdown-item\" href=\"#\" onclick=\"exportarTodosSites('CLARO')\">CLARO</a></li>"+
+  		
+  		"  <li><a class=\"dropdown-item\" href=\"#\" onclick=\"exportarTodosSites('TIM')\">TIM</a></li>"+
+  		    "</ul>"+
+  		  "</div>"+
+    		 
     			"<a id=\"template_importar_site\" href=\"templates/templateSiteImportacao.xlsx\" type=\"button\" class=\"btn btn-primary\">Template(importação)</a>"+
     			
     		    "</div>" + data);
@@ -154,28 +167,29 @@ function atualiza_flag(){
 	
 	 
 }
-function exportarTodosSites(){
+function exportarTodosSites(Operadora){
 	var timestamp = Date.now();	
-	$('#btn_exportar_sites').addClass( "disabled" );
-	$('#btn_exportar_sites').text('Aguarde a Finalização...');
-	$('#btn_exportar_sites').prop('disabled', true);
+	$('#btnGroupDrop2').addClass( "disabled" );
+	$('#btnGroupDrop2').text('Aguarde a Finalização...');
+	$('#btnGroupDrop2').prop('disabled', true);
 	 $.ajax({
 	        url: './SiteMgmt?opt=11',
 	        method: 'GET',
-	        //data:{"filtros":JSON.stringify(filtros)},
+	        data:{"operadora":Operadora},
 	        xhrFields: {
 	            responseType: 'blob'
 	        },
 	        success: function (data) {
+	        	//console.log(data);
 	            var a = document.createElement('a');
 	            var url = window.URL.createObjectURL(data);
 	            a.href = url;
-	            a.download = 'Sites_mstp_'+timestamp+'.xlsx';
+	            a.download = Operadora+'_SitesMSTP_'+timestamp+'.xlsx';
 	            a.click();
 	            window.URL.revokeObjectURL(url);
-	            $('#btn_exportar_sites').removeClass( "disabled" );
-	    		$('#btn_exportar_sites').prop('disabled', false);
-	    		$('#btn_exportar_sites').text('Exportar');
+	            $('#btnGroupDrop2').removeClass( "disabled" );
+	    		$('#btnGroupDrop2').prop('disabled', false);
+	    		$('#btnGroupDrop2').text('Exportar');
 	    	
 	        }
 	    });
