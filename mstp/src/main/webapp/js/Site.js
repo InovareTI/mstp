@@ -83,6 +83,7 @@ function carrega_tabela_site(){
     		     " <li><a class=\"dropdown-item\" href=\"#\">Atualizar informações existentes</a></li>"+
     		    "</ul>"+
     		  "</div>"+
+    		  "<button id=\"btn_exportar_sites\" type=\"button\" class=\"btn btn-danger\" onclick=\"exportarTodosSites()\">Exportar</button>"+
     			"<a id=\"template_importar_site\" href=\"templates/templateSiteImportacao.xlsx\" type=\"button\" class=\"btn btn-primary\">Template(importação)</a>"+
     			
     		    "</div>" + data);
@@ -151,6 +152,33 @@ function atualiza_flag(){
 	    }
 	});
 	
+	 
+}
+function exportarTodosSites(){
+	var timestamp = Date.now();	
+	$('#btn_exportar_sites').addClass( "disabled" );
+	$('#btn_exportar_sites').text('Aguarde a Finalização...');
+	$('#btn_exportar_sites').prop('disabled', true);
+	 $.ajax({
+	        url: './SiteMgmt?opt=11',
+	        method: 'GET',
+	        //data:{"filtros":JSON.stringify(filtros)},
+	        xhrFields: {
+	            responseType: 'blob'
+	        },
+	        success: function (data) {
+	            var a = document.createElement('a');
+	            var url = window.URL.createObjectURL(data);
+	            a.href = url;
+	            a.download = 'Sites_mstp_'+timestamp+'.xlsx';
+	            a.click();
+	            window.URL.revokeObjectURL(url);
+	            $('#btn_exportar_sites').removeClass( "disabled" );
+	    		$('#btn_exportar_sites').prop('disabled', false);
+	    		$('#btn_exportar_sites').text('Exportar');
+	    	
+	        }
+	    });
 	 
 }
 function deleta1_site(ids){

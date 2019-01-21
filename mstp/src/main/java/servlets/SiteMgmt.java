@@ -18,6 +18,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import classes.Conexao;
 import classes.Pessoa;
 
@@ -516,6 +527,88 @@ public class SiteMgmt extends HttpServlet {
 					out.print(dados_tabela);
 				
 				
+			}else if(opt.equals("11")) {
+				System.out.println("Iniciando export de Sites");
+				XSSFWorkbook workbook = new XSSFWorkbook();
+				XSSFSheet sheet = workbook.createSheet("SitesMSTP");
+				Row row;
+				long rowIndex=0;
+				int colIndex=0;
+				int contador=1;
+				int total_colunas;
+				Cell cell;
+				query="Select sys_id,site_id,site_latitude,site_longitude,site_municipio,site_bairro,site_uf,site_nome,site_sequencial,site_operadora,site_cep,site_owner from sites where empresa="+p.getEmpresa().getEmpresa_id()+" order by sys_id asc";
+				System.out.println(query);
+				rs=conn.Consulta(query);
+				if(rs.next()) {
+					rowIndex=1;
+	            	row = sheet.createRow((short) rowIndex);
+	            	total_colunas=rs.getMetaData().getColumnCount();
+	            	XSSFCellStyle cellStyle = workbook.createCellStyle();
+            	
+                cellStyle.setAlignment(HorizontalAlignment.CENTER);
+                cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+                cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+                cellStyle.setFillBackgroundColor(IndexedColors.BLUE_GREY.getIndex());
+                cellStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+                cellStyle.setBorderBottom(BorderStyle.THIN);
+                cellStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+                cellStyle.setBorderLeft(BorderStyle.THIN);
+                cellStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+                cellStyle.setBorderRight(BorderStyle.THIN);
+                cellStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
+                cellStyle.setBorderTop(BorderStyle.THIN);
+                cellStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
+                XSSFCellStyle cellStyle2 = workbook.createCellStyle();
+            	
+                cellStyle2.setAlignment(HorizontalAlignment.CENTER);
+                cellStyle2.setVerticalAlignment(VerticalAlignment.CENTER);
+                
+                cellStyle2.setBorderBottom(BorderStyle.THIN);
+                cellStyle2.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+                cellStyle2.setBorderLeft(BorderStyle.THIN);
+                cellStyle2.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+                cellStyle2.setBorderRight(BorderStyle.THIN);
+                cellStyle2.setRightBorderColor(IndexedColors.BLACK.getIndex());
+                cellStyle2.setBorderTop(BorderStyle.THIN);
+                cellStyle2.setTopBorderColor(IndexedColors.BLACK.getIndex());
+                while(contador<total_colunas) {
+	                cell = row.createCell((short) colIndex);
+	                cell.setCellValue(rs.getMetaData().getColumnLabel(contador));
+	                sheet.autoSizeColumn(colIndex);
+	                cell.setCellStyle(cellStyle);
+	                colIndex=colIndex+1;
+	                contador=contador+1;
+                }
+                rs.beforeFirst();
+                while(rs.next()) {
+                	rowIndex=rowIndex+1;
+	            	row = sheet.createRow((int)rowIndex);
+	            	//System.out.println("linha:"+rowIndex);
+	            	contador=1;
+	            	colIndex=0;
+	            	for(contador=1;contador<total_colunas;contador++) {
+	            		//System.out.println("coluna:"+contador);
+	            		cell = row.createCell((short) colIndex);
+	                    cell.setCellValue(rs.getString(contador));
+	                    //sheet.autoSizeColumn(colIndex);
+	                    cell.setCellStyle(cellStyle2);
+	                    colIndex=colIndex+1;
+	                    
+	            	}
+                }
+                
+				System.out.println("Arquivo Exportde Sites Criado & finalizado");
+            	resp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                resp.setHeader("Content-Disposition", "attachment; filename=sites_mstp.xlsx");
+                workbook.write(resp.getOutputStream());
+                workbook.close();
+				}else {
+					resp.setContentType("application/html");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print("Sites não disponivel para download");
+				}
 			}
 			}catch (SQLException e) {
 			
