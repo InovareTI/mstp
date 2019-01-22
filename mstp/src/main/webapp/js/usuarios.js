@@ -83,6 +83,7 @@ function carrega_usuarios(){
     			"<button type=\"button\" class=\"btn btn-info\" data-toggle=\"modal\" data-target=\"#modal_user_add\">Novo Usuário</button>"+
     			"<button id=\"desabilitar_usuario\" type=\"button\" class=\"btn btn-danger\">Desabilitar Usuário</button>"+
     			"<button id=\"btn_reset_senha\" type=\"button\" class=\"btn btn-danger\" onclick=\"reset_senha()\">Redefinir Senha</button>"+
+    			"<button id=\"btn_ferias\" type=\"button\" class=\"btn btn-info\" onclick=\"iniciar_ferias()\">Agendar Férias de Funcionário</button>"+
     			"<div class=\"btn-group\" role=\"group\">"+
     		    "<button id=\"btnGroupDrop2\" type=\"button\" class=\"btn btn-secondary aria-haspopup=\"true\" dropdown-toggle\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">"+
     		     "Importar"+
@@ -188,6 +189,101 @@ function reset_senha(){
 	        });
 	    }
 	});
+}
+function iniciar_ferias(){
+	var $table = $('#tabela_usuario');
+	 var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
+         return row.user;
+     });
+	 if(ids.length==0){
+		 
+		 $.alert('Selecione um Usuário');
+		 return;
+	 }
+	 var d;
+	 var i;
+	 var f;
+	 var tudo=JSON.parse('{"i":"0","d":"0","f":"0","ano_base":"0"}');
+	 $('#modal_lanca_ferias').modal('show');
+	 $("#ferias_nome_usuario").html(ids[0]);
+	 $("#range_ferias").jqxDateTimeInput({selectionMode: 'range'});
+	 $("#range_ferias").on('change', function (event) {
+		 var selection = $("#range_ferias").jqxDateTimeInput('getRange');
+		  i = moment(selection.from).format('L');
+		  f = moment(selection.to).format('L');
+		  d = parseInt(moment.duration(moment(selection.to).diff(moment(selection.from))).asDays());
+		  tudo.i=i;
+		  tudo.f=f;
+		  tudo.d=d;
+		 //console.log(selection);
+         $('#log_dias_ferias').html(d+' dias de férias.');
+     });
+	 $button = $('#add_lanca_ferias_btn');
+	 $(function () {
+	     $button.click(tudo,function () {
+	    	 tudo.ano_base=$('#select_ferias_ano_base').val();
+	    	 if(tudo.ano_base==""){
+	    		 $.alert('Selecione o Ano Referência das Férias');
+	    		 return;
+	    	 }
+	    	 if(tudo.d > 30){
+	    		 $.confirm({
+	    			  title: 'Periodo de Férias Inconsistente',
+	    			  content: 'O período selecionado é maior do que 30 dias. Deseja Continua?',
+	    			  buttons: {
+	    			        Continuar: function () {
+	    			        	$.ajax({
+	    		      	      		  type: "POST",
+	    		      	      		  data: {"opt":"31",
+	    		      	      			  "inicio":tudo.i,
+	    		      	      			  "fim":tudo.f,
+	    		      	      			  "duracao":tudo.d,
+	    		      	      			  "usuario":ids[0].toString(),
+	    		      	      			  "ano_base":tudo.ano_base},		  
+	    		      	      		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+	    		      	      		  url: "./UserMgmt",
+	    		      	      		  cache: false,
+	    		      	      		  dataType: "text",
+	    		      	      		  success: onSuccesslancaFerias
+	    		      	      		});
+	    		      	            function onSuccesslancaFerias(data){
+	    		      	            	$.alert(data.toString());
+	    		      	            	$table.bootstrapTable('uncheckAll');
+	    		      	            	$('#modal_lanca_ferias').modal('hide');
+	    		      	            }
+	    			        },
+	    			        Cancelar: function () {
+	    			            
+	    			        }
+	    			  }
+	    		 });
+	    	 }else if(tudo.d < 1){
+	    		 $.alert({title:'Período Inválido!',
+	    			    content: 'Período de Férias precisa ser maior ou igual a 1 dia.',
+	    			    type:'red'});
+	    	 }else{
+	    		 $.ajax({
+     	      		  type: "POST",
+     	      		  data: {"opt":"31",
+     	      			  "inicio":tudo.i,
+     	      			  "fim":tudo.f,
+     	      			  "duracao":tudo.d,
+     	      			  "usuario":ids[0].toString(),
+     	      			  "ano_base":tudo.ano_base},		  
+     	      		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+     	      		  url: "./UserMgmt",
+     	      		  cache: false,
+     	      		  dataType: "text",
+     	      		  success: onSuccesslancaFerias
+     	      		});
+     	            function onSuccesslancaFerias(data){
+     	            	$.alert(data.toString());
+     	            	$table.bootstrapTable('uncheckAll');
+     	            	$('#modal_lanca_ferias').modal('hide');
+     	            }
+	    	 }
+	     });
+	     }); 
 }
 function exportar_usuarios(){
 	$.ajax({

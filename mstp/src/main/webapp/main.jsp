@@ -1448,6 +1448,42 @@ response.setDateHeader ("Expires", -1);
 
   </div>
 </div>
+
+<div id="modal_lanca_ferias" class="modal fade subconpo" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title label_janelas">Lançar Férias para Funcionário - <label id="ferias_nome_usuario"></label></h4>
+      </div>
+      <div class="modal-body">
+      	<div class="form-group">
+      	<p>
+      		<select  id="select_ferias_ano_base" class="selectpicker" data-live-search="true" title="Escolha o ano referência das férias">
+      			<option>2017</option>
+      			<option>2018</option>
+      		</select>
+      		<br>
+      	</p>
+      	<p>
+			<div id="range_ferias"></div>
+			<br>
+		<p>
+			<div style="color:black;font-size:24px" id="log_dias_ferias"></div>
+	      
+		</div>
+      </div>
+      <div class="modal-footer">
+        <button id="add_lanca_ferias_btn" type="button" class="btn btn-info">Lançar Férias</button><button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <div id="Modal_campos_rollout" class="modal fade" role="dialog">
   <div class="modal-dialog">
 
