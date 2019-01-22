@@ -208,13 +208,19 @@ public class UserMgmt extends HttpServlet {
 							if(rs2.next()) {
 								dados_tabela=dados_tabela + "\"-:-\",\"-:-\",\"-:-\",\"-:-\","+"\n";
 								tipo_registro="Compensação";
-							}else {
+						}else {
 								query="SELECT * FROM registros where usuario='"+param1+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Licença Médica' order by datetime_servlet asc limit 1";
 								rs2=conn.Consulta(query);
 								if(rs2.next()) {
 									dados_tabela=dados_tabela + "\"-:-\",\"-:-\",\"-:-\",\"-:-\","+"\n";
 									tipo_registro="Licença Médica";
-								}else {	
+						}else {
+							query="SELECT * FROM registros where usuario='"+param1+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Férias' order by datetime_servlet asc limit 1";
+							rs2=conn.Consulta(query);
+							if(rs2.next()) {
+								dados_tabela=dados_tabela + "\"-:-\",\"-:-\",\"-:-\",\"-:-\","+"\n";
+								tipo_registro="Férias";
+					   }else {	
 						query="SELECT * FROM registros where usuario='"+param1+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Entrada' order by datetime_servlet asc limit 1";
 						rs2=conn.Consulta(query);
 						if(rs2.next()) {
@@ -275,7 +281,7 @@ public class UserMgmt extends HttpServlet {
 						}else if(!entrada.equals("") && saida.equals("")) {
 							HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p);
 						}
-							}}
+							}}}
 						}
 						dados_tabela=dados_tabela + "\""+local+"\","+"\n";
 						dados_tabela=dados_tabela + "\""+tipo_registro+"\","+"\n";
@@ -2101,6 +2107,38 @@ public class UserMgmt extends HttpServlet {
 					out.print(dados_tabela);
 				}
 			
+			}else if(opt.equals("31")) {
+				param1 = req.getParameter("inicio");
+				param2 = req.getParameter("fim");
+				param3 = req.getParameter("duracao");
+				param4 = req.getParameter("usuario");
+				param5 = req.getParameter("ano_base");
+				query="insert into ferias (nome_func,inicio,fim,duracao,ano_ref,dt_add,user_add,processada,empresa) values('"+param4+"','"+param1+"','"+param2+"',"+param3+","+param5+",'"+time+"','"+p.get_PessoaUsuario()+"','Y',"+p.getEmpresa().getEmpresa_id()+")";
+				if(conn.Inserir_simples(query)) {
+					SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy"); 
+					Calendar inicio= Calendar.getInstance();
+					Calendar fim= Calendar.getInstance();
+					Date dt_inicio=format.parse(param1);
+					Date dt_fim=format.parse(param2);
+					inicio.setTime(dt_inicio);
+					fim.setTime(dt_fim);
+					while(inicio.before(fim)) {
+						insere_regitro(p,param4,"Férias",conn,"0","0",f2.format(inicio.getTime())+" 00:00:00","0","","Férias, - , - ");
+						inicio.add(Calendar.DAY_OF_MONTH, 1);
+					}
+					resp.setContentType("application/text");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print("Férias Processadas com sucesso!");
+				}else {
+					resp.setContentType("application/text");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print("Erro no processamento das Férias!");
+				}
+				
+				
+				
 			}
 		}catch (SQLException e) {
 			
