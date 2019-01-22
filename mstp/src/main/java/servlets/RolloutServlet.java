@@ -241,7 +241,7 @@ public class RolloutServlet extends HttpServlet {
     			rs2=conn.Consulta("select id_usuario,nome from usuarios where empresa='"+p.getEmpresa().getEmpresa_id()+"' and validado='Y' and ativo='Y'");
     			if(rs2.next()) {
     				dados_tabela=dados_tabela+"\n"+"\"people\" : [" +"\n";
-    				rs.beforeFirst();
+    				rs2.beforeFirst();
     				while(rs2.next()) {
     					dados_tabela=dados_tabela+"{ \"value\": \""+rs2.getString(1)+"\", \"label\": \""+rs2.getString(2)+"\" },"+"\n";
     				}

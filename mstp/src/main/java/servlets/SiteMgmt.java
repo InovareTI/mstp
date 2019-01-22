@@ -538,7 +538,7 @@ public class SiteMgmt extends HttpServlet {
 				int contador=1;
 				int total_colunas;
 				Cell cell;
-				query="Select sys_id,site_id,site_latitude,site_longitude,site_municipio,site_bairro,site_uf,site_nome,site_sequencial,site_operadora,site_cep,site_owner from sites where site_operadora='"+param1+"' and empresa="+p.getEmpresa().getEmpresa_id()+" order by sys_id asc";
+				query="Select sys_id,site_id,site_latitude,site_longitude,site_municipio,site_bairro,site_uf,site_nome,site_sequencial,site_operadora,site_cep,site_owner from sites where site_ativo='Y' and site_operadora='"+param1+"' and empresa="+p.getEmpresa().getEmpresa_id()+" order by sys_id asc";
 				System.out.println(query);
 				rs=conn.Consulta(query);
 				if(rs.next()) {
