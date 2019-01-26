@@ -98,7 +98,7 @@ function carrega_tabela_site(){
   		  "</div>"+
     		 
     			"<a id=\"template_importar_site\" href=\"templates/templateSiteImportacao.xlsx\" type=\"button\" class=\"btn btn-primary\">Template(importação)</a>"+
-    			
+    			"<button id=\"btnSync_rolloutsites\" type=\"button\" class=\"btn btn-secondary\" onclick=\"sync_rollout()\">Sync Rollout</button>"+
     		    "</div>" + data);
 		$('#tabela_sites').bootstrapTable();
 		var $table = $('#tabela_sites'),
@@ -131,7 +131,28 @@ function carrega_tabela_site(){
 	     });
 	 });
 	}
-
+	
+}
+function sync_rollout(){
+	$('#btnSync_rolloutsites').addClass( "disabled" );
+	$('#btnSync_rolloutsites').text('Aguarde a Finalização...');
+	$('#btnSync_rolloutsites').prop('disabled', true);
+	$.ajax({
+ 		  type: "POST",
+ 		  data: {"opt":"12"
+ 			 },		  
+ 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+ 		  url: "./SiteMgmt",
+ 		  cache: false,
+ 		  dataType: "text",
+ 		  success: SyncRolloutSites
+ 		});
+	 function SyncRolloutSites(data){
+		 $.alert(data.toString());
+	 }
+	 $('#btnSync_rolloutsites').removeClass( "disabled" );
+	 $('#btnSync_rolloutsites').prop('disabled', false);
+	 $('#btnSync_rolloutsites').text('Sync Rollout');
 }
 function atualiza_flag(){
 	

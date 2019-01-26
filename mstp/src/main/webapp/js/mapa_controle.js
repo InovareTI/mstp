@@ -38,54 +38,57 @@ function load_site_markers(){
 function load_site_markers_mapa_central(){
 	$.ajax({
 		  type: "POST",
-		  data: {"opt":"10"
-			 
-			 },		  
+		  data: {"opt":"10"},		  
 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
 		  url: "./SiteMgmt",
 		  cache: false,
 		  dataType: "text",
-		  success: carregasitesmapaprincipal
+		  success: carrega_pontos_mapa_central
 		});
-	function carregasitesmapaprincipal(data) {
-		var aux=JSON.parse(data);
-		
+	function carrega_pontos_mapa_central(data){
+		alert("recebeu dados - Json OK!")
+		console.log(data);
+		data = JSON.parse(data);
 		map.addSource('VIVO', {
 		    type: 'geojson',
-		    data: aux.VIVO,
+		    data: data.VIVO,
 		    cluster: true,
 	        clusterMaxZoom: 14, // Max zoom to cluster points on
 	        clusterRadius: 50
 		});
+		
 		map.addSource('NEXTEL', {
 		    type: 'geojson',
-		    data: aux.NEXTEL,
+		    data: data.NEXTEL,
 		    cluster: true,
 	        clusterMaxZoom: 14, // Max zoom to cluster points on
 	        clusterRadius: 50
 		});
+		
 		map.addSource('TIM', {
 		    type: 'geojson',
-		    data: aux.TIM,
+		    data: data.TIM,
 		    cluster: true,
 	        clusterMaxZoom: 14, // Max zoom to cluster points on
 	        clusterRadius: 50
 		});
+		
 		map.addSource('CLARO', {
 		    type: 'geojson',
-		    data: aux.CLARO,
+		    data: data.CLARO,
 		    cluster: true,
 	        clusterMaxZoom: 14, // Max zoom to cluster points on
 	        clusterRadius: 50
 		});
+		
 		map.addSource('USUARIOS', {
 		    type: 'geojson',
-		    data: aux.USUARIOS,
+		    data: data.USUARIOS,
 		    cluster: true,
 	        clusterMaxZoom: 8, // Max zoom to cluster points on
 	        clusterRadius: 50
 		});
-			
+		alert("all sources ok");
 			map.addLayer({
 				"id": 'VIVO',
 		        "type": "symbol",
@@ -129,6 +132,7 @@ function load_site_markers_mapa_central(){
 	                "icon-image": "user1"
 		        }
 			});
+			
 			map.addLayer({
 		        id: "clusters_TIM",
 		        type: "circle",
@@ -341,9 +345,10 @@ function load_site_markers_mapa_central(){
 		            "text-size": 12
 		        }
 		    });
+			alert("all layers ok");
 			map.on('click', 'VIVO', function (e) {
 		        var coordinates = e.features[0].geometry.coordinates.slice();
-		        var operadora = e.features[0].properties.Site_Operadora + ": " + e.features[0].properties.Site_Id;
+		        var operadora = e.features[0].properties.site_operadora + ": " + e.features[0].properties.rollout_site_id;
 		        
 		        // Ensure that if the map is zoomed out such that multiple
 		        // copies of the feature are visible, the popup appears
@@ -362,7 +367,7 @@ function load_site_markers_mapa_central(){
 		    });
 			map.on('click', 'TIM', function (e) {
 		        var coordinates = e.features[0].geometry.coordinates.slice();
-		        var operadora = e.features[0].properties.Site_Operadora + ": " + e.features[0].properties.Site_Id;
+		        var operadora = e.features[0].properties.site_operadora + ": " + e.features[0].properties.rollout_site_id;
 		       
 		        // Ensure that if the map is zoomed out such that multiple
 		        // copies of the feature are visible, the popup appears
@@ -381,7 +386,7 @@ function load_site_markers_mapa_central(){
 		    });
 			map.on('click', 'CLARO', function (e) {
 		        var coordinates = e.features[0].geometry.coordinates.slice();
-		        var operadora = e.features[0].properties.Site_Operadora + ": " + e.features[0].properties.Site_Id;
+		        var operadora = e.features[0].properties.site_operadora + ": " + e.features[0].properties.rollout_site_id;
 		        
 		        // Ensure that if the map is zoomed out such that multiple
 		        // copies of the feature are visible, the popup appears
@@ -400,7 +405,7 @@ function load_site_markers_mapa_central(){
 		    });
 			map.on('click', 'NEXTEL', function (e) {
 		        var coordinates = e.features[0].geometry.coordinates.slice();
-		        var operadora = e.features[0].properties.Site_Operadora + ": " + e.features[0].properties.Site_Id;
+		        var operadora = e.features[0].properties.site_operadora + ": " + e.features[0].properties.rollout_site_id;
 		        
 		        // Ensure that if the map is zoomed out such that multiple
 		        // copies of the feature are visible, the popup appears
@@ -419,7 +424,7 @@ function load_site_markers_mapa_central(){
 		    });
 			map.on('click', 'USUARIOS', function (e) {
 		        var coordinates = e.features[0].geometry.coordinates.slice();
-		        var operadora = e.features[0].properties.usuario + ": " + e.features[0].properties.horario;
+		        var operadora = e.features[0].properties.Usuario + ": " + e.features[0].properties.Data;
 		        map.zoomTo(19, {duration: 9000});
 		        // Ensure that if the map is zoomed out such that multiple
 		        // copies of the feature are visible, the popup appears
@@ -441,9 +446,10 @@ function load_site_markers_mapa_central(){
 		        var features = map.queryRenderedFeatures(e.point, { layers: ['clusters_VIVO'] });
 		        var clusterId = features[0].properties.cluster_id;
 		        map.getSource('VIVO').getClusterExpansionZoom(clusterId, function (err, zoom) {
-		            if (err)
+		            if (err){
+		            	alert("erro aqui");
 		                return;
-
+		            }
 		            map.easeTo({
 		                center: features[0].geometry.coordinates,
 		                zoom: zoom
@@ -454,8 +460,10 @@ function load_site_markers_mapa_central(){
 		        var features = map.queryRenderedFeatures(e.point, { layers: ['clusters_NEXTEL'] });
 		        var clusterId = features[0].properties.cluster_id;
 		        map.getSource('NEXTEL').getClusterExpansionZoom(clusterId, function (err, zoom) {
-		            if (err)
+		            if (err){
+		            	alert("erro aqui");
 		                return;
+		            }
 
 		            map.easeTo({
 		                center: features[0].geometry.coordinates,
@@ -467,8 +475,10 @@ function load_site_markers_mapa_central(){
 		        var features = map.queryRenderedFeatures(e.point, { layers: ['clusters_CLARO'] });
 		        var clusterId = features[0].properties.cluster_id;
 		        map.getSource('CLARO').getClusterExpansionZoom(clusterId, function (err, zoom) {
-		            if (err)
+		            if (err){
+		            	alert("erro aqui");
 		                return;
+		            }
 
 		            map.easeTo({
 		                center: features[0].geometry.coordinates,
@@ -480,8 +490,10 @@ function load_site_markers_mapa_central(){
 		        var features = map.queryRenderedFeatures(e.point, { layers: ['clusters_TIM'] });
 		        var clusterId = features[0].properties.cluster_id;
 		        map.getSource('TIM').getClusterExpansionZoom(clusterId, function (err, zoom) {
-		            if (err)
+		            if (err){
+		            	alert("erro aqui");
 		                return;
+		            }
 
 		            map.easeTo({
 		                center: features[0].geometry.coordinates,
@@ -493,8 +505,10 @@ function load_site_markers_mapa_central(){
 		        var features = map.queryRenderedFeatures(e.point, { layers: ['clusters_USUARIOS'] });
 		        var clusterId = features[0].properties.cluster_id;
 		        map.getSource('USUARIOS').getClusterExpansionZoom(clusterId, function (err, zoom) {
-		            if (err)
+		            if (err){
+		            	alert("erro aqui");
 		                return;
+		            }
 
 		            map.easeTo({
 		                center: features[0].geometry.coordinates,
@@ -563,5 +577,7 @@ function load_site_markers_mapa_central(){
 			        map.getCanvas().style.cursor = '';
 			    });
 		$('#mapa_info').html('Sites Carregados');
+		alert("Todos os dados carregados");
 	}
+	
 	}

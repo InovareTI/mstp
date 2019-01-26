@@ -14,6 +14,7 @@ import com.mongodb.ServerAddress;
 import com.mongodb.async.SingleResultCallback;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.UpdateResult;
 
@@ -51,6 +52,23 @@ public class ConexaoMongo {
 	}
 	public FindIterable<Document> ConsultaSimplesSemFiltro(String Collection){
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(new Document());
+		return findIterable;
+	}
+	
+	public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,String campo,String valor){
+		System.out.println("Realizando consulta em:");
+		System.out.println(Collection);
+		System.out.println(campo);
+		System.out.println(valor);
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.eq(campo, valor));
+		return findIterable;
+	}
+	public FindIterable<Document> ConsultaSimplesComFiltroDate(String Collection,String campo,String valor){
+		System.out.println("Realizando consulta em:");
+		System.out.println(Collection);
+		System.out.println(campo);
+		System.out.println(valor);
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.gte(campo, valor));
 		return findIterable;
 	}
 	public boolean RemoverMuitosSemFiltro(String Collection) {

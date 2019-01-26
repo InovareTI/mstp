@@ -7,7 +7,10 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.ServletConfig;
@@ -28,8 +31,15 @@ import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.bson.Document;
+import org.json.JSONObject;
+
+import com.mongodb.Block;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCursor;
 
 import classes.Conexao;
+import classes.ConexaoMongo;
 import classes.Pessoa;
 
 /**
@@ -70,7 +80,7 @@ public class SiteMgmt extends HttpServlet {
 		gerenciamento_sites(request,response);
 	}
 	 public void gerenciamento_sites(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-			ResultSet rs,rs2 ;
+			ResultSet rs,rs2,rs3 ;
 			String param1;
 			String param2;
 			String param3;
@@ -107,6 +117,7 @@ public class SiteMgmt extends HttpServlet {
 			param9="";
 			last_id=0;
 			opt=req.getParameter("opt");
+			System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações de Sites do MSTP Web - "+f3.format(time)+" opt:"+opt);
 			try {
 			if(opt.equals("1")){
 				param1=req.getParameter("siteid");
@@ -221,10 +232,10 @@ public class SiteMgmt extends HttpServlet {
 							            "\"type\": \"Feature\","+
 							            "\"geometry\": {"+
 							            "\"type\": \"Point\","+
-							            "\"coordinates\": [";
+							            "\"coordinates\": ";
 							                    
 							                
-								dados_tabela=dados_tabela+verfica_coordenadas(rs2.getString("site_longitude"),rs2.getString("site_latitude"),rs2.getString("site_id"))+"]},";
+								dados_tabela=dados_tabela+verfica_coordenadas(rs2.getString("site_latitude"),rs2.getString("site_longitude"))+"},";
 								dados_tabela=dados_tabela+"\"properties\": {"+
 					                "\"Site Id\": \""+rs2.getString("site_id")+"\","+
 					                "\"Site Nome\": \""+rs2.getString("site_nome")+"\","+
@@ -244,7 +255,7 @@ public class SiteMgmt extends HttpServlet {
 					
 						    		
 							
-					//System.out.println(dados_tabela);
+					System.out.println(dados_tabela);
 					resp.setContentType("application/json");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
@@ -428,22 +439,59 @@ public class SiteMgmt extends HttpServlet {
 				}
 			}else if(opt.equals("10")) {
 				System.out.println("Carregando TODOS os sites no mapa");
-				rs=conn.Consulta("select distinct site_operadora from sites where site_ativo='Y' and site_latitude<>'' and site_longitude<>'' and site_operadora<>'' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
+				//String operadora_aux="";
+				List<Document> lista_sites = new ArrayList<Document>();
+				ConexaoMongo c = new ConexaoMongo();
+				Document document_operadora = new Document();
+				Document document_featurecollection = new Document();
+				FindIterable<Document> findIterable=c.ConsultaSimplesSemFiltro("operadora");
+				findIterable.forEach((Block<Document>) doc -> {
+					//System.out.println("Entrou no loope da operadora");
+					document_featurecollection.append("type", "FeatureCollection");
+					document_featurecollection.append("operadora", doc.get("nome").toString());
+					FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltro("Rollout_Sites","GEO.properties.site_operadora",doc.get("nome").toString());
+					findIterable2.forEach((Block<Document>) doc2 -> {
+						//System.out.println(doc2.get("GEO").toString());
+						
+						lista_sites.add((Document) doc2.get("GEO"));
+					});
+					document_featurecollection.append("features",lista_sites );
+					document_operadora.append(doc.get("nome").toString(), document_featurecollection.toJson());
+					lista_sites.clear();
+					document_featurecollection.clear();
+					//System.out.println(document_operadora.toJson());
+				});
+				FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",time.toString().substring(0, 10)+" 00:00:00");
+				lista_sites.clear();
+				document_featurecollection.append("type", "FeatureCollection");
+				document_featurecollection.append("operadora", "USUARIOS");
+				findIterable2.forEach((Block<Document>) doc2 -> {
+					//System.out.println("Entrou no loop da data");
+					lista_sites.add((Document) doc2.get("GEO"));
+				});
+				document_featurecollection.append("features",lista_sites );
+				document_operadora.append("USUARIOS", document_featurecollection.toJson());
+				lista_sites.clear();
+				document_featurecollection.clear();
+				/*rs=conn.Consulta("SELECT distinct rollout.value_atbr_field,sites.site_operadora FROM rollout,sites WHERE rollout.linha_ativa='Y' and rollout.empresa="+p.getEmpresa().getEmpresa_id()+" and   rollout.value_atbr_field=sites.site_id order by sites.site_operadora");
 				dados_tabela="";
+				System.out.println("Query executada");
 				if(rs.next()) {
-					rs.beforeFirst();
+					System.out.println("resultados encontrados...Query executada");
 					dados_tabela=  "{";
+					operadora_aux=rs.getString(2);
+					rs.beforeFirst();
+					dados_tabela=dados_tabela+"\n\""+operadora_aux+"\":{"+
+						    "\"type\": \"FeatureCollection\","+
+						    "\"operadora\": \""+operadora_aux+"\","+
+						    "\"features\": [";
 					while(rs.next()) {
 						//System.out.println(rs.getString("site_operadora"));
 						//System.out.println(dados_tabela);
-						dados_tabela=dados_tabela+"\n\""+rs.getString("site_operadora")+"\":{"+
-							    "\"type\": \"FeatureCollection\","+
-							    "\"operadora\": \""+rs.getString("site_operadora")+"\","+
-							    "\"features\": [";
-						rs2=conn.Consulta("select * from sites where site_operadora='"+rs.getString("site_operadora")+"' and site_ativo='Y' and site_latitude<>'' and site_longitude<>'' and empresa='"+p.getEmpresa().getEmpresa_id()+"' limit 600");
-						if(rs2.next()) {
-										rs2.beforeFirst();
-										while(rs2.next()) {
+						if(operadora_aux.equals(rs.getString(2))) {
+							rs2=conn.Consulta("select * from sites where site_id='"+rs.getString(1)+"' and site_ativo='Y' and site_latitude<>'' and site_longitude<>'' and site_operadora<>'' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
+							if(rs2.next()) {
+							
 										dados_tabela=dados_tabela+"{" +
 						
 							            "\"type\": \"Feature\","+
@@ -452,7 +500,7 @@ public class SiteMgmt extends HttpServlet {
 							            "\"coordinates\": [";
 							                    
 							                
-								dados_tabela=dados_tabela+verfica_coordenadas(rs2.getString("site_longitude"),rs2.getString("site_latitude"),rs2.getString("site_id"))+"]},\n";
+								dados_tabela=dados_tabela+verfica_coordenadas(rs2.getString("site_longitude"),rs2.getString("site_latitude"))+"]},\n";
 								dados_tabela=dados_tabela+"\"properties\": {"+
 					                "\"Site_Id\": \""+rs2.getString("site_id").replaceAll("'", "_")+"\","+
 					                "\"Site Nome\": \""+rs2.getString("site_nome").replaceAll("'", "_")+"\","+
@@ -460,23 +508,29 @@ public class SiteMgmt extends HttpServlet {
 					            "}\n"+
 					        "},\n";
 							}
-										dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
-										dados_tabela=dados_tabela+"\n]},\n";
-												
 						}else {
-							
-							dados_tabela=dados_tabela+"]},\n";
+							            dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+										dados_tabela=dados_tabela+"\n]},\n";
+										operadora_aux=rs.getString(2);
+										dados_tabela=dados_tabela+"\n\""+operadora_aux+"\":{"+
+											    "\"type\": \"FeatureCollection\","+
+											    "\"operadora\": \""+operadora_aux+"\","+
+											    "\"features\": [";
+										rs.previous();
 						}
-					}
+						}
+					
 							
-					//dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
-					//dados_tabela=dados_tabela+"}";	
+					
 						
 					
 			}
-				//System.out.println(dados_tabela);
-				
-				query="select *  from localiza_usuarios where SUBSTRING(dt_add,1,10) = '"+time.toString().substring(0, 10)+"' and empresa="+p.getEmpresa().getEmpresa_id();
+				dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+				dados_tabela=dados_tabela+"\n]},\n";
+				System.out.println(dados_tabela);
+				Document di= new Document();
+				*/
+				/*query="select *  from localiza_usuarios where SUBSTRING(dt_add,1,10) = '"+time.toString().substring(0, 10)+"' and empresa="+p.getEmpresa().getEmpresa_id();
 				System.out.println(query);
 				rs=conn.Consulta(query);
 				if(rs.next()) {
@@ -518,13 +572,14 @@ public class SiteMgmt extends HttpServlet {
 				
 				   
 					
-						    		
-						
-					System.out.println("TODOS OS SITE CARREGADOS COM SUCESSO!");
+					*/	    		
+					JSONObject  resultado = new JSONObject(document_operadora.toJson());
+					
+					//System.out.println(resultado.toString());
 					resp.setContentType("application/json");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
-					out.print(dados_tabela);
+					out.print(resultado.toString());
 				
 				
 			}else if(opt.equals("11")) {
@@ -611,6 +666,102 @@ public class SiteMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print("Sites não disponivel para download");
 				}
+			}else if(opt.equals("12")) {
+				System.out.println("Sincronia de rollout iniciada em "+time);
+				/*query="select distinct value_atbr_field from rollout where milestone='Site ID' and linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id();
+				rs=conn.Consulta(query);
+				if(rs.next()) {
+					rs.beforeFirst();
+					while(rs.next()) {
+						query="select * from rollout_site where rollout_site_id='"+rs.getString(1)+"'";
+						rs2=conn.Consulta(query);
+						if(rs2.next()) {
+							
+						}else {
+							query="select * from sites where site_id='"+rs.getString(1)+"'";
+							rs3=conn.Consulta(query);
+							if(rs3.next()) {
+								conn.Inserir_simples("insert into rollout_site (rollout_site_id,site_latitude,site_longitude,site_operadora,site_UF,site_cidade,site_estado,site_Bairro,dt_add,user_ad) values ('"+rs.getString(1)+"','"+rs3.getString("site_latitude")+"','"+rs3.getString("site_longitude")+"','"+rs3.getString("site_operadora")+"','"+rs3.getString("site_uf")+"','"+rs3.getString("site_municipio")+"','"+rs3.getString("site_uf")+"','"+rs3.getString("site_bairro")+"','"+time+"','"+p.get_PessoaUsuario()+"')");
+							}
+						}
+					}
+				}
+				System.out.println("Sicronia com MySQL Finalizada");
+				*/
+				ConexaoMongo c = new ConexaoMongo();
+				Document document = new Document();
+				Document geo = new Document();
+				Document geometry = new Document();
+				Document properties = new Document();
+				c.RemoverMuitosSemFiltro("Rollout_Sites");
+				query="select * from rollout_site";
+				rs=conn.Consulta(query);
+				if(rs.next()) {
+					String CampoNome="";
+					rs.beforeFirst();
+					
+					int colunas = rs.getMetaData().getColumnCount();
+					while(rs.next()) {
+						geo.append("type", "Feature");
+						geometry.append("type", "Point");
+						
+							geometry.append("coordinates", verfica_coordenadas(rs.getString("site_latitude"),rs.getString("site_longitude")));
+						
+						geo.append("geometry",geometry);
+						for (int i=1;i<=colunas;i++) {
+    						CampoNome=rs.getMetaData().getColumnName(i);
+        					properties.append(CampoNome, rs.getObject(i));
+    					}
+						geo.append("properties", properties);
+						document.append("GEO", geo);
+    					document.append("Update_by", "masteradmin");
+						document.append("Update_time", time.toString());
+    					c.InserirSimpels("Rollout_Sites", document);
+    					document.clear();
+					}
+				}
+				geo.clear();
+				geometry.clear();
+				properties.clear();
+				query="SELECT * FROM localiza_usuarios";
+				c.RemoverMuitosSemFiltro("Localiza_Usuarios");
+				rs=conn.Consulta(query);
+				document.clear();
+				if(rs.next()) {
+					rs.beforeFirst();
+					int colunas = rs.getMetaData().getColumnCount();
+					String CampoNome="";
+					while(rs.next()) {
+						
+						for (int i=1;i<=colunas;i++) {
+    						CampoNome=rs.getMetaData().getColumnName(i);
+    						if(!CampoNome.equals("lat") && !CampoNome.equals("lng") && !CampoNome.equals("usuario") && !CampoNome.equals("dt_add")) {
+    							document.append(CampoNome, rs.getObject(i));
+    							
+    						}
+    						properties.append("Usuario",rs.getString("usuario"));
+    						properties.append("Data",rs.getString("dt_add"));
+    					}
+						geo.append("type", "Feature");
+						geometry.append("type", "Point");
+						geometry.append("coordinates", verfica_coordenadas(rs.getString("lat"),rs.getString("lng")));
+						geo.append("geometry",geometry);
+						geo.append("properties", properties);
+						document.append("GEO", geo);
+						c.InserirSimpels("Localiza_Usuarios", document);
+						document.clear();
+						properties.clear();
+						geo.clear();
+						geometry.clear();
+				}
+				}
+				
+				c.fecharConexao();
+    			System.out.println("Sicronia com Mongo Finalizada");
+				resp.setContentType("application/html");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				out.print("Sincronização Completa");
 			}
 			}catch (SQLException e) {
 			
@@ -620,15 +771,15 @@ public class SiteMgmt extends HttpServlet {
 			}
 	 }
  
-	 public String verfica_coordenadas(String lng,String lat,String site) {
+	 public List<Double> verfica_coordenadas(String lng,String lat) {
 	 try {
-		 Float f_lat=Float.parseFloat(lat.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
-		 Float f_lng=Float.parseFloat(lng.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
-		 return f_lng+","+f_lat;
+		 Double f_lat=Double.parseDouble(lat.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
+		 Double f_lng=Double.parseDouble(lng.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
+		 return Arrays.asList(f_lat,f_lng);
 	 }catch (NumberFormatException e) {
 			
-			System.out.println(site+ " com dados incorretos");
-			return "51.505, -0.09";
+			
+			return Arrays.asList(0.0,0.0);
 	}
  }
 }
