@@ -439,27 +439,31 @@ public class SiteMgmt extends HttpServlet {
 				}
 			}else if(opt.equals("10")) {
 				System.out.println("Carregando TODOS os sites no mapa");
-				//String operadora_aux="";
+				String operadora_aux="";
 				List<Document> lista_sites = new ArrayList<Document>();
 				ConexaoMongo c = new ConexaoMongo();
 				Document document_operadora = new Document();
 				Document document_featurecollection = new Document();
+				JSONObject aux_json = new JSONObject();
+				dados_tabela="";
 				FindIterable<Document> findIterable=c.ConsultaSimplesSemFiltro("operadora");
 				findIterable.forEach((Block<Document>) doc -> {
 					//System.out.println("Entrou no loope da operadora");
 					document_featurecollection.append("type", "FeatureCollection");
 					document_featurecollection.append("operadora", doc.get("nome").toString());
-					FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltro("Rollout_Sites","GEO.properties.site_operadora",doc.get("nome").toString());
+					FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltro("Rollout_Sites","GEO.properties.Operadora",doc.get("nome").toString());
 					findIterable2.forEach((Block<Document>) doc2 -> {
-						//System.out.println(doc2.get("GEO").toString());
+						lista_sites.add((Document)doc2.get("GEO"));
 						
-						lista_sites.add((Document) doc2.get("GEO"));
 					});
-					document_featurecollection.append("features",lista_sites );
-					document_operadora.append(doc.get("nome").toString(), document_featurecollection.toJson());
+					
+					document_featurecollection.append("features",lista_sites);
+					document_operadora.append("\""+doc.get("nome").toString()+"\"", document_featurecollection.toJson());
+					aux_json.append(doc.get("nome").toString(), document_featurecollection.toJson());
+					//operadora_aux=operadora_aux+"\""+doc.get("nome").toString()+"\":"+document_featurecollection.toJson();
 					lista_sites.clear();
 					document_featurecollection.clear();
-					//System.out.println(document_operadora.toJson());
+					System.out.println(document_operadora.toString());
 				});
 				FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",time.toString().substring(0, 10)+" 00:00:00");
 				lista_sites.clear();
@@ -467,10 +471,10 @@ public class SiteMgmt extends HttpServlet {
 				document_featurecollection.append("operadora", "USUARIOS");
 				findIterable2.forEach((Block<Document>) doc2 -> {
 					//System.out.println("Entrou no loop da data");
-					lista_sites.add((Document) doc2.get("GEO"));
+					lista_sites.add((Document)doc2.get("GEO"));
 				});
 				document_featurecollection.append("features",lista_sites );
-				document_operadora.append("USUARIOS", document_featurecollection.toJson());
+				document_operadora.append("\"USUARIOS\"", document_featurecollection.toJson().toString());
 				lista_sites.clear();
 				document_featurecollection.clear();
 				/*rs=conn.Consulta("SELECT distinct rollout.value_atbr_field,sites.site_operadora FROM rollout,sites WHERE rollout.linha_ativa='Y' and rollout.empresa="+p.getEmpresa().getEmpresa_id()+" and   rollout.value_atbr_field=sites.site_id order by sites.site_operadora");
@@ -573,14 +577,18 @@ public class SiteMgmt extends HttpServlet {
 				   
 					
 					*/	    		
-					JSONObject  resultado = new JSONObject(document_operadora.toJson());
+					String  resultado = document_operadora.toString();
+					//System.out.println(resultado);
+					resultado=resultado.replaceAll("=", ":");
 					
-					//System.out.println(resultado.toString());
-					resp.setContentType("application/json");  
+					resultado=resultado.substring(9, resultado.length()-1);
+					//dados_tabela="esse é um teste de string com dados \"teste de teste\"sem opcso";
+					//System.out.println(resultado);
+					resp.setContentType("application/text");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
-					out.print(resultado.toString());
-				
+					out.print(resultado);
+					System.out.println("Todos os Sites Carregados");
 				
 			}else if(opt.equals("11")) {
 				param1=req.getParameter("operadora");
@@ -708,10 +716,15 @@ public class SiteMgmt extends HttpServlet {
 							geometry.append("coordinates", verfica_coordenadas(rs.getString("site_latitude"),rs.getString("site_longitude")));
 						
 						geo.append("geometry",geometry);
-						for (int i=1;i<=colunas;i++) {
-    						CampoNome=rs.getMetaData().getColumnName(i);
-        					properties.append(CampoNome, rs.getObject(i));
-    					}
+						//for (int i=1;i<=colunas;i++) {
+    						//CampoNome=rs.getMetaData().getColumnName(i);
+    						//if(CampoNome.equals("site_id")) {
+    							properties.append("SiteID", rs.getString("rollout_site_id"));
+    						//}
+    						//if(CampoNome.equals("site_operadora")) {
+    							properties.append("Operadora", rs.getString("site_operadora"));
+    						//}
+    					//}
 						geo.append("properties", properties);
 						document.append("GEO", geo);
     					document.append("Update_by", "masteradmin");
@@ -779,7 +792,7 @@ public class SiteMgmt extends HttpServlet {
 	 }catch (NumberFormatException e) {
 			
 			
-			return Arrays.asList(0.0,0.0);
+			return Arrays.asList(-10.00,-10.00);
 	}
  }
 }

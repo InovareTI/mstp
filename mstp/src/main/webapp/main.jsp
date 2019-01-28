@@ -21,8 +21,8 @@ response.setDateHeader ("Expires", -1);
 		
 		<link rel="shortcut icon" href="./favicon.ico">
 		
-		 <link rel="stylesheet" href="map/leaflet.css" type="text/css"/>
-		 <script src="map/leaflet.js"></script>
+		 <link rel="stylesheet" href="js/plugins/leaflet/leaflet.css" type="text/css"/>
+		 <script src="js/plugins/leaflet/leaflet.js"></script>
 		<link rel="stylesheet" type="text/css" href="css/div_graph.css" />
 	
     
@@ -158,7 +158,9 @@ response.setDateHeader ("Expires", -1);
 	<script type="text/javascript" src="js/scheduler.js"></script>
 	<script type="text/javascript" src="js/importacoes.js"></script>
 	<script type="text/javascript" src="js/pivot.js"></script>
-	<script src='https://api.mapbox.com/mapbox-gl-js/v0.47.0/mapbox-gl.js'></script>
+	<script src='https://api.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.js'></script>
+     <link href='https://api.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.css' rel='stylesheet' />
+
 	<link rel="manifest" href="/manifest.json" />
 	<script type="text/javascript" src="OneSignalSDKWorker.js"></script>
 	<script type="text/javascript" src="OneSignalSDKUpdaterWorker.js"></script>
@@ -174,7 +176,7 @@ response.setDateHeader ("Expires", -1);
 		    });
 		  });
 		</script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v0.47.0/mapbox-gl.css' rel='stylesheet' />
+    
 	<style>
 	.card {
     	/* Add shadows to create the "card" effect */
@@ -456,34 +458,27 @@ response.setDateHeader ("Expires", -1);
 						});
 						//var layerList = document.getElementById('menu_mapa');
 						//var inputs = layerList.getElementsByTagName('input');
-
 						//function switchLayer(layer) {
 						//    var layerId = layer.target.id;
 						//    map.setStyle('mapbox://styles/mapbox/' + layerId + '-v9');
 						//}
-
 						//for (var i = 0; i < inputs.length; i++) {
 						//    inputs[i].onclick = switchLayer;
 						//}
 						map.addControl(new mapboxgl.FullscreenControl());
 						map.addControl(new mapboxgl.NavigationControl());
 						var toggleableLayerIds = [ 'VIVO', 'TIM','CLARO','NEXTEL','USUARIOS' ];
-
 						for (var i = 0; i < toggleableLayerIds.length; i++) {
 						    var id = toggleableLayerIds[i];
-
 						    var link = document.createElement('a');
 						    link.href = '#';
 						    link.className = 'btn btn-info active';
 						    link.textContent = id;
-
 						    link.onclick = function (e) {
 						        var clickedLayer = this.textContent;
 						        e.preventDefault();
 						        e.stopPropagation();
-
 						        var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
-
 						        if (visibility === 'visible') {
 						        	
 						            	map.setLayoutProperty(clickedLayer, 'visibility', 'none');
@@ -497,7 +492,6 @@ response.setDateHeader ("Expires", -1);
 					        	    map.setLayoutProperty('cluster-count_'+clickedLayer, 'visibility', 'visible');
 						        }
 						    };
-
 						    var layers = document.getElementById('menu_mapa');
 						    layers.appendChild(link);
 						}

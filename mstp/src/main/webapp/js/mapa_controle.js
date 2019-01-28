@@ -2,10 +2,11 @@ function map_init_manual(){
  mymap.remove();
  
  mymap = L.map('mapid').setView([51.505, -0.09],4);
-			 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=sk.eyJ1IjoiZmFiaW9zYWxidXF1ZXJxdWUiLCJhIjoiY2ppYjhwaXo5MWY4NjNrcXF2bWhxNjg2byJ9.QM1xoBAe6s_kvZidmwE98A', {
+			 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiZmFiaW9zYWxidXF1ZXJxdWUiLCJhIjoiY2pjMjYxYzFoMGludzJxczR1ZWp2aTBpaiJ9.KptnIvfz_61BmkgGIR_ZWA', {
 				    attribution: 'MSTP by Inovare TI',
 				    maxZoom: 18,
-				    id: 'MSTP.WEB'
+				    id: 'MSTP.WEB',
+				    accessToken: 'pk.eyJ1IjoiZmFiaW9zYWxidXF1ZXJxdWUiLCJhIjoiY2pjMjYxYzFoMGludzJxczR1ZWp2aTBpaiJ9.KptnIvfz_61BmkgGIR_ZWA'
 				}).addTo(mymap);
 }
 function load_site_markers(){
@@ -36,19 +37,8 @@ function load_site_markers(){
 	});
 	}
 function load_site_markers_mapa_central(){
-	$.ajax({
-		  type: "POST",
-		  data: {"opt":"10"},		  
-		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
-		  url: "./SiteMgmt",
-		  cache: false,
-		  dataType: "text",
-		  success: carrega_pontos_mapa_central
-		});
-	function carrega_pontos_mapa_central(data){
-		alert("recebeu dados - Json OK!")
-		console.log(data);
-		data = JSON.parse(data);
+	$.getJSON('./SiteMgmt?opt=10', function(data) {
+		
 		map.addSource('VIVO', {
 		    type: 'geojson',
 		    data: data.VIVO,
@@ -88,7 +78,7 @@ function load_site_markers_mapa_central(){
 	        clusterMaxZoom: 8, // Max zoom to cluster points on
 	        clusterRadius: 50
 		});
-		alert("all sources ok");
+		
 			map.addLayer({
 				"id": 'VIVO',
 		        "type": "symbol",
@@ -147,11 +137,11 @@ function load_site_markers_mapa_central(){
 		            "circle-color": [
 		                "step",
 		                ["get", "point_count"],
-		                "#0000FF",
+		                "#9999ff",
 		                100,
-		                "#0000CD",
+		                "#7f7fff",
 		                750,
-		                "#00008B"
+		                "#6666ff"
 		            ],
 		            "circle-radius": [
 		                "step",
@@ -298,7 +288,7 @@ function load_site_markers_mapa_central(){
 		        layout: {
 		            "text-field": "{point_count_abbreviated}",
 		            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
-		            "text-size": 12
+		            "text-size": 14
 		        }
 		    });
 			map.addLayer({
@@ -309,7 +299,7 @@ function load_site_markers_mapa_central(){
 		        layout: {
 		            "text-field": "{point_count_abbreviated}",
 		            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
-		            "text-size": 12
+		            "text-size": 14
 		        }
 		    });
 			map.addLayer({
@@ -320,7 +310,7 @@ function load_site_markers_mapa_central(){
 		        layout: {
 		            "text-field": "{point_count_abbreviated}",
 		            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
-		            "text-size": 12
+		            "text-size": 14
 		        }
 		    });
 			map.addLayer({
@@ -331,7 +321,7 @@ function load_site_markers_mapa_central(){
 		        layout: {
 		            "text-field": "{point_count_abbreviated}",
 		            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
-		            "text-size": 12
+		            "text-size": 14
 		        }
 		    });
 			map.addLayer({
@@ -342,13 +332,13 @@ function load_site_markers_mapa_central(){
 		        layout: {
 		            "text-field": "{point_count_abbreviated}",
 		            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
-		            "text-size": 12
+		            "text-size": 14
 		        }
 		    });
-			alert("all layers ok");
+			
 			map.on('click', 'VIVO', function (e) {
 		        var coordinates = e.features[0].geometry.coordinates.slice();
-		        var operadora = e.features[0].properties.site_operadora + ": " + e.features[0].properties.rollout_site_id;
+		        var operadora = e.features[0].properties.Operadora + ": " + e.features[0].properties.SiteID;
 		        
 		        // Ensure that if the map is zoomed out such that multiple
 		        // copies of the feature are visible, the popup appears
@@ -359,7 +349,7 @@ function load_site_markers_mapa_central(){
 
 		        new mapboxgl.Popup()
 		            .setLngLat(coordinates)
-		            .setHTML(operadora)
+		            .setHTML(operadora+'<br>'+coordinates)
 		            .addTo(map);
 		        map.zoomTo(19, {duration: 9000});
 		        map.flyTo({center: e.features[0].geometry.coordinates});
@@ -367,7 +357,7 @@ function load_site_markers_mapa_central(){
 		    });
 			map.on('click', 'TIM', function (e) {
 		        var coordinates = e.features[0].geometry.coordinates.slice();
-		        var operadora = e.features[0].properties.site_operadora + ": " + e.features[0].properties.rollout_site_id;
+		        var operadora = e.features[0].properties.Operadora + ": " + e.features[0].properties.SiteID;
 		       
 		        // Ensure that if the map is zoomed out such that multiple
 		        // copies of the feature are visible, the popup appears
@@ -378,7 +368,7 @@ function load_site_markers_mapa_central(){
 
 		        new mapboxgl.Popup()
 		            .setLngLat(coordinates)
-		            .setHTML(operadora)
+		            .setHTML(operadora+'<br>'+coordinates)
 		            .addTo(map);
 		        map.zoomTo(19, {duration: 9000});
 		        map.flyTo({center: e.features[0].geometry.coordinates});
@@ -386,7 +376,7 @@ function load_site_markers_mapa_central(){
 		    });
 			map.on('click', 'CLARO', function (e) {
 		        var coordinates = e.features[0].geometry.coordinates.slice();
-		        var operadora = e.features[0].properties.site_operadora + ": " + e.features[0].properties.rollout_site_id;
+		        var operadora = e.features[0].properties.Operadora + ": " + e.features[0].properties.SiteID;
 		        
 		        // Ensure that if the map is zoomed out such that multiple
 		        // copies of the feature are visible, the popup appears
@@ -397,7 +387,7 @@ function load_site_markers_mapa_central(){
 
 		        new mapboxgl.Popup()
 		            .setLngLat(coordinates)
-		            .setHTML(operadora)
+		            .setHTML(operadora+'<br>'+coordinates)
 		            .addTo(map);
 		        map.zoomTo(19, {duration: 9000});
 		        map.flyTo({center: e.features[0].geometry.coordinates});
@@ -405,7 +395,7 @@ function load_site_markers_mapa_central(){
 		    });
 			map.on('click', 'NEXTEL', function (e) {
 		        var coordinates = e.features[0].geometry.coordinates.slice();
-		        var operadora = e.features[0].properties.site_operadora + ": " + e.features[0].properties.rollout_site_id;
+		        var operadora = e.features[0].properties.Operadora + ": " + e.features[0].properties.SiteID;
 		        
 		        // Ensure that if the map is zoomed out such that multiple
 		        // copies of the feature are visible, the popup appears
@@ -416,7 +406,7 @@ function load_site_markers_mapa_central(){
 
 		        new mapboxgl.Popup()
 		            .setLngLat(coordinates)
-		            .setHTML(operadora)
+		            .setHTML(operadora+'<br>'+coordinates)
 		            .addTo(map);
 		        map.zoomTo(19, {duration: 9000});
 		        map.flyTo({center: e.features[0].geometry.coordinates});
@@ -435,7 +425,7 @@ function load_site_markers_mapa_central(){
 
 		        new mapboxgl.Popup()
 		            .setLngLat(coordinates)
-		            .setHTML(operadora)
+		            .setHTML(operadora+'<br>'+coordinates)
 		            .addTo(map);
 		        
 		        map.flyTo({center: e.features[0].geometry.coordinates});
@@ -576,8 +566,11 @@ function load_site_markers_mapa_central(){
 		map.on('mouseleave', 'clusters_NEXTEL', function () {
 			        map.getCanvas().style.cursor = '';
 			    });
+		
+		
+		
 		$('#mapa_info').html('Sites Carregados');
-		alert("Todos os dados carregados");
-	}
+		//alert("Todos os dados carregados");
+	});
 	
 	}
