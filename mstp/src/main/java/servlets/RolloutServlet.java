@@ -344,6 +344,7 @@ public class RolloutServlet extends HttpServlet {
 				int colIndex = 0;
 				int rowIndex = 0;
 				param1=req.getParameter("filtros");
+				System.out.println(param1);
 				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy"); 
 				
 				Date aux_date;

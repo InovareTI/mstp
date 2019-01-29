@@ -443,6 +443,7 @@ function carrega_gant(){
 	                    downloadButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Exportar</a>");
 	                    uploadButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_upload_rollout\">Importar</a>");
 	                    syncMongoButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href=\"#\" >Sync TO Mongo</a>");
+	                    RolloutMapButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href=\"#\" >Mapa</a>");
 	                    container.append(save_button);
 	                    container.append(addButton);
 	                    container.append(batchButton);
@@ -451,6 +452,7 @@ function carrega_gant(){
 	                    container.append(uploadButton);
 	                    container.append(syncButton);
 	                    container.append(deleteButton);
+	                    container.append(RolloutMapButton);
 	                    container.append(syncMongoButton);
 	                    toolbar.append(container);
 	                    save_button.jqxButton();
@@ -458,6 +460,7 @@ function carrega_gant(){
 	                    addButton.jqxButton();
 	                    cFilterButton.jqxButton();
 	                    downloadButton.jqxButton();
+	                    RolloutMapButton.jqxButton();
 	                    uploadButton.jqxButton();
 	                    syncButton.jqxButton();
 	                    syncMongoButton.jqxButton();
@@ -474,6 +477,31 @@ function carrega_gant(){
 	                   		  dataType: "text"
 	                   		  
 	                   		});
+	                    	
+	                    });
+	                    RolloutMapButton.click(function(event){
+	                    	
+	                    	filtros={"filtros":[]};
+	                    	var aux={};
+	                    	var filtersinfo = $('#jqxgrid').jqxGrid('getfilterinformation');
+	                    	//console.log(filtersinfo);
+	                    	for(var j=0;j<filtersinfo.length;j++){
+		                    	for (var i = 0; i < filtersinfo[j].filter.getfilters().length; i++) {
+			                    	aux.filtersvalue=filtersinfo[j].filter.getfilters()[i].value;
+			                    	aux.filtercondition=filtersinfo[j].filter.getfilters()[i].condition;
+			                    	aux.datafield = filtersinfo[j].filtercolumn;
+			                    	alert(aux.filtersvalue);
+			                    	alert(aux.filtercondition);
+			                    	alert(aux.datafield);
+			                    	filtros.filtros.push(aux);
+			                    	aux={};
+		                    	}
+		                    	
+		                    }
+	                    	sessionStorage.setItem("rollout_map",JSON.stringify(filtros));
+	                    	$(".janelas").hide();
+	                		document.getElementById("mapa_central").style.display = "block";
+	                		inicializa_mapa_full(1);
 	                    	
 	                    });
 	                    downloadButton.click(function(event){

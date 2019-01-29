@@ -446,6 +446,8 @@ response.setDateHeader ("Expires", -1);
 						
 						function inicializa_mapa_full(){
 							$('#map_full').html('');
+							$('#menu_mapa').html('');
+							
 						mapboxgl.accessToken = 'pk.eyJ1IjoiZmFiaW9zYWxidXF1ZXJxdWUiLCJhIjoiY2pjMjYxYzFoMGludzJxczR1ZWp2aTBpaiJ9.KptnIvfz_61BmkgGIR_ZWA';
 						map = new mapboxgl.Map({
 						    container: 'map_full',
@@ -467,7 +469,7 @@ response.setDateHeader ("Expires", -1);
 						//}
 						map.addControl(new mapboxgl.FullscreenControl());
 						map.addControl(new mapboxgl.NavigationControl());
-						var toggleableLayerIds = [ 'VIVO', 'TIM','CLARO','NEXTEL','USUARIOS' ];
+						var toggleableLayerIds = [ 'VIVO', 'TIM','CLARO','NEXTEL','USUARIOS','ROLLOUT' ];
 						for (var i = 0; i < toggleableLayerIds.length; i++) {
 						    var id = toggleableLayerIds[i];
 						    var link = document.createElement('a');
@@ -478,6 +480,10 @@ response.setDateHeader ("Expires", -1);
 						        var clickedLayer = this.textContent;
 						        e.preventDefault();
 						        e.stopPropagation();
+						        if(clickedLayer=='ROLLOUT'){
+						        	$(".janelas").hide();
+						    		document.getElementById("rollout").style.display = "block";
+						        }else{
 						        var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
 						        if (visibility === 'visible') {
 						        	
@@ -490,7 +496,7 @@ response.setDateHeader ("Expires", -1);
 						            map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
 						            map.setLayoutProperty('clusters_'+clickedLayer, 'visibility', 'visible');
 					        	    map.setLayoutProperty('cluster-count_'+clickedLayer, 'visibility', 'visible');
-						        }
+						        }}
 						    };
 						    var layers = document.getElementById('menu_mapa');
 						    layers.appendChild(link);
