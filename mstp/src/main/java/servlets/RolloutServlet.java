@@ -60,6 +60,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.mongodb.Block;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 
@@ -2291,6 +2292,29 @@ public class RolloutServlet extends HttpServlet {
 				
 				
 			
+			}else if(opt.equals("16")) {
+				System.out.println("chegou no opt 16");
+				ConexaoMongo c = new ConexaoMongo();
+				param1=req.getParameter("filtros");
+				System.out.println(param1);
+				JSONObject filtros=new JSONObject(param1);
+				JSONArray filtrosArray=filtros.getJSONArray("filtros");
+				Document rollout_filtrado=new Document();
+				List<Document> rollout_filtrado_lista=new ArrayList<Document>();
+				for(int i=0;i<filtrosArray.length();i++) {
+					JSONObject filtros_campo=filtrosArray.getJSONObject(i);
+					
+					FindIterable<Document> findIterable=c.ConsultaSimplesComFiltroDate("rollout",filtros_campo.getString("datafield"), filtros_campo.getString("filtersvalue"));
+					findIterable.forEach((Block<Document>) doc -> {
+						//System.out.println("Entrou no loop da data");
+						rollout_filtrado_lista.add(doc);
+					});
+					System.out.println(rollout_filtrado_lista.size());
+					rollout_filtrado.append("rollout", rollout_filtrado_lista);
+					System.out.println(rollout_filtrado.toJson());
+				}
+				
+				c.fecharConexao();
 			}
 		}catch (SQLException e) {
 			conn.fecharConexao();

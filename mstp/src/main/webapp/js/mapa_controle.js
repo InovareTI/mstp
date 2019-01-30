@@ -36,6 +36,22 @@ function load_site_markers(){
 		mymap.fitBounds(geojsonLayer.getBounds());
 	});
 	}
+function load_site_markers_mapa_central_rollout(){
+	alert("chegou na função do rollout");
+	alert(sessionStorage.getItem("rollout_map_filtro"));
+	$.ajax({
+ 		  type: "POST",
+ 		  data: {"opt":"16",
+ 			  "filtros":sessionStorage.getItem("rollout_map_filtro")
+ 			},		  
+ 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+ 		  url: "./RolloutServlet",
+ 		  cache: false,
+ 		  dataType: "text"
+ 		  
+ 		});
+	
+}
 function load_site_markers_mapa_central(){
 	$.getJSON('./SiteMgmt?opt=10', function(data) {
 		

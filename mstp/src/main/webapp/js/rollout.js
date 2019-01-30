@@ -498,10 +498,11 @@ function carrega_gant(){
 		                    	}
 		                    	
 		                    }
-	                    	sessionStorage.setItem("rollout_map",JSON.stringify(filtros));
+	                    	sessionStorage.setItem("rollout_map_filtro",JSON.stringify(filtros));
 	                    	$(".janelas").hide();
 	                		document.getElementById("mapa_central").style.display = "block";
 	                		inicializa_mapa_full(1);
+	                		load_site_markers_mapa_central_rollout();
 	                    	
 	                    });
 	                    downloadButton.click(function(event){

@@ -444,7 +444,7 @@ response.setDateHeader ("Expires", -1);
 					<div id='menu_mapa'><div id="mapa_info"></div></div>
 						<script>
 						
-						function inicializa_mapa_full(){
+						function inicializa_mapa_full(opt){
 							$('#map_full').html('');
 							$('#menu_mapa').html('');
 							
@@ -456,7 +456,8 @@ response.setDateHeader ("Expires", -1);
 						    center: [-51.549, -11.811]
 						});
 						map.on('load', function () {
-							load_site_markers_mapa_central();
+							if(opt==1){}else{load_site_markers_mapa_central();}
+							
 						});
 						//var layerList = document.getElementById('menu_mapa');
 						//var inputs = layerList.getElementsByTagName('input');
