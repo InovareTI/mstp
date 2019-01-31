@@ -47,10 +47,72 @@ function load_site_markers_mapa_central_rollout(){
  		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
  		  url: "./RolloutServlet",
  		  cache: false,
- 		  dataType: "text"
- 		  
+ 		  dataType: "text",
+ 		  success:load_mapa_rollout
  		});
-	
+	function load_mapa_rollout(data){
+		
+		data=JSON.parse(data);
+		console.log(data);
+		console.log(data.rollout);
+		map.addSource('Rollout', {
+		    type: 'geojson',
+		    data: data.rollout,
+		    cluster: true,
+	        clusterMaxZoom: 14, // Max zoom to cluster points on
+	        clusterRadius: 50
+		});
+		map.addLayer({
+			"id": 'Rollout',
+	        "type": "symbol",
+	        "source": 'Rollout',
+	        "layout": {
+                "icon-image": "tower4"
+	        }
+		});
+		map.addLayer({
+	        id: "clusters_rollout",
+	        type: "circle",
+	        source: "Rollout",
+	        filter: ["has", "point_count"],
+	        paint: {
+	            // Use step expressions (https://www.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
+	            // with three steps to implement three types of circles:
+	            //   * Blue, 20px circles when point count is less than 100
+	            //   * Yellow, 30px circles when point count is between 100 and 750
+	            //   * Pink, 40px circles when point count is greater than or equal to 750
+	            "circle-color": [
+	                "step",
+	                ["get", "point_count"],
+	                "#9999ff",
+	                100,
+	                "#7f7fff",
+	                750,
+	                "#6666ff"
+	            ],
+	            "circle-radius": [
+	                "step",
+	                ["get", "point_count"],
+	                20,
+	                100,
+	                30,
+	                750,
+	                40
+	            ]
+	        }
+	    });
+		map.addLayer({
+	        id: "cluster-count_Rollout",
+	        type: "symbol",
+	        source: "Rollout",
+	        filter: ["has", "point_count"],
+	        layout: {
+	            "text-field": "{point_count_abbreviated}",
+	            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+	            "text-size": 14
+	        }
+	    });
+	}
 }
 function load_site_markers_mapa_central(){
 	$.getJSON('./SiteMgmt?opt=10', function(data) {

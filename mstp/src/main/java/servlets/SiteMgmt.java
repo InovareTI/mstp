@@ -7,9 +7,12 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.NumberFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -465,7 +468,8 @@ public class SiteMgmt extends HttpServlet {
 					document_featurecollection.clear();
 					System.out.println(document_operadora.toString());
 				});
-				FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",time.toString().substring(0, 10)+" 00:00:00");
+				
+				FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",checa_formato_data(f2.format(time).toString()));
 				lista_sites.clear();
 				document_featurecollection.append("type", "FeatureCollection");
 				document_featurecollection.append("operadora", "USUARIOS");
@@ -783,7 +787,17 @@ public class SiteMgmt extends HttpServlet {
 				e.printStackTrace();
 			}
 	 }
- 
+	 public Date checa_formato_data(String data) {
+			try {
+				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+				Date d1=format.parse(data);
+				return d1;
+			}catch (ParseException e) {
+				//System.out.println(data + " - Data inválida");
+				return null;
+				
+			} 
+		}
 	 public List<Double> verfica_coordenadas(String lng,String lat) {
 	 try {
 		 Double f_lat=Double.parseDouble(lat.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());

@@ -1,7 +1,10 @@
 package classes;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -63,13 +66,64 @@ public class ConexaoMongo {
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.eq(campo, valor));
 		return findIterable;
 	}
-	public FindIterable<Document> ConsultaSimplesComFiltroDate(String Collection,String campo,String valor){
+	public FindIterable<Document> ConsultaSimplesComFiltroDate(String Collection,String campo,Date valor){
 		System.out.println("Realizando consulta em:");
 		System.out.println(Collection);
 		System.out.println(campo);
 		System.out.println(valor);
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.gte(campo, valor));
 		return findIterable;
+	}
+	public FindIterable<Document> ConsultaComplexaArray(String Collection,String campo,List<String> valores){
+		System.out.println("Realizando consulta em:");
+		System.out.println(Collection);
+		System.out.println(campo);
+		//System.out.println(valor);
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.in(campo, valores));
+		
+		return findIterable;
+	}
+	public FindIterable<Document> ConsultaComplexaComFiltro(String Collection,List<Integer> recid,String tipo_valor,String operador,String campo,String valor){
+		System.out.println("Realizando consulta em:");
+		System.out.println(Collection);
+		System.out.println(campo);
+		System.out.println(valor);
+		System.out.println(operador);
+		
+		FindIterable<Document> findIterable=null;
+		if(tipo_valor.equals("Data")) {
+			if(recid.size()>0) {
+				if(operador.equals("GREATER_THAN_OR_EQUAL")) {
+					findIterable = db.getCollection(Collection).find(Filters.and(Filters.gte(campo, checa_formato_data(valor)),Filters.in("recid", recid)));
+				}else if(operador.equals("LESS_THAN_OR_EQUAL")) {
+					findIterable = db.getCollection(Collection).find(Filters.and(Filters.lte(campo, checa_formato_data(valor)),Filters.in("recid", recid)));
+				}else if(operador.equals("EQUAL")) {
+				findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq(campo, checa_formato_data(valor)),Filters.in("recid", recid)));
+				}
+			}else {
+				if(operador.equals("GREATER_THAN_OR_EQUAL")) {
+					findIterable = db.getCollection(Collection).find(Filters.gte(campo, checa_formato_data(valor)));
+				}else if(operador.equals("LESS_THAN_OR_EQUAL")) {
+					findIterable = db.getCollection(Collection).find(Filters.lte(campo, checa_formato_data(valor)));
+				}else if(operador.equals("EQUAL")) {
+				findIterable = db.getCollection(Collection).find(Filters.eq(campo, checa_formato_data(valor)));
+				}
+			}
+		}
+		
+		return findIterable;
+	}
+	public Date checa_formato_data(String data) {
+		try {
+			SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+			Date d1=format.parse(data);
+			return d1;
+		}catch (ParseException e) {
+			//System.out.println(data + " - Data inválida");
+			return null;
+			
+		} 
+		
 	}
 	public boolean RemoverMuitosSemFiltro(String Collection) {
 		MongoCollection<Document> coll = db.getCollection(Collection);
