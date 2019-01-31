@@ -218,8 +218,10 @@ public class RolloutServlet extends HttpServlet {
     						campos_aux=campos_aux+"{ \"text\": \"Status\", \"columngroup\":\""+rs.getString("field_name")+"\", \"filtertype\": \"checkedlist\",\"cellsalign\": \"center\",\"datafield\":\"status_"+rs.getString("field_name")+"\",\"columntype\": \"combobox\",\"width\":100},"+ "\n";
     					}else{
     						if(rs.getString("tipo").equals("Texto")){
+    							
     							dados_tabela=dados_tabela+"{ \"name\": \""+rs.getString("field_name")+"\", \"type\": \"string\"},"+ "\n";
     							campos_aux=campos_aux+"{ \"text\": \""+rs.getString("field_name")+"\",\"datafield\":\""+rs.getString("field_name")+"\",\"columntype\": \"textbox\",\"width\":80},"+ "\n";
+    							
     						}else if(rs.getString("tipo").equals("Data")){
     							dados_tabela=dados_tabela+"{ \"name\": \""+rs.getString("field_name")+"\", \"type\": \"date\"},"+ "\n";	
     							campos_aux=campos_aux+"{ \"text\": \""+rs.getString("field_name")+"\",\"datafield\":\""+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\",\"cellsformat\":\"dd/MM/yyyy\",\"width\":100},"+ "\n";
@@ -2320,7 +2322,7 @@ public class RolloutServlet extends HttpServlet {
 					rollout_filtrado.append("rollout", rollout_filtrado_lista);
 					
 				}
-				System.out.println("numero de registros : "+rollout_filtrado_lista.size());
+				//System.out.println("numero de registros : "+rollout_filtrado_lista.size());
 				FindIterable<Document> findIterable=c.ConsultaComplexaArray("Rollout_Sites", "GEO.properties.SiteID",rollout_filtrado_site); 
 				findIterable.forEach((Block<Document>) doc -> {
 					rollout_filtrado_site_Geo.add((Document)doc.get("GEO"));
@@ -2333,7 +2335,7 @@ public class RolloutServlet extends HttpServlet {
 				rollout_filtrado.append("\"rollout\"", document_featurecollection.toJson().toString());
 				c.fecharConexao();
 				String  resultado = rollout_filtrado.toString();
-				System.out.println(resultado);
+				//System.out.println(resultado);
 				resultado=resultado.replaceAll("=", ":");
 				
 				resultado=resultado.substring(9, resultado.length()-1);
@@ -2342,6 +2344,22 @@ public class RolloutServlet extends HttpServlet {
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print(resultado);
+			}else if(opt.equals("17")) {
+				System.out.println("buscando sites integrados no rollout") ;
+				ConexaoMongo c = new ConexaoMongo();
+				List<String> rollout_filtrado_site=new ArrayList<String>();
+				FindIterable<Document> findIterable=c.ConsultaSimplesSemFiltro("Rollout_Sites");
+				findIterable.forEach((Block<Document>) doc -> {
+					
+					rollout_filtrado_site.add(doc.get("GEO.properties.SiteID").toString());
+				});
+				System.out.println("total de sites integrados:"+rollout_filtrado_site.size());
+				c.fecharConexao();
+				resp.setContentType("application/text");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				System.out.println(rollout_filtrado_site.toString());
+				out.print(rollout_filtrado_site.toString());
 			}
 		}catch (SQLException e) {
 			conn.fecharConexao();

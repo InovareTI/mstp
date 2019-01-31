@@ -37,8 +37,7 @@ function load_site_markers(){
 	});
 	}
 function load_site_markers_mapa_central_rollout(){
-	alert("chegou na função do rollout");
-	alert(sessionStorage.getItem("rollout_map_filtro"));
+	
 	$.ajax({
  		  type: "POST",
  		  data: {"opt":"16",
@@ -53,8 +52,7 @@ function load_site_markers_mapa_central_rollout(){
 	function load_mapa_rollout(data){
 		
 		data=JSON.parse(data);
-		console.log(data);
-		console.log(data.rollout);
+		
 		map.addSource('Rollout', {
 		    type: 'geojson',
 		    data: data.rollout,
@@ -111,6 +109,51 @@ function load_site_markers_mapa_central_rollout(){
 	            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
 	            "text-size": 14
 	        }
+	    });
+		map.on('click', 'Rollout', function (e) {
+	        var coordinates = e.features[0].geometry.coordinates.slice();
+	        var operadora = e.features[0].properties.Operadora + ": " + e.features[0].properties.SiteID;
+	        
+	        // Ensure that if the map is zoomed out such that multiple
+	        // copies of the feature are visible, the popup appears
+	        // over the copy being pointed to.
+	        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+	            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+	        }
+
+	        new mapboxgl.Popup()
+	            .setLngLat(coordinates)
+	            .setHTML(operadora+'<br>'+coordinates)
+	            .addTo(map);
+	        map.zoomTo(19, {duration: 9000});
+	        map.flyTo({center: e.features[0].geometry.coordinates});
+	        
+	    });
+		map.on('click', 'clusters_rollout', function (e) {
+	        var features = map.queryRenderedFeatures(e.point, { layers: ['clusters_rollout'] });
+	        var clusterId = features[0].properties.cluster_id;
+	        map.getSource('Rollout').getClusterExpansionZoom(clusterId, function (err, zoom) {
+	            if (err){
+	            	alert("erro aqui");
+	                return;
+	            }
+	            map.easeTo({
+	                center: features[0].geometry.coordinates,
+	                zoom: zoom
+	            });
+	        });
+	    });
+		map.on('mouseenter', 'Rollout', function () {
+	        map.getCanvas().style.cursor = 'pointer';
+	    });
+		map.on('mouseenter', 'clusters_rollout', function () {
+	        map.getCanvas().style.cursor = 'pointer';
+	    });
+		map.on('mouseleave', 'Rollout', function () {
+	        map.getCanvas().style.cursor = '';
+	    });
+		map.on('mouseleave', 'clusters_rollout', function () {
+	        map.getCanvas().style.cursor = '';
 	    });
 	}
 }

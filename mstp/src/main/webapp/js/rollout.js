@@ -317,10 +317,13 @@ function atualiza_lote(){
 	
 }
 function carrega_gant(){
-	 var timestamp = Date.now();	 
+	 var timestamp = Date.now();
+	 var sites=[];
 	 var me,container,save_button,addButton,cFilterButton,deleteButton = "";
 	 $("#jqxLoader_rolout").jqxLoader({ text: "Carregando Rollout",width: 100, height: 60, imagePosition: 'top' });
 	 $('#jqxLoader_rolout').jqxLoader('open');
+	 
+	 
 	$.getJSON('./RolloutServlet?opt=1&_='+timestamp, function(data) {
 			
 		
@@ -365,6 +368,7 @@ function carrega_gant(){
                 }}
            
         };
+		
         var filterChanged = false;
 		//var dataAdapter = new $.jqx.dataAdapter(source);
 		var dataadapter = new $.jqx.dataAdapter(source, {
@@ -443,7 +447,7 @@ function carrega_gant(){
 	                    downloadButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Exportar</a>");
 	                    uploadButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_upload_rollout\">Importar</a>");
 	                    syncMongoButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href=\"#\" >Sync TO Mongo</a>");
-	                    RolloutMapButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href=\"#\" >Mapa</a>");
+	                    RolloutMapButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href=\"#\" >Mapa(Beta)</a>");
 	                    container.append(save_button);
 	                    container.append(addButton);
 	                    container.append(batchButton);
@@ -466,6 +470,7 @@ function carrega_gant(){
 	                    syncMongoButton.jqxButton();
 	                    deleteButton.jqxButton({template: "danger"});
 	                    syncMongoButton.click(function (event) {
+	                    	if(geral.usuario=='masteradmin'){
 	                    	$.ajax({
 	                   		  type: "POST",
 	                   		  data: {"opt":"14"
@@ -477,7 +482,9 @@ function carrega_gant(){
 	                   		  dataType: "text"
 	                   		  
 	                   		});
-	                    	
+	                    	}else{
+	                    		$.alert("Sem privilégio para essa operação!");
+	                    	}
 	                    });
 	                    RolloutMapButton.click(function(event){
 	                    	
@@ -490,9 +497,7 @@ function carrega_gant(){
 			                    	aux.filtersvalue=filtersinfo[j].filter.getfilters()[i].value;
 			                    	aux.filtercondition=filtersinfo[j].filter.getfilters()[i].condition;
 			                    	aux.datafield = filtersinfo[j].filtercolumn;
-			                    	alert(aux.filtersvalue);
-			                    	alert(aux.filtercondition);
-			                    	alert(aux.datafield);
+			                    	
 			                    	filtros.filtros.push(aux);
 			                    	aux={};
 		                    	}

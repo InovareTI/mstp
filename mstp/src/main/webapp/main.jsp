@@ -470,7 +470,12 @@ response.setDateHeader ("Expires", -1);
 						//}
 						map.addControl(new mapboxgl.FullscreenControl());
 						map.addControl(new mapboxgl.NavigationControl());
-						var toggleableLayerIds = [ 'VIVO', 'TIM','CLARO','NEXTEL','USUARIOS','ROLLOUT' ];
+						var toggleableLayerIds=[];
+						if(opt==1){ 
+							toggleableLayerIds = [ 'ROLLOUT' ];
+						}else{
+							toggleableLayerIds = [ 'VIVO', 'TIM','CLARO','NEXTEL','USUARIOS','ROLLOUT' ];
+						}
 						for (var i = 0; i < toggleableLayerIds.length; i++) {
 						    var id = toggleableLayerIds[i];
 						    var link = document.createElement('a');
