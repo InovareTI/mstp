@@ -220,8 +220,11 @@ public class RolloutServlet extends HttpServlet {
     						if(rs.getString("tipo").equals("Texto")){
     							
     							dados_tabela=dados_tabela+"{ \"name\": \""+rs.getString("field_name")+"\", \"type\": \"string\"},"+ "\n";
-    							campos_aux=campos_aux+"{ \"text\": \""+rs.getString("field_name")+"\",\"datafield\":\""+rs.getString("field_name")+"\",\"columntype\": \"textbox\",\"width\":80},"+ "\n";
-    							
+    							if(rs.getString("field_name").equals("Site ID")) {
+    								campos_aux=campos_aux+"{ \"text\": \""+rs.getString("field_name")+"\",\"datafield\":\""+rs.getString("field_name")+"\",\"cellsrenderer\": \"siteMarcadoIntegrado\",\"columntype\": \"textbox\",\"width\":80},"+ "\n";
+    							}else {
+    								campos_aux=campos_aux+"{ \"text\": \""+rs.getString("field_name")+"\",\"datafield\":\""+rs.getString("field_name")+"\",\"columntype\": \"textbox\",\"width\":80},"+ "\n";
+    							}
     						}else if(rs.getString("tipo").equals("Data")){
     							dados_tabela=dados_tabela+"{ \"name\": \""+rs.getString("field_name")+"\", \"type\": \"date\"},"+ "\n";	
     							campos_aux=campos_aux+"{ \"text\": \""+rs.getString("field_name")+"\",\"datafield\":\""+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\",\"cellsformat\":\"dd/MM/yyyy\",\"width\":100},"+ "\n";
@@ -254,6 +257,8 @@ public class RolloutServlet extends HttpServlet {
     			dados_tabela=dados_tabela+"],";
     			String imagem_status="";
     			//System.out.println(dados_tabela);
+    			campos_aux="";
+    			campos_aux="\n"+"\"sites\":";
     			dados_tabela= dados_tabela+"\n"+"\"records\":[";
     			rs2= conn.Consulta("select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" order by recid,siteID,ordenacao limit 1600");
     			if(rs2.next()){
@@ -274,9 +279,12 @@ public class RolloutServlet extends HttpServlet {
     							}
     							dados_tabela=dados_tabela+"\"sdate_"+rs2.getString(6)+"\":\""+rs2.getString("dt_inicio")+"\",\"edate_"+rs2.getString(6)+"\":\""+rs2.getString("dt_fim")+"\",\"sdate_pre_"+rs2.getString(6)+"\":\""+rs2.getString("dt_inicio_bl")+"\",\"edate_pre_"+rs2.getString(6)+"\":\""+rs2.getString("dt_fim_bl")+"\",\"udate_"+rs2.getString(6)+"\":\""+rs2.getString(21)+"\",\"resp_"+rs2.getString(6)+"\": \""+rs2.getString("responsavel")+"\",\"status_"+rs2.getString(6)+"\":\"<img src='img/"+imagem_status+"'>\",";
 	    					}else{
-	    						dados_tabela=dados_tabela+"\""+rs2.getString(6)+"\":\""+rs2.getString(23)+"\",";
+	    						
+	    							dados_tabela=dados_tabela+"\""+rs2.getString(6)+"\":\""+rs2.getString(23)+"\",";
+	    						
 	    					}
     					}else{
+    						
     						dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
     						dados_tabela=dados_tabela+"},";
     						dados_tabela=dados_tabela+"\n{\"id\":"+rs2.getInt("recid")+",";
@@ -284,14 +292,35 @@ public class RolloutServlet extends HttpServlet {
     						rs2.previous();
     					}
     				}
+    				ConexaoMongo c = new ConexaoMongo();
+    				List<String> rollout_filtrado_integrado = new ArrayList<String>();
+    				FindIterable<Document> findIterable=c.ConsultaSimplesSemFiltro("Rollout_Sites"); 
+    				findIterable.forEach((Block<Document>) doc -> {
+    					
+    					rollout_filtrado_integrado.add(((Document)((Document)doc.get("GEO")).get("properties")).getString("SiteID"));
+    				});
+    				campos_aux=campos_aux+rollout_filtrado_integrado.toString();
+    				/*rs2= conn.Consulta("select distinct value_atbr_field from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" and milestone='Site ID'");
+    				if(rs2.next()) {
+    					rs2.beforeFirst();
+    					while(rs2.next()) {
+    						campos_aux=campos_aux+"\""+rs2.getString(1)+"\",\n";
+    					}
+    				}
+    				campos_aux=campos_aux.substring(0,campos_aux.length()-2);*/
+					//System.out.println(campos_aux);
     				dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
 					dados_tabela=dados_tabela+"}";
-	    			dados_tabela= dados_tabela+"\n"+"]}";
+	    			dados_tabela= dados_tabela+"\n"+"],";
+	    			dados_tabela=dados_tabela+campos_aux;
+	    			dados_tabela= dados_tabela+"}";
+	    			c.fecharConexao();
     			}else{
     				dados_tabela= dados_tabela+"]}";
     			}
     			
     			//System.out.println(dados_tabela);
+    			
     			JSONObject jObj = new JSONObject(dados_tabela);
     			resp.setContentType("application/json");  
 	  		    resp.setCharacterEncoding("UTF-8"); 
@@ -2118,6 +2147,8 @@ public class RolloutServlet extends HttpServlet {
 					//System.out.println(filtros.toJson().toString());
 					//System.out.println(update.toJson().toString());
 					c.AtualizaUm("rollout", filtros, update);
+					filtros.clear();
+					update.clear();
 						if(!conn.Alterar(query)){
 							//System.out.println("Erro de Update");
 							query="insert into rollout (recid,siteID,dt_inicio_bl,milestone,tipo_campo,empresa,update_by,update_time) values("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+plano+"','"+cmp+"','Milestone',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"')";
@@ -2141,6 +2172,8 @@ public class RolloutServlet extends HttpServlet {
 					//System.out.println(filtros.toJson().toString());
 					//System.out.println(update.toJson().toString());
 					c.AtualizaUm("rollout", filtros, update);
+					filtros.clear();
+					update.clear();
 						if(!conn.Alterar(query)){
 							//System.out.println("Erro de Update");
 							query="insert into rollout (recid,siteID,dt_fim_bl,milestone,tipo_campo,empresa,update_by,update_time) values("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+plano+"','"+cmp+"','Milestone',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"')";
@@ -2176,6 +2209,8 @@ public class RolloutServlet extends HttpServlet {
     							update = new Document();
         				        update.append("$set", updates);
         				        c.AtualizaUm("rollout", filtros, update);
+        				        filtros.clear();
+        						update.clear();
     					}else if(jObj2.getString("colum").contains("edate")){
     						//System.out.println("segundo if fim plan");
     						cmp=jObj2.getString("colum").substring(jObj2.getString("colum").indexOf("_")+1);
@@ -2200,6 +2235,8 @@ public class RolloutServlet extends HttpServlet {
     							update = new Document();
         				        update.append("$set", updates);
         				        c.AtualizaUm("rollout", filtros, update);
+        				        filtros.clear();
+        						update.clear();
     						query="update faturamento set milestone_data_fim_real='"+plano+"',status_faturamento='Liberado para Faturar' where id_rollout='site"+jObj2.getInt("id")+ "' and milestones_trigger='"+cmp+"'";
     						if(conn.Alterar(query)){
     							System.out.println("tabela de Faturamento Atualizada!");
@@ -2221,6 +2258,8 @@ public class RolloutServlet extends HttpServlet {
     					//System.out.println(filtros.toJson().toString());
     					//System.out.println(update.toJson().toString());
     					c.AtualizaUm("rollout", filtros, update);
+    					filtros.clear();
+    					update.clear();
     						if(!conn.Alterar(query)){
     							System.out.println("Erro de Update");
     							query="insert into rollout (recid,siteID,remark,milestone,tipo_campo,empresa,update_by,update_time) values("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+jObj2.getString("value")+"','"+cmp+"','Milestone',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"')";
@@ -2272,9 +2311,11 @@ public class RolloutServlet extends HttpServlet {
     						    update = new Document();
     					        update.append("$set", updates);
     					       
-    						System.out.println(filtros.toJson().toString());
-    						System.out.println(update.toJson().toString());
+    						//System.out.println(filtros.toJson().toString());
+    						//System.out.println(update.toJson().toString());
     						c.AtualizaUm("rollout", filtros, update);
+    						filtros.clear();
+    						update.clear();
     						if(!conn.Alterar(query)){
     							System.out.println("Erro de Update");
     							//conn.Inserir_simples(query2);
@@ -2333,6 +2374,19 @@ public class RolloutServlet extends HttpServlet {
 				document_featurecollection.append("operadora", "Rollout");
 				document_featurecollection.append("features", rollout_filtrado_site_Geo);
 				rollout_filtrado.append("\"rollout\"", document_featurecollection.toJson().toString());
+				
+				FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",checa_formato_data(f2.format(time).toString()));
+				List<Document> lista_sites= new ArrayList();
+				document_featurecollection.clear();
+				document_featurecollection.append("type", "FeatureCollection");
+				document_featurecollection.append("operadora", "USUARIOS");
+				findIterable2.forEach((Block<Document>) doc2 -> {
+					//System.out.println("Entrou no loop da data");
+					lista_sites.add((Document)doc2.get("GEO"));
+				});
+				document_featurecollection.append("features",lista_sites );
+				rollout_filtrado.append("\"usuarios\"", document_featurecollection.toJson().toString());
+				
 				c.fecharConexao();
 				String  resultado = rollout_filtrado.toString();
 				//System.out.println(resultado);

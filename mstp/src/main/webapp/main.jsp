@@ -456,7 +456,7 @@ response.setDateHeader ("Expires", -1);
 						    center: [-51.549, -11.811]
 						});
 						map.on('load', function () {
-							if(opt==1){}else{load_site_markers_mapa_central();}
+							if(opt==1){load_site_markers_mapa_central_rollout();}else{load_site_markers_mapa_central();}
 							
 						});
 						//var layerList = document.getElementById('menu_mapa');

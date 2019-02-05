@@ -60,6 +60,13 @@ function load_site_markers_mapa_central_rollout(){
 	        clusterMaxZoom: 14, // Max zoom to cluster points on
 	        clusterRadius: 50
 		});
+		map.addSource('Usuarios', {
+		    type: 'geojson',
+		    data: data.usuarios,
+		    cluster: true,
+	        clusterMaxZoom: 14, // Max zoom to cluster points on
+	        clusterRadius: 50
+		});
 		map.addLayer({
 			"id": 'Rollout',
 	        "type": "symbol",
@@ -68,6 +75,15 @@ function load_site_markers_mapa_central_rollout(){
                 "icon-image": "tower4"
 	        }
 		});
+		map.addLayer({
+			"id": 'Usuarios',
+	        "type": "symbol",
+	        "source": 'Usuarios',
+	        "layout": {
+                "icon-image": "user1"
+	        }
+		});
+		
 		map.addLayer({
 	        id: "clusters_rollout",
 	        type: "circle",
@@ -100,6 +116,37 @@ function load_site_markers_mapa_central_rollout(){
 	        }
 	    });
 		map.addLayer({
+	        id: "clusters_usuarios",
+	        type: "circle",
+	        source: "Usuarios",
+	        filter: ["has", "point_count"],
+	        paint: {
+	            // Use step expressions (https://www.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
+	            // with three steps to implement three types of circles:
+	            //   * Blue, 20px circles when point count is less than 100
+	            //   * Yellow, 30px circles when point count is between 100 and 750
+	            //   * Pink, 40px circles when point count is greater than or equal to 750
+	        	"circle-color": [
+	                "step",
+	                ["get", "point_count"],
+	                "#A9A9A9",
+	                100,
+	                "#808080",
+	                750,
+	                "#696969"
+	            ],
+	            "circle-radius": [
+	                "step",
+	                ["get", "point_count"],
+	                20,
+	                100,
+	                30,
+	                750,
+	                40
+	            ]
+	        }
+	    });
+		map.addLayer({
 	        id: "cluster-count_Rollout",
 	        type: "symbol",
 	        source: "Rollout",
@@ -110,9 +157,39 @@ function load_site_markers_mapa_central_rollout(){
 	            "text-size": 14
 	        }
 	    });
+		map.addLayer({
+	        id: "cluster-count_Usuarios",
+	        type: "symbol",
+	        source: "Usuarios",
+	        filter: ["has", "point_count"],
+	        layout: {
+	            "text-field": "{point_count_abbreviated}",
+	            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+	            "text-size": 14
+	        }
+	    });
 		map.on('click', 'Rollout', function (e) {
 	        var coordinates = e.features[0].geometry.coordinates.slice();
 	        var operadora = e.features[0].properties.Operadora + ": " + e.features[0].properties.SiteID;
+	        
+	        // Ensure that if the map is zoomed out such that multiple
+	        // copies of the feature are visible, the popup appears
+	        // over the copy being pointed to.
+	        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+	            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+	        }
+
+	        new mapboxgl.Popup()
+	            .setLngLat(coordinates)
+	            .setHTML(operadora+'<br>'+coordinates)
+	            .addTo(map);
+	        map.zoomTo(19, {duration: 9000});
+	        map.flyTo({center: e.features[0].geometry.coordinates});
+	        
+	    });
+		map.on('click', 'Usuarios', function (e) {
+	        var coordinates = e.features[0].geometry.coordinates.slice();
+	        var operadora = e.features[0].properties.Usuario + ": " + e.features[0].properties.Data;
 	        
 	        // Ensure that if the map is zoomed out such that multiple
 	        // copies of the feature are visible, the popup appears
@@ -143,16 +220,42 @@ function load_site_markers_mapa_central_rollout(){
 	            });
 	        });
 	    });
+		map.on('click', 'clusters_usuarios', function (e) {
+	        var features = map.queryRenderedFeatures(e.point, { layers: ['clusters_usuarios'] });
+	        var clusterId = features[0].properties.cluster_id;
+	        map.getSource('Usuarios').getClusterExpansionZoom(clusterId, function (err, zoom) {
+	            if (err){
+	            	alert("erro aqui");
+	                return;
+	            }
+	            map.easeTo({
+	                center: features[0].geometry.coordinates,
+	                zoom: zoom
+	            });
+	        });
+	    });
 		map.on('mouseenter', 'Rollout', function () {
+	        map.getCanvas().style.cursor = 'pointer';
+	    });
+		map.on('mouseenter', 'Usuarios', function () {
 	        map.getCanvas().style.cursor = 'pointer';
 	    });
 		map.on('mouseenter', 'clusters_rollout', function () {
 	        map.getCanvas().style.cursor = 'pointer';
 	    });
+		map.on('mouseenter', 'clusters_usuarios', function () {
+	        map.getCanvas().style.cursor = 'pointer';
+	    });
 		map.on('mouseleave', 'Rollout', function () {
 	        map.getCanvas().style.cursor = '';
 	    });
+		map.on('mouseleave', 'Usuarios', function () {
+	        map.getCanvas().style.cursor = '';
+	    });
 		map.on('mouseleave', 'clusters_rollout', function () {
+	        map.getCanvas().style.cursor = '';
+	    });
+		map.on('mouseleave', 'clusters_usuarios', function () {
 	        map.getCanvas().style.cursor = '';
 	    });
 	}

@@ -326,7 +326,22 @@ function carrega_gant(){
 	 
 	$.getJSON('./RolloutServlet?opt=1&_='+timestamp, function(data) {
 			
-		
+		var sites_aux=[];
+		sites_aux=data['sites'];
+		//console.log(sites_aux);
+		 var siteMarcadoIntegrado = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
+             if (sites_aux.includes(value)) {
+                 return '<span style="margin: 4px; margin-top:8px; float: ' + columnproperties.cellsalign + '; color: #008000;">' + value + '</span>';
+             }
+             else {
+                 return '<span style="margin: 4px; margin-top:8px; float: ' + columnproperties.cellsalign + '; color: #ff0000;">' + value + '</span>';
+             }
+         }
+		for(var i=0;i<data['campos2'].length;i++){
+			if(data['campos2'][i].text=="Site ID"){
+				data['campos2'][i].cellsrenderer=siteMarcadoIntegrado;
+			}
+		}
 		var PeopleSource =
         {
              datatype: "array",
@@ -507,7 +522,7 @@ function carrega_gant(){
 	                    	$(".janelas").hide();
 	                		document.getElementById("mapa_central").style.display = "block";
 	                		inicializa_mapa_full(1);
-	                		load_site_markers_mapa_central_rollout();
+	                		
 	                    	
 	                    });
 	                    downloadButton.click(function(event){

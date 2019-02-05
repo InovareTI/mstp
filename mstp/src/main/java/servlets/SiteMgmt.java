@@ -680,7 +680,7 @@ public class SiteMgmt extends HttpServlet {
 				}
 			}else if(opt.equals("12")) {
 				System.out.println("Sincronia de rollout iniciada em "+time);
-				/*query="select distinct value_atbr_field from rollout where milestone='Site ID' and linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id();
+				query="select distinct value_atbr_field from rollout where milestone='Site ID' and linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id();
 				rs=conn.Consulta(query);
 				if(rs.next()) {
 					rs.beforeFirst();
@@ -699,7 +699,7 @@ public class SiteMgmt extends HttpServlet {
 					}
 				}
 				System.out.println("Sicronia com MySQL Finalizada");
-				*/
+				
 				ConexaoMongo c = new ConexaoMongo();
 				Document document = new Document();
 				Document geo = new Document();
@@ -732,7 +732,7 @@ public class SiteMgmt extends HttpServlet {
 						geo.append("properties", properties);
 						document.append("GEO", geo);
     					document.append("Update_by", "masteradmin");
-						document.append("Update_time", time.toString());
+						document.append("Update_time", time);
     					c.InserirSimpels("Rollout_Sites", document);
     					document.clear();
 					}
@@ -744,6 +744,8 @@ public class SiteMgmt extends HttpServlet {
 				c.RemoverMuitosSemFiltro("Localiza_Usuarios");
 				rs=conn.Consulta(query);
 				document.clear();
+				SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				
 				if(rs.next()) {
 					rs.beforeFirst();
 					int colunas = rs.getMetaData().getColumnCount();
@@ -757,7 +759,7 @@ public class SiteMgmt extends HttpServlet {
     							
     						}
     						properties.append("Usuario",rs.getString("usuario"));
-    						properties.append("Data",rs.getString("dt_add"));
+    						properties.append("Data",format.parse(rs.getString("dt_add")));
     					}
 						geo.append("type", "Feature");
 						geometry.append("type", "Point");
@@ -783,6 +785,9 @@ public class SiteMgmt extends HttpServlet {
 			}catch (SQLException e) {
 			
 				conn.fecharConexao();
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
