@@ -6,6 +6,8 @@ import java.sql.SQLException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+
+
 public class CamposRollout {
 	private String campo_nome;
 	private String campo_tipo;
@@ -17,7 +19,22 @@ public class CamposRollout {
 		campo_data_tipo="";
 	}
 	
-	
+	public String BuscaSitebyRecID(Conexao c,int recid) {
+		ResultSet rs;
+		
+		rs=c.Consulta("select value_atbr_field from rollout where recid="+recid+" and milestone='Site ID' limit 1");
+		try {
+			if(rs.next()) {
+				return rs.getString("value_atbr_field");
+			}else {
+				return "Site Nao encontrado";
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return "Erro na busca do Site";
+		}
+	}
 	
 	public String getCampo_nome() {
 		return campo_nome;

@@ -474,8 +474,14 @@ public class SiteMgmt extends HttpServlet {
 				document_featurecollection.append("type", "FeatureCollection");
 				document_featurecollection.append("operadora", "USUARIOS");
 				findIterable2.forEach((Block<Document>) doc2 -> {
+					JSONObject aux = new JSONObject(doc2.toJson());
+					Document auxdoc=new Document();
+					auxdoc=doc2;
+					Timestamp time2 = new Timestamp(aux.getJSONObject("GEO").getJSONObject("properties").getJSONObject("Data").getLong("$date"));
+					//System.out.println(time2.toString());
+					auxdoc.get("GEO", Document.class).get("properties", Document.class).replace("Data", time2.toString());
 					//System.out.println("Entrou no loop da data");
-					lista_sites.add((Document)doc2.get("GEO"));
+					lista_sites.add((Document)auxdoc.get("GEO"));
 				});
 				document_featurecollection.append("features",lista_sites );
 				document_operadora.append("\"USUARIOS\"", document_featurecollection.toJson().toString());

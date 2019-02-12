@@ -2103,6 +2103,7 @@ public class RolloutServlet extends HttpServlet {
                 int tamanho=0;
                 int tamanho2=0;
                 Document filtros=new Document();
+                Document historico=new Document();
                 Document updates=new Document();
                 Document update = new Document();
                 String plano;
@@ -2143,10 +2144,21 @@ public class RolloutServlet extends HttpServlet {
 						updates.append("update_time", time);
 						update = new Document();
 				        update.append("$set", updates);
-				       
+				        historico.append("recid" , jObj2.getInt("id"));
+				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+				        historico.append("TipoCampo" , "Milestone");
+				        historico.append("Milestone" , cmp);
+				        historico.append("Campo",jObj2.getString("colum"));
+				        historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
+				        historico.append("Novo Valor" , checa_formato_data(plano));
+				        historico.append("update_by", p.get_PessoaUsuario());
+				        historico.append("update_time", time);
 					//System.out.println(filtros.toJson().toString());
 					//System.out.println(update.toJson().toString());
 					c.AtualizaUm("rollout", filtros, update);
+					c.InserirSimpels("rollout_history", historico);
+					historico.clear();
 					filtros.clear();
 					update.clear();
 						if(!conn.Alterar(query)){
@@ -2168,7 +2180,18 @@ public class RolloutServlet extends HttpServlet {
 						updates.append("update_time", time);
 						update = new Document();
 				        update.append("$set", updates);
-				       
+				        historico.append("recid" , jObj2.getInt("id"));
+				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+				        historico.append("TipoCampo" , "Milestone");
+				        historico.append("Milestone" , cmp);
+				        historico.append("Campo",jObj2.getString("colum"));
+				        historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
+				        historico.append("Novo Valor" , checa_formato_data(plano));
+				        historico.append("update_by", p.get_PessoaUsuario());
+				        historico.append("update_time", time);
+				        c.InserirSimpels("rollout_history", historico);
+						historico.clear();
 					//System.out.println(filtros.toJson().toString());
 					//System.out.println(update.toJson().toString());
 					c.AtualizaUm("rollout", filtros, update);
@@ -2192,8 +2215,18 @@ public class RolloutServlet extends HttpServlet {
     						updates.append("Milestone.$.sdate_"+cmp, checa_formato_data(plano));
     						updates.append("update_by", p.get_PessoaUsuario());
     						updates.append("update_time", time);
-    						
-    				       
+    						historico.append("recid" , jObj2.getInt("id"));
+    				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+    				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+    				        historico.append("TipoCampo" , "Milestone");
+    				        historico.append("Milestone" , cmp);
+    				        historico.append("Campo",jObj2.getString("colum"));
+    				        historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
+    				        historico.append("Novo Valor" , checa_formato_data(plano));
+    				        historico.append("update_by", p.get_PessoaUsuario());
+    				        historico.append("update_time", time);
+    				        c.InserirSimpels("rollout_history", historico);
+    						historico.clear();
     					//System.out.println(filtros.toJson().toString());
     					//System.out.println(update.toJson().toString());
     					
@@ -2223,6 +2256,18 @@ public class RolloutServlet extends HttpServlet {
     						updates.append("Milestone.$.edate_"+cmp, checa_formato_data(plano));
     						updates.append("update_by", p.get_PessoaUsuario());
     						updates.append("update_time", time);
+    						historico.append("recid" , jObj2.getInt("id"));
+    				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+    				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+    				        historico.append("TipoCampo" , "Milestone");
+    				        historico.append("Milestone" , cmp);
+    				        historico.append("Campo",jObj2.getString("colum"));
+    				        historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
+    				        historico.append("Novo Valor" , checa_formato_data(plano));
+    				        historico.append("update_by", p.get_PessoaUsuario());
+    				        historico.append("update_time", time);
+    				        c.InserirSimpels("rollout_history", historico);
+    						historico.clear();
     						if(!conn.Alterar(query)){
     							//System.out.println("Erro de Update");
     							query="insert into rollout (recid,siteID,dt_fim,milestone,tipo_campo,empresa,update_by,update_time) values("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+plano+"','"+cmp+"','Milestone',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"')";
@@ -2254,7 +2299,18 @@ public class RolloutServlet extends HttpServlet {
     						updates.append("update_time", time.toString());
     						update = new Document();
     				        update.append("$set", updates);
-    				       
+    				        historico.append("recid" , jObj2.getInt("id"));
+    				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+    				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+    				        historico.append("TipoCampo" , "Milestone");
+    				        historico.append("Milestone" , cmp);
+    				        historico.append("Campo",jObj2.getString("colum"));
+    				        historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
+    				        historico.append("Novo Valor" , jObj2.getString("value"));
+    				        historico.append("update_by", p.get_PessoaUsuario());
+    				        historico.append("update_time", time);
+    				        c.InserirSimpels("rollout_history", historico);
+    						historico.clear();
     					//System.out.println(filtros.toJson().toString());
     					//System.out.println(update.toJson().toString());
     					c.AtualizaUm("rollout", filtros, update);
@@ -2278,6 +2334,17 @@ public class RolloutServlet extends HttpServlet {
     								updates.append("Milestone.$."+cmp, jObj2.getString("value"));
     								updates.append("update_by", p.get_PessoaUsuario());
     								updates.append("update_time", time.toString());
+    								historico.append("recid" , jObj2.getInt("id"));
+    		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+    		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+    		    				    historico.append("TipoCampo" , "Milestone");
+    		    				    historico.append("Milestone" , cmp.substring(5,cmp.length()));
+    		    				    historico.append("Campo",jObj2.getString("colum"));
+    		    				    historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
+    		    				    historico.append("Novo Valor" , jObj2.getString("value"));
+    		    				    historico.append("update_by", p.get_PessoaUsuario());
+    		    				    historico.append("update_time", time);
+    		    				   
     							}else {
     								query="update rollout set value_atbr_field='"+jObj2.getString("value")+"',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id() ;
     								query2="insert into rollout (recid,siteID,milestone,value_atbr_field,tipo_campo,empresa,update_by,update_time) values ("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+cmp+"','"+jObj2.getString("value")+"','Atributo',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"')";
@@ -2286,6 +2353,16 @@ public class RolloutServlet extends HttpServlet {
     								updates.append(cmp, jObj2.getString("value"));
     								updates.append("update_by", p.get_PessoaUsuario());
     								updates.append("update_time", time.toString());
+    								historico.append("recid" , jObj2.getInt("id"));
+    		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+    		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+    		    				    historico.append("TipoCampo" , "Atributo");
+    		    				    historico.append("Milestone" , cmp);
+    		    				    historico.append("Campo",jObj2.getString("colum"));
+    		    				    historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
+    		    				    historico.append("Novo Valor" , jObj2.getString("value"));
+    		    				    historico.append("update_by", p.get_PessoaUsuario());
+    		    				    historico.append("update_time", time);
     							}
     						}else if(jObj2.getString("tipoc").equals("datetimeinput")){
     							plano=jObj2.getString("value");
@@ -2297,6 +2374,16 @@ public class RolloutServlet extends HttpServlet {
 								updates.append(cmp, checa_formato_data(jObj2.getString("value")));
 								updates.append("update_by", p.get_PessoaUsuario());
 								updates.append("update_time", time.toString());
+								historico.append("recid" , jObj2.getInt("id"));
+		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+		    				    historico.append("TipoCampo" , "Atributo");
+		    				    historico.append("Milestone" , cmp);
+		    				    historico.append("Campo",jObj2.getString("colum"));
+		    				    historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
+		    				    historico.append("Novo Valor" , jObj2.getString("value"));
+		    				    historico.append("update_by", p.get_PessoaUsuario());
+		    				    historico.append("update_time", time);
     						}else if(jObj2.getString("tipoc").equals("int")){
     							query="update rollout set value_atbr_field='"+jObj2.getInt("value")+"',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id() ;
     							query2="insert into rollout (recid,siteID,milestone,value_atbr_field,tipo_campo,empresa,update_by,update_time) values ("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+cmp+"','"+jObj2.getInt("value")+"','Atributo',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"')";
@@ -2305,9 +2392,20 @@ public class RolloutServlet extends HttpServlet {
 								updates.append(cmp, jObj2.getString("value"));
 								updates.append("update_by", p.get_PessoaUsuario());
 								updates.append("update_time", time.toString());
+								historico.append("recid" , jObj2.getInt("id"));
+		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+		    				    historico.append("TipoCampo" , "Atributo");
+		    				    historico.append("Milestone" , cmp);
+		    				    historico.append("Campo",jObj2.getString("colum"));
+		    				    historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
+		    				    historico.append("Novo Valor" , jObj2.getString("value"));
+		    				    historico.append("update_by", p.get_PessoaUsuario());
+		    				    historico.append("update_time", time);
     						
     						}
-    						
+    						    c.InserirSimpels("rollout_history", historico);
+		    			        historico.clear();
     						    update = new Document();
     					        update.append("$set", updates);
     					       
@@ -2380,9 +2478,17 @@ public class RolloutServlet extends HttpServlet {
 				document_featurecollection.clear();
 				document_featurecollection.append("type", "FeatureCollection");
 				document_featurecollection.append("operadora", "USUARIOS");
+				
 				findIterable2.forEach((Block<Document>) doc2 -> {
-					//System.out.println("Entrou no loop da data");
-					lista_sites.add((Document)doc2.get("GEO"));
+					JSONObject aux = new JSONObject(doc2.toJson());
+					Document auxdoc=new Document();
+					auxdoc=doc2;
+					//System.out.println(aux.getJSONObject("GEO").getJSONObject("properties").getJSONObject("Data").getLong("$date"));
+					//System.out.println(doc2.get("GEO",Document.class).get("properties",Document.class).get("Data", Document.class)("$date"));
+					Timestamp time2 = new Timestamp(aux.getJSONObject("GEO").getJSONObject("properties").getJSONObject("Data").getLong("$date"));
+					//System.out.println(time2.toString());
+					auxdoc.get("GEO", Document.class).get("properties", Document.class).replace("Data", time2.toString());
+					lista_sites.add((Document)auxdoc.get("GEO"));
 				});
 				document_featurecollection.append("features",lista_sites );
 				rollout_filtrado.append("\"usuarios\"", document_featurecollection.toJson().toString());

@@ -1092,7 +1092,49 @@ public class UserMgmt extends HttpServlet {
 					}
 					data_HH.add(Calendar.DAY_OF_MONTH, 1);
 				}
-				out.print("Total Horas Acumuluadas:"+numberFormat.format(total_horas_acumuladas) +";\n Total Horas Sabado:" +numberFormat.format(total_horas_acumuladas_sabado)+";\n Total Horas Domingo:" +numberFormat.format(total_horas_acumuladas_domingo)+";");
+				Integer horas_acumuladas=total_horas_acumuladas.intValue();
+				Double minutos_acumuladosDouble=(total_horas_acumuladas- Math.floor(total_horas_acumuladas))*60;
+				int minutos_acumuladosint=minutos_acumuladosDouble.intValue();
+				String total_horas_acumuladastring="";
+				String total_horas_acumulada_sabadostring="";
+				String total_horas_acumulada_domingostring="";
+				if(horas_acumuladas<10) {
+					total_horas_acumuladastring="0"+horas_acumuladas;
+				}else {
+					total_horas_acumuladastring=horas_acumuladas.toString();
+				}
+				if(minutos_acumuladosint<10) {
+					total_horas_acumuladastring=total_horas_acumuladastring+":0"+minutos_acumuladosint;
+				}else {
+					total_horas_acumuladastring=total_horas_acumuladastring+":"+minutos_acumuladosint;
+				}
+				horas_acumuladas=total_horas_acumuladas_sabado.intValue();
+				minutos_acumuladosDouble=(total_horas_acumuladas_sabado- Math.floor(total_horas_acumuladas_sabado))*60;
+				minutos_acumuladosint=minutos_acumuladosDouble.intValue();
+				if(horas_acumuladas<10) {
+					total_horas_acumulada_sabadostring="0"+horas_acumuladas;
+				}else {
+					total_horas_acumulada_sabadostring=horas_acumuladas.toString();
+				}
+				if(minutos_acumuladosint<10) {
+					total_horas_acumulada_sabadostring=total_horas_acumulada_sabadostring+":0"+minutos_acumuladosint;
+				}else {
+					total_horas_acumulada_sabadostring=total_horas_acumulada_sabadostring+":"+minutos_acumuladosint;
+				}
+				horas_acumuladas=total_horas_acumuladas_domingo.intValue();
+				minutos_acumuladosDouble=(total_horas_acumuladas_domingo- Math.floor(total_horas_acumuladas_domingo))*60;
+				minutos_acumuladosint=minutos_acumuladosDouble.intValue();
+				if(horas_acumuladas<10) {
+					total_horas_acumulada_domingostring="0"+horas_acumuladas;
+				}else {
+					total_horas_acumulada_domingostring=horas_acumuladas.toString();
+				}
+				if(minutos_acumuladosint<10) {
+					total_horas_acumulada_domingostring=total_horas_acumulada_domingostring+":0"+minutos_acumuladosint;
+				}else {
+					total_horas_acumulada_domingostring=total_horas_acumulada_domingostring+":"+minutos_acumuladosint;
+				}
+				out.print("Total Horas Acumuluadas:"+total_horas_acumuladastring +";\n Total Horas Sabado:" +total_horas_acumulada_sabadostring+";\n Total Horas Domingo:" +total_horas_acumulada_domingostring+";");
 			}else if(opt.equals("19")){
 
 				param1=req.getParameter("func");

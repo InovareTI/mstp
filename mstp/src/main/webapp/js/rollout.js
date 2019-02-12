@@ -284,30 +284,30 @@ function atualiza_lote(){
 	if(tipo=='Milestone'){
 	for(var i=0;i<rows_indexes.length;i++){
 		if($("#inicio_planejado_lote").jqxDateTimeInput('val')!=''){
-			registra_mudança_campos(rows_indexes[i],"sdate_pre_"+$('#select_campos_update_lote').val(),$("#inicio_planejado_lote").jqxDateTimeInput('val'),'datetimeinput');
+			registra_mudança_campos(rows_indexes[i],"sdate_pre_"+$('#select_campos_update_lote').val(),$("#inicio_planejado_lote").jqxDateTimeInput('val'),'datetimeinput',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], "sdate_pre_"+$('#select_campos_update_lote').val()));
 		}
 		if($("#fim_planejado_lote").jqxDateTimeInput('val')!=''){
-			registra_mudança_campos(rows_indexes[i],"edate_pre_"+$('#select_campos_update_lote').val(),$("#fim_planejado_lote").jqxDateTimeInput('val'),'datetimeinput');
+			registra_mudança_campos(rows_indexes[i],"edate_pre_"+$('#select_campos_update_lote').val(),$("#fim_planejado_lote").jqxDateTimeInput('val'),'datetimeinput',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], "edate_pre_"+$('#select_campos_update_lote').val()));
 		}
 		if($("#inicio_real_lote").jqxDateTimeInput('val')!=''){
-			registra_mudança_campos(rows_indexes[i],"sdate_"+$('#select_campos_update_lote').val(),$("#inicio_real_lote").jqxDateTimeInput('val'),'datetimeinput');
+			registra_mudança_campos(rows_indexes[i],"sdate_"+$('#select_campos_update_lote').val(),$("#inicio_real_lote").jqxDateTimeInput('val'),'datetimeinput',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], "sdate_"+$('#select_campos_update_lote').val()));
 		}
 		if($("#fim_real_lote").jqxDateTimeInput('val')!=''){
-			registra_mudança_campos(rows_indexes[i],"edate_"+$('#select_campos_update_lote').val(),$("#fim_real_lote").jqxDateTimeInput('val'),'datetimeinput');
+			registra_mudança_campos(rows_indexes[i],"edate_"+$('#select_campos_update_lote').val(),$("#fim_real_lote").jqxDateTimeInput('val'),'datetimeinput',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], "edate_"+$('#select_campos_update_lote').val()));
 		}
 		if(document.getElementById("anot_lote").value!=''){
-			registra_mudança_campos(rows_indexes[i],"udate_"+$('#select_campos_update_lote').val(),document.getElementById("anot_lote").value,'textbox');
+			registra_mudança_campos(rows_indexes[i],"udate_"+$('#select_campos_update_lote').val(),document.getElementById("anot_lote").value,'textbox',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], "udate_"+$('#select_campos_update_lote').val()));
 		}
 		if(document.getElementById("resp_lote").value!=''){
-			registra_mudança_campos(rows_indexes[i],"resp_"+$('#select_campos_update_lote').val(),document.getElementById("resp_lote").value,'textbox');
+			registra_mudança_campos(rows_indexes[i],"resp_"+$('#select_campos_update_lote').val(),document.getElementById("resp_lote").value,'textbox',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], "resp_"+$('#select_campos_update_lote').val()));
 		}
 	}
 	}else if(tipo=='Data'){
-		registra_mudança_campos(rows_indexes[i],$('#select_campos_update_lote').val(),$("#data_atbr_lote").jqxDateTimeInput('val'),'datetimeinput');
+		registra_mudança_campos(rows_indexes[i],$('#select_campos_update_lote').val(),$("#data_atbr_lote").jqxDateTimeInput('val'),'datetimeinput',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], $('#select_campos_update_lote').val()));
 	}else{
 		for(var i=0;i<rows_indexes.length;i++){
 			if(document.getElementById("attbr_lote").value!=''){
-				registra_mudança_campos(rows_indexes[i],$('#select_campos_update_lote').val(),document.getElementById("attbr_lote").value,'textbox');
+				registra_mudança_campos(rows_indexes[i],$('#select_campos_update_lote').val(),document.getElementById("attbr_lote").value,'textbox',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], $('#select_campos_update_lote').val()));
 			}
 		}
 	}
@@ -705,16 +705,16 @@ function carrega_gant(){
 	 //$("#jqxgrid").jqxGrid('selectionmode', 'multiplerows');
 	 $("#jqxgrid").on('cellendedit', function (event) {
          var args = event.args;
-         //console.log(args);
+        // console.log(args);
          //alert(args.datafield);
          //alert(args.row.recid);
          //alert(args.row);
-         registra_mudança_campos(args.rowindex,args.datafield,args.value,args.columntype);
+         registra_mudança_campos(args.rowindex,args.datafield,args.value,args.columntype,args.oldvalue);
      });
 	 $('#jqxLoader_rolout').jqxLoader('close');
 	}
 		
-function registra_mudança_campos(index,campo,valor,tipo){
+function registra_mudança_campos(index,campo,valor,tipo,oldvalue){
 	//alert(tipo);
 	if(campo=="check_linha"){
 		$("#jqxgrid").jqxGrid('selectrow', index);
@@ -732,13 +732,13 @@ function registra_mudança_campos(index,campo,valor,tipo){
 		
 		if(localdata!='Invalid date'){
 			
-			localizacao={id:$("#jqxgrid").jqxGrid('getrowid', index),colum:campo,value:localdata,tipoc:tipo};
+			localizacao={id:$("#jqxgrid").jqxGrid('getrowid', index),colum:campo,value:localdata,tipoc:tipo,oldvalue:oldvalue};
 		}else{
 			
-			localizacao={id:$("#jqxgrid").jqxGrid('getrowid', index),colum:campo,value:'',tipoc:'textbox'};
+			localizacao={id:$("#jqxgrid").jqxGrid('getrowid', index),colum:campo,value:'',tipoc:'textbox',oldvalue:oldvalue};
 		}
 	}else{
-		localizacao={id:$("#jqxgrid").jqxGrid('getrowid', index),colum:campo,value:valor,tipoc:tipo}
+		localizacao={id:$("#jqxgrid").jqxGrid('getrowid', index),colum:campo,value:valor,tipoc:tipo,oldvalue:oldvalue}
 	}
 	g_changes.atualizacoes=g_changes.atualizacoes+1;
 	g_changes.campos.push(localizacao);

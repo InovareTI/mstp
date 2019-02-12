@@ -116,6 +116,8 @@ response.setDateHeader ("Expires", -1);
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.columnsresize.js"></script> 
     <script type="text/javascript" src="js/jqwidgets/jqxdata.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxdate.js"></script>
+    <script type="text/javascript" src="js/jqwidgets/jqxribbon.js"></script>
+    <script type="text/javascript" src="js/jqwidgets/jqxlayout.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.pager.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.edit.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxpanel.js"></script>
@@ -439,9 +441,12 @@ response.setDateHeader ("Expires", -1);
 					   </div>
 					</div> <!-- /portal -->
 					<div class="janelas" id="mapa_central" style="display:none;"	>
-					<nav id="menu_operadora"></nav>
-					<div id="map_full"><div class="loader"></div></div>
-					<div id='menu_mapa'><div id="mapa_info"></div></div>
+					
+            
+						<div id="map_full"><div class="loader"></div></div>
+						<div id='menu_mapa'><div id="mapa_info"></div></div>
+					
+					
 						<script>
 						
 						function inicializa_mapa_full(opt){

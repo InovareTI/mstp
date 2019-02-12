@@ -1,3 +1,4 @@
+
 function map_init_manual(){
  mymap.remove();
  
