@@ -774,17 +774,21 @@ function registra_mudança_campos(index,campo,valor,tipo,oldvalue){
 	//alert(valor_novo);
 }
 function busca_historico_rollout_filtros(){
-	var siteid,autor,periodo,campos;
+	var siteid,autor,periodo,campos,i,f;
 	campos=$('#select_campo_historico_filtro').selectpicker('val');
 	autor=$('#select_autor_historico_filtro').selectpicker('val');
 	siteid=document.getElementById('filtro_historico_siteid').value;
-	
+	var selection = $("#periodo_hitorico_mudanca").jqxDateTimeInput('getRange');
+	 i = moment(selection.from).format('L');
+	 f = moment(selection.to).format('L');
 	$.ajax({
 		  type: "POST",
 		  data: {"opt":"20",
 			"siteid":siteid,
 			"campos":campos.toString(),
-			"autor":autor.toString()
+			"autor":autor.toString(),
+			"inicio":i,
+			"fim":f
 			},		  
 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
 		  url: "./RolloutServlet",

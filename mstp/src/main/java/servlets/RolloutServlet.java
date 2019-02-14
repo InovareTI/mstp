@@ -2579,6 +2579,8 @@ public class RolloutServlet extends HttpServlet {
 				param1=req.getParameter("siteid");
 				param2=req.getParameter("campos");
 				param3=req.getParameter("autor");
+				param4=req.getParameter("inicio");
+				param5=req.getParameter("fim");
 				List<String> autor = new ArrayList();
 				List<String> campos = new ArrayList();
 				List<String> site = new ArrayList();
@@ -2621,7 +2623,7 @@ public class RolloutServlet extends HttpServlet {
 				System.out.println("site:"+site.toString());
 				System.out.println("campos:"+campos.toString());
 				System.out.println("autor:"+autor.toString());
-				FindIterable<Document> findIterable=c.ConsultaComplexaComFiltros("rollout_history", site,campos,autor);
+				FindIterable<Document> findIterable=c.ConsultaFiltrosHistoricoRollout("rollout_history", site,campos,autor,param4,param5);
 				
 				findIterable.forEach((Block<Document>) doc -> {
 					
