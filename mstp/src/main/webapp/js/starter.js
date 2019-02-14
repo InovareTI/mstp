@@ -128,6 +128,135 @@ $(document).ready(function () {
             	  // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
             	  prepara_ajuste_ponto(recipient);
             });
+            $('#modal_rollout_history').on('show.bs.modal', function (event) {
+              filtros={"filtros":[]};	
+          	  var button = $(event.relatedTarget) // Button that triggered the modal
+          	  var rowindexes = $('#jqxgrid').jqxGrid('getselectedrowindexes');
+          	  if(rowindexes.length==0){
+          		$.alert("Nenhum linha selecionada. Utilize os campos de Filtros.(Filtro pelo campo de tempo ainda em Desenvolvimento, demais campos ja estão OK para uso!)");
+          		$.ajax({
+			 		  type: "POST",
+			 		  data: {"opt":"19",
+			 			},		  
+			 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+			 		  url: "./RolloutServlet",
+			 		  cache: false,
+			 		  dataType: "text",
+			 		 success: atualiza_select_historico_campos
+			 		});
+          		
+          		$("#periodo_hitorico_mudanca").jqxDateTimeInput({selectionMode: 'range'});
+          		var source =
+                {
+                    datatype: "json",
+                    datafields: [
+                    	{ name: 'id', type: 'string' },
+                        { name: 'recid', type: 'int' },
+                        { name: 'Site ID', type: 'string' },
+                        { name: 'Tipo Campo', type: 'string' },
+                        { name: 'Milestone', type: 'string' },
+                        { name: 'Campo', type: 'string' },
+                        { name: 'Valor Anterior', type: 'string' },
+                        { name: 'Novo Valor', type: 'string' },
+                        { name: 'Atualizado Por', type: 'string' },
+                        { name: 'Data da Atualização', type: 'string' }
+                    ],
+                    id: 'id',
+                    localdata: '[]'
+                };
+          		var dataAdapter = new $.jqx.dataAdapter(source);
+          		$("#grid_historico_rollout").jqxGrid(
+          	            {
+          	            	width: 850,
+          	                source: dataAdapter,
+          	                columnsresize: true,
+          	                filterable: true,
+          	                autoshowfiltericon: true,
+          	                columns: [
+          	                    { text: 'ID', datafield: 'recid',filtertype: 'checkedlist' },
+          	                    { text: 'Site', datafield: 'Site ID',filtertype: 'checkedlist', width: 80 },
+          	                    { text: 'Tipo Campo', datafield: 'Tipo Campo',filtertype: 'checkedlist', width: 100 },
+          	                    { text: 'Milestone', datafield: 'Milestone',filtertype: 'checkedlist', width: 100 },
+          	                    { text: 'Campo', datafield: 'Campo',filtertype: 'checkedlist', width: 110},
+          	                    { text: 'Valor Anterior', datafield: 'Valor Anterior',filtertype: 'checkedlist', width: 100},
+          	                    { text: 'Novo Valor', datafield: 'Novo Valor',filtertype: 'checkedlist', width: 100},
+          	                    { text: 'Atualizado Por', datafield: 'Atualizado Por',filtertype: 'checkedlist', width: 110},
+          	                    { text: 'Data da Atualização', datafield: 'Data da Atualização',filtertype: 'checkedlist', width: 170}
+          	                ]
+          	            });
+          	  }else{
+	          	for(var v=0;v<rowindexes.length;v++){
+					filtros.filtros.push($('#jqxgrid').jqxGrid('getrowid', rowindexes[v]));
+				}
+	          	$("#periodo_hitorico_mudanca").jqxDateTimeInput({selectionMode: 'range'});
+	          	$.ajax({
+			 		  type: "POST",
+			 		  data: {"opt":"19",
+			 			},		  
+			 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+			 		  url: "./RolloutServlet",
+			 		  cache: false,
+			 		  dataType: "text",
+			 		 success: atualiza_select_historico_campos
+			 		});
+	          	$.ajax({
+			 		  type: "POST",
+			 		  data: {"opt":"18",
+			 			"filtros":JSON.stringify(filtros)
+			 			},		  
+			 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+			 		  url: "./RolloutServlet",
+			 		  cache: false,
+			 		  dataType: "text",
+			 		  success: mostra_historico_rollout
+			 		});
+	          	function mostra_historico_rollout(data){
+	          		dataaux=JSON.parse(data);
+	          		var source =
+	                {
+	                    datatype: "json",
+	                    datafields: [
+	                    	{ name: 'id', type: 'string' },
+	                        { name: 'recid', type: 'int' },
+	                        { name: 'Site ID', type: 'string' },
+	                        { name: 'Tipo Campo', type: 'string' },
+	                        { name: 'Milestone', type: 'string' },
+	                        { name: 'Campo', type: 'string' },
+	                        { name: 'Valor Anterior', type: 'string' },
+	                        { name: 'Novo Valor', type: 'string' },
+	                        { name: 'Atualizado Por', type: 'string' },
+	                        { name: 'Data da Atualização', type: 'string' }
+	                    ],
+	                    id: 'id',
+	                    localdata: dataaux
+	                };
+	          		var dataAdapter = new $.jqx.dataAdapter(source);
+	          		$("#grid_historico_rollout").jqxGrid(
+	          	            {
+	          	            	width: 850,
+	          	                source: dataAdapter,
+	          	                columnsresize: true,
+	          	                filterable: true,
+	          	                autoshowfiltericon: true,
+	          	                columns: [
+	          	                    { text: 'ID', datafield: 'recid',filtertype: 'checkedlist' },
+	          	                    { text: 'Site', datafield: 'Site ID',filtertype: 'checkedlist', width: 80 },
+	          	                    { text: 'Tipo Campo', datafield: 'Tipo Campo',filtertype: 'checkedlist', width: 100 },
+	          	                    { text: 'Milestone', datafield: 'Milestone',filtertype: 'checkedlist', width: 100 },
+	          	                    { text: 'Campo', datafield: 'Campo',filtertype: 'checkedlist', width: 110},
+	          	                    { text: 'Valor Anterior', datafield: 'Valor Anterior',filtertype: 'checkedlist', width: 100},
+	          	                    { text: 'Novo Valor', datafield: 'Novo Valor',filtertype: 'checkedlist', width: 100},
+	          	                    { text: 'Atualizado Por', datafield: 'Atualizado Por',filtertype: 'checkedlist', width: 110},
+	          	                    { text: 'Data da Atualização', datafield: 'Data da Atualização',filtertype: 'checkedlist', width: 170}
+	          	                ]
+	          	            });
+	          	}
+          	  }
+          	function atualiza_select_historico_campos(data){
+      			$('#select_campo_historico_filtro').html(data);
+      			$('#select_campo_historico_filtro').selectpicker('refresh');
+      		}
+          });
             $('#modal_ajuste_ponto').on('hide.bs.modal', function (event) {
             	fecha_tela_ajuste_ponto();
             });

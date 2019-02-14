@@ -64,6 +64,7 @@ import org.json.JSONObject;
 import com.mongodb.Block;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Filters;
 
 import classes.Conexao;
 import classes.ConexaoMongo;
@@ -212,7 +213,7 @@ public class RolloutServlet extends HttpServlet {
     						campos_aux=campos_aux+"{ \"text\": \"Inicio Previsto\", \"columngroup\":\""+rs.getString("field_name")+"\" , \"datafield\":\"sdate_pre_"+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\", \"cellsformat\":\"dd/MM/yyyy\",\"width\":100},"+ "\n";
     						campos_aux=campos_aux+"{ \"text\": \"Fim Previsto\", \"columngroup\":\""+rs.getString("field_name")+"\" , \"datafield\":\"edate_pre_"+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\", \"cellsformat\":\"dd/MM/yyyy\",\"width\":100},"+ "\n";
     						campos_aux=campos_aux+"{ \"text\": \"Inicio Real\", \"columngroup\":\""+rs.getString("field_name")+"\" , \"datafield\":\"sdate_"+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\", \"cellsformat\":\"dd/MM/yyyy\",\"width\":100},"+ "\n";
-    						campos_aux=campos_aux+"{ \"text\": \"Fim Real\", \"columngroup\":\""+rs.getString("field_name")+"\" , \"datafield\":\"edate_"+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\", \"cellsformat\":\"dd/MM/yyyy\",\"width\":100},"+ "\n";
+    						campos_aux=campos_aux+"{ \"text\": \"Fim Real\", \"columngroup\":\""+rs.getString("field_name")+"\" , \"datafield\":\"edate_"+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\", \"cellsformat\":\"dd/MM/yyyy\",\"width\":100,\"validation\":\"validaDataActual\"},"+ "\n";
     						campos_aux=campos_aux+"{ \"text\": \"Anotacões\", \"columngroup\":\""+rs.getString("field_name")+"\", \"datafield\":\"udate_"+rs.getString("field_name")+"\",\"columntype\": \"textbox\",\"width\":100},"+ "\n";
     						campos_aux=campos_aux+"{ \"text\": \"Responsavel\", \"columngroup\":\""+rs.getString("field_name")+"\", \"datafield\":\"resp_"+rs.getString("field_name")+"\",\"columntype\": \"combobox\",\"width\":200},"+ "\n";
     						campos_aux=campos_aux+"{ \"text\": \"Status\", \"columngroup\":\""+rs.getString("field_name")+"\", \"filtertype\": \"checkedlist\",\"cellsalign\": \"center\",\"datafield\":\"status_"+rs.getString("field_name")+"\",\"columntype\": \"combobox\",\"width\":100},"+ "\n";
@@ -2357,7 +2358,7 @@ public class RolloutServlet extends HttpServlet {
     		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
     		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
     		    				    historico.append("TipoCampo" , "Atributo");
-    		    				    historico.append("Milestone" , cmp);
+    		    				    historico.append("Milestone" , "");
     		    				    historico.append("Campo",jObj2.getString("colum"));
     		    				    historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
     		    				    historico.append("Novo Valor" , jObj2.getString("value"));
@@ -2378,7 +2379,7 @@ public class RolloutServlet extends HttpServlet {
 		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
 		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
 		    				    historico.append("TipoCampo" , "Atributo");
-		    				    historico.append("Milestone" , cmp);
+		    				    historico.append("Milestone" , "");
 		    				    historico.append("Campo",jObj2.getString("colum"));
 		    				    historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
 		    				    historico.append("Novo Valor" , jObj2.getString("value"));
@@ -2396,7 +2397,7 @@ public class RolloutServlet extends HttpServlet {
 		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
 		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
 		    				    historico.append("TipoCampo" , "Atributo");
-		    				    historico.append("Milestone" , cmp);
+		    				    historico.append("Milestone" , "");
 		    				    historico.append("Campo",jObj2.getString("colum"));
 		    				    historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
 		    				    historico.append("Novo Valor" , jObj2.getString("value"));
@@ -2439,7 +2440,7 @@ public class RolloutServlet extends HttpServlet {
 				System.out.println("chegou no opt 16");
 				ConexaoMongo c = new ConexaoMongo();
 				param1=req.getParameter("filtros");
-				System.out.println(param1);
+				//System.out.println(param1);
 				JSONObject campo_tipo=r.getCampos().getCampos_tipo(conn, p);
 				JSONObject filtros=new JSONObject(param1);
 				JSONArray filtrosArray=filtros.getJSONArray("filtros");
@@ -2520,6 +2521,131 @@ public class RolloutServlet extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				System.out.println(rollout_filtrado_site.toString());
 				out.print(rollout_filtrado_site.toString());
+			}else if(opt.equals("18")) {
+				param1=req.getParameter("filtros");
+				List<String> historico_site= new ArrayList<String>();
+				List<Integer> id_aux= new ArrayList<Integer>();
+				Document resultado = new Document();
+				ConexaoMongo c = new ConexaoMongo();
+				JSONObject filtros= new JSONObject(param1);
+				JSONArray filtrosArray=filtros.getJSONArray("filtros");
+				for(int i=0;i<filtrosArray.length();i++) {
+					id_aux.add(filtrosArray.getInt(i));
+					
+				}
+				//System.out.println(id_aux.toString());
+				FindIterable<Document> findIterable=c.ConsultaComplexaArrayRecID("rollout_history", "recid",id_aux);
+				
+				findIterable.forEach((Block<Document>) doc -> {
+					
+					resultado.append("id",doc.getObjectId("_id").toString());
+					resultado.append("recid", doc.get("recid"));
+					resultado.append("Site ID", doc.get("SiteID"));
+					resultado.append("Tipo Campo", doc.get("TipoCampo"));
+					resultado.append("Milestone", doc.get("Milestone"));
+					resultado.append("Campo", doc.get("Campo"));
+					resultado.append("Valor Anterior", doc.get("Valor Anterior"));
+					resultado.append("Novo Valor", doc.get("Novo Valor"));
+					resultado.append("Atualizado Por", doc.get("update_by"));
+					resultado.append("Data da Atualização", f3.format(doc.getDate("update_time")));
+					historico_site.add(resultado.toJson());
+					resultado.clear();
+					
+				});
+				c.fecharConexao();
+				//System.out.println(historico_site.toString());
+				resp.setContentType("application/text");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				//System.out.println(rollout_filtrado_site.toString());
+				out.print(historico_site.toString());
+				
+			}else if(opt.equals("19")) {
+				JSONObject jsonObject_campos = r.getCampos().getCampos_tipo(conn, p);
+				String resultado="";
+				String aux="";
+				Iterator<String> campos=jsonObject_campos.keys();
+				while(campos.hasNext()) {
+					
+					aux=campos.next();
+					resultado=resultado+"<option value='"+aux+"'>"+aux+"</option>\n";
+				}
+				resp.setContentType("application/text");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				//System.out.println(rollout_filtrado_site.toString());
+				out.print(resultado);
+			}else if(opt.equals("20")) {
+				param1=req.getParameter("siteid");
+				param2=req.getParameter("campos");
+				param3=req.getParameter("autor");
+				List<String> autor = new ArrayList();
+				List<String> campos = new ArrayList();
+				List<String> site = new ArrayList();
+				
+				ConexaoMongo c = new ConexaoMongo();
+				
+				Document resultado =new Document();
+				
+				List<String> historico_site= new ArrayList<String>();
+				if(!param1.equals("")) {
+					if(param1.indexOf(",")>0) {
+						for(int i=0;i<param1.split(",").length;i++) {
+						site.add(param1.split(",")[i]);
+						}
+					}else {
+						site.add(param1);
+					}
+				}
+				
+				if(!param2.equals("")) { 
+					if(param2.indexOf(",")>0) {
+						for(int i=0;i<param2.split(",").length;i++) {
+						campos.add(param2.split(",")[i]);
+						}
+					}else {
+						campos.add(param2);
+				}
+				}
+				
+				if(!param3.equals("")) { 
+					
+					if(param3.indexOf(",")>0) {
+						for(int i=0;i<param3.split(",").length;i++) {
+						autor.add(param3.split(",")[i]);
+						}
+					}else {
+						autor.add(param3);
+					}
+				}
+				System.out.println("site:"+site.toString());
+				System.out.println("campos:"+campos.toString());
+				System.out.println("autor:"+autor.toString());
+				FindIterable<Document> findIterable=c.ConsultaComplexaComFiltros("rollout_history", site,campos,autor);
+				
+				findIterable.forEach((Block<Document>) doc -> {
+					
+					resultado.append("id",doc.getObjectId("_id").toString());
+					resultado.append("recid", doc.get("recid"));
+					resultado.append("Site ID", doc.get("SiteID"));
+					resultado.append("Tipo Campo", doc.get("TipoCampo"));
+					resultado.append("Milestone", doc.get("Milestone"));
+					resultado.append("Campo", doc.get("Campo"));
+					resultado.append("Valor Anterior", doc.get("Valor Anterior"));
+					resultado.append("Novo Valor", doc.get("Novo Valor"));
+					resultado.append("Atualizado Por", doc.get("update_by"));
+					resultado.append("Data da Atualização", f3.format(doc.getDate("update_time")));
+					historico_site.add(resultado.toJson());
+					resultado.clear();
+					
+				});
+				c.fecharConexao();
+				//System.out.println(historico_site.toString());
+				resp.setContentType("application/text");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				//System.out.println(rollout_filtrado_site.toString());
+				out.print(historico_site.toString());
 			}
 		}catch (SQLException e) {
 			conn.fecharConexao();

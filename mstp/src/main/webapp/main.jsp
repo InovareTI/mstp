@@ -99,6 +99,7 @@ response.setDateHeader ("Expires", -1);
   	<script type="text/javascript" src="js/jqwidgets/jqxcore.js"></script>
   	<script type="text/javascript" src="js/jqwidgets/jqxloader.js"></script>
   	<script type="text/javascript" src="js/jqwidgets/jqxdatetimeinput.js"></script>
+  	<script type="text/javascript" src="js/jqwidgets/jqxdropdownbutton.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxbuttons.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxscrollbar.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxmenu.js"></script>
@@ -1775,7 +1776,38 @@ response.setDateHeader ("Expires", -1);
   </div>
 </div> 
  
+<div id="modal_rollout_history" class="modal fade" role="dialog">
+  <div class="modal-dialog modal-lg">
 
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title" style="color:black">Hitórico de Mudanças</h4>
+      </div>
+      <div class="modal-body">
+            <div id='filtros_rollout_historico'>
+            <table style="width:100%">
+            <tr><td style="padding: 10px"><input style="color: black" class="form-control" type="text" id="filtro_historico_siteid" placeholder="SiteID"></td><td style="padding: 10px"><select id="select_autor_historico_filtro" class="selectpicker" data-selected-text-format="count" multiple data-live-search="true" title="Escolha o Autor"></select></td><td style="padding: 10px"><select id="select_campo_historico_filtro" data-selected-text-format="count" class="selectpicker" multiple data-live-search="true" title="Escolha o Campo"></select></td></tr>
+            <tr></tr>
+            </table>
+            <div style="padding: 10px"><label style="color: black">Período da Mudança:</label><div id='periodo_hitorico_mudanca'></div></div>
+            <div style="padding: 10px"><button class="btn btn-primary" type="button" id="filtro_historico_button" onclick="busca_historico_rollout_filtros()">Filtrar</button></div>
+            
+            
+            </div>
+            <div style="z-index: -1;"><div id='grid_historico_rollout' style="width:60%"></div></div>
+			
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div> 
 
 <div id="modal_ajuste_ponto" class="modal fade subconpo" role="dialog">
   <div class="modal-dialog">

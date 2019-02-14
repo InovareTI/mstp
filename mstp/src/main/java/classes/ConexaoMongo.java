@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.mongodb.MongoClient;
@@ -80,6 +81,44 @@ public class ConexaoMongo {
 		System.out.println(campo);
 		//System.out.println(valor);
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.in(campo, valores));
+		
+		return findIterable;
+	}
+	public FindIterable<Document> ConsultaComplexaArrayRecID(String Collection,String campo,List<Integer> valores){
+		System.out.println("Realizando consulta em:");
+		System.out.println(Collection);
+		System.out.println(campo);
+		//System.out.println(valor);
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.in(campo, valores));
+		
+		return findIterable;
+	}
+	public FindIterable<Document> ConsultaComplexaComFiltros(String Collection,List<String>site,List<String>campos,List<String>autor){
+		
+		FindIterable<Document> findIterable = null;
+		if(site.toArray().length>0) {
+			if(autor.toArray().length>0) {
+				if(campos.toArray().length>0) {
+					findIterable = db.getCollection(Collection).find(Filters.and(Filters.in("SiteID", site),Filters.in("update_by", autor),Filters.in("Campo", campos)));
+				}else {
+					findIterable = db.getCollection(Collection).find(Filters.and(Filters.in("SiteID", site),Filters.in("update_by", autor)));
+				}
+			}else if(campos.toArray().length>0) {
+				findIterable = db.getCollection(Collection).find(Filters.and(Filters.in("SiteID", site),Filters.in("Campo", campos)));
+			}else {
+				findIterable = db.getCollection(Collection).find(Filters.in("SiteID", site));
+			}
+			findIterable = findIterable.filter(Filters.in("SiteID", site));
+		}else if(autor.toArray().length>0) {
+			if(campos.toArray().length>0) {
+				findIterable = db.getCollection(Collection).find(Filters.and(Filters.in("update_by", autor),Filters.in("Campo", campos)));
+			}else {
+				findIterable = db.getCollection(Collection).find(Filters.in("update_by", autor));
+			}
+		}else if(campos.toArray().length>0) { 
+			findIterable = db.getCollection(Collection).find(Filters.in("Campo", campos));
+		}
+		
 		
 		return findIterable;
 	}
