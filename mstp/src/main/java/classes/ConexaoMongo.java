@@ -66,6 +66,14 @@ public class ConexaoMongo {
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filtros)).skip(inicio).limit(limit);
 		return findIterable;
 	}
+	public Long CountSimplesComFiltroInicioLimit(String Collection,List<Bson> Filtros){
+		Long linhas = db.getCollection(Collection).count(Filters.and(Filtros));
+		return linhas;
+	}
+	public Long CountSimplesSemFiltroInicioLimit(String Collection){
+		Long linhas = db.getCollection(Collection).count(new Document());
+		return linhas;
+	}
 	public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,String campo,String valor,int empresa){
 		
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.eq(campo, valor)));
