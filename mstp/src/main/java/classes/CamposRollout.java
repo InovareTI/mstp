@@ -46,7 +46,7 @@ public class CamposRollout {
 		ResultSet rs;
 		JSONArray dados= new JSONArray() ;
 		JSONObject jsonObject = new JSONObject(); 
-		String query="select field_name,field_type,tipo from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id();
+		String query="select field_name,field_type,tipo from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id() + " order by ordenacao";
 		rs=c.Consulta(query);
 		try {
 			if(rs.next()) {

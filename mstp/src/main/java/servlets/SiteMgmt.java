@@ -454,7 +454,7 @@ public class SiteMgmt extends HttpServlet {
 					//System.out.println("Entrou no loope da operadora");
 					document_featurecollection.append("type", "FeatureCollection");
 					document_featurecollection.append("operadora", doc.get("nome").toString());
-					FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltro("Rollout_Sites","GEO.properties.Operadora",doc.get("nome").toString());
+					FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltro("Rollout_Sites","GEO.properties.Operadora",doc.get("nome").toString(),p.getEmpresa().getEmpresa_id());
 					findIterable2.forEach((Block<Document>) doc2 -> {
 						lista_sites.add((Document)doc2.get("GEO"));
 						
@@ -469,7 +469,7 @@ public class SiteMgmt extends HttpServlet {
 					System.out.println(document_operadora.toString());
 				});
 				
-				FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",checa_formato_data(f2.format(time).toString()));
+				FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",checa_formato_data(f2.format(time).toString()),p.getEmpresa().getEmpresa_id());
 				lista_sites.clear();
 				document_featurecollection.append("type", "FeatureCollection");
 				document_featurecollection.append("operadora", "USUARIOS");
@@ -736,6 +736,7 @@ public class SiteMgmt extends HttpServlet {
     						//}
     					//}
 						geo.append("properties", properties);
+						document.append("Empresa", p.getEmpresa().getEmpresa_id());
 						document.append("GEO", geo);
     					document.append("Update_by", "masteradmin");
 						document.append("Update_time", time);
@@ -746,42 +747,11 @@ public class SiteMgmt extends HttpServlet {
 				geo.clear();
 				geometry.clear();
 				properties.clear();
-				query="SELECT * FROM localiza_usuarios";
-				c.RemoverMuitosSemFiltro("Localiza_Usuarios");
-				rs=conn.Consulta(query);
+				
 				document.clear();
-				SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				
-				if(rs.next()) {
-					rs.beforeFirst();
-					int colunas = rs.getMetaData().getColumnCount();
-					String CampoNome="";
-					while(rs.next()) {
-						
-						for (int i=1;i<=colunas;i++) {
-    						CampoNome=rs.getMetaData().getColumnName(i);
-    						if(!CampoNome.equals("lat") && !CampoNome.equals("lng") && !CampoNome.equals("usuario") && !CampoNome.equals("dt_add")) {
-    							document.append(CampoNome, rs.getObject(i));
-    							
-    						}
-    						properties.append("Usuario",rs.getString("usuario"));
-    						properties.append("Data",format.parse(rs.getString("dt_add")));
-    					}
-						geo.append("type", "Feature");
-						geometry.append("type", "Point");
-						geometry.append("coordinates", verfica_coordenadas(rs.getString("lat"),rs.getString("lng")));
-						geo.append("geometry",geometry);
-						geo.append("properties", properties);
-						document.append("GEO", geo);
-						c.InserirSimpels("Localiza_Usuarios", document);
-						document.clear();
-						properties.clear();
-						geo.clear();
-						geometry.clear();
-				}
-				}
+			    c.fecharConexao();
 				
-				c.fecharConexao();
     			System.out.println("Sicronia com Mongo Finalizada");
 				resp.setContentType("application/html");  
 				resp.setCharacterEncoding("UTF-8"); 
@@ -793,10 +763,7 @@ public class SiteMgmt extends HttpServlet {
 				conn.fecharConexao();
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			} 
 	 }
 	 public Date checa_formato_data(String data) {
 			try {

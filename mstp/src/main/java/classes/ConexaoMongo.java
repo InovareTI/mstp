@@ -58,23 +58,31 @@ public class ConexaoMongo {
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(new Document());
 		return findIterable;
 	}
+	public FindIterable<Document> ConsultaSimplesSemFiltroInicioLimit(String Collection,Integer inicio,Integer limit){
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(new Document()).skip(inicio).limit(limit);
+		return findIterable;
+	}
+	public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,String campo,String valor,int empresa){
+		
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.eq(campo, valor)));
+		return findIterable;
+	}
+	public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,String campo,Integer valor,int empresa){
+		
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.eq(campo, valor)));
+		return findIterable;
+	}
+	public Document BuscaAtualizaByRecID(String Collection,Document filtro,Document updates){
+		
+		return db.getCollection(Collection).findOneAndUpdate(filtro, updates);
+		
+	}
+	public FindIterable<Document> ConsultaSimplesComFiltroDate(String Collection,String campo,Date valor,int empresa){
+		
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.gte(campo, valor)));
+		return findIterable;
+	}
 	
-	public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,String campo,String valor){
-		System.out.println("Realizando consulta em:");
-		System.out.println(Collection);
-		System.out.println(campo);
-		System.out.println(valor);
-		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.eq(campo, valor));
-		return findIterable;
-	}
-	public FindIterable<Document> ConsultaSimplesComFiltroDate(String Collection,String campo,Date valor){
-		System.out.println("Realizando consulta em:");
-		System.out.println(Collection);
-		System.out.println(campo);
-		System.out.println(valor);
-		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.gte(campo, valor));
-		return findIterable;
-	}
 	public FindIterable<Document> ConsultaComplexaArray(String Collection,String campo,List<String> valores){
 		System.out.println("Realizando consulta em:");
 		System.out.println(Collection);

@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -159,6 +160,7 @@ public class RolloutServlet extends HttpServlet {
 		Pessoa p = (Pessoa) session.getAttribute("pessoa");
 		Conexao conn = (Conexao) session.getAttribute("conexao");
 		Rollout r = new Rollout();
+		
 		double money; 
 		NumberFormat number_formatter = NumberFormat.getCurrencyInstance();
 		String moneyString;
@@ -171,7 +173,8 @@ public class RolloutServlet extends HttpServlet {
 		try {
 			if(opt.equals("1")){
 
-				
+				JSONObject rollout_campos=r.getCampos().getCampos_tipo(conn,p);
+				Iterator<String>campos_nomes=rollout_campos.keys();
 				rs= conn.Consulta("select * from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresa().getEmpresa_id()+" order by ordenacao");
 				String campos_aux="";
 				dados_tabela="{ \"columgroup\": ["+"\n";
@@ -260,11 +263,77 @@ public class RolloutServlet extends HttpServlet {
     			//System.out.println(dados_tabela);
     			campos_aux="";
     			campos_aux="\n"+"\"sites\":";
+    			ConexaoMongo c = new ConexaoMongo();
     			dados_tabela= dados_tabela+"\n"+"\"records\":[";
-    			rs2= conn.Consulta("select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" order by recid,siteID,ordenacao limit 1600");
-    			if(rs2.next()){
-    				String site_aux=rs2.getString("siteID");
-    				dados_tabela=dados_tabela+"\n{\"id\":"+rs2.getInt("recid")+",";
+    			//rs2= conn.Consulta("select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" order by recid,siteID,ordenacao limit 1600");
+    			FindIterable<Document> findIterable = c.ConsultaSimplesSemFiltroInicioLimit("rollout",0,40);
+    			MongoCursor<Document> resultado = findIterable.iterator();
+    			Document linha=new Document();
+    			Document milestone_doc=new Document();
+    			String nome_campo_aux="";
+    			while(resultado.hasNext()) {
+    				linha=(Document) resultado.next();
+    				List<Document> milestones=(List<Document>) linha.get("Milestone");
+    				//String site_aux=linha.getString("Site ID");
+    				dados_tabela=dados_tabela+"\n{\"id\":"+linha.getInteger("recid")+",";
+    				System.out.println("recID:"+linha.getInteger("recid"));
+    				campos_nomes=rollout_campos.keys();
+    				while(campos_nomes.hasNext()) {
+    					nome_campo_aux=campos_nomes.next();
+    					if(rollout_campos.getJSONArray(nome_campo_aux).get(0).equals("Atributo")) {
+		    				if(rollout_campos.getJSONArray(nome_campo_aux).get(1).equals("Data")) {
+		    					//System.out.println("transformando data de :"+nome_campo_aux +" - valor string:"+linha.getString(nome_campo_aux));
+		    					if(linha.get(nome_campo_aux)!=null && !linha.get(nome_campo_aux).equals("")) {
+		    						dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\""+f2.format(linha.getDate(nome_campo_aux))+"\",";
+		    					}else {
+		    						dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\""+linha.getString(nome_campo_aux)+"\",";
+		    					}
+		    				}else {
+		    					dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\""+linha.getString(nome_campo_aux)+"\",";
+		    				}
+    					}else {
+    						int i=0;
+    						while(i<milestones.size()) {
+    							milestone_doc=milestones.get(i);
+    							if(milestone_doc.getString("Milestone").equals(nome_campo_aux)) {
+    								if(milestone_doc.getDate("sdate_"+nome_campo_aux)!=null) {
+    									dados_tabela=dados_tabela+"\"sdate_"+nome_campo_aux+"\":\""+f2.format(milestone_doc.getDate("sdate_"+nome_campo_aux))+"\",";
+    								}else {
+    									dados_tabela=dados_tabela+"\"sdate_"+nome_campo_aux+"\":\"\",";
+    								}
+    								if(milestone_doc.getDate("edate_"+nome_campo_aux)!=null) {
+    									dados_tabela=dados_tabela+"\"edate_"+nome_campo_aux+"\":\""+f2.format(milestone_doc.getDate("edate_"+nome_campo_aux))+"\",";
+    								}else {
+    									dados_tabela=dados_tabela+"\"edate_"+nome_campo_aux+"\":\"\",";
+    								}
+    								if(milestone_doc.getDate("sdate_pre_"+nome_campo_aux)!=null) {
+    									dados_tabela=dados_tabela+"\"sdate_pre_"+nome_campo_aux+"\":\""+f2.format(milestone_doc.getDate("sdate_pre_"+nome_campo_aux))+"\",";
+    								}else {
+    									dados_tabela=dados_tabela+"\"sdate_pre_"+nome_campo_aux+"\":\"\",";
+    								}
+    								if(milestone_doc.getDate("edate_pre_"+nome_campo_aux)!=null) {
+    									dados_tabela=dados_tabela+"\"edate_pre_"+nome_campo_aux+"\":\""+f2.format(milestone_doc.getDate("edate_pre_"+nome_campo_aux))+"\",";
+    								}else{
+    									dados_tabela=dados_tabela+"\"edate_pre_"+nome_campo_aux+"\":\"\",";
+    								}
+    								dados_tabela=dados_tabela+"\"udate_"+nome_campo_aux+"\":\""+milestone_doc.getString("udate_"+nome_campo_aux)+"\",";
+    								dados_tabela=dados_tabela+"\"resp_"+nome_campo_aux+"\":\""+milestone_doc.getString("resp_"+nome_campo_aux)+"\",";
+    								dados_tabela=dados_tabela+"\"status_"+nome_campo_aux+"\":\""+milestone_doc.getString("status_"+nome_campo_aux)+"\",";
+    								dados_tabela=dados_tabela+"\"duracao_"+nome_campo_aux+"\":\""+milestone_doc.getString("duracao_"+nome_campo_aux)+"\",";
+    								i=999;
+    							}
+    							i=i+1;
+    						}
+    					}
+	    			}
+    				dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+    				dados_tabela=dados_tabela+"},";
+    				}
+    			dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+    			dados_tabela= dados_tabela+"],";
+    			/*if(rs2.next()){
+    				
+    				
     				rs2.beforeFirst();
     				while(rs2.next() ){
     					if (rs2.getString("siteID").equals(site_aux)){
@@ -292,10 +361,10 @@ public class RolloutServlet extends HttpServlet {
     						site_aux=rs2.getString("siteID");
     						rs2.previous();
     					}
-    				}
-    				ConexaoMongo c = new ConexaoMongo();
+    				}*/
+    			
     				List<String> rollout_filtrado_integrado = new ArrayList<String>();
-    				FindIterable<Document> findIterable=c.ConsultaSimplesSemFiltro("Rollout_Sites"); 
+    				findIterable=c.ConsultaSimplesSemFiltro("Rollout_Sites"); 
     				findIterable.forEach((Block<Document>) doc -> {
     					
     					rollout_filtrado_integrado.add(((Document)((Document)doc.get("GEO")).get("properties")).getString("SiteID"));
@@ -310,15 +379,15 @@ public class RolloutServlet extends HttpServlet {
     				}
     				campos_aux=campos_aux.substring(0,campos_aux.length()-2);*/
 					//System.out.println(campos_aux);
-    				dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
-					dados_tabela=dados_tabela+"}";
-	    			dados_tabela= dados_tabela+"\n"+"],";
+    				//dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+					//dados_tabela=dados_tabela+"}";
+	    			//dados_tabela= dados_tabela+"\n"+"],";
 	    			dados_tabela=dados_tabela+campos_aux;
 	    			dados_tabela= dados_tabela+"}";
 	    			c.fecharConexao();
-    			}else{
-    				dados_tabela= dados_tabela+"]}";
-    			}
+    			//}else{
+    			//	dados_tabela= dados_tabela+"]}";
+    			//}
     			
     			//System.out.println(dados_tabela);
     			
@@ -743,19 +812,6 @@ public class RolloutServlet extends HttpServlet {
 				insere_linha_rollout(conn,req,resp,p);
 			}else if(opt.equals("5")) {
 				
-				/*ClassLoader classloader =
-						   org.apache.poi.poifs.filesystem.POIFSFileSystem.class.getClassLoader();
-						URL res = classloader.getResource(
-						             "org/apache/poi/poifs/filesystem/POIFSFileSystem.class");
-						String path = res.getPath();
-						System.out.println("POI Core came from " + path);
-
-						classloader = org.apache.poi.ooxml.POIXMLDocument.class.getClassLoader();
-						res = classloader.getResource("org/apache/poi/POIXMLDocument.class");
-						path = res.getPath();
-						System.out.println("POI OOXML came from " + path);
-
-						*/
 				
 				
 				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
@@ -804,6 +860,12 @@ public class RolloutServlet extends HttpServlet {
 				        	jsonObject.put("Sucesso", "Sucesso"); 
 				        	PrintWriter pw = resp.getWriter();
 				        	pw.print(jsonObject); 
+				        	ConexaoMongo c = new ConexaoMongo();
+			    			FindIterable<Document> findIterable;
+			    			Document changes;
+			    			Document filtros;
+			    			Document historico;
+			    			List<Document> lista_hitorico = new ArrayList<Document>();
 				        	pw.close();
 				    		for(int i=0;i<j;i++) {
 				    			cell2=row_aux.getCell(i);
@@ -848,7 +910,11 @@ public class RolloutServlet extends HttpServlet {
 				            	Row row = rowIterator.next();
 				            	linha_sheet=linha_sheet+1;
 				            	//System.out.println("Linha "+row.getRowNum());
-				    			
+				            	changes=new Document();
+				            	filtros=new Document();
+				            	
+				            	historico=new Document();
+				            	lista_hitorico.clear();
 				    			i=0;
 				    			query="insert into rollout (recid,siteid,milestone,tipo_campo,value_atbr_field,update_by,update_time,ordenacao,empresa) values";
 				    			query_insert_milestone="insert into rollout (recid,siteid,milestone,dt_inicio_bl,dt_fim_bl,dt_inicio,dt_fim,remark,responsavel,tipo_campo,update_by,update_time,ordenacao,empresa,status_atividade,value_atbr_field) values";
@@ -947,6 +1013,26 @@ public class RolloutServlet extends HttpServlet {
 						    	            				 cellValue="";
 						    	            			 }
 					    	            			 }
+					    	            			 findIterable = c.ConsultaSimplesComFiltro("rollout", "recid", recid, p.getEmpresa().getEmpresa_id());
+					    	            			 if(findIterable.iterator().next().get(campos[colunacelula]).toString().equals(cellValue)) {
+					    	            				 
+					    	            			 }else {
+					    	            				 changes.append(campos[colunacelula],cellValue);
+					    	            				 historico.append("recid", recid);
+					    	            				 historico.append("SiteID", site_id);
+					    	            				 historico.append("Empresa", p.getEmpresa().getEmpresa_id());
+					    	            				 historico.append("TipoCampo", "Atributo");
+					    	            				 historico.append("Milestone", "");
+					    	            				 historico.append("Campo", campos[colunacelula]);
+					    	            				 historico.append("Valor Anterior", findIterable.iterator().next().get(campos[colunacelula]).toString());
+					    	            				 historico.append("Novo Valor", cellValue.toString());
+					    	            				 historico.append("update_by", p.get_PessoaUsuario());
+					    	            				 historico.append("update_time", time);
+					    	            				 lista_hitorico.add(historico);
+					    	            			 }
+					    	            				 
+					    	            			 
+					    	            			 
 					    	            			 conn.get_BatchUpdateAtributo().setString(1, cellValue);
 					    	            			 conn.get_BatchUpdateAtributo().setInt(2, recid);
 					    	            			 conn.get_BatchUpdateAtributo().setString(3, campos[colunacelula]);
@@ -1224,7 +1310,12 @@ public class RolloutServlet extends HttpServlet {
 						            conn.get_BatchInsertAtributo().clearBatch();
 						            conn.get_BatchInsertMilestone().clearBatch();
 						            conn.get_BatchUpdateMilestone().clearBatch();
-						            
+						            filtros.append("recid", recid);
+					            	filtros.append("Empresa", p.getEmpresa().getEmpresa_id());
+						            c.BuscaAtualizaByRecID("rollout",filtros,changes);
+						            for(int o=0;o<lista_hitorico.size();o++) {
+						            	c.InserirSimpels("rollout_history", lista_hitorico.get(o));
+						            }
 				    			//}
 				    		}
 				            /*time2 = new Timestamp(System.currentTimeMillis());
@@ -2474,7 +2565,7 @@ public class RolloutServlet extends HttpServlet {
 				document_featurecollection.append("features", rollout_filtrado_site_Geo);
 				rollout_filtrado.append("\"rollout\"", document_featurecollection.toJson().toString());
 				
-				FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",checa_formato_data(f2.format(time).toString()));
+				FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",checa_formato_data(f2.format(time).toString()),p.getEmpresa().getEmpresa_id());
 				List<Document> lista_sites= new ArrayList();
 				document_featurecollection.clear();
 				document_featurecollection.append("type", "FeatureCollection");

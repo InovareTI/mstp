@@ -1839,7 +1839,7 @@ public class UserMgmt extends HttpServlet {
     			if(conn.Inserir_simples(insere)){
 		    		//////////System.out.println("Resposta Consulta 10 Enviada!");
     				email= new Semail();
-    				email.enviaEmailSimples(param3, "MSTP - Link de Ativação","Prezado "+param1+", \n Agradecemos seu registro em nosso sistema. \n Para ativar sua conta basta clicar no link abaixo:\n \n \n http://www.mstp.com.br/Reg_Servlet?validaCode="+cod_valida +"\n\n Seu usuário:"+param2+"\n \n Sua Senha provisoria é:"+senhaprovisoria +"\n \n Acesse o link abaixo em seu aparelho celular para baixar o MSTP Mobile (android): \n http://inovareti.jelasticlw.com.br/mstp_mobile/download/mstp_mobile_last_version.apk");
+    				email.enviaEmailSimples(param3, "MSTP - Link de Ativação","Prezado "+param1+", \n Agradecemos seu registro em nosso sistema. \n Para ativar sua conta basta clicar no link abaixo:\n \n \n https://www.mstp.com.br/Reg_Servlet?validaCode="+cod_valida +"\n\n Seu usuário:"+param2+"\n \n Sua Senha provisoria é:"+senhaprovisoria +"\n \n Acesse o link abaixo em seu aparelho celular para baixar o MSTP Mobile (android): \n http://node21664-inovareti.jelastic.saveincloud.net/mstp_mobile/download/mstp_mobile_last_version.apk ou baixe na Google Play - https://play.google.com/store/apps/details?id=com.inovareti.mstp_mobile&hl=pt");
     	        	
     				///***
 		    		rs=conn.Consulta("Select id_usuario_sys from usuarios where empresa='"+p.getEmpresa().getEmpresa_id()+"' order by id_usuario_sys desc limit 1");

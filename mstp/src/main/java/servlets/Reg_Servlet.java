@@ -77,7 +77,7 @@ Conexao con = new Conexao();
 	        		email.enviaEmailSimples(rs.getString("email"), "MSTP WEB - Link de Ativação","Prezado, \n \n Sua conta foi ativada com sucesso.\n \n Acesse: www.mstp.com.br");
 	        	}
 	        	con.fecharConexao();
-	        	resp.sendRedirect("/mstp/authcc.html");
+	        	resp.sendRedirect("./authcc.html");
 			
         	}
         	else{
