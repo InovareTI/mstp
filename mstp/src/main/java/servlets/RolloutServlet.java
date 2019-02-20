@@ -264,9 +264,9 @@ public class RolloutServlet extends HttpServlet {
     			campos_aux="";
     			campos_aux="\n"+"\"sites\":";
     			ConexaoMongo c = new ConexaoMongo();
-    			dados_tabela= dados_tabela+"\n"+"\"records\":[";
+    			dados_tabela= dados_tabela+"\n"+"\"records\":[],";
     			//rs2= conn.Consulta("select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" order by recid,siteID,ordenacao limit 1600");
-    			FindIterable<Document> findIterable = c.ConsultaSimplesSemFiltroInicioLimit("rollout",0,40);
+    			/*FindIterable<Document> findIterable = c.ConsultaSimplesSemFiltroInicioLimit("rollout",0,40);
     			MongoCursor<Document> resultado = findIterable.iterator();
     			Document linha=new Document();
     			Document milestone_doc=new Document();
@@ -276,7 +276,7 @@ public class RolloutServlet extends HttpServlet {
     				List<Document> milestones=(List<Document>) linha.get("Milestone");
     				//String site_aux=linha.getString("Site ID");
     				dados_tabela=dados_tabela+"\n{\"id\":"+linha.getInteger("recid")+",";
-    				System.out.println("recID:"+linha.getInteger("recid"));
+    				//System.out.println("recID:"+linha.getInteger("recid"));
     				campos_nomes=rollout_campos.keys();
     				while(campos_nomes.hasNext()) {
     					nome_campo_aux=campos_nomes.next();
@@ -318,7 +318,17 @@ public class RolloutServlet extends HttpServlet {
     								}
     								dados_tabela=dados_tabela+"\"udate_"+nome_campo_aux+"\":\""+milestone_doc.getString("udate_"+nome_campo_aux)+"\",";
     								dados_tabela=dados_tabela+"\"resp_"+nome_campo_aux+"\":\""+milestone_doc.getString("resp_"+nome_campo_aux)+"\",";
-    								dados_tabela=dados_tabela+"\"status_"+nome_campo_aux+"\":\""+milestone_doc.getString("status_"+nome_campo_aux)+"\",";
+    								imagem_status="";
+    								if(milestone_doc.getString("status_"+nome_campo_aux).equals("Finalizada")) {
+        								imagem_status="finished.png";
+        							}else if(milestone_doc.getString("status_"+nome_campo_aux).equals("parada")) {
+        								imagem_status="stopped.png";
+        							}else if(milestone_doc.getString("status_"+nome_campo_aux).equals("iniciada")) {
+        								imagem_status="started.png";
+        							}else {
+        								imagem_status="notstarted.png";
+        							}
+    								dados_tabela=dados_tabela+"\"status_"+nome_campo_aux+"\":\"<img src='img/"+imagem_status+"'>\",";
     								dados_tabela=dados_tabela+"\"duracao_"+nome_campo_aux+"\":\""+milestone_doc.getString("duracao_"+nome_campo_aux)+"\",";
     								i=999;
     							}
@@ -329,8 +339,8 @@ public class RolloutServlet extends HttpServlet {
     				dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
     				dados_tabela=dados_tabela+"},";
     				}
-    			dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
-    			dados_tabela= dados_tabela+"],";
+    			dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);*/
+    			//dados_tabela= dados_tabela+"],";
     			/*if(rs2.next()){
     				
     				
@@ -364,7 +374,7 @@ public class RolloutServlet extends HttpServlet {
     				}*/
     			
     				List<String> rollout_filtrado_integrado = new ArrayList<String>();
-    				findIterable=c.ConsultaSimplesSemFiltro("Rollout_Sites"); 
+    				FindIterable<Document> findIterable=c.ConsultaSimplesSemFiltro("Rollout_Sites"); 
     				findIterable.forEach((Block<Document>) doc -> {
     					
     					rollout_filtrado_integrado.add(((Document)((Document)doc.get("GEO")).get("properties")).getString("SiteID"));
@@ -1415,10 +1425,14 @@ public class RolloutServlet extends HttpServlet {
 				out.print("OK");
 			}else if(opt.equals("9")) {
 				//System.out.println("server side ");
+				JSONObject rollout_campos=r.getCampos().getCampos_tipo(conn,p);
+				Iterator<String>campos_nomes=rollout_campos.keys();
 				int totallinhas=0;
 				int total_campos=0;
 				int pagina_linhas=0;
 				int pagina=0;
+				List<Bson> filtro_list = new ArrayList<Bson>();
+				Bson filtro;
 				String aux_query="";
 				String recid_aux="";
 				String filtervalue="";
@@ -1429,6 +1443,8 @@ public class RolloutServlet extends HttpServlet {
 				param2=req.getParameter("pagenum");
 				pagina_linhas=Integer.parseInt(param1);
 				pagina=Integer.parseInt(param2);
+				System.out.println("pagina_linhas:"+pagina_linhas);
+				System.out.println("pagina:"+pagina);
 				rs=conn.Consulta("select count(distinct recid) from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id());
 				if(rs.next()) {
 					totallinhas=rs.getInt(1);
@@ -1446,10 +1462,10 @@ public class RolloutServlet extends HttpServlet {
 					//filterdatafield = filterdatafield.replaceAll("([^A-Za-z0-9])", "");
 					 filteroperator = req.getParameter("filteroperator0");
 					String aux_filterdatafield=filterdatafield;
-					System.out.println(filtervalue);
-					System.out.println(filtercondition);
-					System.out.println(filterdatafield);
-					System.out.println(filteroperator);
+					System.out.println("filtervalue:"+filtervalue);
+					System.out.println("filtercondition:"+filtercondition);
+					System.out.println("filterdatafield:"+filterdatafield);
+					System.out.println("filteroperator:"+filteroperator);
 				for (Integer i=0; i < filterscount; i++)
 				{
 					 filtervalue = req.getParameter("filtervalue" + i);
@@ -1505,7 +1521,7 @@ public class RolloutServlet extends HttpServlet {
 							tmpdatafield = filterdatafield;			
 						}else if (!tmpdatafield.equals(filterdatafield))
 						{
-							query="select distinct recid from rollout";
+							/*query="select distinct recid from rollout";
 							where=where+" ";
 							query=query+where+" and linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+aux_query;
 							//System.out.println(query);
@@ -1522,8 +1538,8 @@ public class RolloutServlet extends HttpServlet {
 								aux_query=" and recid in ("+recid_aux+") ";
 							}else {
 								aux_query="";
-							}
-							where=" WHERE ";
+							}*/
+							//where=" WHERE ";
 							tmpdatafield = filterdatafield;	
 						}else if (tmpdatafield.equals(filterdatafield))
 						{
@@ -1538,7 +1554,8 @@ public class RolloutServlet extends HttpServlet {
 						switch(filtercondition)
 						{
 							case "CONTAINS":
-								
+								filtro=Filters.regex(filterdatafield, ".*"+filtervalue+".*");
+								filtro_list.add(filtro);
 								if(filterdatafield.indexOf("status_")>-1) {
 									String status_aux="";
 									if(filtervalue.equals("ok") || filtervalue.equals("completo") || filtervalue.equals("completa") || filtervalue.equals("fim") || filtervalue.equals("finalizada") || filtervalue.equals("feito")) {
@@ -1574,6 +1591,12 @@ public class RolloutServlet extends HttpServlet {
 								where += " milestone='" + filterdatafield + "' and value_atbr_field NOT LIKE BINARY '%" + filtervalue + "%'";
 								break;
 							case "EQUAL":
+								
+								filtro=Filters.gte(filterdatafield, checa_formato_data(filtervalue));
+								filtro_list.add(filtro);
+								filtro=Filters.lte(filterdatafield, checa_formato_data(filtervalue));
+								filtro_list.add(filtro);
+								
 								if(filterdatafield.substring(0,7).equals("status_")) {
 									String status_aux="";
 									if(filtervalue.indexOf("finished")>0) {
@@ -1626,103 +1649,48 @@ public class RolloutServlet extends HttpServlet {
 								where += " milestone='" + filterdatafield + "' and value_atbr_field NOT LIKE BINARY '" + filtervalue + "'";
 								break;
 							case "GREATER_THAN":
-								if(filterdatafield.substring(0,9).equals("sdate_pre")) {
+								if(filterdatafield.startsWith("sdate") || filterdatafield.startsWith("edate")) {
+									filtro=Filters.gt("Milestone.$."+filterdatafield, checa_formato_data(filtervalue));
+									filtro_list.add(filtro);
 									
-									//filterdatafield=filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length());
-									where += " milestone='" + filterdatafield.substring(filterdatafield.indexOf("sdate") + 10, filterdatafield.length()) + "' and str_to_date(dt_inicio_bl,'%d/%m/%Y') > str_to_date('"+filtervalue+"','%d/%m/%Y')";
-									//System.out.println("esse e o where do greater than or equal --- "+where);
-								}else if(filterdatafield.substring(0,9).equals("edate_pre")) {
-									
-									//filterdatafield=filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length());
-									where += " milestone='" + filterdatafield.substring(filterdatafield.indexOf("edate") + 10, filterdatafield.length()) + "' and str_to_date(dt_fim_bl,'%d/%m/%Y') > str_to_date('"+filtervalue+"','%d/%m/%Y')";
-									//System.out.println("esse e o where do greater than or equal --- "+where);
-								}else if(filterdatafield.substring(0,5).equals("sdate")) {
-									
-									//filterdatafield=filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length());
-									where += " milestone='" + filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length()) + "' and str_to_date(dt_inicio,'%d/%m/%Y') > str_to_date('"+filtervalue+"','%d/%m/%Y')";
-									//System.out.println("esse e o where do greater than or equal --- "+where);
-								}else if(filterdatafield.substring(0,5).equals("edate")) {
-									
-									//filterdatafield=filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length());
-									where += " milestone='" + filterdatafield.substring(filterdatafield.indexOf("edate") + 6, filterdatafield.length()) + "' and str_to_date(dt_fim,'%d/%m/%Y') > str_to_date('"+filtervalue+"','%d/%m/%Y')";
-									//System.out.println("esse e o where do greater than or equal --- "+where);
 								}else {
-									where += " milestone='" + filterdatafield + "' and str_to_date(value_atbr_field,'%d/%m/%Y') > str_to_date('"+filtervalue+"','%d/%m/%Y')";
+									filtro=Filters.gt(filterdatafield, checa_formato_data(filtervalue));
+									filtro_list.add(filtro);
+									
 								}
 								break;
 							case "LESS_THAN":
-								if(filterdatafield.substring(0,9).equals("sdate_pre")) {
+								if(filterdatafield.startsWith("sdate") || filterdatafield.startsWith("edate")) {
+									filtro=Filters.lt("Milestone.$."+filterdatafield, checa_formato_data(filtervalue));
+									filtro_list.add(filtro);
 									
-									//filterdatafield=filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length());
-									where += " milestone='" + filterdatafield.substring(filterdatafield.indexOf("sdate") + 10, filterdatafield.length()) + "' and str_to_date(dt_inicio_bl,'%d/%m/%Y') < str_to_date('"+filtervalue+"','%d/%m/%Y')";
-									//System.out.println("esse e o where do greater than or equal --- "+where);
-								}else if(filterdatafield.substring(0,9).equals("edate_pre")) {
-									
-									//filterdatafield=filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length());
-									where += " milestone='" + filterdatafield.substring(filterdatafield.indexOf("edate") + 10, filterdatafield.length()) + "' and str_to_date(dt_fim_bl,'%d/%m/%Y') < str_to_date('"+filtervalue+"','%d/%m/%Y')";
-									//System.out.println("esse e o where do greater than or equal --- "+where);
-								}else if(filterdatafield.substring(0,5).equals("sdate")) {
-									
-									//filterdatafield=filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length());
-									where += " milestone='" + filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length()) + "' and str_to_date(dt_inicio,'%d/%m/%Y') < str_to_date('"+filtervalue+"','%d/%m/%Y')";
-									//System.out.println("esse e o where do greater than or equal --- "+where);
-								}else if(filterdatafield.substring(0,5).equals("edate")) {
-									
-									//filterdatafield=filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length());
-									where += " milestone='" + filterdatafield.substring(filterdatafield.indexOf("edate") + 6, filterdatafield.length()) + "' and str_to_date(dt_fim,'%d/%m/%Y') < str_to_date('"+filtervalue+"','%d/%m/%Y')";
-									//System.out.println("esse e o where do greater than or equal --- "+where);
 								}else {
-									where += " milestone='" + filterdatafield + "' and str_to_date(value_atbr_field,'%d/%m/%Y') < str_to_date('"+filtervalue+"','%d/%m/%Y')";
+									filtro=Filters.lt(filterdatafield, checa_formato_data(filtervalue));
+									filtro_list.add(filtro);
+									
 								}
 								break;
 							case "GREATER_THAN_OR_EQUAL":
-								if(filterdatafield.substring(0,9).equals("sdate_pre")) {
+								if(filterdatafield.startsWith("sdate") || filterdatafield.startsWith("edate")) {
+									System.out.println("entrou no filtro de milestone");
+									filtro=Filters.elemMatch("Milestone", Filters.gte(filterdatafield,checa_formato_data(filtervalue)));
+									filtro_list.add(filtro);
 									
-									//filterdatafield=filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length());
-									where += " milestone='" + filterdatafield.substring(filterdatafield.indexOf("sdate") + 10, filterdatafield.length()) + "' and str_to_date(dt_inicio_bl,'%d/%m/%Y') >= str_to_date('"+filtervalue+"','%d/%m/%Y')";
-									//System.out.println("esse e o where do greater than or equal --- "+where);
-								}else if(filterdatafield.substring(0,9).equals("edate_pre")) {
-									
-									//filterdatafield=filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length());
-									where += " milestone='" + filterdatafield.substring(filterdatafield.indexOf("edate") + 10, filterdatafield.length()) + "' and str_to_date(dt_fim_bl,'%d/%m/%Y') >= str_to_date('"+filtervalue+"','%d/%m/%Y')";
-									//System.out.println("esse e o where do greater than or equal --- "+where);
-								}else if(filterdatafield.substring(0,5).equals("sdate")) {
-									
-									//filterdatafield=filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length());
-									where += " milestone='" + filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length()) + "' and str_to_date(dt_inicio,'%d/%m/%Y') >= str_to_date('"+filtervalue+"','%d/%m/%Y')";
-									//System.out.println("esse e o where do greater than or equal --- "+where);
-								}else if(filterdatafield.substring(0,5).equals("edate")) {
-									
-									//filterdatafield=filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length());
-									where += " milestone='" + filterdatafield.substring(filterdatafield.indexOf("edate") + 6, filterdatafield.length()) + "' and str_to_date(dt_fim,'%d/%m/%Y') >= str_to_date('"+filtervalue+"','%d/%m/%Y')";
-									//System.out.println("esse e o where do greater than or equal --- "+where);
 								}else {
-									where += " milestone='" + filterdatafield + "' and str_to_date(value_atbr_field,'%d/%m/%Y') >= str_to_date('"+filtervalue+"','%d/%m/%Y')";
+									filtro=Filters.gte(filterdatafield, checa_formato_data(filtervalue));
+									filtro_list.add(filtro);
+									
 								}
 								break;
 							case "LESS_THAN_OR_EQUAL":
-								if(filterdatafield.substring(0,9).equals("sdate_pre")) {
+								if(filterdatafield.startsWith("sdate") || filterdatafield.startsWith("edate")) {
+									filtro=Filters.lte("Milestone.$."+filterdatafield, checa_formato_data(filtervalue));
+									filtro_list.add(filtro);
 									
-									//filterdatafield=filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length());
-									where += " milestone='" + filterdatafield.substring(filterdatafield.indexOf("sdate") + 10, filterdatafield.length()) + "' and str_to_date(dt_inicio_bl,'%d/%m/%Y') <= str_to_date('"+filtervalue+"','%d/%m/%Y')";
-									//System.out.println("esse e o where do greater than or equal --- "+where);
-								}else if(filterdatafield.substring(0,9).equals("edate_pre")) {
-									
-									//filterdatafield=filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length());
-									where += " milestone='" + filterdatafield.substring(filterdatafield.indexOf("edate") + 10, filterdatafield.length()) + "' and str_to_date(dt_fim_bl,'%d/%m/%Y') <= str_to_date('"+filtervalue+"','%d/%m/%Y')";
-									//System.out.println("esse e o where do greater than or equal --- "+where);
-								}else if(filterdatafield.substring(0,5).equals("sdate")) {
-									
-									//filterdatafield=filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length());
-									where += " milestone='" + filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length()) + "' and str_to_date(dt_inicio,'%d/%m/%Y') <= str_to_date('"+filtervalue+"','%d/%m/%Y')";
-									//System.out.println("esse e o where do greater than or equal --- "+where);
-								}else if(filterdatafield.substring(0,5).equals("edate")) {
-									
-									//filterdatafield=filterdatafield.substring(filterdatafield.indexOf("sdate") + 6, filterdatafield.length());
-									where += " milestone='" + filterdatafield.substring(filterdatafield.indexOf("edate") + 6, filterdatafield.length()) + "' and str_to_date(dt_fim,'%d/%m/%Y') <= str_to_date('"+filtervalue+"','%d/%m/%Y')";
-									//System.out.println("esse e o where do greater than or equal --- "+where);
 								}else {
-									where += " milestone='" + filterdatafield + "' and str_to_date(value_atbr_field,'%d/%m/%Y') <= str_to_date('"+filtervalue+"','%d/%m/%Y')";
+									filtro=Filters.lte(filterdatafield, checa_formato_data(filtervalue));
+									filtro_list.add(filtro);
+									
 								}
 								break;
 							case "STARTS_WITH":
@@ -1745,7 +1713,7 @@ public class RolloutServlet extends HttpServlet {
 								break;
 						}
 											
-						if (i == filterscount - 1)
+						/*if (i == filterscount - 1)
 						{
 							where += " ";
 							query="select distinct recid from rollout";
@@ -1768,7 +1736,7 @@ public class RolloutServlet extends HttpServlet {
 								aux_query=" and recid in (0)";
 							}
 							
-						}
+						}*/
 							
 						tmpfilteroperator = filteroperator;
 						tmpdatafield = filterdatafield;			
@@ -1779,9 +1747,101 @@ public class RolloutServlet extends HttpServlet {
 				dados_tabela="";
 				dados_tabela= dados_tabela+"[";
 				query="";
-				query="select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" "+aux_query+" order by recid,siteID,ordenacao limit "+(total_campos*pagina_linhas)+" OFFSET "+(total_campos*pagina_linhas*pagina);
+				//query="select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" "+aux_query+" order by recid,siteID,ordenacao limit "+(total_campos*pagina_linhas)+" OFFSET "+(total_campos*pagina_linhas*pagina);
 				//System.out.println(query);
-    			rs2= conn.Consulta(query);
+				ConexaoMongo c = new ConexaoMongo();
+				FindIterable<Document> findIterable ;
+				if(filterscount>0) {
+					System.out.println("Executando consulta com filtros");
+					findIterable = c.ConsultaSimplesComFiltroInicioLimit("rollout",filtro_list,pagina_linhas*pagina,pagina_linhas);
+				}else {
+					System.out.println("Executando consulta sem filtros");
+					findIterable = c.ConsultaSimplesSemFiltroInicioLimit("rollout",pagina_linhas*pagina,pagina_linhas);
+				}
+				MongoCursor<Document> resultado = findIterable.iterator();
+    			Document linha=new Document();
+    			Document milestone_doc=new Document();
+    			String nome_campo_aux="";
+    			String chaves="";
+    			
+    			if(!resultado.hasNext()) {
+    				dados_tabela=dados_tabela+"{\"totalRecords\":\"0\"},\n";
+    			}else {
+    				dados_tabela=dados_tabela+"{\"totalRecords\":\""+totallinhas+"\",";
+    			while(resultado.hasNext()) {
+    				linha=(Document) resultado.next();
+    				List<Document> milestones=(List<Document>) linha.get("Milestone");
+    				//String site_aux=linha.getString("Site ID");
+    				dados_tabela=dados_tabela+chaves+"\"id\":"+linha.getInteger("recid")+",";
+    				//System.out.println("recID:"+linha.getInteger("recid"));
+    				campos_nomes=rollout_campos.keys();
+    				while(campos_nomes.hasNext()) {
+    					nome_campo_aux=campos_nomes.next();
+    					if(rollout_campos.getJSONArray(nome_campo_aux).get(0).equals("Atributo")) {
+		    				if(rollout_campos.getJSONArray(nome_campo_aux).get(1).equals("Data")) {
+		    					//System.out.println("transformando data de :"+nome_campo_aux +" - valor string:"+linha.getString(nome_campo_aux));
+		    					if(linha.get(nome_campo_aux)!=null && !linha.get(nome_campo_aux).equals("")) {
+		    						dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\""+f2.format(linha.getDate(nome_campo_aux))+"\",";
+		    					}else {
+		    						dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\""+linha.getString(nome_campo_aux)+"\",";
+		    					}
+		    				}else {
+		    					dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\""+linha.getString(nome_campo_aux)+"\",";
+		    				}
+    					}else {
+    						int i=0;
+    						while(i<milestones.size()) {
+    							milestone_doc=milestones.get(i);
+    							if(milestone_doc.getString("Milestone").equals(nome_campo_aux)) {
+    								if(milestone_doc.getDate("sdate_"+nome_campo_aux)!=null) {
+    									dados_tabela=dados_tabela+"\"sdate_"+nome_campo_aux+"\":\""+f2.format(milestone_doc.getDate("sdate_"+nome_campo_aux))+"\",";
+    								}else {
+    									dados_tabela=dados_tabela+"\"sdate_"+nome_campo_aux+"\":\"\",";
+    								}
+    								if(milestone_doc.getDate("edate_"+nome_campo_aux)!=null) {
+    									dados_tabela=dados_tabela+"\"edate_"+nome_campo_aux+"\":\""+f2.format(milestone_doc.getDate("edate_"+nome_campo_aux))+"\",";
+    								}else {
+    									dados_tabela=dados_tabela+"\"edate_"+nome_campo_aux+"\":\"\",";
+    								}
+    								if(milestone_doc.getDate("sdate_pre_"+nome_campo_aux)!=null) {
+    									dados_tabela=dados_tabela+"\"sdate_pre_"+nome_campo_aux+"\":\""+f2.format(milestone_doc.getDate("sdate_pre_"+nome_campo_aux))+"\",";
+    								}else {
+    									dados_tabela=dados_tabela+"\"sdate_pre_"+nome_campo_aux+"\":\"\",";
+    								}
+    								if(milestone_doc.getDate("edate_pre_"+nome_campo_aux)!=null) {
+    									dados_tabela=dados_tabela+"\"edate_pre_"+nome_campo_aux+"\":\""+f2.format(milestone_doc.getDate("edate_pre_"+nome_campo_aux))+"\",";
+    								}else{
+    									dados_tabela=dados_tabela+"\"edate_pre_"+nome_campo_aux+"\":\"\",";
+    								}
+    								dados_tabela=dados_tabela+"\"udate_"+nome_campo_aux+"\":\""+milestone_doc.getString("udate_"+nome_campo_aux)+"\",";
+    								dados_tabela=dados_tabela+"\"resp_"+nome_campo_aux+"\":\""+milestone_doc.getString("resp_"+nome_campo_aux)+"\",";
+    								imagem_status="";
+    								if(milestone_doc.getString("status_"+nome_campo_aux).equals("Finalizada")) {
+        								imagem_status="finished.png";
+        							}else if(milestone_doc.getString("status_"+nome_campo_aux).equals("parada")) {
+        								imagem_status="stopped.png";
+        							}else if(milestone_doc.getString("status_"+nome_campo_aux).equals("iniciada")) {
+        								imagem_status="started.png";
+        							}else {
+        								imagem_status="notstarted.png";
+        							}
+    								dados_tabela=dados_tabela+"\"status_"+nome_campo_aux+"\":\"<img src='img/"+imagem_status+"'>\",";
+    								dados_tabela=dados_tabela+"\"duracao_"+nome_campo_aux+"\":\""+milestone_doc.getString("duracao_"+nome_campo_aux)+"\",";
+    								i=999;
+    							}
+    							i=i+1;
+    						}
+    					}
+	    			}
+    				dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+    				dados_tabela=dados_tabela+"},\n";
+    				chaves="{";
+    				}}
+    			dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+				//dados_tabela=dados_tabela+"}";
+    			dados_tabela= dados_tabela+"\n"+"]";
+				
+    			/*rs2= conn.Consulta(query);
     			if(rs2.next()){
     				//rs2.last();
 					//totallinhas=rs2.getRow();
@@ -1816,10 +1876,10 @@ public class RolloutServlet extends HttpServlet {
     				}
     				dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
 					dados_tabela=dados_tabela+"}";
-	    			dados_tabela= dados_tabela+"\n"+"]";
-    			}else{
-    				dados_tabela= dados_tabela+"]";
-    			}
+	    			dados_tabela= dados_tabela+"\n"+"]";*/
+    			//}else{
+    			//	dados_tabela= dados_tabela+"]";
+    			//}
     			
     			//System.out.println(dados_tabela);
     			//JSONObject jObj = new JSONObject(dados_tabela);
