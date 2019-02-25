@@ -1097,7 +1097,7 @@ public class RolloutServlet extends HttpServlet {
 				    			while (i<j && !operacao.equals("abortar"))  {
 				    				 cell = row.getCell(i);
 				    				 colunacelula=i;
-				    				System.out.println("Recid:"+recid+", Linha:"+row.getRowNum()+", celula:"+cell.getColumnIndex()+", opercao:"+operacao+", coluna:"+campos[colunacelula]);
+				    				System.out.println("Recid:"+recid+", Linha:"+row.getRowNum()+", celula:"+cell.getColumnIndex()+", operacao:"+operacao+", coluna:"+campos[colunacelula]);
 				    				cellValue = dataFormatter.formatCellValue(cell);
 				    				cellValue=cellValue.replace("'","");
 				    				cellValue=cellValue.replace("\"","");
@@ -1108,7 +1108,7 @@ public class RolloutServlet extends HttpServlet {
 				    					//campos[colunacelula])
 					    				if(campo_tipo.has(campos[colunacelula])) {
 					    					 if(recid==-1) {
-					    						 
+					    						 //System.out.println("Iniciando Operação de insert siteID:");
 					    						 changes.append("recid", last_recid);
 					    						 changes.append("Empresa", p.getEmpresa().getEmpresa_id());
 					    						 changes.append("Linha_ativa", "Y");
@@ -1365,21 +1365,23 @@ public class RolloutServlet extends HttpServlet {
 										    	            	}
 									    	            	}
 								    	            	}else {
-								    	            		if(!milestone_doc.get("sdate_pre_"+campos[colunacelula]).equals(cellValue)) {
-								    	            			changes.append("Milestone."+indice_milestone+".sdate_pre_"+campos[colunacelula],cellValue);
-								    	            			historico=new Document();
-								    	            			historico.append("recid" , recid);
-							    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
-							    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
-							    	         				    historico.append("TipoCampo" , "Milestone");
-							    	         				    historico.append("Milestone" , campos[colunacelula]);
-							    	         				    historico.append("Campo","sdate_pre_"+campos[colunacelula]);
-							    	         				    historico.append("Valor Anterior" , milestone_doc.get("sdate_pre_"+campos[colunacelula]));
-							    	         				    historico.append("Novo Valor" , cellValue);
-							    	         				    historico.append("update_by", p.get_PessoaUsuario());
-							    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
-							    	         				    lista_hitorico.add(historico);
-						    	         				       
+								    	            		if(milestone_doc.get("sdate_pre_"+campos[colunacelula])!=null) {
+									    	            		if(!milestone_doc.get("sdate_pre_"+campos[colunacelula]).equals(cellValue)) {
+									    	            			changes.append("Milestone."+indice_milestone+".sdate_pre_"+campos[colunacelula],cellValue);
+									    	            			historico=new Document();
+									    	            			historico.append("recid" , recid);
+								    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+								    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+								    	         				    historico.append("TipoCampo" , "Milestone");
+								    	         				    historico.append("Milestone" , campos[colunacelula]);
+								    	         				    historico.append("Campo","sdate_pre_"+campos[colunacelula]);
+								    	         				    historico.append("Valor Anterior" , milestone_doc.get("sdate_pre_"+campos[colunacelula]));
+								    	         				    historico.append("Novo Valor" , cellValue);
+								    	         				    historico.append("update_by", p.get_PessoaUsuario());
+								    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+								    	         				    lista_hitorico.add(historico);
+							    	         				       
+									    	            		}
 								    	            		}
 								    	            	}
 							    						i=i+1;
@@ -1424,21 +1426,23 @@ public class RolloutServlet extends HttpServlet {
 										    	            	}
 									    	            	}
 								    	            	}else {
-								    	            		if(!milestone_doc.get("edate_pre_"+campos[colunacelula]).equals(cellValue)) {
-								    	            			changes.append("Milestone."+indice_milestone+".edate_pre_"+campos[colunacelula],cellValue);
-								    	            			historico=new Document();
-								    	            			historico.append("recid" , recid);
-							    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
-							    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
-							    	         				    historico.append("TipoCampo" , "Milestone");
-							    	         				    historico.append("Milestone" , campos[colunacelula]);
-							    	         				    historico.append("Campo","edate_pre_"+campos[colunacelula]);
-							    	         				    historico.append("Valor Anterior" , milestone_doc.get("edate_pre_"+campos[colunacelula]));
-							    	         				    historico.append("Novo Valor" , cellValue);
-							    	         				    historico.append("update_by", p.get_PessoaUsuario());
-							    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
-							    	         				    lista_hitorico.add(historico);
-						    	         				        
+								    	            		if(milestone_doc.get("edate_pre_"+campos[colunacelula])!=null) {
+									    	            		if(!milestone_doc.get("edate_pre_"+campos[colunacelula]).equals(cellValue)) {
+									    	            			changes.append("Milestone."+indice_milestone+".edate_pre_"+campos[colunacelula],cellValue);
+									    	            			historico=new Document();
+									    	            			historico.append("recid" , recid);
+								    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+								    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+								    	         				    historico.append("TipoCampo" , "Milestone");
+								    	         				    historico.append("Milestone" , campos[colunacelula]);
+								    	         				    historico.append("Campo","edate_pre_"+campos[colunacelula]);
+								    	         				    historico.append("Valor Anterior" , milestone_doc.get("edate_pre_"+campos[colunacelula]));
+								    	         				    historico.append("Novo Valor" , cellValue);
+								    	         				    historico.append("update_by", p.get_PessoaUsuario());
+								    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+								    	         				    lista_hitorico.add(historico);
+							    	         				        
+									    	            		}
 								    	            		}
 								    	            	}
 							    	            		i=i+1;
@@ -1483,21 +1487,23 @@ public class RolloutServlet extends HttpServlet {
 										    	            	}
 									    	            	}
 								    	            	}else {
-								    	            		if(!milestone_doc.get("sdate_"+campos[colunacelula]).equals(cellValue)) {
-								    	            			changes.append("Milestone."+indice_milestone+".sdate_"+campos[colunacelula],cellValue);
-								    	            			historico=new Document();
-								    	            			historico.append("recid" , recid);
-							    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
-							    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
-							    	         				    historico.append("TipoCampo" , "Milestone");
-							    	         				    historico.append("Milestone" , campos[colunacelula]);
-							    	         				    historico.append("Campo","sdate_"+campos[colunacelula]);
-							    	         				    historico.append("Valor Anterior" , milestone_doc.get("sdate_"+campos[colunacelula]));
-							    	         				    historico.append("Novo Valor" , cellValue);
-							    	         				    historico.append("update_by", p.get_PessoaUsuario());
-							    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
-							    	         				    lista_hitorico.add(historico);
-						    	         				        
+								    	            		if(milestone_doc.get("sdate_"+campos[colunacelula])!=null) {
+									    	            		if(!milestone_doc.get("sdate_"+campos[colunacelula]).equals(cellValue)) {
+									    	            			changes.append("Milestone."+indice_milestone+".sdate_"+campos[colunacelula],cellValue);
+									    	            			historico=new Document();
+									    	            			historico.append("recid" , recid);
+								    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+								    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+								    	         				    historico.append("TipoCampo" , "Milestone");
+								    	         				    historico.append("Milestone" , campos[colunacelula]);
+								    	         				    historico.append("Campo","sdate_"+campos[colunacelula]);
+								    	         				    historico.append("Valor Anterior" , milestone_doc.get("sdate_"+campos[colunacelula]));
+								    	         				    historico.append("Novo Valor" , cellValue);
+								    	         				    historico.append("update_by", p.get_PessoaUsuario());
+								    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+								    	         				    lista_hitorico.add(historico);
+							    	         				        
+									    	            		}
 								    	            		}
 								    	            	}
 							    	            		i=i+1;
@@ -1542,21 +1548,23 @@ public class RolloutServlet extends HttpServlet {
 										    	            	}
 									    	            	}
 								    	            	}else {
-								    	            		if(!milestone_doc.get("edate_"+campos[colunacelula]).equals(cellValue)) {
-								    	            			changes.append("Milestone."+indice_milestone+".edate_"+campos[colunacelula],cellValue);
-								    	            			historico=new Document();
-								    	            			historico.append("recid" , recid);
-							    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
-							    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
-							    	         				    historico.append("TipoCampo" , "Milestone");
-							    	         				    historico.append("Milestone" , campos[colunacelula]);
-							    	         				    historico.append("Campo","edate_"+campos[colunacelula]);
-							    	         				    historico.append("Valor Anterior" , milestone_doc.get("edate_"+campos[colunacelula]));
-							    	         				    historico.append("Novo Valor" , cellValue);
-							    	         				    historico.append("update_by", p.get_PessoaUsuario());
-							    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
-							    	         				    lista_hitorico.add(historico);
-						    	         				       
+								    	            		if(milestone_doc.get("edate_"+campos[colunacelula])!=null) {
+									    	            		if(!milestone_doc.get("edate_"+campos[colunacelula]).equals(cellValue)) {
+									    	            			changes.append("Milestone."+indice_milestone+".edate_"+campos[colunacelula],cellValue);
+									    	            			historico=new Document();
+									    	            			historico.append("recid" , recid);
+								    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+								    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+								    	         				    historico.append("TipoCampo" , "Milestone");
+								    	         				    historico.append("Milestone" , campos[colunacelula]);
+								    	         				    historico.append("Campo","edate_"+campos[colunacelula]);
+								    	         				    historico.append("Valor Anterior" , milestone_doc.get("edate_"+campos[colunacelula]));
+								    	         				    historico.append("Novo Valor" , cellValue);
+								    	         				    historico.append("update_by", p.get_PessoaUsuario());
+								    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+								    	         				    lista_hitorico.add(historico);
+							    	         				       
+									    	            		}
 								    	            		}
 								    	            	}
 							    	            		
@@ -1607,8 +1615,8 @@ public class RolloutServlet extends HttpServlet {
 				    			
     							if(operacao.equals("insert")) {
 					    			changes.append("Milestone", milestones);
-					    			changes.append("Update_by", p.get_PessoaUsuario());
-					    			changes.append("Update_time",time);
+					    			changes.append("update_by", p.get_PessoaUsuario());
+					    			changes.append("update_time",time);
 					    			c.InserirSimpels("rollout", changes);
     							}else if(operacao.equals("update")){
     								filtros.append("recid",recid);
@@ -1953,7 +1961,7 @@ public class RolloutServlet extends HttpServlet {
 				}else {
 					System.out.println("Executando consulta sem filtros");
 					totallinhas=c.CountSimplesSemFiltroInicioLimit("rollout");
-					findIterable = c.ConsultaSimplesSemFiltroInicioLimit("rollout",pagina_linhas*pagina,pagina_linhas);
+					findIterable = c.ConsultaSimplesSemFiltroInicioLimit("rollout",pagina_linhas*pagina,pagina_linhas,p.getEmpresa().getEmpresa_id());
 				}
 				
 				MongoCursor<Document> resultado = findIterable.iterator();

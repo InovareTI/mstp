@@ -452,25 +452,41 @@ response.setDateHeader ("Expires", -1);
 							        <div id="docking_operacional" style="width:1200px">
 							            <div style="overflow: hidden;width:400px">
 							                <div id="op_window0" style="height: 40%">
-							                    <div>Alocação de recursos em Projeto</div>
+							                    <div style="width:100%;text-align:center" >
+								                    <div style="float:left;width:190px;">Alocação de recursos em Projeto</div>
+								                    <div style="display: inline-block;margin:0 auto;width:300px;"></div>
+								                    <div style="float:right;width:20px;cursor: pointer;"><i class="fas fa-filter" onclick="testejs()"></i></div>
+							                    </div>
 							                   
 							                    <div id="grid_func_mapaOperacional_AtividadeProjetosUsuario"><div id="jqxLoader_grid_func_mapaOperacional_AtividadeProjetosUsuario"></div></div>
 							                </div>
 							                <div id="op_window1" style="height: 40%">
-							                    <div>Atividades por Projetos</div>
+							                    <div style="width:100%;text-align:center" >
+								                    <div style="float:left;width:190px;">Atividade Projeto</div>
+								                    <div style="display: inline-block;margin:0 auto;width:300px;"></div>
+								                    <div style="float:right;width:20px;cursor: pointer;"><i class="fas fa-filter" onclick="testejs()"></i></div>
+							                    </div>
 							                    <div id="grid_func_mapaOperacional_AtividadeProjetos"><div id="jqxLoader_grid_func_mapaOperacional_AtividadeProjetos"></div></div>
 							                </div>
 							            </div>
 							            <div style="overflow: hidden;width:400px">
 							                
 							                <div id="op_window3" style="height: 40%; ">
-							                    <div>Atividades por equipe</div>
+							                    <div style="width:100%;text-align:center" >
+								                    <div style="float:left;width:190px;">Atividade por Equipe</div>
+								                    <div style="display: inline-block;margin:0 auto;width:300px;"></div>
+								                    <div style="float:right;width:20px;cursor: pointer;"><i class="fas fa-filter" onclick="testejs()"></i></div>
+							                    </div>
 							                    
 							                    <div id="grid_func_mapaOperacional"><div id="jqxLoader_grid_func_mapaOperacional"></div></div>
 							                   
 							                </div>
 							                <div id="op_window2" style="height: 40%; ">
-							                    <div>Escopo de Projetos</div>
+							                    <div style="width:100%;text-align:center" >
+								                    <div style="float:left;width:190px;">Escopo de Projeto</div>
+								                    <div style="display: inline-block;margin:0 auto;width:300px;"></div>
+								                    <div style="float:right;width:20px;cursor: pointer;"><i class="fas fa-filter" onclick="testejs()"></i></div>
+							                    </div>
 							                    <div id="grid_func_mapaOperacional_SitesProjetos"><div id="jqxLoader_grid_func_mapaOperacional_SitesProjetos"></div></div>
 							                </div>
 							            </div>

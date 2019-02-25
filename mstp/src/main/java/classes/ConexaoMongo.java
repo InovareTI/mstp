@@ -83,8 +83,8 @@ public boolean InserirMuitos(String Collection,List<Document> document_list) {
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(new Document());
 		return findIterable;
 	}
-	public FindIterable<Document> ConsultaSimplesSemFiltroInicioLimit(String Collection,Integer inicio,Integer limit){
-		FindIterable<Document> findIterable = db.getCollection(Collection).find(new Document()).skip(inicio).limit(limit);
+	public FindIterable<Document> ConsultaSimplesSemFiltroInicioLimit(String Collection,Integer inicio,Integer limit,int empresa){
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(new Document()).filter(Filters.eq("Empresa",empresa)).skip(inicio).limit(limit);
 		return findIterable;
 	}
 	public FindIterable<Document> LastRegisterCollention(String Collection,String campo){

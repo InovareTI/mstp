@@ -1,3 +1,6 @@
+function testejs(){
+	$.alert("Funçao em desenvolvimento");
+}
 function getWidth(idelemeent){
 	var elmnt = document.getElementById(idelemeent);
 	return elmnt.offsetWidth;
@@ -215,7 +218,7 @@ function carrega_mapa_operacional(){
 			 var photorenderer2 = function (row, column, value) {
 		         var name = $('#grid_func_mapaOperacional_AtividadeProjetosUsuario').jqxGrid('getrowdata', row).usuario;
 		         var imgurl = './UserMgmt?opt=32&usuario='+name;
-		         var img = '<div style="background: white;"><img style="margin:2px; margin-left: 10px;" width="42" height="52" src="' + imgurl + '"></div>';
+		         var img = '<div style="background: white;"><img style="margin:2px; margin-left: 10px;" width="52" height="52" src="' + imgurl + '"></div>';
 		         return img;
 		     }
 		    

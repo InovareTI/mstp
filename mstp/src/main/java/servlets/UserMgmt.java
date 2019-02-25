@@ -352,9 +352,9 @@ public class UserMgmt extends HttpServlet {
 				}
 			}else if(opt.equals("2")){
 				if(p.get_PessoaPerfil_nome().equals("tecnico")) {
-					query="select * from usuarios where id_usuario='"+p.get_PessoaUsuario()+"' and ativo='Y' and validado='Y'";
+					query="select * from usuarios where id_usuario='"+p.get_PessoaUsuario()+"' and ativo='Y' and validado='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"'";
 				}else {
-					query="select * from usuarios where ativo='Y' and validado='Y'";
+					query="select * from usuarios where ativo='Y' and validado='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"'";
 				}
 				rs=conn.Consulta(query);
 				if(rs.next()) {
@@ -472,7 +472,7 @@ public class UserMgmt extends HttpServlet {
 			}else if(opt.equals("7")){
 				query="";
 				if(p.getPerfil_funcoes().contains("BancoHHApprover")) {
-					query="select * from horas_extras where aprovada='N'";
+					query="select * from horas_extras where aprovada='N' and empresa="+p.getEmpresa().getEmpresa_id();
 					rs=conn.Consulta(query);
 				
 				if(rs.next()) {
@@ -651,12 +651,12 @@ public class UserMgmt extends HttpServlet {
 				param1=req.getParameter("usuario");
 				int contador=0;
 				if(p.get_PessoaPerfil_nome().equals("tecnico")) {
-					query="SELECT * from registros where usuario='"+p.get_PessoaUsuario()+"' and week(datetime_servlet)=week(now()) order by datetime_servlet desc";
+					query="SELECT * from registros where usuario='"+p.get_PessoaUsuario()+"' and week(datetime_servlet)=week(now()) and empresa='"+p.getEmpresa().getEmpresa_id()+"' order by datetime_servlet desc";
 				}else {
 				if(param1.equals("todos")) {
-					query="SELECT * from registros where week(datetime_servlet)=week(now()) order by datetime_servlet desc";
+					query="SELECT * from registros where week(datetime_servlet)=week(now()) and empresa='"+p.getEmpresa().getEmpresa_id()+"' order by datetime_servlet desc";
 				}else {
-					query="SELECT * from registros where usuario='"+param1+"' and week(datetime_servlet)=week(now()) order by datetime_servlet desc";
+					query="SELECT * from registros where usuario='"+param1+"' and week(datetime_servlet)=week(now()) and empresa='"+p.getEmpresa().getEmpresa_id()+"' order by datetime_servlet desc";
 				}
 				}
 				rs=conn.Consulta(query);
@@ -707,11 +707,11 @@ public class UserMgmt extends HttpServlet {
 				param6=req.getParameter("select_folga_compensacao");
 				query="";
 				if(param6.equals("1")) {
-					query="insert into ajuste_ponto (dt_solicitado,dt_entrada,dt_saida,local,motivo,aprovada,usuario,other2) values ('"+f3.format(time)+"','','','','FOLGA','N','"+p.get_PessoaUsuario()+"','"+param5+"')";
+					query="insert into ajuste_ponto (dt_solicitado,dt_entrada,dt_saida,local,motivo,aprovada,usuario,other2,empresa) values ('"+f3.format(time)+"','','','','FOLGA','N','"+p.get_PessoaUsuario()+"','"+param5+"',"+p.getEmpresa().getEmpresa_id()+")";
 				}else if(param6.equals("2")) {
-					query="insert into ajuste_ponto (dt_solicitado,dt_entrada,dt_saida,local,motivo,aprovada,usuario,other2) values ('"+f3.format(time)+"','','','','Banco de Horas - Consumo de 8h','N','"+p.get_PessoaUsuario()+"','"+param5+"')";
+					query="insert into ajuste_ponto (dt_solicitado,dt_entrada,dt_saida,local,motivo,aprovada,usuario,other2,empresa) values ('"+f3.format(time)+"','','','','Banco de Horas - Consumo de 8h','N','"+p.get_PessoaUsuario()+"','"+param5+"',"+p.getEmpresa().getEmpresa_id()+")";
 				}else {
-					query="insert into ajuste_ponto (dt_solicitado,dt_entrada,dt_saida,local,motivo,aprovada,usuario) values ('"+f3.format(time)+"','"+param1+"','"+param2+"','"+param3+"','"+param4+"','N','"+p.get_PessoaUsuario()+"')";
+					query="insert into ajuste_ponto (dt_solicitado,dt_entrada,dt_saida,local,motivo,aprovada,usuario,empresa) values ('"+f3.format(time)+"','"+param1+"','"+param2+"','"+param3+"','"+param4+"','N','"+p.get_PessoaUsuario()+"',"+p.getEmpresa().getEmpresa_id()+")";
 				}
 				if(conn.Inserir_simples(query)) {
 					resp.setContentType("application/html");  
@@ -729,7 +729,7 @@ public class UserMgmt extends HttpServlet {
 			}else if(opt.equals("12")){
 				System.out.println("carregando ajustes de ponto para aprovação");
 				query="";
-				query="select * from ajuste_ponto where aprovada='N'";
+				query="select * from ajuste_ponto where aprovada='N' and empresa="+p.getEmpresa().getEmpresa_id();
 				rs=conn.Consulta(query);
 				if(rs.next()) {
 					rs.beforeFirst();
@@ -822,7 +822,7 @@ public class UserMgmt extends HttpServlet {
 				}
 			}else if(opt.equals("15")){
 				param1=req.getParameter("usuario");
-				query="select * from usuarios where id_usuario='"+param1+"' and ativo='Y' and validado='Y'";
+				query="select * from usuarios where id_usuario='"+param1+"' and ativo='Y' and validado='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"'";
 				rs=conn.Consulta(query);
 				if(rs.next()) {
 					dados_tabela="{\n";
@@ -1436,7 +1436,7 @@ public class UserMgmt extends HttpServlet {
 				    					"pis,"+
 				    					"cargo,"
 				    					+ "validado,"
-				    					+ "ativo,HASH,data_registro) values(";
+				    					+ "ativo,HASH,data_registro,empresa) values(";
 				    			
 				    				 cell=row.getCell(indexCell);
 				    				 cellValue = dataFormatter.formatCellValue(cell);
@@ -1520,7 +1520,7 @@ public class UserMgmt extends HttpServlet {
 				    				 cell=row.getCell(0);
 				    				 
 				    			
-				    				 query=query+"'"+retornaSenha+"','"+time+"')";
+				    				 query=query+"'"+retornaSenha+"','"+time+"','"+p.getEmpresa().getEmpresa_id()+"')";
 				    				 indexCell=1;
 				    			//System.out.println(query);
 				    			if(conn.Inserir_simples(query)) {
