@@ -14,8 +14,8 @@ public class SessionFilter implements Filter {
      
         try {     
             if (!httpRequest.isRequestedSessionIdValid()) {     
-                HttpServletResponse httpResponse = (HttpServletResponse)response;     
-                httpResponse.sendRedirect(httpRequest.getContextPath() + "/mstp_login.html");     
+            	((HttpServletResponse) response).sendRedirect("./mstp_login.html");   
+                  
             } else {     
                 chain.doFilter(request, response);     
             }     

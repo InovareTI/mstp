@@ -46,7 +46,7 @@ public class CamposRollout {
 		ResultSet rs;
 		JSONArray dados= new JSONArray() ;
 		JSONObject jsonObject = new JSONObject(); 
-		String query="select field_name,field_type,tipo from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id() + " order by ordenacao";
+		String query="select field_name,field_type,tipo,ordenacao from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id() + " order by ordenacao asc";
 		rs=c.Consulta(query);
 		try {
 			if(rs.next()) {
@@ -56,6 +56,7 @@ public class CamposRollout {
 					dados= new JSONArray() ;
 					dados.put(rs.getString(2));
 					dados.put(rs.getString(3));
+					dados.put(rs.getInt(4));
 					jsonObject.put(rs.getString(1),dados);
 					
 				}
@@ -67,6 +68,31 @@ public class CamposRollout {
 			e.printStackTrace();
 		}
 		return jsonObject;
+	}
+	public String[] getCamposOrdenados(Conexao c, Pessoa p) {
+		ResultSet rs;
+		String[] dados=null;
+		int i=0;
+		
+		String query="select field_name,field_type,tipo,ordencao from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id() + " order by ordenacao asc";
+		rs=c.Consulta(query);
+		try {
+			if(rs.next()) {
+				//campo_tipo=rs.getString(1);
+				rs.beforeFirst();
+				
+				while(rs.next()) {
+					dados[i]=rs.getString(1);
+					i=i+1;
+				}
+			}else {
+				campo_tipo="Campo nao encontrado";
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return dados;
 	}
 	public void setCampo_tipo(String campo_tipo) {
 		this.campo_tipo = campo_tipo;

@@ -2,6 +2,7 @@ package classes;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.bson.conversions.Bson;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.mongodb.Block;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.MongoWriteException;
@@ -18,7 +20,11 @@ import com.mongodb.ServerAddress;
 import com.mongodb.async.SingleResultCallback;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Accumulators;
+import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.InsertManyOptions;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.UpdateResult;
 
@@ -46,7 +52,11 @@ public class ConexaoMongo {
 		
 		MongoCollection<Document> coll = db.getCollection(Collection);
 		try {
-		coll.insertOne(document);
+			if(!document.isEmpty()) {
+				coll.insertOne(document);
+			}else {
+				System.out.println("Inserção abortada, documento vazio!");
+			}
 		
 		}catch(MongoWriteException e) {
 			System.out.println("Inserção NOK!");
@@ -54,12 +64,33 @@ public class ConexaoMongo {
 		}
 		return true;
 	}
+public boolean InserirMuitos(String Collection,List<Document> document_list) {
+		
+		
+		try {
+			for(int i=0;i<document_list.size();i++) {
+				InserirSimpels(Collection,document_list.get(i));
+			}
+			return true;
+		}catch(MongoWriteException e) {
+			System.out.println("Inserção NOK!");
+			e.getMessage();
+			return false;
+		}
+		
+	}
 	public FindIterable<Document> ConsultaSimplesSemFiltro(String Collection){
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(new Document());
 		return findIterable;
 	}
 	public FindIterable<Document> ConsultaSimplesSemFiltroInicioLimit(String Collection,Integer inicio,Integer limit){
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(new Document()).skip(inicio).limit(limit);
+		return findIterable;
+	}
+	public FindIterable<Document> LastRegisterCollention(String Collection,String campo){
+		Document order=new Document();
+		order.append(campo, -1);
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(new Document()).sort(order).limit(1);
 		return findIterable;
 	}
 	public FindIterable<Document> ConsultaSimplesComFiltroInicioLimit(String Collection,List<Bson> Filtros,Integer inicio,Integer limit){
@@ -74,9 +105,26 @@ public class ConexaoMongo {
 		Long linhas = db.getCollection(Collection).count(new Document());
 		return linhas;
 	}
+   public FindIterable<Document> ConsultaRolloutcomFiltrosLista(String Collection,List<Bson> Filtros){
+	
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filtros));
+		return findIterable;
+	}
 	public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,String campo,String valor,int empresa){
 		
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.eq(campo, valor)));
+		return findIterable;
+	}
+public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Document> filtros,int empresa){
+		
+		FindIterable<Document> findIterable = db.getCollection(Collection).find((Bson) filtros);
+		return findIterable;
+	}
+	public FindIterable<Document> ConsultaOrdenadaRolloutCompleto(String Collection,int empresa){
+		Document ordenacao=new Document();
+		ordenacao.append("recid", 1);
+		
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Linha_ativa",'Y'),Filters.eq("Empresa", empresa))).sort(ordenacao);
 		return findIterable;
 	}
 	public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,String campo,Integer valor,int empresa){
@@ -94,23 +142,71 @@ public class ConexaoMongo {
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.gte(campo, valor)));
 		return findIterable;
 	}
-	
+
 	public FindIterable<Document> ConsultaComplexaArray(String Collection,String campo,List<String> valores){
-		System.out.println("Realizando consulta em:");
-		System.out.println(Collection);
-		System.out.println(campo);
-		//System.out.println(valor);
+		
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.in(campo, valores));
 		
 		return findIterable;
 	}
 	public FindIterable<Document> ConsultaComplexaArrayRecID(String Collection,String campo,List<Integer> valores){
-		System.out.println("Realizando consulta em:");
-		System.out.println(Collection);
-		System.out.println(campo);
-		//System.out.println(valor);
+		
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.in(campo, valores));
 		
+		return findIterable;
+	}
+	public List<Document> consultaaggregation(String Collection,String Campo, String Valor,String agregado) {
+		List<Document> resultado = new ArrayList<Document>();
+		 Block<Document> printBlock = new Block<Document>() {
+		        @Override
+		        public void apply(final Document document) {
+		        	resultado.add(document);
+		            //System.out.println(document.toJson());
+		        }
+		    };
+		db.getCollection(Collection).aggregate(
+			      Arrays.asList(
+			              Aggregates.match(Filters.eq(Campo, Valor)),
+			              
+			              Aggregates.group("$"+agregado, Accumulators.sum("count", 1))
+			      )
+			).forEach(printBlock);
+		return resultado;
+	}
+	public List<Document> consultaaggregationMilestone(String Collection,String Campo, String Valor,String agregado) {
+		List<Document> resultado = new ArrayList<Document>();
+		 Block<Document> printBlock = new Block<Document>() {
+		        @Override
+		        public void apply(final Document document) {
+		        	resultado.add(document);
+		            //System.out.println(document.toJson());
+		        }
+		    };
+		db.getCollection(Collection).aggregate(
+			      Arrays.asList(
+			              Aggregates.match(Filters.elemMatch("Milestone", Filters.eq(Campo, Valor))),
+			              Aggregates.group("$"+agregado, Accumulators.sum("count", 1))
+			      )
+			).forEach(printBlock);
+		return resultado;
+	}
+	public List<String> ConsultaSimplesDistinct(String Collection,String campo,int empresa){
+		MongoCursor<String> c = db.getCollection(Collection).distinct(campo,String.class).filter(Filters.eq("Empresa",empresa)).iterator();
+		List<String> valores= new ArrayList<String>();
+		while(c.hasNext()) {
+			valores.add(c.next());
+		}
+		return valores;
+	}
+	public Long ConsultaCountComplexa(String Collection,Bson filtro){
+		
+		Long resutado=db.getCollection(Collection).count(filtro);
+		
+		return resutado;
+	}
+	public FindIterable<Document> ConsultaRolloutPeriodoData(String Collection,String Campo,String dt_inicio,String dt_fim,int empresa){
+		FindIterable<Document> findIterable = null;
+		findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.gte(Campo, checa_formato_data(dt_inicio)),Filters.lte(Campo, checa_formato_data(dt_fim))));
 		return findIterable;
 	}
 	public FindIterable<Document> ConsultaFiltrosHistoricoRollout(String Collection,List<String>site,List<String>campos,List<String>autor,String dtinicio,String dtfim){
@@ -206,13 +302,17 @@ public class ConexaoMongo {
 	}
 	public boolean AtualizaUm(String Collection,Document campo_condicao, Document campo_valor) {
 		MongoCollection<Document> coll = db.getCollection(Collection);
-		UpdateResult resultado;
+		Document resultado;
 		System.out.println("chegou na funcao do update");
 		//coll.findOneAndUpdate(campo_condicao, campo_valor);
-		resultado=coll.updateOne(campo_condicao, campo_valor);
-		System.out.println(resultado.getMatchedCount()+ " - Foram encontrados no MongoDB");
-		System.out.println(resultado.getModifiedCount() + " - Foram modificados no MongoDB");
-		return true;
+		//resultado=coll.updateOne(campo_condicao, campo_valor);
+		resultado=coll.findOneAndUpdate(campo_condicao, campo_valor);
+		if(resultado.isEmpty()) {
+			return false;
+		}else {
+			System.out.println("Update Realizado com Sucesso!");
+			return true;
+		}
 	}
 	public void fecharConexao() {
 		 this.mongoClient.close();

@@ -466,7 +466,7 @@ public class SiteMgmt extends HttpServlet {
 					//operadora_aux=operadora_aux+"\""+doc.get("nome").toString()+"\":"+document_featurecollection.toJson();
 					lista_sites.clear();
 					document_featurecollection.clear();
-					System.out.println(document_operadora.toString());
+					//System.out.println(document_operadora.toString());
 				});
 				
 				FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",checa_formato_data(f2.format(time).toString()),p.getEmpresa().getEmpresa_id());
@@ -612,7 +612,7 @@ public class SiteMgmt extends HttpServlet {
 				int total_colunas;
 				Cell cell;
 				query="Select sys_id,site_id,site_latitude,site_longitude,site_municipio,site_bairro,site_uf,site_nome,site_sequencial,site_operadora,site_cep,site_owner from sites where site_ativo='Y' and site_operadora='"+param1+"' and empresa="+p.getEmpresa().getEmpresa_id()+" order by sys_id asc";
-				System.out.println(query);
+				//System.out.println(query);
 				rs=conn.Consulta(query);
 				if(rs.next()) {
 					rowIndex=1;

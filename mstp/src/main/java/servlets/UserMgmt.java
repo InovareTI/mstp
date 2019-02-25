@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Blob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -26,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -2164,6 +2166,7 @@ public class UserMgmt extends HttpServlet {
 					Date dt_fim=format.parse(param2);
 					inicio.setTime(dt_inicio);
 					fim.setTime(dt_fim);
+					fim.add(Calendar.DAY_OF_MONTH, 1);
 					while(inicio.before(fim)) {
 						insere_regitro(p,param4,"Férias",conn,"0","0",f2.format(inicio.getTime())+" 00:00:00","0","","Férias, - , - ");
 						inicio.add(Calendar.DAY_OF_MONTH, 1);
@@ -2181,7 +2184,36 @@ public class UserMgmt extends HttpServlet {
 				
 				
 				
+			}else if(opt.equals("32")) {
+				System.out.println("Buscando fotos de usuários");
+				param1=req.getParameter("usuario");
+				query="select foto_perfil from usuarios where id_usuario='"+param1+"'";
+				//System.out.println(query);
+				rs=conn.Consulta(query);
+				ServletOutputStream out = resp.getOutputStream();
+				if(rs.next()){
+					//System.out.println("Entrou no Blob");
+					Blob imageBlob = rs.getBlob(1);
+					InputStream in = imageBlob.getBinaryStream(1,(int)imageBlob.length());
+			        int length = (int) imageBlob.length();
+
+			        int bufferSize = 1024;
+			        byte[] buffer = new byte[bufferSize];
+
+			        while ((length = in.read(buffer)) != -1) {
+			            //System.out.println("writing " + length + " bytes");
+			            out.write(buffer, 0, length);
+			        }
+
+			        
+				    //System.out.println(dados_tabela);
+			        resp.setContentType("image/png");  
+			    	//resp.setCharacterEncoding("UTF-8"); 
+			    	in.close();
+			        out.flush();
+			    	//out.print(dados_tabela);
 			}
+		}
 		}catch (SQLException e) {
 			
 			conn.fecharConexao();

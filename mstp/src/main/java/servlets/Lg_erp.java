@@ -61,9 +61,10 @@ public class Lg_erp extends HttpServlet {
 public void run_login(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
 		Conexao con = new Conexao();
+		
 		//System.out.println("conexao com bd ok");
 		ConexaoMongo c = new ConexaoMongo();
-        c.fecharConexao();
+       
         MessageDigest md;
         ResultSet rs ;
         
@@ -90,7 +91,7 @@ public void run_login(HttpServletRequest req, HttpServletResponse resp) throws S
         		Pessoa p = new Pessoa();
         		//HttpSession session = req.getSession();
                 session.setAttribute("conexao",con);
-               
+                session.setAttribute("conexaoMongo",c);
                 p.set_PessoaUsuario(rs.getString("id_usuario"));
                 p.set_PessoaName(rs.getString("nome"));
                 p.getEmpresa().define_empresa(con, rs.getString("empresa"));

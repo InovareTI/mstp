@@ -258,18 +258,18 @@ function verifica_campo_tipo(campo){
 		document.getElementById("tipo_campo_lote").value=data;
 		if(data=="Data"){
 			$("#tipo_campos_update_lote").html("<br><hr><br><p><table data-toggle='table' style='width:80%'><tr><td>Valor</td><td><input id='data_atbr_lote' type='text' class='form-control' value=''></td></tr></table></p>")
-			$("#data_atbr_lote").jqxDateTimeInput({ width: '300px', height: '25px',showWeekNumbers: true,allowNullDate: true,showFooter:true,clearString: 'Limpar',culture: 'pt-BR' });
+			$("#data_atbr_lote").jqxDateTimeInput({ width: '300px', height: '25px',showWeekNumbers: true,allowNullDate: true,showFooter:true,clearString: 'Limpar',formatString: 'dd/MM/yyyy',culture: 'pt-BR' });
 			$("#data_atbr_lote").jqxDateTimeInput('val','');
 		}
 		else if(data=="Milestone"){
 			$("#tipo_campos_update_lote").html("<br><hr><br><p><table data-toggle='table' style='width:80%'><tr><td>Inicio Planejado</td><td><input id='inicio_planejado_lote' type='text' class='form-control' value=''></td></tr><tr><td>Fim Planejado</td><td><input id='fim_planejado_lote' type='text' class='form-control' value=''></td></tr><tr><td>Inicio Real</td><td><input type='text' id='inicio_real_lote' class='form-control' value=''></td></tr><tr><td>Fim Real</td><td><input type='text' id='fim_real_lote' class='form-control' value=''></td></tr><tr><td>Anotações</td><td><input id='anot_lote' type='text' class='form-control' value=''></td></tr><tr><td>Responsável</td><td><input id='resp_lote' type='text'class=' form-control' value=''></td></tr></table><p>")
-			$("#inicio_planejado_lote").jqxDateTimeInput({ width: '300px', height: '25px',showWeekNumbers: true,allowNullDate: true,showFooter:true,clearString: 'Limpar',culture: 'pt-BR' });
+			$("#inicio_planejado_lote").jqxDateTimeInput({ width: '300px', height: '25px',showWeekNumbers: true,allowNullDate: true,showFooter:true,clearString: 'Limpar',formatString: 'dd/MM/yyyy', culture: 'pt-BR' });
 			$("#inicio_planejado_lote").jqxDateTimeInput('val','');
-			$("#fim_planejado_lote").jqxDateTimeInput({ width: '300px', height: '25px',showWeekNumbers: true,allowNullDate: true,showFooter:true,clearString: 'Limpar',culture: 'pt-BR' });
+			$("#fim_planejado_lote").jqxDateTimeInput({ width: '300px', height: '25px',showWeekNumbers: true,allowNullDate: true,showFooter:true,clearString: 'Limpar',formatString: 'dd/MM/yyyy',culture: 'pt-BR' });
 			$("#fim_planejado_lote").jqxDateTimeInput('val','');
-			$("#inicio_real_lote").jqxDateTimeInput({ width: '300px', height: '25px',showWeekNumbers: true,allowNullDate: true,showFooter:true,clearString: 'Limpar',culture: 'pt-BR' });
+			$("#inicio_real_lote").jqxDateTimeInput({ width: '300px', height: '25px',showWeekNumbers: true,allowNullDate: true,showFooter:true,clearString: 'Limpar',formatString: 'dd/MM/yyyy',culture: 'pt-BR' });
 			$("#inicio_real_lote").jqxDateTimeInput('val','');
-			$("#fim_real_lote").jqxDateTimeInput({ width: '300px', height: '25px',showWeekNumbers: true,allowNullDate: true,showFooter:true,clearString: 'Limpar',culture: 'pt-BR' });
+			$("#fim_real_lote").jqxDateTimeInput({ width: '300px', height: '25px',showWeekNumbers: true,allowNullDate: true,showFooter:true,clearString: 'Limpar',formatString: 'dd/MM/yyyy',culture: 'pt-BR' });
 			$("#fim_real_lote").jqxDateTimeInput('val','');
 		}else{
 			 $("#tipo_campos_update_lote").html("<br><hr><br><p><table data-toggle='table' style='width:80%'><tr><td>Valor</td><td><input id='attbr_lote' type='text' class='form-control' value=''></td></tr></table></p>")
@@ -284,16 +284,16 @@ function atualiza_lote(){
 	if(tipo=='Milestone'){
 	for(var i=0;i<rows_indexes.length;i++){
 		if($("#inicio_planejado_lote").jqxDateTimeInput('val')!=''){
-			registra_mudança_campos(rows_indexes[i],"sdate_pre_"+$('#select_campos_update_lote').val(),$("#inicio_planejado_lote").jqxDateTimeInput('val'),'datetimeinput',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], "sdate_pre_"+$('#select_campos_update_lote').val()));
+			registra_mudança_campos(rows_indexes[i],"sdate_pre_"+$('#select_campos_update_lote').val(),$("#inicio_planejado_lote").jqxDateTimeInput('getDate'),'datetimeinput',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], "sdate_pre_"+$('#select_campos_update_lote').val()));
 		}
 		if($("#fim_planejado_lote").jqxDateTimeInput('val')!=''){
-			registra_mudança_campos(rows_indexes[i],"edate_pre_"+$('#select_campos_update_lote').val(),$("#fim_planejado_lote").jqxDateTimeInput('val'),'datetimeinput',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], "edate_pre_"+$('#select_campos_update_lote').val()));
+			registra_mudança_campos(rows_indexes[i],"edate_pre_"+$('#select_campos_update_lote').val(),$("#fim_planejado_lote").jqxDateTimeInput('getDate'),'datetimeinput',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], "edate_pre_"+$('#select_campos_update_lote').val()));
 		}
 		if($("#inicio_real_lote").jqxDateTimeInput('val')!=''){
-			registra_mudança_campos(rows_indexes[i],"sdate_"+$('#select_campos_update_lote').val(),$("#inicio_real_lote").jqxDateTimeInput('val'),'datetimeinput',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], "sdate_"+$('#select_campos_update_lote').val()));
+			registra_mudança_campos(rows_indexes[i],"sdate_"+$('#select_campos_update_lote').val(),$("#inicio_real_lote").jqxDateTimeInput('getDate'),'datetimeinput',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], "sdate_"+$('#select_campos_update_lote').val()));
 		}
 		if($("#fim_real_lote").jqxDateTimeInput('val')!=''){
-			registra_mudança_campos(rows_indexes[i],"edate_"+$('#select_campos_update_lote').val(),$("#fim_real_lote").jqxDateTimeInput('val'),'datetimeinput',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], "edate_"+$('#select_campos_update_lote').val()));
+			registra_mudança_campos(rows_indexes[i],"edate_"+$('#select_campos_update_lote').val(),$("#fim_real_lote").jqxDateTimeInput('getDate'),'datetimeinput',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], "edate_"+$('#select_campos_update_lote').val()));
 		}
 		if(document.getElementById("anot_lote").value!=''){
 			registra_mudança_campos(rows_indexes[i],"udate_"+$('#select_campos_update_lote').val(),document.getElementById("anot_lote").value,'textbox',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], "udate_"+$('#select_campos_update_lote').val()));
@@ -303,7 +303,9 @@ function atualiza_lote(){
 		}
 	}
 	}else if(tipo=='Data'){
-		registra_mudança_campos(rows_indexes[i],$('#select_campos_update_lote').val(),$("#data_atbr_lote").jqxDateTimeInput('val'),'datetimeinput',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], $('#select_campos_update_lote').val()));
+		for(var i=0;i<rows_indexes.length;i++){
+			registra_mudança_campos(rows_indexes[i],$('#select_campos_update_lote').val(),$("#data_atbr_lote").jqxDateTimeInput('getDate'),'datetimeinput',$('#jqxgrid').jqxGrid('getcellvalue', rows_indexes[i], $('#select_campos_update_lote').val()));
+		}
 	}else{
 		for(var i=0;i<rows_indexes.length;i++){
 			if(document.getElementById("attbr_lote").value!=''){
@@ -512,7 +514,8 @@ function carrega_gant(){
 	                    deleteButton.jqxButton({template: "danger"});
 	                    
 	                    RolloutMapButton.click(function(event){
-	                    	
+	                    	$.alert("Função em Manutenção. Utilize o Mapa Operacional no Menu.");
+	                    	return;
 	                    	filtros={"filtros":[]};
 	                    	var aux={};
 	                    	var filtersinfo = $('#jqxgrid').jqxGrid('getfilterinformation');
@@ -651,6 +654,8 @@ function SyncRollout(){
 	carrega_gant();
 }
 function downloadFunc(){
+	//$.alert("Função Temporariamente desabilitada, devido migracao do banco de dados! estimativa de retorno da função 22/02/2019 as 18:00hs!");
+	//return;
 	filtros={"filtros":[]};
 	var rows = $('#jqxgrid').jqxGrid('getdisplayrows');
 	var rowindexes = $('#jqxgrid').jqxGrid('getselectedrowindexes');
@@ -668,7 +673,7 @@ function downloadFunc(){
 						filtros.filtros.push($('#jqxgrid').jqxGrid('getrowid', rowindexes[v]));
 					}
 					$.ajax({
-        		        url: './RolloutServlet?opt=3',
+        		        url: './RolloutServlet?opt=3&tipo=selecionadas',
         		        method: 'GET',
         		        data:{"filtros":JSON.stringify(filtros)},
         		        xhrFields: {
@@ -688,14 +693,25 @@ function downloadFunc(){
 			PorFiltro:{
 				text:"Filtro corrente ("+rows.length+" Linhas)",
 				action:function(){
-					for (var i = 0; i < rows.length; i++) {
-                		var rowData = rows[i];
-                		filtros.filtros.push(rowData.uid);
-                		
-                	}
+					
+					filtros={"filtros":[]};
+                	var aux={};
+                	var filtersinfo = $('#jqxgrid').jqxGrid('getfilterinformation');
+                	//console.log(filtersinfo);
+                	for(var j=0;j<filtersinfo.length;j++){
+                    	for (var i = 0; i < filtersinfo[j].filter.getfilters().length; i++) {
+	                    	aux.filtersvalue=filtersinfo[j].filter.getfilters()[i].value;
+	                    	aux.filtercondition=filtersinfo[j].filter.getfilters()[i].condition;
+	                    	aux.datafield = filtersinfo[j].filtercolumn;
+	                    	
+	                    	filtros.filtros.push(aux);
+	                    	aux={};
+                    	}
+                    	
+                    }
                 	//alert(JSON.stringify(filtros));
         		    $.ajax({
-        		        url: './RolloutServlet?opt=3',
+        		        url: './RolloutServlet?opt=3&tipo=filtro',
         		        method: 'GET',
         		        data:{"filtros":JSON.stringify(filtros)},
         		        xhrFields: {
@@ -718,7 +734,7 @@ function downloadFunc(){
 				
 				action:function(){
 					 $.ajax({
-            		        url: './RolloutServlet?opt=3',
+            		        url: './RolloutServlet?opt=3&tipo=completo',
             		        method: 'GET',
             		        data:{"filtros":JSON.stringify(filtros)},
             		        xhrFields: {
@@ -753,9 +769,10 @@ function registra_mudança_campos(index,campo,valor,tipo,oldvalue){
 	}else{
 	if(tipo.length>0){
 	if (tipo=='datetimeinput'){
-		
+		//alert(valor);
+		//var d = new Date(valor);
 		var localdata = moment(valor).format('L');
-		
+		//alert(localdata);
 		if(localdata!='Invalid date'){
 			
 			localizacao={id:$("#jqxgrid").jqxGrid('getrowid', index),colum:campo,value:localdata,tipoc:tipo,oldvalue:oldvalue};

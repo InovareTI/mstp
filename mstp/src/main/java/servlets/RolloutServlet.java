@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -66,6 +67,7 @@ import com.mongodb.Block;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
+import com.sun.mail.imap.protocol.Status;
 
 import classes.Conexao;
 import classes.ConexaoMongo;
@@ -159,8 +161,9 @@ public class RolloutServlet extends HttpServlet {
 		HttpSession session = req.getSession(true);
 		Pessoa p = (Pessoa) session.getAttribute("pessoa");
 		Conexao conn = (Conexao) session.getAttribute("conexao");
+		ConexaoMongo c = (ConexaoMongo) session.getAttribute("conexaoMongo");
 		Rollout r = new Rollout();
-		
+		JSONObject campo_tipo=r.getCampos().getCampos_tipo(conn, p);
 		double money; 
 		NumberFormat number_formatter = NumberFormat.getCurrencyInstance();
 		String moneyString;
@@ -250,6 +253,7 @@ public class RolloutServlet extends HttpServlet {
     			campos_aux=campos_aux+"\n"+"],";
     			dados_tabela= dados_tabela+"\n"+campos_aux;
     			rs2=conn.Consulta("select id_usuario,nome from usuarios where empresa='"+p.getEmpresa().getEmpresa_id()+"' and validado='Y' and ativo='Y'");
+    			//System.out.println(dados_tabela);
     			if(rs2.next()) {
     				dados_tabela=dados_tabela+"\n"+"\"people\" : [" +"\n";
     				rs2.beforeFirst();
@@ -263,7 +267,7 @@ public class RolloutServlet extends HttpServlet {
     			//System.out.println(dados_tabela);
     			campos_aux="";
     			campos_aux="\n"+"\"sites\":";
-    			ConexaoMongo c = new ConexaoMongo();
+    			
     			dados_tabela= dados_tabela+"\n"+"\"records\":[],";
     			//rs2= conn.Consulta("select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" order by recid,siteID,ordenacao limit 1600");
     			/*FindIterable<Document> findIterable = c.ConsultaSimplesSemFiltroInicioLimit("rollout",0,40);
@@ -394,7 +398,7 @@ public class RolloutServlet extends HttpServlet {
 	    			//dados_tabela= dados_tabela+"\n"+"],";
 	    			dados_tabela=dados_tabela+campos_aux;
 	    			dados_tabela= dados_tabela+"}";
-	    			c.fecharConexao();
+	    			
     			//}else{
     			//	dados_tabela= dados_tabela+"]}";
     			//}
@@ -457,9 +461,12 @@ public class RolloutServlet extends HttpServlet {
 				int colIndex = 0;
 				int rowIndex = 0;
 				param1=req.getParameter("filtros");
-				System.out.println(param1);
+				param2=req.getParameter("tipo");
+				//System.out.println("Filtros:"+param1);
 				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy"); 
 				
+				FindIterable findIterable = null;
+				Document Linha= new Document();
 				Date aux_date;
 				JSONObject jObj = new JSONObject(param1);
 				JSONArray filtros = jObj.getJSONArray("filtros");
@@ -596,217 +603,371 @@ public class RolloutServlet extends HttpServlet {
 	                cellStyle_date.setBorderTop(BorderStyle.THIN);
 	                cellStyle_date.setTopBorderColor(IndexedColors.BLACK.getIndex());
 	                cellStyle_date.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy"));
-	                
+	                if(param2.equals("selecionadas")) {
+	                	List<Integer> recids= new ArrayList<Integer>();
+	                	
+	                	for (Integer i=0; i < filtros.length(); i++)
+						{
+	                		recids.add(filtros.getInt(i));
+						}
+	                	findIterable=c.ConsultaComplexaArrayRecID("rollout", "recid", recids);
+	                }else if(param2.equals("filtro")) {
 	                if(filtros.length()>0) {
 	                	
-							query="Select * from rollout where empresa="+p.getEmpresa().getEmpresa_id()+" and linha_ativa='Y' and recid in (";
-							for(int f=0;f<filtros.length();f++) {
-							 query=query+filtros.getInt(f)+",";	
+	    				//JSONArray filtros = jObj.getJSONArray("filtros");
+	                	List<Bson> filtro_list = new ArrayList<Bson>();
+	    				Bson filtro;
+	                	
+	                	String filtervalue="";
+	                	String filtercondition="";
+	                	String filterdatafield="";
+	                	String filteroperator="";
+	                	for (Integer i=0; i < filtros.length(); i++)
+						{
+							JSONObject elemento = filtros.getJSONObject(i);
+							
+	                		 filtervalue = elemento.getString("filtersvalue");
+							 filtercondition = elemento.getString("filtercondition");
+							 filterdatafield = elemento.getString("datafield");
+							 //filterdatafield = filterdatafield.replaceAll("([^A-Za-z0-9])", "");
+							 //filteroperator = req.getParameter("filteroperator" + i);
+							
+									
+							switch(filtercondition)
+							{
+						case "CONTAINS":
+							if(filterdatafield.startsWith("udate_") || filterdatafield.startsWith("status_") || filterdatafield.startsWith("resp_")) {
+								filtro=Filters.elemMatch("Milestone", Filters.regex(filterdatafield,".*"+filtervalue+".*"));
+								filtro_list.add(filtro);
+							}else {
+								filtro=Filters.regex(filterdatafield, ".*"+filtervalue+".*");
+								filtro_list.add(filtro);
 							}
-							query=query.substring(0,query.length()-1);
-							query=query+") order by recid,ordenacao";
-						
-					}else {
-						query="Select * from rollout where empresa="+p.getEmpresa().getEmpresa_id()+" and linha_ativa='Y' order by recid,ordenacao";
+							
+							/*if(filterdatafield.indexOf("status_")>-1) {
+								String status_aux="";
+								if(filtervalue.equals("ok") || filtervalue.equals("completo") || filtervalue.equals("completa") || filtervalue.equals("fim") || filtervalue.equals("finalizada") || filtervalue.equals("feito")) {
+									status_aux="Finalizada";
+								}else if(filtervalue.equals("iniciada") || filtervalue.equals("iniciado") || filtervalue.equals("ongoing") || filtervalue.equals("started")){
+									status_aux="iniciada";
+								}else {
+									status_aux="*";
+								}
+								where += " milestone='" + filterdatafield.substring(7,filterdatafield.length()) + "' and status_atividade='" + status_aux + "'";
+							}*/
+							break;
+						case "CONTAINS_CASE_SENSITIVE":
+							//where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE BINARY '%" + filtervalue + "%'";
+							break;
+						case "DOES_NOT_CONTAIN":
+							if(filterdatafield.substring(0,5).equals("resp_")) {
+							//	where += " milestone='" + filterdatafield.substring(5,filterdatafield.length()) + "' and responsavel NOT LIKE '%" + filtervalue + "%'";
+							}else if(filterdatafield.substring(0,6).equals("udate_")) {
+							//	where += " milestone='" + filterdatafield.substring(6,filterdatafield.length()) + "' and remark NOT LIKE '%" + filtervalue + "%'";
+							}else {
+							//	where += " milestone='" + filterdatafield + "' and value_atbr_field NOT LIKE '%" + filtervalue + "%'";
+							}
+							//where += " milestone='" + filterdatafield + "' and value_atbr_field NOT LIKE '%" + filtervalue + "%'";
+							break;
+						case "DOES_NOT_CONTAIN_CASE_SENSITIVE":
+							//where += " milestone='" + filterdatafield + "' and value_atbr_field NOT LIKE BINARY '%" + filtervalue + "%'";
+							break;
+						case "EQUAL":
+							
+							if(filterdatafield.startsWith("sdate") || filterdatafield.startsWith("edate")) {
+								filtro=Filters.elemMatch("Milestone", Filters.gte(filterdatafield,checa_formato_data(filtervalue)));
+								filtro_list.add(filtro);
+								filtro=Filters.elemMatch("Milestone", Filters.lte(filterdatafield,checa_formato_data(filtervalue)));
+								filtro_list.add(filtro);
+							}else {
+								if(campo_tipo.getJSONArray(filterdatafield).get(1).equals("Data")){
+									filtro=Filters.gte(filterdatafield, checa_formato_data(filtervalue));
+									filtro_list.add(filtro);
+									filtro=Filters.lte(filterdatafield, checa_formato_data(filtervalue));
+									filtro_list.add(filtro);
+								}else {
+									filtro=Filters.eq(filterdatafield, filtervalue);
+									filtro_list.add(filtro);
+								}
+							}
+							
+							break;
+						case "EQUAL_CASE_SENSITIVE":
+							//where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE BINARY '" + filtervalue + "'";
+							break;
+						case "NOT_EQUAL":
+							//where += " milestone='" + filterdatafield + "' and value_atbr_field NOT LIKE '" + filtervalue + "'";
+							break;
+						case "NOT_EQUAL_CASE_SENSITIVE":
+							//where += " milestone='" + filterdatafield + "' and value_atbr_field NOT LIKE BINARY '" + filtervalue + "'";
+							break;
+						case "GREATER_THAN":
+							
+							if(filterdatafield.startsWith("sdate") || filterdatafield.startsWith("edate")) {
+								filtro=Filters.elemMatch("Milestone", Filters.gt(filterdatafield,checa_formato_data(filtervalue)));
+								filtro_list.add(filtro);
+								
+							}else {
+								if(campo_tipo.getJSONArray(filterdatafield).get(1).equals("Data")){
+									filtro=Filters.gt(filterdatafield, checa_formato_data(filtervalue));
+									filtro_list.add(filtro);
+								}else {
+									filtro=Filters.gt(filterdatafield,filtervalue);
+									filtro_list.add(filtro);
+								}
+							}
+							break;
+						case "LESS_THAN":
+							if(filterdatafield.startsWith("sdate") || filterdatafield.startsWith("edate")) {
+								filtro=Filters.elemMatch("Milestone", Filters.lt(filterdatafield,checa_formato_data(filtervalue)));
+								filtro_list.add(filtro);
+								
+							}else {
+								if(campo_tipo.getJSONArray(filterdatafield).get(1).equals("Data")){
+									filtro=Filters.lt(filterdatafield, checa_formato_data(filtervalue));
+									filtro_list.add(filtro);
+								}else {
+									filtro=Filters.lt(filterdatafield, filtervalue);
+									filtro_list.add(filtro);
+								}
+							}
+							break;
+						case "GREATER_THAN_OR_EQUAL":
+							if(filterdatafield.startsWith("sdate") || filterdatafield.startsWith("edate")) {
+								System.out.println("entrou no filtro de milestone");
+								filtro=Filters.elemMatch("Milestone", Filters.gte(filterdatafield,checa_formato_data(filtervalue)));
+								filtro_list.add(filtro);
+								
+							}else {
+								if(campo_tipo.getJSONArray(filterdatafield).get(1).equals("Data")){
+									filtro=Filters.gte(filterdatafield, checa_formato_data(filtervalue));
+									filtro_list.add(filtro);
+								}else {
+									filtro=Filters.gte(filterdatafield, filtervalue);
+									filtro_list.add(filtro);
+								}
+							}
+							break;
+						case "LESS_THAN_OR_EQUAL":
+							if(filterdatafield.startsWith("sdate") || filterdatafield.startsWith("edate")) {
+								filtro=Filters.elemMatch("Milestone", Filters.lte(filterdatafield,checa_formato_data(filtervalue)));
+								filtro_list.add(filtro);
+								
+							}else {
+								if(campo_tipo.getJSONArray(filterdatafield).get(1).equals("Data")){
+									filtro=Filters.lte(filterdatafield, checa_formato_data(filtervalue));
+									filtro_list.add(filtro);
+								}else {
+									filtro=Filters.lte(filterdatafield, filtervalue);
+									filtro_list.add(filtro);
+								}
+							}
+							break;
+						case "STARTS_WITH":
+							//where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE '" + filtervalue + "%'";
+							break;
+						case "STARTS_WITH_CASE_SENSITIVE":
+							//where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE BINARY '" + filtervalue + "%'";
+							break;
+						case "ENDS_WITH":
+							//where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE '%" + filtervalue + "'";
+							break;
+						case "ENDS_WITH_CASE_SENSITIVE":
+							//where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE BINARY '%" + filtervalue + "'";
+							break;
+						case "NULL":
+							//where += " milestone='" + filterdatafield + "' and value_atbr_field IS NULL";
+							break;
+						case "NOT_NULL":
+							//where += " milestone='" + filterdatafield + "' and value_atbr_field IS NOT NULL";
+							break;
 					}
-	            	//System.out.println(query);
-		            rs2=conn.Consulta(query);
-		            int recid_aux=0;
-		            if(rs2.next()) {
-		            	recid_aux=rs2.getInt("recid");
-		            	JSONObject jsonObject_campos = r.getCampos().getCampos_tipo(conn, p);
-		            	colIndex=0;
-		            	rowIndex=3;
-		            	rs2.beforeFirst();
-		            	row = sheet.createRow((short) rowIndex);
-		            	cell = row.createCell((short) colIndex);
-		            	cell.setCellValue(recid_aux);
-        				cell.setCellStyle(cellStyle3);
-        				colIndex=colIndex+1;
-		            	//System.out.println("Criando Linha "+ rowIndex);
-		            	while(rs2.next()) {
-		            		if(recid_aux==rs2.getInt("recid")) {
-		            			
-		            			cell = row.createCell((short) colIndex);
-		            			if(rs2.getString("tipo_campo").equals("Atributo")) {
-		            				if(jsonObject_campos.getJSONArray(rs2.getString("milestone")).get(1).equals("Data")){
-	    	            				 if(!rs2.getString("value_atbr_field").equals("")) {
-	    	            					 cell.setCellStyle(cellStyle_date);
-	    	            					    cell.setCellType(CellType.NUMERIC);
-	    	            					 cell.setCellValue(checa_formato_data(rs2.getString("value_atbr_field")));
-	    	            					 
-			 		            			 colIndex=colIndex+1;
-		    	            			 }else {
-		    	            				 cell.setCellStyle(cellStyle_date);
-		   	            					 cell.setCellType(CellType.NUMERIC);
-		    	            				
-		    	            				cell.setCellValue(rs2.getString("value_atbr_field"));
-		 		            				
+	                	
+						}
+	                	filtro=Filters.eq("Empresa", p.getEmpresa().getEmpresa_id());
+						filtro_list.add(filtro);
+	                	findIterable = c.ConsultaRolloutcomFiltrosLista("rollout",filtro_list);
+	                }else {
+	                	findIterable=c.ConsultaOrdenadaRolloutCompleto("rollout",p.getEmpresa().getEmpresa_id());
+	                }
+	                }else if(param2.equals("completo")){
+						findIterable=c.ConsultaOrdenadaRolloutCompleto("rollout",p.getEmpresa().getEmpresa_id());
+						//query="Select * from rollout where empresa="+p.getEmpresa().getEmpresa_id()+" and linha_ativa='Y' order by recid,ordenacao";
+					}
+	               MongoCursor<Document> resultado_rollout=findIterable.iterator();
+	               String[]campos_nome=JSONObject.getNames(campo_tipo);
+	               String[]campos=new String[campo_tipo.length()];
+	               //System.out.println(campo_tipo.toString());
+	               for(int j=0;j<campo_tipo.length();j++) {
+	            	    campos[campo_tipo.getJSONArray(campos_nome[j]).getInt(2)-1]=campos_nome[j];
+	            	   
+	               }
+	              
+	               Document milestone_doc= new Document();
+	               rowIndex=2;
+	               while(resultado_rollout.hasNext()) {
+	            	   Linha=resultado_rollout.next();
+	            	   //System.out.println("iniciando leitura da linha recid:"+Linha.getInteger("recid"));
+	            	   List<Document> milestones_list=(List<Document>) Linha.get("Milestone");
+	            	   milestone_doc.clear();
+	            	   colIndex=0;
+	            	   rowIndex=rowIndex+1;
+	            	   row = sheet.createRow((short) rowIndex);
+	            	   cell = row.createCell((short) colIndex);
+	            	   cell.setCellValue(Linha.getInteger("recid"));
+	            	   cell.setCellStyle(cellStyle3);
+	            	   colIndex=colIndex+1;
+	            	   for(int indice_campos=0;indice_campos<campo_tipo.length();indice_campos++) {
+	            		   cell = row.createCell((short) colIndex);
+	            		   //System.out.println("Lendo campo :"+campos[indice_campos]+" , tipo:"+ campo_tipo.getJSONArray(campos[indice_campos]).get(0)+"/"+campo_tipo.getJSONArray(campos[indice_campos]).get(1));
+	            		   if(campo_tipo.getJSONArray(campos[indice_campos]).get(0).equals("Atributo")){
+		            		   if(campo_tipo.getJSONArray(campos[indice_campos]).get(1).equals("Data")){
+		            			   if(Linha.get(campos[indice_campos])!=null) {
+		            				   if(!Linha.get(campos[indice_campos]).equals("")) {
+		            					   cell.setCellStyle(cellStyle_date);
+	    	            				   cell.setCellType(CellType.NUMERIC);
+	    	            				   cell.setCellValue(checa_formato_data(f2.format(Linha.getDate(campos[indice_campos]))));
+	    	            				   colIndex=colIndex+1;
+		            				   }else {
+		            					   	cell.setCellStyle(cellStyle_date);
+		   	            					cell.setCellType(CellType.NUMERIC);
+		    	            				cell.setCellValue(Linha.getString(campos[indice_campos]));
 		 		            				colIndex=colIndex+1;
-		    	            			 }
-	    	            			 }else {
-	    	            				 cell.setCellValue(rs2.getString("value_atbr_field"));
-		 		            				cell.setCellStyle(cellStyle2);
-		 		            				colIndex=colIndex+1;
-	    	            			 }
-		            				
-		            			}else {
-		            				if(!rs2.getString("dt_inicio_bl").equals("")) {
-		            					aux_date=checa_formato_data(rs2.getString("dt_inicio_bl"));
-		            					cell.setCellStyle(cellStyle_date);
-   	            					    cell.setCellType(CellType.NUMERIC);
-		            					cell.setCellValue(aux_date);
-		            				}else {
-		            					cell.setCellStyle(cellStyle_date);
-   	            					    cell.setCellType(CellType.NUMERIC);
-		            					cell.setCellValue(rs2.getString("dt_inicio_bl"));
-		            				}
-		            				cell.setCellStyle(cellStyle_date);
-		            				colIndex=colIndex+1;
-		            				cell = row.createCell((short) colIndex);
-		            				if(!rs2.getString("dt_fim_bl").equals("")) {
-			            				aux_date=checa_formato_data(rs2.getString("dt_fim_bl"));
-			            				cell.setCellStyle(cellStyle_date);
-   	            					    cell.setCellType(CellType.NUMERIC);
-			            				cell.setCellValue(aux_date);
-		            				}else {
-		            					cell.setCellStyle(cellStyle_date);
-   	            					    cell.setCellType(CellType.NUMERIC);
-		            					cell.setCellValue(rs2.getString("dt_fim_bl"));
-		            				}
-		            				cell.setCellStyle(cellStyle_date);
-		            				colIndex=colIndex+1;
-		            				cell = row.createCell((short) colIndex);
-		            				if(!rs2.getString("dt_inicio").equals("")) {
-			            				aux_date=checa_formato_data(rs2.getString("dt_inicio"));
-			            				cell.setCellStyle(cellStyle_date);
-   	            					    cell.setCellType(CellType.NUMERIC);
-			            				cell.setCellValue(aux_date);
-		            				}else {
-		            					cell.setCellStyle(cellStyle_date);
-   	            					    cell.setCellType(CellType.NUMERIC);
-		            					cell.setCellValue(rs2.getString("dt_inicio"));
-		            				}
-		            				cell.setCellStyle(cellStyle_date);
-		            				colIndex=colIndex+1;
-		            				cell = row.createCell((short) colIndex);
-		            				if(!rs2.getString("dt_fim").equals("")) {
-			            				aux_date=checa_formato_data(rs2.getString("dt_fim"));
-			            				cell.setCellStyle(cellStyle_date);
-   	            					    cell.setCellType(CellType.NUMERIC);
-			            				cell.setCellValue(aux_date);
-		            				}else {
-		            					cell.setCellStyle(cellStyle_date);
-   	            					    cell.setCellType(CellType.NUMERIC);
-		            					cell.setCellValue(rs2.getString("dt_fim"));
-		            				}
-		            				cell.setCellStyle(cellStyle_date);
-		            				colIndex=colIndex+1;
-		            				cell = row.createCell((short) colIndex);
-		            				cell.setCellValue(rs2.getString("remark"));
-		            				cell.setCellStyle(cellStyle2);
-		            				colIndex=colIndex+1;
-		            				cell = row.createCell((short) colIndex);
-		            				cell.setCellValue(rs2.getString("responsavel"));
-		            				cell.setCellStyle(cellStyle2);
-		            				colIndex=colIndex+1;
-		            			}
-				                
-		            		}else {
-		            			colIndex=0;
-		            			rowIndex=rowIndex+1;
-		            			row = sheet.createRow((short) rowIndex);
-		            			cell = row.createCell((short) colIndex);
-		            			recid_aux=rs2.getInt("recid");
-				            	cell.setCellValue(recid_aux);
-		        				cell.setCellStyle(cellStyle3);
-		        				colIndex=colIndex+1;
-		            			cell = row.createCell((short) colIndex);
-		            			//recid_aux=rs2.getInt("recid");
-		            			if(rs2.getString("tipo_campo").equals("Atributo")) {
-		            				if(jsonObject_campos.getJSONArray(rs2.getString("milestone")).get(1).equals("Data")){
-	    	            				 if(!rs2.getString("value_atbr_field").equals("")) {
-	    	            					 cell.setCellStyle(cellStyle_date);
-	    	            					 cell.setCellType(CellType.NUMERIC);
-	    	            					 cell.setCellValue(checa_formato_data(rs2.getString("value_atbr_field")));
-	    	            					 
-			 		            			 colIndex=colIndex+1;
-		    	            			 }else {
-		    	            				 cell.setCellStyle(cellStyle_date);
-	    	            					 cell.setCellType(CellType.NUMERIC);
-		    	            				cell.setCellValue(checa_formato_data(rs2.getString("value_atbr_field")));
-		 		            				//cell.setCellStyle(cellStyle2);
-		 		            				colIndex=colIndex+1;
-		    	            			 }
-	    	            			 }else {
-	    	            				 cell.setCellValue(rs2.getString("value_atbr_field"));
-		 		            				cell.setCellStyle(cellStyle2);
-		 		            				colIndex=colIndex+1;
-	    	            			 }
-		            			}else {
-		            				if(!rs2.getString("dt_inicio_bl").equals("")) {
-			            				aux_date=checa_formato_data(rs2.getString("dt_inicio_bl"));
-			            				cell.setCellStyle(cellStyle_date);
-   	            					    cell.setCellType(CellType.NUMERIC);
-			            				cell.setCellValue(aux_date);
-		            				}else {
-		            					cell.setCellStyle(cellStyle_date);
-   	            					    cell.setCellType(CellType.NUMERIC);
-		            					cell.setCellValue(rs2.getString("dt_inicio_bl"));
-		            				}
-		            				cell.setCellStyle(cellStyle_date);
-		            				colIndex=colIndex+1;
-		            				cell = row.createCell((short) colIndex);
-		            				if(!rs2.getString("dt_fim_bl").equals("")) {
-		            					aux_date=checa_formato_data(rs2.getString("dt_fim_bl"));
-		            					cell.setCellStyle(cellStyle_date);
-   	            					    cell.setCellType(CellType.NUMERIC);
-		            					cell.setCellValue(aux_date);
-		            				}else {
-		            					cell.setCellStyle(cellStyle_date);
-   	            					    cell.setCellType(CellType.NUMERIC);
-		            					cell.setCellValue(rs2.getString("dt_fim_bl"));
-		            				}
-		            				cell.setCellStyle(cellStyle_date);
-		            				colIndex=colIndex+1;
-		            				cell = row.createCell((short) colIndex);
-		            				if(!rs2.getString("dt_inicio").equals("")) {
-			            				aux_date=checa_formato_data(rs2.getString("dt_inicio"));
-			            				cell.setCellStyle(cellStyle_date);
-   	            					    cell.setCellType(CellType.NUMERIC);
-			            				cell.setCellValue(aux_date);
-		            				}else {
-		            					cell.setCellStyle(cellStyle_date);
-   	            					    cell.setCellType(CellType.NUMERIC);
-		            					cell.setCellValue(rs2.getString("dt_inicio"));
-		            				}
-		            				cell.setCellStyle(cellStyle_date);
-		            				colIndex=colIndex+1;
-		            				cell = row.createCell((short) colIndex);
-		            				if(!rs2.getString("dt_fim").equals("")) {
-			            				aux_date=checa_formato_data(rs2.getString("dt_fim"));
-			            				cell.setCellStyle(cellStyle_date);
-   	            					    cell.setCellType(CellType.NUMERIC);
-			            				cell.setCellValue(aux_date);
-		            				}else {
-		            					cell.setCellStyle(cellStyle_date);
-   	            					    cell.setCellType(CellType.NUMERIC);
-		            					cell.setCellValue(rs2.getString("dt_fim"));
-		            				}
-		            				cell.setCellStyle(cellStyle_date);
-		            				colIndex=colIndex+1;
-		            				cell = row.createCell((short) colIndex);
-		            				cell.setCellValue(rs2.getString("remark"));
-		            				cell.setCellStyle(cellStyle2);
-		            				colIndex=colIndex+1;
-		            				cell = row.createCell((short) colIndex);
-		            				cell.setCellValue(rs2.getString("responsavel"));
-		            				cell.setCellStyle(cellStyle2);
-		            				colIndex=colIndex+1;
-		            			}
-		            		}
-		            	}
-		            }
+		            				   }
+		            			   }else {
+		            				    cell.setCellStyle(cellStyle_date);
+	   	            					cell.setCellType(CellType.NUMERIC);
+	    	            				cell.setCellValue("");
+	 		            				colIndex=colIndex+1;
+		            			   }
+		            		   }else {
+		            			   if(Linha.get(campos[indice_campos])!=null) {
+			            			   cell.setCellValue(Linha.getString(campos[indice_campos]));
+			            			   cell.setCellStyle(cellStyle2);
+			            			   colIndex=colIndex+1;
+		            			   }else {
+		            				   cell.setCellValue("");
+			            			   cell.setCellStyle(cellStyle2);
+			            			   colIndex=colIndex+1;
+		            			   }
+		            		   }
+	            		   }else {
+	            			for(int f=0;f<milestones_list.size();f++){
+	            				milestone_doc=milestones_list.get(f);
+  								//indice_milestone=f;
+  								if(milestone_doc.getString("Milestone").equals(campos[indice_campos])) {
+  									 f=999;
+  								 }
+  							 }
+	            			if(milestone_doc.get("sdate_pre_"+campos[indice_campos])!=null) {
+	            				if(!milestone_doc.get("sdate_pre_"+campos[indice_campos]).equals("")) {
+	            					aux_date=checa_formato_data(f2.format(milestone_doc.getDate("sdate_pre_"+campos[indice_campos])));
+	            					cell.setCellStyle(cellStyle_date);
+	           					    cell.setCellType(CellType.NUMERIC);
+	            					cell.setCellValue(aux_date);
+	            				}else {
+	            					cell.setCellStyle(cellStyle_date);
+	           					    cell.setCellType(CellType.NUMERIC);
+	            					cell.setCellValue("");
+	            				}
+            				}else {
+            					cell.setCellStyle(cellStyle_date);
+           					    cell.setCellType(CellType.NUMERIC);
+            					cell.setCellValue("");
+            				}
+	            			cell.setCellStyle(cellStyle_date);
+            				colIndex=colIndex+1;
+            				cell = row.createCell((short) colIndex);
+            				if(milestone_doc.get("edate_pre_"+campos[indice_campos])!=null) {
+	            				if(!milestone_doc.get("edate_pre_"+campos[indice_campos]).equals("")) {
+	            					aux_date=checa_formato_data(f2.format(milestone_doc.getDate("edate_pre_"+campos[indice_campos])));
+	            					cell.setCellStyle(cellStyle_date);
+	           					    cell.setCellType(CellType.NUMERIC);
+	            					cell.setCellValue(aux_date);
+	            				}else {
+	            					cell.setCellStyle(cellStyle_date);
+	           					    cell.setCellType(CellType.NUMERIC);
+	            					cell.setCellValue("");
+	            				}
+            				}else {
+            					cell.setCellStyle(cellStyle_date);
+           					    cell.setCellType(CellType.NUMERIC);
+            					cell.setCellValue("");
+            				}
+            				cell.setCellStyle(cellStyle_date);
+            				colIndex=colIndex+1;
+            				cell = row.createCell((short) colIndex);
+            				if(milestone_doc.get("sdate_"+campos[indice_campos])!=null) {
+	            				if(!milestone_doc.get("sdate_"+campos[indice_campos]).equals("")) {
+	            					aux_date=checa_formato_data(f2.format(milestone_doc.getDate("sdate_"+campos[indice_campos])));
+	            					cell.setCellStyle(cellStyle_date);
+	           					    cell.setCellType(CellType.NUMERIC);
+	            					cell.setCellValue(aux_date);
+	            				}else {
+	            					cell.setCellStyle(cellStyle_date);
+	           					    cell.setCellType(CellType.NUMERIC);
+	            					cell.setCellValue("");
+	            				}
+            				}else {
+            					cell.setCellStyle(cellStyle_date);
+           					    cell.setCellType(CellType.NUMERIC);
+            					cell.setCellValue("");
+            				}
+            				cell.setCellStyle(cellStyle_date);
+            				colIndex=colIndex+1;
+            				cell = row.createCell((short) colIndex);
+            				if(milestone_doc.get("edate_"+campos[indice_campos])!=null) {
+	            				if(!milestone_doc.get("edate_"+campos[indice_campos]).equals("")) {
+	            					aux_date=checa_formato_data(f2.format(milestone_doc.getDate("edate_"+campos[indice_campos])));
+	            					cell.setCellStyle(cellStyle_date);
+	           					    cell.setCellType(CellType.NUMERIC);
+	            					cell.setCellValue(aux_date);
+	            				}else {
+	            					cell.setCellStyle(cellStyle_date);
+	           					    cell.setCellType(CellType.NUMERIC);
+	            					cell.setCellValue("");
+	            				}
+            				}else {
+            					cell.setCellStyle(cellStyle_date);
+           					    cell.setCellType(CellType.NUMERIC);
+            					cell.setCellValue("");
+            				}
+            				cell.setCellStyle(cellStyle_date);
+            				colIndex=colIndex+1;
+            				cell = row.createCell((short) colIndex);
+            				if(milestone_doc.get("udate_"+campos[indice_campos])!=null) {
+	            				if(!milestone_doc.get("udate_"+campos[indice_campos]).equals("")) {
+	            					cell.setCellStyle(cellStyle2);
+	           					    cell.setCellValue(milestone_doc.getString("udate_"+campos[indice_campos]));
+	            				}else {
+	            					cell.setCellStyle(cellStyle2);
+	            					cell.setCellValue("");
+	            				}
+            				}else {
+            					cell.setCellStyle(cellStyle2);
+            					cell.setCellValue("");
+            				}
+            				colIndex=colIndex+1;
+            				cell = row.createCell((short) colIndex);
+            				if(milestone_doc.get("resp_"+campos[indice_campos])!=null) {
+	            				if(!milestone_doc.get("resp_"+campos[indice_campos]).equals("")) {
+	            					cell.setCellStyle(cellStyle2);
+	           					    cell.setCellValue(milestone_doc.getString("resp_"+campos[indice_campos]));
+	            				}else {
+	            					cell.setCellStyle(cellStyle2);
+	            					cell.setCellValue("");
+	            				}
+            				}else {
+            					cell.setCellStyle(cellStyle2);
+            					cell.setCellValue("");
+            				}
+            				colIndex=colIndex+1;
+	            		   }//fim da leitura tipo milestone
+	            	   }//fim do for de campos
+	            	   
+	               }//fim do while do mongodb
+	            	
+		            
 	            	System.out.println("Arquivo Criado & finalizado");
 	            	resp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 	                resp.setHeader("Content-Disposition", "attachment; filename="+time.toString()+"_rollout_mstp.xlsx");
@@ -822,46 +983,36 @@ public class RolloutServlet extends HttpServlet {
 				insere_linha_rollout(conn,req,resp,p);
 			}else if(opt.equals("5")) {
 				
-				
-				
-				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
-				time = new Timestamp(System.currentTimeMillis());
-				Semail email= new Semail();
+				System.out.println("Iniciando Import de Rollout. usuario:"+p.get_PessoaUsuario()+" | " + f3.format(time));
 				InputStream inputStream=null;
 				if (ServletFileUpload.isMultipartContent(req)) {
 					List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
-					//System.out.println("Multipart size: " + multiparts.size());
 					Iterator<FileItem> iter = multiparts.iterator();
 					while (iter.hasNext()) {
 						FileItem item = iter.next();
 						if (item.isFormField()) {
-					       // processFormField(item);
-					    } else {
-					    	System.out.println("Importando rollout");
-					    	inputStream = item.getInputStream();
-					    	
-					    	 String sql = "Insert into arquivos_importados (arq_dt_inserido,arq,arq_nome,arq_tipo,arq_tamanho,arq_usuario) values ('"+time+"' , ? ,'"+item.getName()+"','"+item.getContentType()+"','"+item.getSize()+"','"+p.get_PessoaUsuario()+"')";
-						     //System.out.println(sql);
-					    	 PreparedStatement statement;
-							 statement = conn.getConnection().prepareStatement(sql);
-							 statement.setBlob(1, inputStream);
-							 int linha = statement.executeUpdate();
-						     statement.getConnection().commit();
-						     rs=conn.Consulta("select id_sys_arq from arquivos_importados where arq_usuario='"+p.get_PessoaUsuario()+"' order by id_sys_arq desc limit 1");
-						     if(rs.next()) {
-						    	 linha=rs.getInt(1);
-						     }
-					    	InputStream inputStream2= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
-				    		DataFormatter dataFormatter = new DataFormatter();
-				    		int indexCell=0;
+						       // processFormField(item);
+						}else {
+							inputStream = item.getInputStream();
+							String sql = "Insert into arquivos_importados (arq_dt_inserido,arq,arq_nome,arq_tipo,arq_tamanho,arq_usuario) values ('"+time+"' , ? ,'"+item.getName()+"','"+item.getContentType()+"','"+item.getSize()+"','"+p.get_PessoaUsuario()+"')";
+							PreparedStatement statement;
+							statement = conn.getConnection().prepareStatement(sql);
+							statement.setBlob(1, inputStream);
+							int linha = statement.executeUpdate();
+						    statement.getConnection().commit();
+						    inputStream= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
+						    DataFormatter dataFormatter = new DataFormatter();
+						    int indexCell=0;
 				    		int recid=0;
-				    		XSSFWorkbook wb = new XSSFWorkbook(inputStream2);
+				    		XSSFWorkbook wb = new XSSFWorkbook(inputStream);
 				    		Sheet sheet1 = wb.getSheet("RolloutMSTP");
 				    		Cell cell2;
 				    		String cellValue;
 				    		last_id=0;
 				    		Row row_aux = sheet1.getRow(2);
 				    		String []campos = new String[row_aux.getLastCellNum()];
+				    		String operacao="";
+				    		Calendar d = Calendar.getInstance();
 				    		int j=row_aux.getLastCellNum();
 				    		row_aux = sheet1.getRow(1);
 				    		String aux_nome="";
@@ -870,14 +1021,18 @@ public class RolloutServlet extends HttpServlet {
 				        	jsonObject.put("Sucesso", "Sucesso"); 
 				        	PrintWriter pw = resp.getWriter();
 				        	pw.print(jsonObject); 
-				        	ConexaoMongo c = new ConexaoMongo();
+				        	
 			    			FindIterable<Document> findIterable;
 			    			Document changes;
+			    			Document linha_doc;
 			    			Document filtros;
+			    			Document milestone_doc;
+			    			Document update;
+			    			List<Document> milestones = new ArrayList<Document>();
 			    			Document historico;
 			    			List<Document> lista_hitorico = new ArrayList<Document>();
 				        	pw.close();
-				    		for(int i=0;i<j;i++) {
+				        	for(int i=0;i<j;i++) {
 				    			cell2=row_aux.getCell(i);
 				    			if(!dataFormatter.formatCellValue(cell2).isEmpty()) {
 				    				campos[i]=dataFormatter.formatCellValue(cell2);
@@ -887,495 +1042,595 @@ public class RolloutServlet extends HttpServlet {
 				    			}
 	    	            		 //System.out.println(campos.toString());
 	    	            	 }
-				    		JSONObject jsonObject_campos = r.getCampos().getCampos_tipo(conn, p);
-				    		query="select recid from rollout where empresa="+p.getEmpresa().getEmpresa_id()+" order by recid desc limit 1";
-				    		rs=conn.Consulta(query);
-				    		int last_recid=0;
-				    		if(rs.next()) {
-				    			last_recid=rs.getInt(1);
-				    		}
-				    		Iterator<Row> rowIterator = sheet1.iterator();
+				        	int last_recid=0;
+				        	findIterable=c.LastRegisterCollention("rollout", "recid");
+				        	changes=findIterable.first();
+				        	last_recid=changes.getInteger("recid");
+				        	Iterator<Row> rowIterator = sheet1.iterator();
 				            rowIterator.next();
-				            Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				            double total_linhas=sheet1.getLastRowNum();
-				            double linha_sheet=0.0;
-				            double divisor=total_linhas/10.0;
-				            int i=0;
-				            int []result;
-				            int colunacelula=0;
-				            String aux_insert="";
-				            String aux_update="";
-				            String query_insert_milestone;
-				            String aux_insertM="";
-				            String aux_updateM="";
-				            String status_atividade="nao iniciada";
-				            String site_id="";
-				            conn.getConnection().setAutoCommit(false);
-				            conn.set_stmtBtachUpdateAtributo("update rollout set value_atbr_field=? where recid=? and milestone=? and empresa=?");
-				            conn.set_stmtBtachInsertAtributo("insert into rollout (recid,siteid,milestone,tipo_campo,value_atbr_field,update_by,update_time,ordenacao,empresa) values(?,?,?,?,?,?,?,?,?)");
-				            conn.set_stmtBtachUpdateMilestone("update rollout set dt_inicio_bl=?,dt_fim_bl=?,dt_inicio=?,dt_fim=?,remark=?,responsavel=? where recid=? and milestone=? and empresa=?");
-				            conn.set_stmtBtachInsertMilestone("insert into rollout (recid,siteid,milestone,dt_inicio_bl,dt_fim_bl,dt_inicio,dt_fim,remark,responsavel,tipo_campo,update_by,update_time,ordenacao,empresa,status_atividade,value_atbr_field) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 				            System.out.println("Total de linhas no arquivo:"+total_linhas);
+				            int i=0;
+				            int colunacelula=0;
 				            while (rowIterator.hasNext()) {
 				            	Row row = rowIterator.next();
-				            	linha_sheet=linha_sheet+1;
-				            	//System.out.println("Linha "+row.getRowNum());
+				            	
+				            	linha_doc=new Document();
+				            	operacao="";
 				            	changes=new Document();
 				            	filtros=new Document();
-				            	
 				            	historico=new Document();
 				            	lista_hitorico.clear();
+				            	milestones.clear();
 				    			i=0;
-				    			query="insert into rollout (recid,siteid,milestone,tipo_campo,value_atbr_field,update_by,update_time,ordenacao,empresa) values";
-				    			query_insert_milestone="insert into rollout (recid,siteid,milestone,dt_inicio_bl,dt_fim_bl,dt_inicio,dt_fim,remark,responsavel,tipo_campo,update_by,update_time,ordenacao,empresa,status_atividade,value_atbr_field) values";
-				    			 while (i<j)  {
-				    				 Cell cell = row.getCell(i);
-				    				 
-				    				 //System.out.println("Numero da na linha é: "+row.getRowNum());
-				    				 //System.out.println("Numero da primeira celula na linha é: "+row.getFirstCellNum());
-				    				 //System.out.println("valor de i: "+i);
-				    				 //System.out.println("Linha "+row.getRowNum()+", Célula "+ cell.getColumnIndex());
-				    				 cellValue = dataFormatter.formatCellValue(cell);
-				    				 cellValue=cellValue.replace("'","");
-				    				 cellValue=cellValue.replace("\"","");
-				    				 cellValue=cellValue.replace("\\","_");
-				    				if(row.getRowNum()>2) {
-				    					//query="update rollout set ";
-				    					//System.out.println("Linha"+row.getRowNum()+"| Coluna:"+cell.getColumnIndex());
-					    				 if(row.getFirstCellNum()==0) {
-					    					 if(i==0) {
-					    					 if(cellValue.length()>0) {
+				    			if(row.getRowNum()>2) {
+				    				Cell cell = row.getCell(i);
+				    				cellValue = dataFormatter.formatCellValue(cell);
+				    				cellValue=cellValue.replace("'","");
+				    				cellValue=cellValue.replace("\"","");
+				    				cellValue=cellValue.replace("\\","_");
+				    				if(row.getFirstCellNum()==0) {
+			    						if(i==0) {
+			    							 if(cellValue.length()>0) {
 					    						 recid=Integer.parseInt(cellValue);
-					    						 System.out.println("valor do recid:"+recid);
+					    						 linha_doc=c.ConsultaSimplesComFiltro("rollout", "recid", recid, p.getEmpresa().getEmpresa_id()).first();
+					    						 operacao="update";
 					    						 colunacelula=i;
 					    					 }else {
 					    						 recid=-1;
+					    						 operacao="insert";
 					    						 last_recid=last_recid+1;
 					    						 colunacelula=i;
 					    					 }
-					    					 }else {
-					    						 colunacelula=i;
-					    					 }
-					    				 }else {
-					    					 recid=-1;
-					    					 colunacelula=i;
-					    					 if(i==0) {
-					    						 last_recid=last_recid+1;
-					    					 }
-					    				 }
-					    				 cellValue = dataFormatter.formatCellValue(cell);
-					    				 cellValue=cellValue.replace("'","");
-					    				 cellValue=cellValue.replace("\"","");
-					    				 cellValue=cellValue.replace("\\","_");
-					    				 if(campos[colunacelula].equals("Site ID")) {
-		    	            				 site_id=cellValue;
-		    	            			 }
-					    				 if(jsonObject_campos.has(campos[colunacelula])) {
-					    					 
-					    	            	 if(jsonObject_campos.getJSONArray(campos[colunacelula]).get(0).equals("Atributo")){
-					    	            		 if(recid==-1) {
-					    	            			 if(jsonObject_campos.getJSONArray(campos[colunacelula]).get(1).equals("Data")){
-					    	            				 if(!cellValue.equals("")) {
-					    	            					 //cellValue=f2.format(cellValue);
-							    	            			if(cell.getCellType() == CellType.NUMERIC) {
+			    						}else {
+				    						colunacelula=i;
+				    					 }
+			    					}else {
+			    						recid=-1;
+			    						operacao="insert";
+				    					colunacelula=i;
+				    					 if(i==0) {
+				    						 last_recid=last_recid+1;
+				    					 }
+			    					}
+				    				
+				    			while (i<j && !operacao.equals("abortar"))  {
+				    				 cell = row.getCell(i);
+				    				 colunacelula=i;
+				    				System.out.println("Recid:"+recid+", Linha:"+row.getRowNum()+", celula:"+cell.getColumnIndex()+", opercao:"+operacao+", coluna:"+campos[colunacelula]);
+				    				cellValue = dataFormatter.formatCellValue(cell);
+				    				cellValue=cellValue.replace("'","");
+				    				cellValue=cellValue.replace("\"","");
+				    				cellValue=cellValue.replace("\\","_");
+				    				
+				    					
+				    					
+				    					//campos[colunacelula])
+					    				if(campo_tipo.has(campos[colunacelula])) {
+					    					 if(recid==-1) {
+					    						 
+					    						 changes.append("recid", last_recid);
+					    						 changes.append("Empresa", p.getEmpresa().getEmpresa_id());
+					    						 changes.append("Linha_ativa", "Y");
+					    						 if(campo_tipo.getJSONArray(campos[colunacelula]).get(0).equals("Atributo")){
+					    							 if(campo_tipo.getJSONArray(campos[colunacelula]).get(1).equals("Data")){
+					    								 if(!cellValue.equals("")) {
+					    	            					if(cell.getCellType() == CellType.NUMERIC) {
 								    	            			 if(HSSFDateUtil.isCellDateFormatted(cell)) {
-								    	            				 //System.out.println(cell.getDateCellValue());
-								    	            				 cellValue=f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime());
+								    	            				 changes.append(campos[colunacelula], checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime())));
+								    	            				 //cellValue=f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime());
 								    	            			 }
 							    	            			}else {
-							    	            				cellValue="";
+							    	            				changes.append(campos[colunacelula],"");
 							    	            			}
 						    	            			 }else {
-						    	            				 cellValue="";
+						    	            				 changes.append(campos[colunacelula],"");
 						    	            			 }
-					    	            			 }
-					    	            			 query=query+"("+last_recid+",'site"+last_recid+"','"+campos[colunacelula]+"','Atributo','"+cellValue+"','"+p.get_PessoaUsuario()+"','"+time+"',"+(colunacelula+1)+","+p.getEmpresa().getEmpresa_id()+"),\n";
-					    	            			 
-					    	            			 
-					    	            			 /*conn.get_BatchInsertAtributo().setInt(1, last_recid);
-					    	            			 conn.get_BatchInsertAtributo().setString(2,"site"+last_recid);
-					    	            			 conn.get_BatchInsertAtributo().setString(3, campos[colunacelula]);
-					    	            			 conn.get_BatchInsertAtributo().setString(4, "Atributo");
-					    	            			 conn.get_BatchInsertAtributo().setString(5, cellValue);
-					    	            			 conn.get_BatchInsertAtributo().setString(6, p.get_PessoaUsuario());
-					    	            			 conn.get_BatchInsertAtributo().setString(7, time.toString());
-					    	            			 conn.get_BatchInsertAtributo().setInt(8, (colunacelula+1));
-					    	            			 conn.get_BatchInsertAtributo().setInt(9, p.getEmpresa().getEmpresa_id());
-					    	            			 conn.get_BatchInsertAtributo().addBatch();*/
-					    	            			 aux_insert="ok";
-					    	            			 
-					    	            		 }else {
-					    	            			 //query="update rollout set value_atbr_field=? where recid=? and milestone=? and empresa=?";
-					    	            			 //query=" value_atbr_field='"+cellValue+"' where recid="+recid+" and milestone='"+campos[colunacelula]+"' and empresa="+p.getEmpresa().getEmpresa_id()+";";
-					    	            			 //System.out.println("Adicionando batch linha "+row.getRowNum());
-					    	            			 if(jsonObject_campos.getJSONArray(campos[colunacelula]).get(1).equals("Data")){
-					    	            				 if(!cellValue.equals("")) {
-							    	            			 //cellValue=f2.format(checa_formato_data(cellValue));
-							    	            			 if(cell.getCellType()==CellType.NUMERIC) {
+					    							 }else {
+					    								 if(campos[colunacelula].equals("Site ID") && cellValue.equals("")) {
+					    									 operacao="aborta";
+					    								 }
+					    								 changes.append(campos[colunacelula],cellValue);
+					    							 }
+					    						 }else {//lendo os campos de milestones para insert
+					    							 milestone_doc=new Document();
+					    							 String status_milestone="";
+					    							 milestone_doc.append("Milestone", campos[colunacelula]);
+					    							 if(!cellValue.equals("")) {
+						    	            			if(cell.getCellType() == CellType.NUMERIC) {
+									    	            	if(HSSFDateUtil.isCellDateFormatted(cell)) {
+									    	            		milestone_doc.append("sdate_pre_"+campos[colunacelula], checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime())));
+									    	            	}
+								    	            	}else {
+								    	            		milestone_doc.append("sdate_pre_"+campos[colunacelula],"");
+								    	            		}
+							    	            	}else {
+							    	            			milestone_doc.append("sdate_pre_"+campos[colunacelula],"");
+							    	            	}
+						    						i=i+1;
+					    							cell = row.getCell(i);
+						    	            		cellValue = dataFormatter.formatCellValue(cell);
+						    	            		if(!cellValue.equals("")) {
+					    	            				if(cell.getCellType() == CellType.NUMERIC) {
+								    	            		if(HSSFDateUtil.isCellDateFormatted(cell)) {
+								    	            			milestone_doc.append("edate_pre_"+campos[colunacelula], checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime())));
+								    	            		}
+							    	            		}else {
+							    	            			milestone_doc.append("edate_pre_"+campos[colunacelula],"");
+							    	            		}
+						    	            		}else {
+						    	            			milestone_doc.append("edate_pre_"+campos[colunacelula],"");
+						    	            		}
+						    	            		i=i+1;
+					    							cell = row.getCell(i);
+						    	            		cellValue = dataFormatter.formatCellValue(cell);
+						    	            		if(!cellValue.equals("")) {
+					    	            				if(cell.getCellType() == CellType.NUMERIC) {
+								    	            		if(HSSFDateUtil.isCellDateFormatted(cell)) {
+								    	            			status_milestone="iniciada";
+								    	            			milestone_doc.append("sdate_"+campos[colunacelula], checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime())));
+								    	            		}
+							    	            		}else {
+							    	            			status_milestone="não iniciada";
+							    	            			milestone_doc.append("sdate_"+campos[colunacelula],"");
+							    	            		}
+						    	            		}else {
+						    	            			status_milestone="não iniciada";
+						    	            			milestone_doc.append("sdate_"+campos[colunacelula],"");
+						    	            		}	 
+						    	            		i=i+1;
+					    							cell = row.getCell(i);
+						    	            		cellValue = dataFormatter.formatCellValue(cell);
+						    	            		if(!cellValue.equals("")) {
+					    	            				if(cell.getCellType() == CellType.NUMERIC) {
+								    	            		if(HSSFDateUtil.isCellDateFormatted(cell)) {
+								    	            			status_milestone="Finalizada";
+								    	            			milestone_doc.append("edate_"+campos[colunacelula], checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime())));
+								    	            		}
+							    	            		}else {
+							    	            			milestone_doc.append("edate_"+campos[colunacelula],"");
+							    	            		}
+						    	            		}else {
+						    	            			milestone_doc.append("edate_"+campos[colunacelula],"");
+						    	            		}
+						    	            		i=i+1;
+					    							cell = row.getCell(i);
+						    	            		cellValue = dataFormatter.formatCellValue(cell);
+						    	            		if(!cellValue.equals("")) {
+						    	            			milestone_doc.append("udate_"+campos[colunacelula],cellValue);
+						    	            		}else {
+						    	            			milestone_doc.append("udate_"+campos[colunacelula],"");
+						    	            		} 
+						    	            		i=i+1;
+					    							cell = row.getCell(i);
+						    	            		cellValue = dataFormatter.formatCellValue(cell);
+						    	            		if(!cellValue.equals("")) {
+						    	            			milestone_doc.append("resp_"+campos[colunacelula],cellValue);
+						    	            		}else {
+						    	            			milestone_doc.append("resp_"+campos[colunacelula],"");
+						    	            		}
+						    	            		milestone_doc.append("status_"+campos[colunacelula],status_milestone);
+						    	            		milestone_doc.append("duracao_"+campos[colunacelula],0);
+						    	            		milestones.add(milestone_doc);
+					    						 }//fim do else do campo de milestone
+					    					 }else{///if de recid=-1
+					    						 //System.out.println("recid:"+recid);
+			    	            				 //System.out.println(campos[colunacelula]+":"+linha_doc.get(campos[colunacelula]));
+			    	            				 //System.out.println(campos[colunacelula]+":"+cellValue);
+					    						 if(campo_tipo.getJSONArray(campos[colunacelula]).get(0).equals("Atributo")){
+					    							 if(campo_tipo.getJSONArray(campos[colunacelula]).get(1).equals("Data")){
+					    								 if(!cellValue.equals("")) {
+					    	            					if(cell.getCellType() == CellType.NUMERIC) {
 								    	            			 if(HSSFDateUtil.isCellDateFormatted(cell)) {
-								    	            				 //System.out.println(cell.getDateCellValue());
-								    	            				 cellValue=f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime());
+								    	            				 if(linha_doc.get(campos[colunacelula])!=null && !linha_doc.get(campos[colunacelula]).equals("")) {
+									    	            				 if(linha_doc.getDate(campos[colunacelula])!=checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime()))) {
+									    	            					changes.append(campos[colunacelula], checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime())));
+									    	            					historico=new Document();
+									    	            					historico.append("recid" , recid);
+									    	         				        historico.append("SiteID" , linha_doc.getString("Site ID"));
+									    	         				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+									    	         				        historico.append("TipoCampo" , "Atributo");
+									    	         				        historico.append("Milestone" , "");
+									    	         				        historico.append("Campo",campos[colunacelula]);
+									    	         				        historico.append("Valor Anterior" , linha_doc.get(campos[colunacelula]));
+									    	         				        historico.append("Novo Valor" , f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime()));
+									    	         				        historico.append("update_by", p.get_PessoaUsuario());
+									    	         				        historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+									    	         				        lista_hitorico.add(historico);
+									    	         				        
+									    	            				 }
+								    	            				 }else {
+								    	            					 changes.append(campos[colunacelula], checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime())));
+								    	            					 historico=new Document();	
+								    	            					 historico.append("recid" , recid);
+									    	         				        historico.append("SiteID" , linha_doc.getString("Site ID"));
+									    	         				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+									    	         				        historico.append("TipoCampo" , "Atributo");
+									    	         				        historico.append("Milestone" , "");
+									    	         				        historico.append("Campo",campos[colunacelula]);
+									    	         				        historico.append("Valor Anterior" , linha_doc.get(campos[colunacelula]));
+									    	         				        historico.append("Novo Valor" , f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime()));
+									    	         				        historico.append("update_by", p.get_PessoaUsuario());
+									    	         				        historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+									    	         				        lista_hitorico.add(historico);
+									    	         				        
+								    	            				 }
 								    	            			 }
-							    	            			 }else {
-							    	            				 cellValue="";
-							    	            			 }
+							    	            			}
 						    	            			 }else {
-						    	            				 cellValue="";
+						    	            				 
+						    	            				 if(!linha_doc.get(campos[colunacelula]).equals(cellValue)) {
+						    	            					 changes.append(campos[colunacelula], "");
+						    	            					 historico=new Document();
+						    	            					 historico.append("recid" , recid);
+							    	         				       historico.append("SiteID" , linha_doc.getString("Site ID"));
+							    	         				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+							    	         				        historico.append("TipoCampo" , "Atributo");
+							    	         				        historico.append("Milestone" , "");
+							    	         				        historico.append("Campo",campos[colunacelula]);
+							    	         				        historico.append("Valor Anterior" , linha_doc.get(campos[colunacelula]));
+							    	         				        historico.append("Novo Valor" , "");
+							    	         				        historico.append("update_by", p.get_PessoaUsuario());
+							    	         				        historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+							    	         				        lista_hitorico.add(historico);
+							    	         				       
+						    	            				 }
 						    	            			 }
-					    	            			 }
-					    	            			 findIterable = c.ConsultaSimplesComFiltro("rollout", "recid", recid, p.getEmpresa().getEmpresa_id());
-					    	            			 if(findIterable.iterator().next().get(campos[colunacelula]).toString().equals(cellValue)) {
-					    	            				 
-					    	            			 }else {
-					    	            				 changes.append(campos[colunacelula],cellValue);
-					    	            				 historico.append("recid", recid);
-					    	            				 historico.append("SiteID", site_id);
-					    	            				 historico.append("Empresa", p.getEmpresa().getEmpresa_id());
-					    	            				 historico.append("TipoCampo", "Atributo");
-					    	            				 historico.append("Milestone", "");
-					    	            				 historico.append("Campo", campos[colunacelula]);
-					    	            				 historico.append("Valor Anterior", findIterable.iterator().next().get(campos[colunacelula]).toString());
-					    	            				 historico.append("Novo Valor", cellValue.toString());
-					    	            				 historico.append("update_by", p.get_PessoaUsuario());
-					    	            				 historico.append("update_time", time);
-					    	            				 lista_hitorico.add(historico);
-					    	            			 }
-					    	            				 
-					    	            			 
-					    	            			 
-					    	            			 conn.get_BatchUpdateAtributo().setString(1, cellValue);
-					    	            			 conn.get_BatchUpdateAtributo().setInt(2, recid);
-					    	            			 conn.get_BatchUpdateAtributo().setString(3, campos[colunacelula]);
-					    	            			 conn.get_BatchUpdateAtributo().setInt(4, p.getEmpresa().getEmpresa_id());
-					    	            			 conn.get_BatchUpdateAtributo().addBatch();
-					    	            			 aux_update="ok";
-					    	            			 
-					    	            		 }
-					    	            	 }else if(jsonObject_campos.getJSONArray(campos[colunacelula]).get(0).equals("Milestone")) {
-					    	            		 if(recid==-1) {
-					    	            			 //System.out.println("inserindo nova linha "+row.getRowNum());
-					    	            			 //query="insert into rollout (recid,siteid,milestone,dt_inicio_bl,dt_fim_bl,dt_inicio,dt_fim,remark,responsavel,tipo_campo,update_by,update_time,ordenacao,empresa,status_atividade,value_atbr_field)"
-					    	            			 query_insert_milestone=query_insert_milestone+"("+last_recid+",'site"+last_recid+"','"+campos[colunacelula]+"',";
-					    	            			 //conn.get_BatchInsertMilestone().setInt(1, last_recid);
-					    	            			 //conn.get_BatchInsertMilestone().setString(2, "site"+last_recid);
-					    	            			 //conn.get_BatchInsertMilestone().setString(3, campos[colunacelula]);
-					    	            			 if(!cellValue.equals("")) {
-						    	            			 //cellValue=f2.format(checa_formato_data(cellValue));
-						    	            			 if(cell.getCellType()==CellType.NUMERIC) {
-							    	            			 if(HSSFDateUtil.isCellDateFormatted(cell)) {
-							    	            				 //System.out.println(cell.getDateCellValue());
-							    	            				 cellValue=f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime());
-							    	            			 }
-						    	            			 }else {
-						    	            				 cellValue="";
-						    	            			 }
-					    	            			 }else {
-					    	            				 cellValue="";
-					    	            			 }
-					    	            			 query_insert_milestone=query_insert_milestone+"'"+cellValue+"',";
-					    	            			 //conn.get_BatchInsertMilestone().setString(4, cellValue);
-					    	            			 
-					    	            			 i++;
-					    	            			 cell = row.getCell(i);
-					    	            			 
-					    	            			 cellValue = dataFormatter.formatCellValue(cell);
-					    	            			 if(!cellValue.equals("")) {
-						    	            			 //cellValue=f2.format(checa_formato_data(cellValue));
-						    	            			 if(cell.getCellType()==CellType.NUMERIC) {
-							    	            			 if(HSSFDateUtil.isCellDateFormatted(cell)) {
-							    	            				 //System.out.println(cell.getDateCellValue());
-							    	            				 cellValue=f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime());
-							    	            			 }
-						    	            			 }else {
-						    	            				 cellValue="";
-						    	            			 }
-					    	            			 }else {
-					    	            				 cellValue="";
-					    	            			 }
-					    	            			 query_insert_milestone=query_insert_milestone+"'"+cellValue+"',";
-					    	            			 //conn.get_BatchInsertMilestone().setString(5, cellValue);
-					    	            			 
-					    	            			 i++;
-					    	            			 cell = row.getCell(i);
-					    	            			 cellValue = dataFormatter.formatCellValue(cell);
-					    	            			 if(!cellValue.equals("")) {
-						    	            			 //cellValue=f2.format(checa_formato_data(cellValue));
-					    	            				 if(cell.getCellType()==CellType.NUMERIC) {
-							    	            			 if(HSSFDateUtil.isCellDateFormatted(cell)) {
-							    	            				 //System.out.println(cell.getDateCellValue());
-							    	            				 cellValue=f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime());
-							    	            			 }
-						    	            			 }else {
-						    	            				 cellValue="";
-						    	            			 }
-					    	            			 }else {
-					    	            				 cellValue="";
-					    	            			 }
-					    	            			 query_insert_milestone=query_insert_milestone+"'"+cellValue+"',";
-					    	            			// conn.get_BatchInsertMilestone().setString(6, cellValue);
-					    	            			
-					    	            			 if(cellValue.length()>0) {
-					    	            				 status_atividade="iniciada";
-					    	            			 }else {
-					    	            				 status_atividade="nao iniciada";
-					    	            			 }
-					    	            			 i++;
-					    	            			 cell = row.getCell(i);
-					    	            			 cellValue = dataFormatter.formatCellValue(cell);
-					    	            			 if(!cellValue.equals("")) {
-						    	            			 //cellValue=f2.format(checa_formato_data(cellValue));
-						    	            			 if(cell.getCellType()==CellType.NUMERIC) {
-							    	            			 if(HSSFDateUtil.isCellDateFormatted(cell)) {
-							    	            				 //System.out.println(cell.getDateCellValue());
-							    	            				 cellValue=f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime());
-							    	            			 }
-						    	            			 }else {
-						    	            				 cellValue="";
-						    	            			 }
-					    	            			 }else {
-					    	            				 cellValue="";
-					    	            			 }
-					    	            			 query_insert_milestone=query_insert_milestone+"'"+cellValue+"',";
-					    	            			 //conn.get_BatchInsertMilestone().setString(7, cellValue);
-					    	            			 
-					    	            			 if(cellValue.length()>0) {
-					    	            				 status_atividade="Finalizada";
-					    	            			 }
-					    	            			 i++;
-					    	            			 cell = row.getCell(i);
-					    	            			 cellValue = dataFormatter.formatCellValue(cell);
-					    	            			 query_insert_milestone=query_insert_milestone+"'"+cellValue+"',";
-					    	            			 //conn.get_BatchInsertMilestone().setString(8, cellValue);
-					    	            			
-					    	            			 i++;
-					    	            			 cell = row.getCell(i);
-					    	            			 
-					    	            			 cellValue = dataFormatter.formatCellValue(cell);
-					    	            			 query_insert_milestone=query_insert_milestone+"'"+cellValue+"',";
-					    	            			 //conn.get_BatchInsertMilestone().setString(9, cellValue);
-					    	            			 query_insert_milestone=query_insert_milestone+"'Milestone',";
-					    	            			// conn.get_BatchInsertMilestone().setString(10, "Milestone");
-					    	            			 query_insert_milestone=query_insert_milestone+"'"+p.get_PessoaUsuario()+"',";
-					    	            			 //conn.get_BatchInsertMilestone().setString(11, p.get_PessoaUsuario());
-					    	            			 query_insert_milestone=query_insert_milestone+"'"+time+"',";
-					    	            			 //conn.get_BatchInsertMilestone().setString(12, time.toString());
-					    	            			 query_insert_milestone=query_insert_milestone+(colunacelula+1)+",";
-					    	            			 //conn.get_BatchInsertMilestone().setInt(13, (colunacelula+1));
-					    	            			 query_insert_milestone=query_insert_milestone+p.getEmpresa().getEmpresa_id()+",";
-					    	            			 //conn.get_BatchInsertMilestone().setInt(14, p.getEmpresa().getEmpresa_id());
-					    	            			 query_insert_milestone=query_insert_milestone+"'"+status_atividade+"',";
-					    	            			 //conn.get_BatchInsertMilestone().setString(15,status_atividade);
-					    	            			 query_insert_milestone=query_insert_milestone+"'"+site_id+"'),\n";
-					    	            			 //conn.get_BatchInsertMilestone().setString(16,site_id);
-					    	            			 //conn.get_BatchInsertMilestone().addBatch();
-					    	            			 aux_insertM="ok";
-					    	            			 //query=query+"'Milestone','"+p.get_PessoaUsuario()+"','"+time+"',"+(colunacelula+1)+","+p.getEmpresa().getEmpresa_id()+",'"+status_atividade+"','"+site_id+"');";
-					    	            			 
-					    	            		 }else {
-					    	            			 if(!cellValue.equals("")) {
-						    	            			 //cellValue=f2.format(checa_formato_data(cellValue));
-						    	            			 if(cell.getCellType()==CellType.NUMERIC) {
-							    	            			 if(HSSFDateUtil.isCellDateFormatted(cell)) {
-							    	            				 //System.out.println(cell.getDateCellValue());
-							    	            				 cellValue=f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime());
-							    	            			 }
-						    	            			 }else {
-						    	            				 cellValue="";
-						    	            			 }
-					    	            			 }else {
-					    	            				 cellValue="";
-					    	            			 }	 
-					    	            		 conn.get_BatchUpdateMilestone().setString(1, cellValue);
-					    	            		 //query=query+" dt_inicio_bl='"+cellValue+"',";
-					    	            		 
-					    	            		 i++;
-				    	            			 cell = row.getCell(i);
-					    	            		 cellValue = dataFormatter.formatCellValue(cell);
-					    	            		 if(!cellValue.equals("")) {
-					    	            			 //cellValue=f2.format(checa_formato_data(cellValue));
-					    	            			 if(cell.getCellType()==CellType.NUMERIC) {
-						    	            			 if(HSSFDateUtil.isCellDateFormatted(cell)) {
-						    	            				 //System.out.println(cell.getDateCellValue());
-						    	            				 cellValue=f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime());
-						    	            			 }
-					    	            			 }else {
-					    	            				 cellValue="";
-					    	            			 }
-				    	            			 }else {
-				    	            				 cellValue="";
-				    	            			 }
-					    	            		 conn.get_BatchUpdateMilestone().setString(2, cellValue);
-					    	            		 //query=query+" dt_fim_bl='"+cellValue+"',";
-					    	            		 i++;
-				    	            			 cell = row.getCell(i);
-					    	            		 cellValue = dataFormatter.formatCellValue(cell);
-					    	            		 if(!cellValue.equals("")) {
-					    	            			 //cellValue=f2.format(checa_formato_data(cellValue));
-					    	            			 if(cell.getCellType()==CellType.NUMERIC) {
-						    	            			 if(HSSFDateUtil.isCellDateFormatted(cell)) {
-						    	            				 //System.out.println(cell.getDateCellValue());
-						    	            				 cellValue=f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime());
-						    	            			 }
-					    	            			 }else {
-					    	            				 cellValue="";
-					    	            			 }
-				    	            			 }else {
-				    	            				 cellValue="";
-				    	            			 }
-					    	            		 conn.get_BatchUpdateMilestone().setString(3, cellValue);
-					    	            		 //query=query+" dt_inicio='"+cellValue+"',";
-					    	            		 i++;
-				    	            			 cell = row.getCell(i);
-					    	            		 cellValue = dataFormatter.formatCellValue(cell);
-					    	            		 if(!cellValue.equals("")) {
-					    	            			 //cellValue=f2.format(checa_formato_data(cellValue));
-					    	            			 if(cell.getCellType()==CellType.NUMERIC) {
-						    	            			 if(HSSFDateUtil.isCellDateFormatted(cell)) {
-						    	            				 //System.out.println(cell.getDateCellValue());
-						    	            				 cellValue=f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime());
-						    	            			 }
-					    	            			 }else {
-					    	            				 cellValue="";
-					    	            			 }
-				    	            			 }else {
-				    	            				 cellValue="";
-				    	            			 }
-					    	            		 conn.get_BatchUpdateMilestone().setString(4, cellValue);
-					    	            		 //query=query+" dt_fim='"+cellValue+"',";
-					    	            		 i++;
-				    	            			 cell = row.getCell(i);
-					    	            		 cellValue = dataFormatter.formatCellValue(cell);
-					    	            		 conn.get_BatchUpdateMilestone().setString(5, cellValue);
-					    	            		 //query=query+" remark='"+cellValue+"',";
-					    	            		 i++;
-				    	            			 cell = row.getCell(i);
-					    	            		 cellValue = dataFormatter.formatCellValue(cell);
-					    	            		 conn.get_BatchUpdateMilestone().setString(6, cellValue);
-					    	            		 //query=query+" responsavel='"+cellValue+"'";
-					    	            		 conn.get_BatchUpdateMilestone().setInt(7, recid);
-					    	            		 conn.get_BatchUpdateMilestone().setString(8, campos[colunacelula]);
-					    	            		 conn.get_BatchUpdateMilestone().setInt(9, p.getEmpresa().getEmpresa_id());
-					    	            		 conn.get_BatchUpdateMilestone().addBatch();
-					    	            		 aux_updateM="ok";
-					    	            		 //query=query+" where recid="+recid+" and milestone='"+campos[colunacelula]+"' and empresa="+p.getEmpresa().getEmpresa_id()+";";
-					    	            		 
-					    	            		 }
-					    	            	 }
-				    				 }
-					    	        }
-				    				i++;
-				    				
-				    			}
-				    			 //System.out.println(linha_sheet % divisor);
-				    			if(linha_sheet % divisor < 1.0) {
-				    				 //System.out.println("Atualizando status");
-				    				 //System.out.println(linha_sheet);
-				    				 //System.out.println(total_linhas);
-				    				 //System.out.println(linha_sheet / total_linhas);
-				    				 //System.out.println((linha_sheet / total_linhas) * 100);
-				    				 //System.out.println("update arquivos_importados set status_processamento='"+(int) ((linha_sheet / total_linhas) * 100)+"' where id_sys_arq="+linha);
-				    				conn.Alterar("update arquivos_importados set status_processamento='"+(int) ((linha_sheet / total_linhas) * 100)+"' where id_sys_arq="+linha);
-				    				conn.getConnection().commit();
-				    			}
-				    				//time2 = new Timestamp(System.currentTimeMillis());
-						            //System.out.println("executando - "+linha_sheet);
-						            if(aux_update.equals("ok")) {
-						            	result=conn.get_BatchUpdateAtributo().executeBatch();
-							            conn.getConnection().commit();
-							            //time2 = new Timestamp(System.currentTimeMillis());
-							            //System.out.println("Batch update Atributo finalizado. Linhas alteradas:"+result.length + "em "+TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())));
-						            }
-						            if(aux_insert.equals("ok")) {
-						            	//result=conn.get_BatchInsertAtributo().executeBatch();
-							            //conn.getConnection().commit();
-							            //time2 = new Timestamp(System.currentTimeMillis());
-							            query=query.substring(0,query.length()-2);
-							            //System.out.println(query);
-							            if(conn.Inserir_simples(query)) {
-							            	query="";
-							            	//System.out.println("Batch insert Atributo finalizado. Linhas alteradas em "+TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())));
-							            }
-						            }
-						            if(aux_insertM.equals("ok")) {
-						            	//result=conn.get_BatchInsertMilestone().executeBatch();
-							            //conn.getConnection().commit();
-							            //time2 = new Timestamp(System.currentTimeMillis());
-							            query_insert_milestone=query_insert_milestone.substring(0,query_insert_milestone.length()-2);
-							            if(conn.Inserir_simples(query_insert_milestone)) {
-							            query_insert_milestone="";
-							            //System.out.println("Batch insert Milestone finalizado. Linhas alteradas em "+TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())));
-							            }
-						            }
-						            if(aux_updateM.equals("ok")) {
-						            	result=conn.get_BatchUpdateMilestone().executeBatch();
-							            conn.getConnection().commit();
-							            //time2 = new Timestamp(System.currentTimeMillis());
-							            //System.out.println("Batch update Milestone finalizado. Linhas alteradas:"+result.length + "em "+TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())));
-						            }
-						            aux_update="";
-						            aux_insert="";
-						            aux_insertM="";
-						            aux_updateM="";
-						            conn.get_BatchUpdateAtributo().clearBatch();
-						            conn.get_BatchInsertAtributo().clearBatch();
-						            conn.get_BatchInsertMilestone().clearBatch();
-						            conn.get_BatchUpdateMilestone().clearBatch();
-						            filtros.append("recid", recid);
-					            	filtros.append("Empresa", p.getEmpresa().getEmpresa_id());
-						            c.BuscaAtualizaByRecID("rollout",filtros,changes);
-						            for(int o=0;o<lista_hitorico.size();o++) {
-						            	c.InserirSimpels("rollout_history", lista_hitorico.get(o));
-						            }
-				    			//}
-				    		}
-				            /*time2 = new Timestamp(System.currentTimeMillis());
-				            System.out.println("Montagem dos Bacths finalizados - executando");
-				            result=conn.get_BatchUpdateAtributo().executeBatch();
-				            conn.getConnection().commit();
-				            time2 = new Timestamp(System.currentTimeMillis());
-				            System.out.println("Batch update Atributo finalizado. Linhas alteradas:"+result.length + "em "+TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())));
-				            result=conn.get_BatchInsertAtributo().executeBatch();
-				            conn.getConnection().commit();
-				            time2 = new Timestamp(System.currentTimeMillis());
-				            System.out.println("Batch insert Atributo finalizado. Linhas alteradas:"+result.length + "em "+TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())));
-				            result=conn.get_BatchInsertMilestone().executeBatch();
-				            conn.getConnection().commit();
-				            time2 = new Timestamp(System.currentTimeMillis());
-				            System.out.println("Batch insert Milestone finalizado. Linhas alteradas:"+result.length + "em "+TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())));
-				            result=conn.get_BatchUpdateMilestone().executeBatch();
-				            conn.getConnection().commit();
-				            time2 = new Timestamp(System.currentTimeMillis());
-				            System.out.println("Batch update Milestone finalizado. Linhas alteradas:"+result.length + "em "+TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())));
-				            conn.get_BatchUpdateAtributo().clearBatch();
-				            conn.get_BatchInsertAtributo().clearBatch();
-				            conn.get_BatchInsertMilestone().clearBatch();
-				            conn.get_BatchUpdateMilestone().clearBatch();
-				           */
-				            conn.Alterar("update arquivos_importados set status_processamento='100' where id_sys_arq="+linha);
-					    }
-					}
-					
-					System.out.println("Importação Finalizada!");
-					conn.Alterar("update rollout set dt_inicio=replace(dt_inicio,'0018','2018') where dt_inicio like '%0018'");
-					conn.Alterar("update rollout set dt_inicio=replace(dt_inicio,'0019','2018') where dt_inicio like '%0019'");
-					conn.Alterar("update rollout set dt_inicio=replace(dt_inicio,'0020','2018') where dt_inicio like '%0020'");
-					
-					conn.Alterar("update rollout set dt_fim=replace(dt_fim,'0018','2018') where dt_fim like '%0018'");
-					conn.Alterar("update rollout set dt_fim=replace(dt_fim,'0019','2018') where dt_fim like '%0019'");
-					conn.Alterar("update rollout set dt_fim=replace(dt_fim,'0020','2018') where dt_fim like '%0020'");
-					
-					conn.Alterar("update rollout set dt_inicio_bl=replace(dt_inicio_bl,'0018','2018') where dt_inicio_bl like '%0018'");
-					conn.Alterar("update rollout set dt_inicio_bl=replace(dt_inicio_bl,'0019','2018') where dt_inicio_bl like '%0019'");
-					conn.Alterar("update rollout set dt_inicio_bl=replace(dt_inicio_bl,'0020','2018') where dt_inicio_bl like '%0020'");
-					
-					conn.Alterar("update rollout set dt_fim_bl=replace(dt_fim_bl,'0018','2018') where dt_fim_bl like '%0018'");
-					conn.Alterar("update rollout set dt_fim_bl=replace(dt_fim_bl,'0019','2018') where dt_fim_bl like '%0019'");
-					conn.Alterar("update rollout set dt_fim_bl=replace(dt_fim_bl,'0020','2018') where dt_fim_bl like '%0020'");
-					
-					conn.Alterar("update rollout set value_atbr_field=replace(value_atbr_field,'0018','2018') where value_atbr_field like '%0018'");
-					conn.Alterar("update rollout set value_atbr_field=replace(value_atbr_field,'0019','2018') where value_atbr_field like '%0019'");
-					conn.Alterar("update rollout set value_atbr_field=replace(value_atbr_field,'0020','2018') where value_atbr_field like '%0020'");
-				}
+					    							 }else {
+					    								 if(linha_doc.get(campos[colunacelula])!=null) {
+					    									 
+							    								 if(!linha_doc.get(campos[colunacelula]).equals(cellValue)) {
+							    									 changes.append(campos[colunacelula],cellValue);
+							    									 historico=new Document();
+							    									 historico.append("recid" , recid);
+								    	         				        historico.append("SiteID" , linha_doc.getString("Site ID"));
+								    	         				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+								    	         				        historico.append("TipoCampo" , "Atributo");
+								    	         				        historico.append("Milestone" , "");
+								    	         				        historico.append("Campo",campos[colunacelula]);
+								    	         				        historico.append("Valor Anterior" , linha_doc.get(campos[colunacelula]));
+								    	         				        historico.append("Novo Valor" , cellValue);
+								    	         				        historico.append("update_by", p.get_PessoaUsuario());
+								    	         				        historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+								    	         				        lista_hitorico.add(historico);
+								    	         				        
+							    								 }
+					    									 
+					    								 }else {
+					    									 if(!cellValue.equals("")) {
+					    										 changes.append(campos[colunacelula],cellValue);
+					    										 historico=new Document();
+					    										 historico.append("recid" , recid);
+							    	         				        historico.append("SiteID" , linha_doc.getString("Site ID"));
+							    	         				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+							    	         				        historico.append("TipoCampo" , "Atributo");
+							    	         				        historico.append("Milestone" , "");
+							    	         				        historico.append("Campo",campos[colunacelula]);
+							    	         				        historico.append("Valor Anterior" , linha_doc.get(campos[colunacelula]));
+							    	         				        historico.append("Novo Valor" , cellValue);
+							    	         				        historico.append("update_by", p.get_PessoaUsuario());
+							    	         				        historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+							    	         				        lista_hitorico.add(historico);
+							    	         				        
+					    									 }
+					    								 }
+					    							 }
+					    						 }else {//lendo os campos de milestones para update
+					    							 List<Document> milestones_list=(List<Document>) linha_doc.get("Milestone");
+					    							 milestone_doc=new Document();
+					    							 int indice_milestone=0;
+					    							 for(int f=0;f<milestones_list.size();f++){
+					    								 milestone_doc=milestones_list.get(f);
+					    								 indice_milestone=f;
+					    								if(milestone_doc.getString("Milestone").equals(campos[colunacelula])) {
+					    									 f=999;
+					    								 }
+					    							 }
+					    							 if(!cellValue.equals("")) {
+							    	            			if(cell.getCellType() == CellType.NUMERIC) {
+										    	            	if(HSSFDateUtil.isCellDateFormatted(cell)) {
+										    	            		if(milestone_doc.get("sdate_pre_"+campos[colunacelula])!=null && !milestone_doc.get("sdate_pre_"+campos[colunacelula]).equals("")) {
+										    	            			if(milestone_doc.getDate("sdate_pre_"+campos[colunacelula])!=checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime()))) {
+										    	            				changes.append("Milestone."+indice_milestone+".sdate_pre_"+campos[colunacelula],checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime())));
+										    	            				historico=new Document();
+										    	            				historico.append("recid" , recid);
+										    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+										    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+										    	         				    historico.append("TipoCampo" , "Milestone");
+										    	         				    historico.append("Milestone" , campos[colunacelula]);
+										    	         				    historico.append("Campo","sdate_pre_"+campos[colunacelula]);
+										    	         				    historico.append("Valor Anterior" , milestone_doc.get("sdate_pre_"+campos[colunacelula]));
+										    	         				    historico.append("Novo Valor" , cellValue);
+										    	         				    historico.append("update_by", p.get_PessoaUsuario());
+										    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+										    	         				    lista_hitorico.add(historico);
+									    	         				        
+										    	            			}
+										    	            		}else {
+										    	            			changes.append("Milestone."+indice_milestone+".sdate_pre_"+campos[colunacelula],checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime())));
+										    	            			historico=new Document();
+										    	            			historico.append("recid" , recid);
+									    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+									    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+									    	         				    historico.append("TipoCampo" , "Milestone");
+									    	         				    historico.append("Milestone" , campos[colunacelula]);
+									    	         				    historico.append("Campo","sdate_pre_"+campos[colunacelula]);
+									    	         				    historico.append("Valor Anterior" , "");
+									    	         				    historico.append("Novo Valor" , cellValue);
+									    	         				    historico.append("update_by", p.get_PessoaUsuario());
+									    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+									    	         				    lista_hitorico.add(historico);
+								    	         				       
+										    	            		}
+										    	            	}
+									    	            	}
+								    	            	}else {
+								    	            		if(!milestone_doc.get("sdate_pre_"+campos[colunacelula]).equals(cellValue)) {
+								    	            			changes.append("Milestone."+indice_milestone+".sdate_pre_"+campos[colunacelula],cellValue);
+								    	            			historico=new Document();
+								    	            			historico.append("recid" , recid);
+							    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+							    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+							    	         				    historico.append("TipoCampo" , "Milestone");
+							    	         				    historico.append("Milestone" , campos[colunacelula]);
+							    	         				    historico.append("Campo","sdate_pre_"+campos[colunacelula]);
+							    	         				    historico.append("Valor Anterior" , milestone_doc.get("sdate_pre_"+campos[colunacelula]));
+							    	         				    historico.append("Novo Valor" , cellValue);
+							    	         				    historico.append("update_by", p.get_PessoaUsuario());
+							    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+							    	         				    lista_hitorico.add(historico);
+						    	         				       
+								    	            		}
+								    	            	}
+							    						i=i+1;
+							    						cell = row.getCell(i);
+							    	            		cellValue = dataFormatter.formatCellValue(cell);
+							    	            		if(!cellValue.equals("")) {
+							    	            			if(cell.getCellType() == CellType.NUMERIC) {
+										    	            	if(HSSFDateUtil.isCellDateFormatted(cell)) {
+										    	            		if(milestone_doc.get("edate_pre_"+campos[colunacelula])!=null && !milestone_doc.get("edate_pre_"+campos[colunacelula]).equals("")) {
+										    	            			if(milestone_doc.getDate("edate_pre_"+campos[colunacelula])!=checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime()))) {
+										    	            				changes.append("Milestone."+indice_milestone+".edate_pre_"+campos[colunacelula],checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime())));
+										    	            				historico=new Document();
+										    	            				historico.append("recid" , recid);
+										    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+										    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+										    	         				    historico.append("TipoCampo" , "Milestone");
+										    	         				    historico.append("Milestone" , campos[colunacelula]);
+										    	         				    historico.append("Campo","edate_pre_"+campos[colunacelula]);
+										    	         				    historico.append("Valor Anterior" , milestone_doc.get("edate_pre_"+campos[colunacelula]));
+										    	         				    historico.append("Novo Valor" , cellValue);
+										    	         				    historico.append("update_by", p.get_PessoaUsuario());
+										    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+										    	         				    lista_hitorico.add(historico);
+									    	         				        
+										    	            			}
+										    	            		}else {
+										    	            			changes.append("Milestone."+indice_milestone+".edate_pre_"+campos[colunacelula],checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime())));
+										    	            			historico=new Document();
+										    	            			historico.append("recid" , recid);
+									    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+									    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+									    	         				    historico.append("TipoCampo" , "Milestone");
+									    	         				    historico.append("Milestone" , campos[colunacelula]);
+									    	         				    historico.append("Campo","edate_pre_"+campos[colunacelula]);
+									    	         				    historico.append("Valor Anterior" , "");
+									    	         				    historico.append("Novo Valor" , cellValue);
+									    	         				    historico.append("update_by", p.get_PessoaUsuario());
+									    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+									    	         				    lista_hitorico.add(historico);
+								    	         				       
+										    	            		}
+										    	            	}
+									    	            	}
+								    	            	}else {
+								    	            		if(!milestone_doc.get("edate_pre_"+campos[colunacelula]).equals(cellValue)) {
+								    	            			changes.append("Milestone."+indice_milestone+".edate_pre_"+campos[colunacelula],cellValue);
+								    	            			historico=new Document();
+								    	            			historico.append("recid" , recid);
+							    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+							    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+							    	         				    historico.append("TipoCampo" , "Milestone");
+							    	         				    historico.append("Milestone" , campos[colunacelula]);
+							    	         				    historico.append("Campo","edate_pre_"+campos[colunacelula]);
+							    	         				    historico.append("Valor Anterior" , milestone_doc.get("edate_pre_"+campos[colunacelula]));
+							    	         				    historico.append("Novo Valor" , cellValue);
+							    	         				    historico.append("update_by", p.get_PessoaUsuario());
+							    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+							    	         				    lista_hitorico.add(historico);
+						    	         				        
+								    	            		}
+								    	            	}
+							    	            		i=i+1;
+							    	            		cell = row.getCell(i);
+							    	            		cellValue = dataFormatter.formatCellValue(cell);
+							    	            		if(!cellValue.equals("")) {
+							    	            			if(cell.getCellType() == CellType.NUMERIC) {
+										    	            	if(HSSFDateUtil.isCellDateFormatted(cell)) {
+										    	            		if(milestone_doc.get("sdate_"+campos[colunacelula])!=null && !milestone_doc.get("sdate_"+campos[colunacelula]).equals("")) {
+										    	            			if(milestone_doc.getDate("sdate_"+campos[colunacelula])!=checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime()))) {
+										    	            				historico=new Document();
+										    	            				changes.append("Milestone."+indice_milestone+".sdate_"+campos[colunacelula],checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime())));
+									    									historico.append("recid" , recid);
+										    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+										    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+										    	         				    historico.append("TipoCampo" , "Milestone");
+										    	         				    historico.append("Milestone" , campos[colunacelula]);
+										    	         				    historico.append("Campo","sdate_"+campos[colunacelula]);
+										    	         				    historico.append("Valor Anterior" , milestone_doc.get("sdate_"+campos[colunacelula]));
+										    	         				    historico.append("Novo Valor" , cellValue);
+										    	         				    historico.append("update_by", p.get_PessoaUsuario());
+										    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+										    	         				    lista_hitorico.add(historico);
+									    	         				        
+										    	            			}
+										    	            		}else {
+										    	            			changes.append("Milestone."+indice_milestone+".sdate_"+campos[colunacelula],checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime())));
+										    	            			historico=new Document();
+										    	            			historico.append("recid" , recid);
+									    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+									    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+									    	         				    historico.append("TipoCampo" , "Milestone");
+									    	         				    historico.append("Milestone" , campos[colunacelula]);
+									    	         				    historico.append("Campo","sdate_"+campos[colunacelula]);
+									    	         				    historico.append("Valor Anterior" , "");
+									    	         				    historico.append("Novo Valor" , cellValue);
+									    	         				    historico.append("update_by", p.get_PessoaUsuario());
+									    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+									    	         				    lista_hitorico.add(historico);
+								    	         				        
+										    	            		}
+										    	            	}
+									    	            	}
+								    	            	}else {
+								    	            		if(!milestone_doc.get("sdate_"+campos[colunacelula]).equals(cellValue)) {
+								    	            			changes.append("Milestone."+indice_milestone+".sdate_"+campos[colunacelula],cellValue);
+								    	            			historico=new Document();
+								    	            			historico.append("recid" , recid);
+							    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+							    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+							    	         				    historico.append("TipoCampo" , "Milestone");
+							    	         				    historico.append("Milestone" , campos[colunacelula]);
+							    	         				    historico.append("Campo","sdate_"+campos[colunacelula]);
+							    	         				    historico.append("Valor Anterior" , milestone_doc.get("sdate_"+campos[colunacelula]));
+							    	         				    historico.append("Novo Valor" , cellValue);
+							    	         				    historico.append("update_by", p.get_PessoaUsuario());
+							    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+							    	         				    lista_hitorico.add(historico);
+						    	         				        
+								    	            		}
+								    	            	}
+							    	            		i=i+1;
+							    	            		cell = row.getCell(i);
+							    	            		cellValue = dataFormatter.formatCellValue(cell);
+							    	            		if(!cellValue.equals("")) {
+							    	            			if(cell.getCellType() == CellType.NUMERIC) {
+										    	            	if(HSSFDateUtil.isCellDateFormatted(cell)) {
+										    	            		if(milestone_doc.get("edate_"+campos[colunacelula])!=null && !milestone_doc.get("edate_"+campos[colunacelula]).equals("")) {
+										    	            			if(milestone_doc.getDate("edate_"+campos[colunacelula])!=checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime()))) {
+										    	            				changes.append("Milestone."+indice_milestone+".edate_"+campos[colunacelula],checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime())));
+										    	            				historico=new Document();
+										    	            				historico.append("recid" , recid);
+										    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+										    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+										    	         				    historico.append("TipoCampo" , "Milestone");
+										    	         				    historico.append("Milestone" , campos[colunacelula]);
+										    	         				    historico.append("Campo","edate_"+campos[colunacelula]);
+										    	         				    historico.append("Valor Anterior" , milestone_doc.get("edate_"+campos[colunacelula]));
+										    	         				    historico.append("Novo Valor" , cellValue);
+										    	         				    historico.append("update_by", p.get_PessoaUsuario());
+										    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+										    	         				    lista_hitorico.add(historico);
+									    	         				        
+										    	            			}
+										    	            		}else {
+										    	            			changes.append("Milestone."+indice_milestone+".edate_"+campos[colunacelula],checa_formato_data(f2.format(HSSFDateUtil.getJavaCalendar(cell.getNumericCellValue()).getTime())));
+										    	            			historico=new Document();
+										    	            			historico.append("recid" , recid);
+									    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+									    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+									    	         				    historico.append("TipoCampo" , "Atributo");
+									    	         				    historico.append("TipoCampo" , "Milestone");
+									    	         				    historico.append("Milestone" , campos[colunacelula]);
+									    	         				    historico.append("Campo","edate_"+campos[colunacelula]);
+									    	         				    historico.append("Novo Valor" , cellValue);
+									    	         				    historico.append("update_by", p.get_PessoaUsuario());
+									    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+									    	         				    lista_hitorico.add(historico);
+								    	         				        
+										    	            		}
+										    	            	}
+									    	            	}
+								    	            	}else {
+								    	            		if(!milestone_doc.get("edate_"+campos[colunacelula]).equals(cellValue)) {
+								    	            			changes.append("Milestone."+indice_milestone+".edate_"+campos[colunacelula],cellValue);
+								    	            			historico=new Document();
+								    	            			historico.append("recid" , recid);
+							    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+							    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+							    	         				    historico.append("TipoCampo" , "Milestone");
+							    	         				    historico.append("Milestone" , campos[colunacelula]);
+							    	         				    historico.append("Campo","edate_"+campos[colunacelula]);
+							    	         				    historico.append("Valor Anterior" , milestone_doc.get("edate_"+campos[colunacelula]));
+							    	         				    historico.append("Novo Valor" , cellValue);
+							    	         				    historico.append("update_by", p.get_PessoaUsuario());
+							    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+							    	         				    lista_hitorico.add(historico);
+						    	         				       
+								    	            		}
+								    	            	}
+							    	            		
+							    	            		i=i+1;
+							    	            		cell = row.getCell(i);
+							    	            		cellValue = dataFormatter.formatCellValue(cell);
+							    	            		if(!milestone_doc.get("udate_"+campos[colunacelula]).equals(cellValue)) {
+							    	            				changes.append("Milestone."+indice_milestone+".udate_"+campos[colunacelula],cellValue);
+							    	            				historico=new Document();
+							    	            				historico.append("recid" , recid);
+							    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+							    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+							    	         				    historico.append("TipoCampo" , "Milestone");
+							    	         				    historico.append("Milestone" , campos[colunacelula]);
+							    	         				    historico.append("Campo","udate_"+campos[colunacelula]);
+							    	         				    historico.append("Valor Anterior" , milestone_doc.get("udate_"+campos[colunacelula]));
+							    	         				    historico.append("Novo Valor" , cellValue);
+							    	         				    historico.append("update_by", p.get_PessoaUsuario());
+							    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+							    	         				    lista_hitorico.add(historico);
+						    	         				        
+							    	            		}
+							    	            		i=i+1;
+							    	            		cell = row.getCell(i);
+							    	            		cellValue = dataFormatter.formatCellValue(cell);
+							    	            		if(!milestone_doc.get("resp_"+campos[colunacelula]).equals(cellValue)) {
+							    	            				changes.append("Milestone."+indice_milestone+".resp_"+campos[colunacelula],cellValue);
+							    	            				historico=new Document();
+							    	            				historico.append("recid" , recid);
+							    	         				    historico.append("SiteID" , linha_doc.getString("Site ID"));
+							    	         				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
+							    	         				    historico.append("TipoCampo" , "Milestone");
+							    	         				    historico.append("Milestone" , campos[colunacelula]);
+							    	         				    historico.append("Campo","resp_"+campos[colunacelula]);
+							    	         				    historico.append("Valor Anterior" , milestone_doc.get("resp_"+campos[colunacelula]));
+							    	         				    historico.append("Novo Valor" , cellValue);
+							    	         				    historico.append("update_by", p.get_PessoaUsuario());
+							    	         				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
+							    	         				    lista_hitorico.add(historico);
+						    	         				       
+							    	            		}
+							    	            		
+					    						 }
+					    					 }
+					    				}//if do campo válido. existe no rollout
+					    				i=i+1;
+				    				}//loop de celulas
+				    			
+    							if(operacao.equals("insert")) {
+					    			changes.append("Milestone", milestones);
+					    			changes.append("Update_by", p.get_PessoaUsuario());
+					    			changes.append("Update_time",time);
+					    			c.InserirSimpels("rollout", changes);
+    							}else if(operacao.equals("update")){
+    								filtros.append("recid",recid);
+        							filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
+        							update = new Document();
+        							if(!changes.isEmpty()) {
+        								System.out.println(changes.toJson());
+	        					        update.append("$set", changes);
+	        					        c.AtualizaUm("rollout", filtros, update);
+	        					        System.out.println(lista_hitorico.toString());
+	        					        c.InserirMuitos("rollout_history", lista_hitorico);
+	        					        
+        							}else {
+        								System.out.println("sem registro de mudança para recid - "+recid);
+        							}
+    							}
+				    			}//if linha maior que 2
+				    			
+				            }//loop de linhas
+						}//else do arquivo multipart
+					}//loop de arquivos
+				}//if de upload de arquivo
 			}else if(opt.equals("6")) {
 				param1=req.getParameter("campo");
 				query="select tipo from rollout_campos where field_name='"+param1+"' and empresa="+p.getEmpresa().getEmpresa_id();
@@ -1425,16 +1680,13 @@ public class RolloutServlet extends HttpServlet {
 				out.print("OK");
 			}else if(opt.equals("9")) {
 				//System.out.println("server side ");
-				JSONObject rollout_campos=r.getCampos().getCampos_tipo(conn,p);
-				Iterator<String>campos_nomes=rollout_campos.keys();
+				//JSONObject rollout_campos=r.getCampos().getCampos_tipo(conn,p);
+				Iterator<String>campos_nomes=campo_tipo.keys();
 				Long totallinhas;
-				
 				int pagina_linhas=0;
 				int pagina=0;
 				List<Bson> filtro_list = new ArrayList<Bson>();
 				Bson filtro;
-				String aux_query="";
-				String recid_aux="";
 				String filtervalue="";
 				String filtercondition="";
 				String filterdatafield="";
@@ -1448,60 +1700,30 @@ public class RolloutServlet extends HttpServlet {
 				
 				
 				int filterscount = Integer.parseInt(req.getParameter("filterscount"));
-				if(filterscount>0) {
-					aux_query=" and value_atbr_field in(";
+				/*if(filterscount>0) {
+					 aux_query=" and value_atbr_field in(";
 					 filtervalue = req.getParameter("filtervalue0");
 					 filtercondition = req.getParameter("filtercondition0");
 					 filterdatafield = req.getParameter("filterdatafield0");
 					//filterdatafield = filterdatafield.replaceAll("([^A-Za-z0-9])", "");
 					 filteroperator = req.getParameter("filteroperator0");
-					String aux_filterdatafield=filterdatafield;
+					 String aux_filterdatafield=filterdatafield;
 					System.out.println("filtervalue:"+filtervalue);
 					System.out.println("filtercondition:"+filtercondition);
 					System.out.println("filterdatafield:"+filterdatafield);
 					System.out.println("filteroperator:"+filteroperator);
-				for (Integer i=0; i < filterscount; i++)
-				{
-					 filtervalue = req.getParameter("filtervalue" + i);
-					 filtercondition = req.getParameter("filtercondition" + i);
-					 filterdatafield = req.getParameter("filterdatafield" + i);
-					//filterdatafield = filterdatafield.replaceAll("([^A-Za-z0-9])", "");
-					 filteroperator = req.getParameter("filteroperator" + i);
-					if (filtercondition.equals("EQUAL")) {
-						aux_query=aux_query+"'"+filtervalue+"',";
-					}
-					System.out.println(filtervalue);
-					System.out.println(filtercondition);
-					System.out.println(filterdatafield);
-					System.out.println(filteroperator);
-				}
-				aux_query=aux_query.substring(0,aux_query.length()-1);
-				aux_query=aux_query+")";
-				/*query="select distinct recid from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+aux_query;
-				rs=conn.Consulta(query);
-				if(rs.next()) {
-					rs.last();
-					totallinhas=rs.getRow();
-					rs.beforeFirst();
-					while(rs.next()) {
-						recid_aux=recid_aux+rs.getInt(1)+",";
-					}
-					recid_aux=recid_aux.substring(0, recid_aux.length()-1);
-					aux_query=" and recid in ("+recid_aux+") ";
 				}else {
 					aux_query="";
-				}
-				*/
-				}else {
-					aux_query="";
-				}
-				String where="";
-				aux_query="";
+				}*/
+				//String where="";
+				//aux_query="";
+				List<String> status_m=new ArrayList<String>();
 				if (filterscount > 0) {
-					where = " WHERE ";
+					/*where = " WHERE ";
 					
 					String tmpdatafield = "";
-					String tmpfilteroperator = "";
+					String tmpfilteroperator = "";*/
+					
 					for (Integer i=0; i < filterscount; i++)
 					{
 						 filtervalue = req.getParameter("filtervalue" + i);
@@ -1509,42 +1731,12 @@ public class RolloutServlet extends HttpServlet {
 						 filterdatafield = req.getParameter("filterdatafield" + i);
 						 //filterdatafield = filterdatafield.replaceAll("([^A-Za-z0-9])", "");
 						 filteroperator = req.getParameter("filteroperator" + i);
-						
-						if (tmpdatafield.equals(""))
-						{
-							tmpdatafield = filterdatafield;			
-						}else if (!tmpdatafield.equals(filterdatafield))
-						{
-							/*query="select distinct recid from rollout";
-							where=where+" ";
-							query=query+where+" and linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+aux_query;
-							//System.out.println(query);
-							rs=conn.Consulta(query);
-							if(rs.next()) {
-								rs.last();
-								totallinhas=totallinhas/total_campos;
-								rs.beforeFirst();
-								recid_aux="";
-								while(rs.next()) {
-									recid_aux=recid_aux+rs.getInt(1)+",";
-								}
-								recid_aux=recid_aux.substring(0, recid_aux.length()-1);
-								aux_query=" and recid in ("+recid_aux+") ";
-							}else {
-								aux_query="";
-							}*/
-							//where=" WHERE ";
-							tmpdatafield = filterdatafield;	
-						}else if (tmpdatafield.equals(filterdatafield))
-						{
-							if (tmpfilteroperator.equals("0"))
-							{
-								where += " AND ";
-							}
-							else where += " OR ";	
-						}
-							
-						// build the "WHERE" clause depending on the filter's condition, value and datafield.
+						 System.out.println("filtervalue:"+filtervalue);
+							System.out.println("filtercondition:"+filtercondition);
+							System.out.println("filterdatafield:"+filterdatafield);
+							System.out.println("filteroperator:"+filteroperator);
+							filtro=Filters.eq("Empresa", p.getEmpresa().getEmpresa_id());
+							filtro_list.add(filtro);	
 						switch(filtercondition)
 						{
 							case "CONTAINS":
@@ -1569,53 +1761,80 @@ public class RolloutServlet extends HttpServlet {
 								}*/
 								break;
 							case "CONTAINS_CASE_SENSITIVE":
-								where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE BINARY '%" + filtervalue + "%'";
+								//where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE BINARY '%" + filtervalue + "%'";
 								break;
 							case "DOES_NOT_CONTAIN":
 								if(filterdatafield.substring(0,5).equals("resp_")) {
-									where += " milestone='" + filterdatafield.substring(5,filterdatafield.length()) + "' and responsavel NOT LIKE '%" + filtervalue + "%'";
+								//	where += " milestone='" + filterdatafield.substring(5,filterdatafield.length()) + "' and responsavel NOT LIKE '%" + filtervalue + "%'";
 								}else if(filterdatafield.substring(0,6).equals("udate_")) {
-									where += " milestone='" + filterdatafield.substring(6,filterdatafield.length()) + "' and remark NOT LIKE '%" + filtervalue + "%'";
+								//	where += " milestone='" + filterdatafield.substring(6,filterdatafield.length()) + "' and remark NOT LIKE '%" + filtervalue + "%'";
 								}else {
-									where += " milestone='" + filterdatafield + "' and value_atbr_field NOT LIKE '%" + filtervalue + "%'";
+								//	where += " milestone='" + filterdatafield + "' and value_atbr_field NOT LIKE '%" + filtervalue + "%'";
 								}
 								//where += " milestone='" + filterdatafield + "' and value_atbr_field NOT LIKE '%" + filtervalue + "%'";
 								break;
 							case "DOES_NOT_CONTAIN_CASE_SENSITIVE":
-								where += " milestone='" + filterdatafield + "' and value_atbr_field NOT LIKE BINARY '%" + filtervalue + "%'";
+								//where += " milestone='" + filterdatafield + "' and value_atbr_field NOT LIKE BINARY '%" + filtervalue + "%'";
 								break;
 							case "EQUAL":
+								
 								if(filterdatafield.startsWith("sdate") || filterdatafield.startsWith("edate")) {
 									filtro=Filters.elemMatch("Milestone", Filters.gte(filterdatafield,checa_formato_data(filtervalue)));
 									filtro_list.add(filtro);
 									filtro=Filters.elemMatch("Milestone", Filters.lte(filterdatafield,checa_formato_data(filtervalue)));
 									filtro_list.add(filtro);
-								}else {
-									filtro=Filters.gte(filterdatafield, checa_formato_data(filtervalue));
+								}else if(filterdatafield.startsWith("udate")) {
+									filtro=Filters.elemMatch("Milestone", Filters.eq(filterdatafield,filtervalue));
 									filtro_list.add(filtro);
-									filtro=Filters.lte(filterdatafield, checa_formato_data(filtervalue));
-									filtro_list.add(filtro);
+								}else if(filterdatafield.startsWith("status_")) {
+									if(filtervalue.indexOf("finished")>0) {
+										
+										status_m.add("Finalizada");
+										//filtro_list.add(filtro);
+									}else if(filtervalue.indexOf("img/started")>0) {
+										
+										status_m.add("iniciada");
+										//filtro_list.add(filtro);
+									}else if(filtervalue.indexOf("img/notstarted")>0) {
+										status_m.add("não iniciada");
+									}
+								}
+								else {
+									if(campo_tipo.getJSONArray(filterdatafield).get(1).equals("Data")){
+										filtro=Filters.gte(filterdatafield, checa_formato_data(filtervalue));
+										filtro_list.add(filtro);
+										filtro=Filters.lte(filterdatafield, checa_formato_data(filtervalue));
+										filtro_list.add(filtro);
+									}else {
+										filtro=Filters.eq(filterdatafield, filtervalue);
+										filtro_list.add(filtro);
+									}
 								}
 								
 								break;
 							case "EQUAL_CASE_SENSITIVE":
-								where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE BINARY '" + filtervalue + "'";
+								//where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE BINARY '" + filtervalue + "'";
 								break;
 							case "NOT_EQUAL":
-								where += " milestone='" + filterdatafield + "' and value_atbr_field NOT LIKE '" + filtervalue + "'";
+								//where += " milestone='" + filterdatafield + "' and value_atbr_field NOT LIKE '" + filtervalue + "'";
 								break;
 							case "NOT_EQUAL_CASE_SENSITIVE":
-								where += " milestone='" + filterdatafield + "' and value_atbr_field NOT LIKE BINARY '" + filtervalue + "'";
+								//where += " milestone='" + filterdatafield + "' and value_atbr_field NOT LIKE BINARY '" + filtervalue + "'";
 								break;
 							case "GREATER_THAN":
+								
 								if(filterdatafield.startsWith("sdate") || filterdatafield.startsWith("edate")) {
 									filtro=Filters.elemMatch("Milestone", Filters.gt(filterdatafield,checa_formato_data(filtervalue)));
 									filtro_list.add(filtro);
 									
 								}else {
-									filtro=Filters.gt(filterdatafield, checa_formato_data(filtervalue));
-									filtro_list.add(filtro);
-									
+									if(campo_tipo.getJSONArray(filterdatafield).get(1).equals("Data")){
+										filtro=Filters.gt(filterdatafield, checa_formato_data(filtervalue));
+										filtro_list.add(filtro);
+									}else {
+										filtro=Filters.gt(filterdatafield,filtervalue);
+										filtro_list.add(filtro);
+									}
 								}
 								break;
 							case "LESS_THAN":
@@ -1624,9 +1843,13 @@ public class RolloutServlet extends HttpServlet {
 									filtro_list.add(filtro);
 									
 								}else {
-									filtro=Filters.lt(filterdatafield, checa_formato_data(filtervalue));
-									filtro_list.add(filtro);
-									
+									if(campo_tipo.getJSONArray(filterdatafield).get(1).equals("Data")){
+										filtro=Filters.lt(filterdatafield, checa_formato_data(filtervalue));
+										filtro_list.add(filtro);
+									}else {
+										filtro=Filters.lt(filterdatafield, filtervalue);
+										filtro_list.add(filtro);
+									}
 								}
 								break;
 							case "GREATER_THAN_OR_EQUAL":
@@ -1636,9 +1859,13 @@ public class RolloutServlet extends HttpServlet {
 									filtro_list.add(filtro);
 									
 								}else {
-									filtro=Filters.gte(filterdatafield, checa_formato_data(filtervalue));
-									filtro_list.add(filtro);
-									
+									if(campo_tipo.getJSONArray(filterdatafield).get(1).equals("Data")){
+										filtro=Filters.gte(filterdatafield, checa_formato_data(filtervalue));
+										filtro_list.add(filtro);
+									}else {
+										filtro=Filters.gte(filterdatafield, filtervalue);
+										filtro_list.add(filtro);
+									}
 								}
 								break;
 							case "LESS_THAN_OR_EQUAL":
@@ -1647,28 +1874,32 @@ public class RolloutServlet extends HttpServlet {
 									filtro_list.add(filtro);
 									
 								}else {
-									filtro=Filters.lte(filterdatafield, checa_formato_data(filtervalue));
-									filtro_list.add(filtro);
-									
+									if(campo_tipo.getJSONArray(filterdatafield).get(1).equals("Data")){
+										filtro=Filters.lte(filterdatafield, checa_formato_data(filtervalue));
+										filtro_list.add(filtro);
+									}else {
+										filtro=Filters.lte(filterdatafield, filtervalue);
+										filtro_list.add(filtro);
+									}
 								}
 								break;
 							case "STARTS_WITH":
-								where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE '" + filtervalue + "%'";
+								//where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE '" + filtervalue + "%'";
 								break;
 							case "STARTS_WITH_CASE_SENSITIVE":
-								where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE BINARY '" + filtervalue + "%'";
+								//where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE BINARY '" + filtervalue + "%'";
 								break;
 							case "ENDS_WITH":
-								where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE '%" + filtervalue + "'";
+								//where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE '%" + filtervalue + "'";
 								break;
 							case "ENDS_WITH_CASE_SENSITIVE":
-								where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE BINARY '%" + filtervalue + "'";
+								//where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE BINARY '%" + filtervalue + "'";
 								break;
 							case "NULL":
-								where += " milestone='" + filterdatafield + "' and value_atbr_field IS NULL";
+								//where += " milestone='" + filterdatafield + "' and value_atbr_field IS NULL";
 								break;
 							case "NOT_NULL":
-								where += " milestone='" + filterdatafield + "' and value_atbr_field IS NOT NULL";
+								//where += " milestone='" + filterdatafield + "' and value_atbr_field IS NOT NULL";
 								break;
 						}
 											
@@ -1697,19 +1928,23 @@ public class RolloutServlet extends HttpServlet {
 							
 						}*/
 							
-						tmpfilteroperator = filteroperator;
-						tmpdatafield = filterdatafield;			
+						//tmpfilteroperator = filteroperator;
+						//tmpdatafield = filterdatafield;			
 					}
 				}
 				//System.out.println(where);
+				if(status_m.size()>0) {
+					filtro=Filters.elemMatch("Milestone", Filters.in(filterdatafield,status_m));
+					filtro_list.add(filtro);
+				}
 				String imagem_status="";
 				dados_tabela="";
 				dados_tabela= dados_tabela+"[";
 				query="";
 				//query="select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" "+aux_query+" order by recid,siteID,ordenacao limit "+(total_campos*pagina_linhas)+" OFFSET "+(total_campos*pagina_linhas*pagina);
 				//System.out.println(query);
-				ConexaoMongo c = new ConexaoMongo();
-				FindIterable<Document> findIterable ;
+				
+				FindIterable<Document> findIterable;
 				
 				if(filterscount>0) {
 					System.out.println("Executando consulta com filtros");
@@ -1738,11 +1973,11 @@ public class RolloutServlet extends HttpServlet {
     				//String site_aux=linha.getString("Site ID");
     				dados_tabela=dados_tabela+chaves+"\"id\":"+linha.getInteger("recid")+",";
     				//System.out.println("recID:"+linha.getInteger("recid"));
-    				campos_nomes=rollout_campos.keys();
+    				campos_nomes=campo_tipo.keys();
     				while(campos_nomes.hasNext()) {
     					nome_campo_aux=campos_nomes.next();
-    					if(rollout_campos.getJSONArray(nome_campo_aux).get(0).equals("Atributo")) {
-		    				if(rollout_campos.getJSONArray(nome_campo_aux).get(1).equals("Data")) {
+    					if(campo_tipo.getJSONArray(nome_campo_aux).get(0).equals("Atributo")) {
+		    				if(campo_tipo.getJSONArray(nome_campo_aux).get(1).equals("Data")) {
 		    					//System.out.println("transformando data de :"+nome_campo_aux +" - valor string:"+linha.getString(nome_campo_aux));
 		    					if(linha.get(nome_campo_aux)!=null && !linha.get(nome_campo_aux).equals("")) {
 		    						dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\""+f2.format(linha.getDate(nome_campo_aux))+"\",";
@@ -1757,26 +1992,42 @@ public class RolloutServlet extends HttpServlet {
     						while(i<milestones.size()) {
     							milestone_doc=milestones.get(i);
     							if(milestone_doc.getString("Milestone").equals(nome_campo_aux)) {
-    								if(milestone_doc.getDate("sdate_"+nome_campo_aux)!=null) {
-    									dados_tabela=dados_tabela+"\"sdate_"+nome_campo_aux+"\":\""+f2.format(milestone_doc.getDate("sdate_"+nome_campo_aux))+"\",";
-    								}else {
-    									dados_tabela=dados_tabela+"\"sdate_"+nome_campo_aux+"\":\"\",";
-    								}
-    								if(milestone_doc.getDate("edate_"+nome_campo_aux)!=null) {
-    									dados_tabela=dados_tabela+"\"edate_"+nome_campo_aux+"\":\""+f2.format(milestone_doc.getDate("edate_"+nome_campo_aux))+"\",";
-    								}else {
-    									dados_tabela=dados_tabela+"\"edate_"+nome_campo_aux+"\":\"\",";
-    								}
-    								if(milestone_doc.getDate("sdate_pre_"+nome_campo_aux)!=null) {
-    									dados_tabela=dados_tabela+"\"sdate_pre_"+nome_campo_aux+"\":\""+f2.format(milestone_doc.getDate("sdate_pre_"+nome_campo_aux))+"\",";
-    								}else {
-    									dados_tabela=dados_tabela+"\"sdate_pre_"+nome_campo_aux+"\":\"\",";
-    								}
-    								if(milestone_doc.getDate("edate_pre_"+nome_campo_aux)!=null) {
-    									dados_tabela=dados_tabela+"\"edate_pre_"+nome_campo_aux+"\":\""+f2.format(milestone_doc.getDate("edate_pre_"+nome_campo_aux))+"\",";
-    								}else{
-    									dados_tabela=dados_tabela+"\"edate_pre_"+nome_campo_aux+"\":\"\",";
-    								}
+    							    if(milestone_doc.get("sdate_"+nome_campo_aux)!=null && !milestone_doc.get("sdate_"+nome_campo_aux).equals("")) {
+	    								if(milestone_doc.getDate("sdate_"+nome_campo_aux)!=null) {
+	    									dados_tabela=dados_tabela+"\"sdate_"+nome_campo_aux+"\":\""+f2.format(milestone_doc.getDate("sdate_"+nome_campo_aux))+"\",";
+	    								}else {
+	    									dados_tabela=dados_tabela+"\"sdate_"+nome_campo_aux+"\":\"\",";
+	    								}
+    							    }else {
+    							    	dados_tabela=dados_tabela+"\"sdate_"+nome_campo_aux+"\":\"\",";
+    							    }
+    							    if(milestone_doc.get("edate_"+nome_campo_aux)!=null && !milestone_doc.get("edate_"+nome_campo_aux).equals("")) {
+	    								if(milestone_doc.getDate("edate_"+nome_campo_aux)!=null) {
+	    									dados_tabela=dados_tabela+"\"edate_"+nome_campo_aux+"\":\""+f2.format(milestone_doc.getDate("edate_"+nome_campo_aux))+"\",";
+	    								}else {
+	    									dados_tabela=dados_tabela+"\"edate_"+nome_campo_aux+"\":\"\",";
+	    								}
+    							    }else {
+    							    	dados_tabela=dados_tabela+"\"edate_"+nome_campo_aux+"\":\"\",";
+    							    }
+    							    if(milestone_doc.get("sdate_pre_"+nome_campo_aux)!=null && !milestone_doc.get("sdate_pre_"+nome_campo_aux).equals("")) {
+	    								if(milestone_doc.getDate("sdate_pre_"+nome_campo_aux)!=null) {
+	    									dados_tabela=dados_tabela+"\"sdate_pre_"+nome_campo_aux+"\":\""+f2.format(milestone_doc.getDate("sdate_pre_"+nome_campo_aux))+"\",";
+	    								}else {
+	    									dados_tabela=dados_tabela+"\"sdate_pre_"+nome_campo_aux+"\":\"\",";
+	    								}
+    							    }else {
+    							    	dados_tabela=dados_tabela+"\"sdate_pre_"+nome_campo_aux+"\":\"\",";
+    							    }
+    							    if(milestone_doc.get("edate_pre_"+nome_campo_aux)!=null && !milestone_doc.get("edate_pre_"+nome_campo_aux).equals("")) {
+	    								if(milestone_doc.getDate("edate_pre_"+nome_campo_aux)!=null) {
+	    									dados_tabela=dados_tabela+"\"edate_pre_"+nome_campo_aux+"\":\""+f2.format(milestone_doc.getDate("edate_pre_"+nome_campo_aux))+"\",";
+	    								}else{
+	    									dados_tabela=dados_tabela+"\"edate_pre_"+nome_campo_aux+"\":\"\",";
+	    								}
+    							    }else {
+    							    	dados_tabela=dados_tabela+"\"edate_pre_"+nome_campo_aux+"\":\"\",";
+    							    }
     								dados_tabela=dados_tabela+"\"udate_"+nome_campo_aux+"\":\""+milestone_doc.getString("udate_"+nome_campo_aux)+"\",";
     								dados_tabela=dados_tabela+"\"resp_"+nome_campo_aux+"\":\""+milestone_doc.getString("resp_"+nome_campo_aux)+"\",";
     								imagem_status="";
@@ -1790,7 +2041,7 @@ public class RolloutServlet extends HttpServlet {
         								imagem_status="notstarted.png";
         							}
     								dados_tabela=dados_tabela+"\"status_"+nome_campo_aux+"\":\"<img src='img/"+imagem_status+"'>\",";
-    								dados_tabela=dados_tabela+"\"duracao_"+nome_campo_aux+"\":\""+milestone_doc.getString("duracao_"+nome_campo_aux)+"\",";
+    								dados_tabela=dados_tabela+"\"duracao_"+nome_campo_aux+"\":\""+milestone_doc.get("duracao_"+nome_campo_aux)+"\",";
     								i=999;
     							}
     							i=i+1;
@@ -2081,7 +2332,7 @@ public class RolloutServlet extends HttpServlet {
     			
     			dados_tabela= dados_tabela+"\n"+"],";
     			System.out.println("Campos 2 definido");
-    			ConexaoMongo c = new ConexaoMongo();
+    			
     			FindIterable<Document> findIterable = c.ConsultaSimplesSemFiltro("rollout");
     			dados_tabela= dados_tabela+"\n"+"\"records\":[";
     			MongoCursor<Document> doccursor = findIterable.iterator();
@@ -2127,7 +2378,7 @@ public class RolloutServlet extends HttpServlet {
 			}else if(opt.equals("14")) {
 				System.out.println("iniciando sincronia de rollout com MongoDB");
 				String imagem_status="";
-				ConexaoMongo c = new ConexaoMongo();
+				
 				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy"); 
 				
 				Document document;
@@ -2135,7 +2386,7 @@ public class RolloutServlet extends HttpServlet {
 				Document atividade = new Document();
 				List<Document> lista_atividade = new ArrayList<Document>();
 				rs=conn.Consulta("select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and field_status='ATIVO'");
-				JSONObject campos_tipo = r.getCampos().getCampos_tipo(conn, p);
+				//JSONObject campos_tipo = r.getCampos().getCampos_tipo(conn, p);
     			document=new Document();
     			if(rs.next()) {
     				c.RemoverMuitosSemFiltro("rolloutCampos");
@@ -2183,7 +2434,7 @@ public class RolloutServlet extends HttpServlet {
     							lista_atividade.add(atividade);
     						}else{
     							if(!rs2.getString(23).equals("")) {
-	    							if(campos_tipo.getJSONArray(rs2.getString(6)).get(1).equals("Data")) {
+	    							if(campo_tipo.getJSONArray(rs2.getString(6)).get(1).equals("Data")) {
 	    								Date dt_aux=format.parse(rs2.getString(23));
 	    								document.append(rs2.getString(6), dt_aux);
 	    							}else {
@@ -2208,12 +2459,13 @@ public class RolloutServlet extends HttpServlet {
     				}
 			}
     			
-    			c.fecharConexao();
+    			
     			System.out.println("Sicronia com Mongo Finalizada");
 			}else if(opt.equals("15")) {
-				ConexaoMongo c = new ConexaoMongo();
+				
 				
                 param1=req.getParameter("mudancas");
+                System.out.println(param1);
                 int cont1=0;
                 int cont2=0;
                 int tamanho=0;
@@ -2225,7 +2477,9 @@ public class RolloutServlet extends HttpServlet {
                 String plano;
                 String cmp;
                 String[] elementNames;
-                 time = new Timestamp(System.currentTimeMillis());
+                time = new Timestamp(System.currentTimeMillis());
+                Calendar d =Calendar.getInstance();
+                
                 JSONObject jObj2=null;
                 JSONObject jObj = new JSONObject(param1); 
                 //System.out.println(jObj.get("campos"));
@@ -2246,6 +2500,7 @@ public class RolloutServlet extends HttpServlet {
     				//tamanho2=jObj2.length();
     				query="";
     				if(jObj2.getString("colum").contains("sdate_pre")){
+    					d =Calendar.getInstance();
 						cmp=jObj2.getString("colum").substring(jObj2.getString("colum").indexOf("_")+5);
 						//System.out.println("primeiro if inicio plan");
 						//System.out.println(jObj2.getString("colum"));
@@ -2257,7 +2512,8 @@ public class RolloutServlet extends HttpServlet {
 						filtros.append("Milestone.Milestone" , cmp);
 						updates.append("Milestone.$.sdate_pre_"+cmp, checa_formato_data(plano));
 						updates.append("update_by", p.get_PessoaUsuario());
-						updates.append("update_time", time);
+						
+						updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
 						update = new Document();
 				        update.append("$set", updates);
 				        historico.append("recid" , jObj2.getInt("id"));
@@ -2266,10 +2522,19 @@ public class RolloutServlet extends HttpServlet {
 				        historico.append("TipoCampo" , "Milestone");
 				        historico.append("Milestone" , cmp);
 				        historico.append("Campo",jObj2.getString("colum"));
-				        historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
-				        historico.append("Novo Valor" , checa_formato_data(plano));
+				        if(jObj2.getString("oldvalue").equals("")) {
+				        	 historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
+				        }else {
+				        	 historico.append("Valor Anterior" , jObj2.getString("oldvalue").substring(0, 10));
+				        }
+				        if(plano.equals("")) {
+				        	historico.append("Novo Valor" , plano);
+				        }else {
+				        	historico.append("Novo Valor" , plano.substring(0, 10));
+				        }
 				        historico.append("update_by", p.get_PessoaUsuario());
-				        historico.append("update_time", time);
+				        
+				        historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
 					//System.out.println(filtros.toJson().toString());
 					//System.out.println(update.toJson().toString());
 					c.AtualizaUm("rollout", filtros, update);
@@ -2277,12 +2542,14 @@ public class RolloutServlet extends HttpServlet {
 					historico.clear();
 					filtros.clear();
 					update.clear();
+					updates.clear();
 						if(!conn.Alterar(query)){
 							//System.out.println("Erro de Update");
 							query="insert into rollout (recid,siteID,dt_inicio_bl,milestone,tipo_campo,empresa,update_by,update_time) values("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+plano+"','"+cmp+"','Milestone',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"')";
 							conn.Inserir_simples(query);
 						}
 					}else if(jObj2.getString("colum").contains("edate_pre")){
+						d =Calendar.getInstance();
 						//System.out.println("segundo if fim plan");
 						cmp=jObj2.getString("colum").substring(jObj2.getString("colum").indexOf("_")+5);
 						plano=jObj2.getString("value");
@@ -2293,7 +2560,7 @@ public class RolloutServlet extends HttpServlet {
 						filtros.append("Milestone.Milestone" , cmp);
 						updates.append("Milestone.$.edate_pre_"+cmp, checa_formato_data(plano));
 						updates.append("update_by", p.get_PessoaUsuario());
-						updates.append("update_time", time);
+						updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
 						update = new Document();
 				        update.append("$set", updates);
 				        historico.append("recid" , jObj2.getInt("id"));
@@ -2302,10 +2569,18 @@ public class RolloutServlet extends HttpServlet {
 				        historico.append("TipoCampo" , "Milestone");
 				        historico.append("Milestone" , cmp);
 				        historico.append("Campo",jObj2.getString("colum"));
-				        historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
-				        historico.append("Novo Valor" , checa_formato_data(plano));
+				        if(jObj2.getString("oldvalue").equals("")) {
+				        	 historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
+				        }else {
+				        	 historico.append("Valor Anterior" , jObj2.getString("oldvalue").substring(0, 10));
+				        }
+				        if(plano.equals("")) {
+				        	historico.append("Novo Valor" , plano);
+				        }else {
+				        	historico.append("Novo Valor" , plano.substring(0, 10));
+				        }
 				        historico.append("update_by", p.get_PessoaUsuario());
-				        historico.append("update_time", time);
+				        historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
 				        c.InserirSimpels("rollout_history", historico);
 						historico.clear();
 					//System.out.println(filtros.toJson().toString());
@@ -2313,12 +2588,14 @@ public class RolloutServlet extends HttpServlet {
 					c.AtualizaUm("rollout", filtros, update);
 					filtros.clear();
 					update.clear();
+					updates.clear();
 						if(!conn.Alterar(query)){
 							//System.out.println("Erro de Update");
 							query="insert into rollout (recid,siteID,dt_fim_bl,milestone,tipo_campo,empresa,update_by,update_time) values("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+plano+"','"+cmp+"','Milestone',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"')";
 							conn.Inserir_simples(query);
 						}
 					}else if(jObj2.getString("colum").contains("sdate")){
+						d =Calendar.getInstance();
     						cmp=jObj2.getString("colum").substring(jObj2.getString("colum").indexOf("_")+1);
     						//System.out.println("primeiro if inicio plan");
     						//System.out.println(jObj2.getString("colum"));
@@ -2329,18 +2606,28 @@ public class RolloutServlet extends HttpServlet {
     						filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
     						filtros.append("Milestone.Milestone" , cmp);
     						updates.append("Milestone.$.sdate_"+cmp, checa_formato_data(plano));
+    						//updates.append("Milestone.$.status_"+cmp, "iniciada");
     						updates.append("update_by", p.get_PessoaUsuario());
-    						updates.append("update_time", time);
+    						updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
     						historico.append("recid" , jObj2.getInt("id"));
     				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
     				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
     				        historico.append("TipoCampo" , "Milestone");
     				        historico.append("Milestone" , cmp);
     				        historico.append("Campo",jObj2.getString("colum"));
-    				        historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
-    				        historico.append("Novo Valor" , checa_formato_data(plano));
+    				        if(jObj2.getString("oldvalue").equals("")) {
+    				        	 historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
+    				        }else {
+    				        	 historico.append("Valor Anterior" , jObj2.getString("oldvalue").substring(0, 10));
+    				        }
+    				        if(plano.equals("")) {
+    				        	historico.append("Novo Valor" , plano);
+    				        }else {
+    				        	historico.append("Novo Valor" , plano.substring(0, 10));
+    				        }
+    				        
     				        historico.append("update_by", p.get_PessoaUsuario());
-    				        historico.append("update_time", time);
+    				        historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
     				        c.InserirSimpels("rollout_history", historico);
     						historico.clear();
     					//System.out.println(filtros.toJson().toString());
@@ -2360,7 +2647,9 @@ public class RolloutServlet extends HttpServlet {
         				        c.AtualizaUm("rollout", filtros, update);
         				        filtros.clear();
         						update.clear();
+        						updates.clear();
     					}else if(jObj2.getString("colum").contains("edate")){
+    						d =Calendar.getInstance();
     						//System.out.println("segundo if fim plan");
     						cmp=jObj2.getString("colum").substring(jObj2.getString("colum").indexOf("_")+1);
     						plano=jObj2.getString("value");
@@ -2370,18 +2659,28 @@ public class RolloutServlet extends HttpServlet {
     						filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
     						filtros.append("Milestone.Milestone" , cmp);
     						updates.append("Milestone.$.edate_"+cmp, checa_formato_data(plano));
+    						//updates.append("Milestone.$.status_"+cmp, "Finalizada");
     						updates.append("update_by", p.get_PessoaUsuario());
-    						updates.append("update_time", time);
+    						updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
     						historico.append("recid" , jObj2.getInt("id"));
     				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
     				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
     				        historico.append("TipoCampo" , "Milestone");
     				        historico.append("Milestone" , cmp);
     				        historico.append("Campo",jObj2.getString("colum"));
-    				        historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
-    				        historico.append("Novo Valor" , checa_formato_data(plano));
+    				        if(jObj2.getString("oldvalue").equals("")) {
+    				        	historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
+    				        }else {
+    				        	 historico.append("Valor Anterior" , jObj2.getString("oldvalue").substring(0, 10));
+    				        }
+    				        if(plano.equals("")) {
+    				        	historico.append("Novo Valor" , plano);
+    				        }else {
+    				        	historico.append("Novo Valor" , plano.substring(0, 10));
+    				        }
+    				        
     				        historico.append("update_by", p.get_PessoaUsuario());
-    				        historico.append("update_time", time);
+    				        historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
     				        c.InserirSimpels("rollout_history", historico);
     						historico.clear();
     						if(!conn.Alterar(query)){
@@ -2398,11 +2697,13 @@ public class RolloutServlet extends HttpServlet {
         				        c.AtualizaUm("rollout", filtros, update);
         				        filtros.clear();
         						update.clear();
+        						updates.clear();
     						query="update faturamento set milestone_data_fim_real='"+plano+"',status_faturamento='Liberado para Faturar' where id_rollout='site"+jObj2.getInt("id")+ "' and milestones_trigger='"+cmp+"'";
     						if(conn.Alterar(query)){
     							System.out.println("tabela de Faturamento Atualizada!");
     						}
     					}else if(jObj2.getString("colum").contains("udate")){
+    						d =Calendar.getInstance();
     						//System.out.println("terceiro if obs plan");
     						cmp=jObj2.getString("colum").substring(jObj2.getString("colum").indexOf("_")+1);
     						//time = new Timestamp(jObj2.getString(jObj2.getString("colum")));
@@ -2412,7 +2713,7 @@ public class RolloutServlet extends HttpServlet {
     						filtros.append("Milestone.Milestone" , cmp);
     						updates.append("Milestone.$.udate_"+cmp, jObj2.getString("value"));
     						updates.append("update_by", p.get_PessoaUsuario());
-    						updates.append("update_time", time.toString());
+    						updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
     						update = new Document();
     				        update.append("$set", updates);
     				        historico.append("recid" , jObj2.getInt("id"));
@@ -2424,7 +2725,7 @@ public class RolloutServlet extends HttpServlet {
     				        historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
     				        historico.append("Novo Valor" , jObj2.getString("value"));
     				        historico.append("update_by", p.get_PessoaUsuario());
-    				        historico.append("update_time", time);
+    				        historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
     				        c.InserirSimpels("rollout_history", historico);
     						historico.clear();
     					//System.out.println(filtros.toJson().toString());
@@ -2432,6 +2733,7 @@ public class RolloutServlet extends HttpServlet {
     					c.AtualizaUm("rollout", filtros, update);
     					filtros.clear();
     					update.clear();
+    					updates.clear();
     						if(!conn.Alterar(query)){
     							System.out.println("Erro de Update");
     							query="insert into rollout (recid,siteID,remark,milestone,tipo_campo,empresa,update_by,update_time) values("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+jObj2.getString("value")+"','"+cmp+"','Milestone',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"')";
@@ -2443,13 +2745,14 @@ public class RolloutServlet extends HttpServlet {
     						
     						if(jObj2.getString("tipoc").equals("textbox")||jObj2.getString("tipoc").equals("combobox")){
     							if(cmp.contains("resp_")) {
+    								d =Calendar.getInstance();
     								query="update rollout set responsavel='"+jObj2.getString("value")+"',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp.substring(5, cmp.length())+"' and empresa="+p.getEmpresa().getEmpresa_id() ;
     								filtros.append("recid" , jObj2.getInt("id"));
     								filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
     								filtros.append("Milestone.Milestone" , cmp.substring(5, cmp.length()));
     								updates.append("Milestone.$."+cmp, jObj2.getString("value"));
     								updates.append("update_by", p.get_PessoaUsuario());
-    								updates.append("update_time", time.toString());
+    								updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
     								historico.append("recid" , jObj2.getInt("id"));
     		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
     		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
@@ -2459,16 +2762,17 @@ public class RolloutServlet extends HttpServlet {
     		    				    historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
     		    				    historico.append("Novo Valor" , jObj2.getString("value"));
     		    				    historico.append("update_by", p.get_PessoaUsuario());
-    		    				    historico.append("update_time", time);
+    		    				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
     		    				   
     							}else {
+    								d =Calendar.getInstance();
     								query="update rollout set value_atbr_field='"+jObj2.getString("value")+"',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id() ;
     								query2="insert into rollout (recid,siteID,milestone,value_atbr_field,tipo_campo,empresa,update_by,update_time) values ("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+cmp+"','"+jObj2.getString("value")+"','Atributo',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"')";
     								filtros.append("recid" , jObj2.getInt("id"));
     								filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
     								updates.append(cmp, jObj2.getString("value"));
     								updates.append("update_by", p.get_PessoaUsuario());
-    								updates.append("update_time", time.toString());
+    								updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
     								historico.append("recid" , jObj2.getInt("id"));
     		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
     		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
@@ -2478,10 +2782,11 @@ public class RolloutServlet extends HttpServlet {
     		    				    historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
     		    				    historico.append("Novo Valor" , jObj2.getString("value"));
     		    				    historico.append("update_by", p.get_PessoaUsuario());
-    		    				    historico.append("update_time", time);
+    		    				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
     							}
     						}else if(jObj2.getString("tipoc").equals("datetimeinput")){
     							plano=jObj2.getString("value");
+    							d =Calendar.getInstance();
 	    						//ldate = LocalDate.parse(plano.toString(), formatter);
 	    						query="update rollout set value_atbr_field='"+plano+"',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id() ;
 	    						query2="insert into rollout (recid,siteID,milestone,value_atbr_field,tipo_campo,empresa,update_by,update_time) values ("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+cmp+"','"+plano+"','Atributo',"+p.getEmpresa().getEmpresa_id()+")";
@@ -2489,7 +2794,7 @@ public class RolloutServlet extends HttpServlet {
 								filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
 								updates.append(cmp, checa_formato_data(jObj2.getString("value")));
 								updates.append("update_by", p.get_PessoaUsuario());
-								updates.append("update_time", time.toString());
+								updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
 								historico.append("recid" , jObj2.getInt("id"));
 		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
 		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
@@ -2499,15 +2804,16 @@ public class RolloutServlet extends HttpServlet {
 		    				    historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
 		    				    historico.append("Novo Valor" , jObj2.getString("value"));
 		    				    historico.append("update_by", p.get_PessoaUsuario());
-		    				    historico.append("update_time", time);
+		    				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
     						}else if(jObj2.getString("tipoc").equals("int")){
+    							d =Calendar.getInstance();
     							query="update rollout set value_atbr_field='"+jObj2.getInt("value")+"',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id() ;
     							query2="insert into rollout (recid,siteID,milestone,value_atbr_field,tipo_campo,empresa,update_by,update_time) values ("+jObj2.getInt("id")+",'site"+jObj2.getInt("id")+"','"+cmp+"','"+jObj2.getInt("value")+"','Atributo',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"')";
     							filtros.append("recid" , jObj2.getInt("id"));
 								filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
 								updates.append(cmp, jObj2.getString("value"));
 								updates.append("update_by", p.get_PessoaUsuario());
-								updates.append("update_time", time.toString());
+								updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
 								historico.append("recid" , jObj2.getInt("id"));
 		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
 		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
@@ -2517,19 +2823,20 @@ public class RolloutServlet extends HttpServlet {
 		    				    historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
 		    				    historico.append("Novo Valor" , jObj2.getString("value"));
 		    				    historico.append("update_by", p.get_PessoaUsuario());
-		    				    historico.append("update_time", time);
+		    				    historico.append("update_time", checa_formato_data(f2.format(d.getTime())));
     						
     						}
     						    c.InserirSimpels("rollout_history", historico);
 		    			        historico.clear();
     						    update = new Document();
     					        update.append("$set", updates);
-    					       
+    					        
     						//System.out.println(filtros.toJson().toString());
     						//System.out.println(update.toJson().toString());
     						c.AtualizaUm("rollout", filtros, update);
     						filtros.clear();
     						update.clear();
+    						updates.clear();
     						if(!conn.Alterar(query)){
     							System.out.println("Erro de Update");
     							//conn.Inserir_simples(query2);
@@ -2543,7 +2850,7 @@ public class RolloutServlet extends HttpServlet {
     			//Timestamp time = new Timestamp(System.currentTimeMillis());
     			}
     			//System.out.println(campos2.get(1));
-    			c.fecharConexao();
+    			
 				resp.setContentType("application/html");  
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
@@ -2552,11 +2859,11 @@ public class RolloutServlet extends HttpServlet {
 				
 			
 			}else if(opt.equals("16")) {
-				System.out.println("chegou no opt 16");
-				ConexaoMongo c = new ConexaoMongo();
+				System.out.println("chegou no opt 16 - plota no mapa os sites filtrados do rollout");
+				
 				param1=req.getParameter("filtros");
 				//System.out.println(param1);
-				JSONObject campo_tipo=r.getCampos().getCampos_tipo(conn, p);
+				
 				JSONObject filtros=new JSONObject(param1);
 				JSONArray filtrosArray=filtros.getJSONArray("filtros");
 				Document rollout_filtrado=new Document();
@@ -2609,7 +2916,7 @@ public class RolloutServlet extends HttpServlet {
 				document_featurecollection.append("features",lista_sites );
 				rollout_filtrado.append("\"usuarios\"", document_featurecollection.toJson().toString());
 				
-				c.fecharConexao();
+				
 				String  resultado = rollout_filtrado.toString();
 				//System.out.println(resultado);
 				resultado=resultado.replaceAll("=", ":");
@@ -2622,7 +2929,7 @@ public class RolloutServlet extends HttpServlet {
 				out.print(resultado);
 			}else if(opt.equals("17")) {
 				System.out.println("buscando sites integrados no rollout") ;
-				ConexaoMongo c = new ConexaoMongo();
+				
 				List<String> rollout_filtrado_site=new ArrayList<String>();
 				FindIterable<Document> findIterable=c.ConsultaSimplesSemFiltro("Rollout_Sites");
 				findIterable.forEach((Block<Document>) doc -> {
@@ -2630,18 +2937,18 @@ public class RolloutServlet extends HttpServlet {
 					rollout_filtrado_site.add(doc.get("GEO.properties.SiteID").toString());
 				});
 				System.out.println("total de sites integrados:"+rollout_filtrado_site.size());
-				c.fecharConexao();
+				
 				resp.setContentType("application/text");  
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
-				System.out.println(rollout_filtrado_site.toString());
+				//System.out.println(rollout_filtrado_site.toString());
 				out.print(rollout_filtrado_site.toString());
 			}else if(opt.equals("18")) {
 				param1=req.getParameter("filtros");
 				List<String> historico_site= new ArrayList<String>();
 				List<Integer> id_aux= new ArrayList<Integer>();
 				Document resultado = new Document();
-				ConexaoMongo c = new ConexaoMongo();
+				
 				JSONObject filtros= new JSONObject(param1);
 				JSONArray filtrosArray=filtros.getJSONArray("filtros");
 				for(int i=0;i<filtrosArray.length();i++) {
@@ -2667,7 +2974,7 @@ public class RolloutServlet extends HttpServlet {
 					resultado.clear();
 					
 				});
-				c.fecharConexao();
+				
 				//System.out.println(historico_site.toString());
 				resp.setContentType("application/text");  
 				resp.setCharacterEncoding("UTF-8"); 
@@ -2700,7 +3007,7 @@ public class RolloutServlet extends HttpServlet {
 				List<String> campos = new ArrayList();
 				List<String> site = new ArrayList();
 				
-				ConexaoMongo c = new ConexaoMongo();
+				
 				
 				Document resultado =new Document();
 				
@@ -2756,27 +3063,184 @@ public class RolloutServlet extends HttpServlet {
 					resultado.clear();
 					
 				});
-				c.fecharConexao();
+				
 				//System.out.println(historico_site.toString());
 				resp.setContentType("application/text");  
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				//System.out.println(rollout_filtrado_site.toString());
 				out.print(historico_site.toString());
+			}else if(opt.equals("21")) {
+				System.out.println("buscando registros mapa_operacinal");
+				Long totallinhas;
+				//param1=req.getParameter("campo");
+				//param2=req.getParameter("valor_campo");
+				//param3=req.getParameter("func");
+				
+				
+				dados_tabela="";
+				dados_tabela= dados_tabela+"[";
+				
+				
+				FindIterable<Document> findIterable;
+				
+				System.out.println("Executando consulta data de Hoje. filtros");
+				totallinhas=c.CountSimplesSemFiltroInicioLimit("rollout");
+				findIterable = c.ConsultaRolloutPeriodoData("rollout","WORK DATE","24/02/2019","26/02/2019",p.getEmpresa().getEmpresa_id());
+				MongoCursor<Document> resultado = findIterable.iterator();
+		
+    			Document linha=new Document();
+    			List<Document> milestone_list=new ArrayList<Document>();
+    			Document milestone=new Document();
+    			String nome="";
+    			String chaves="";
+    			if(resultado.hasNext()) {
+    				System.out.println("resultados de  registros mapa_operacinal - encontrados");
+					while(resultado.hasNext()) {
+						linha=resultado.next();
+						//System.out.println(linha.toJson());
+						milestone_list= (List<Document>) linha.get("Milestone");
+						milestone=milestone_list.get(0);
+						dados_tabela=dados_tabela+"{\"recid\":"+linha.getInteger("recid")+",";
+						dados_tabela=dados_tabela+"\"usuario\":\""+milestone.get("resp_INSTALAÇÃO")+"\",";
+						rs=conn.Consulta("select nome from usuarios where id_usuario='"+milestone.get("resp_INSTALAÇÃO")+"'");
+						if(rs.next()) {
+							dados_tabela=dados_tabela+"\"nome\":\""+rs.getString(1)+"\",";
+						}
+						dados_tabela=dados_tabela+"\"site_id\":\""+linha.getString("Site ID")+"\",";
+						dados_tabela=dados_tabela+"\"h_entrada\":\"hoje 00:00:00\",";
+						dados_tabela=dados_tabela+"\"u_registro\":\"hoje 00:00:00\"},\n";
+						}
+					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+    			}
+				dados_tabela=dados_tabela+"]";
+				//System.out.println(dados_tabela);
+				System.out.println("busca de  registros mapa_operacinal - finalizados");
+				resp.setContentType("application/json");  
+	  		    resp.setCharacterEncoding("UTF-8"); 
+	  		    PrintWriter out = resp.getWriter();
+			    out.print(dados_tabela);
+			}else if(opt.equals("22")) {
+				System.out.println("Executando consulta itens x Projetos");
+				List<String> projetos = new ArrayList<String>();
+				Bson filtro;
+				Bson filtro2;
+				projetos=c.ConsultaSimplesDistinct("rollout", "PROJETO",p.getEmpresa().getEmpresa_id());
+				Long projeto_sites_total = null;
+				Long projeto_sites_total_realizado = null;
+				Long projeto_sites_total_planejado = null;
+				dados_tabela="";
+				dados_tabela= dados_tabela+"[";
+				if(projetos.size()>0) {
+					for(int indice=0;indice<projetos.size();indice++) {
+						dados_tabela=dados_tabela+"{\"id\":"+indice+",";
+						dados_tabela=dados_tabela+"\"projeto\":\""+projetos.get(indice)+"\",";
+						filtro=Filters.eq("PROJETO",projetos.get(indice));
+						projeto_sites_total=c.ConsultaCountComplexa("rollout", filtro);
+						dados_tabela=dados_tabela+"\"totalsites\":"+projeto_sites_total+",";
+						filtro2=Filters.eq("status_INSTALAÇÃO","Finalizada");
+						filtro=Filters.and(Filters.eq("Empresa",p.getEmpresa().getEmpresa_id()),Filters.eq("PROJETO",projetos.get(indice)),Filters.elemMatch("Milestone", filtro2));
+						projeto_sites_total_realizado=c.ConsultaCountComplexa("rollout", filtro);
+						dados_tabela=dados_tabela+"\"sites_done\":"+projeto_sites_total_realizado+",";
+						filtro2=Filters.and(Filters.gte("sdate_INSTALAÇÃO",checa_formato_data("24/02/2019")),Filters.lte("sdate_INSTALAÇÃO",checa_formato_data("26/02/2019")));
+						filtro=Filters.and(Filters.eq("Empresa",p.getEmpresa().getEmpresa_id()),Filters.eq("PROJETO",projetos.get(indice)),Filters.gte("WORK DATE",checa_formato_data("24/02/2019")),Filters.lte("WORK DATE",checa_formato_data("26/02/2019")));
+						projeto_sites_total_planejado=c.ConsultaCountComplexa("rollout", filtro);
+						dados_tabela=dados_tabela+"\"sites_planejados\":"+projeto_sites_total_planejado+",";
+						dados_tabela=dados_tabela+"\"sites_planejados_done\":0},\n";
+					}
+					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+				}
+				dados_tabela=dados_tabela+"]";
+				//System.out.println(dados_tabela);
+				System.out.println("busca de  itensx projetos mapa_operacinal - finalizados");
+				resp.setContentType("application/json");  
+	  		    resp.setCharacterEncoding("UTF-8"); 
+	  		    PrintWriter out = resp.getWriter();
+			    out.print(dados_tabela);
+				
+			}else if(opt.equals("23")) {
+				System.out.println("Executando consulta itens x Projetos");
+				List<String> projetos = new ArrayList<String>();
+				List<Document> doc_lista = new ArrayList<Document>();
+				Document escopo=new Document();
+				projetos=c.ConsultaSimplesDistinct("rollout", "PROJETO",p.getEmpresa().getEmpresa_id());
+				dados_tabela="";
+				dados_tabela= dados_tabela+"[";
+				int id=0;
+				if(projetos.size()>0) {
+				for(int indice=0;indice<projetos.size();indice++) {
+					doc_lista=c.consultaaggregation("rollout", "PROJETO", projetos.get(indice),"ESCOPO");
+					if(doc_lista.size()>0) {
+						for(int indice2=0;indice2<doc_lista.size();indice2++) {
+							escopo=doc_lista.get(indice2);
+							dados_tabela=dados_tabela+"{\"id\":"+id+",";
+							dados_tabela=dados_tabela+"\"atividade\":\""+escopo.get("_id")+"\",";
+							dados_tabela=dados_tabela+"\"projeto\":\""+projetos.get(indice)+"\",";
+							dados_tabela=dados_tabela+"\"totalatividades\":"+escopo.getInteger("count")+"},";
+							
+							id=id+1;
+						}
+						
+					}
+				}
+				dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+				}
+				dados_tabela=dados_tabela+"]";
+				//System.out.println(dados_tabela);
+				System.out.println("busca de  itensx projetos mapa_operacinal - finalizados");
+				resp.setContentType("application/json");  
+	  		    resp.setCharacterEncoding("UTF-8"); 
+	  		    PrintWriter out = resp.getWriter();
+			    out.print(dados_tabela);
+			}else if(opt.equals("24")) {
+				System.out.println("Executando consulta usuarios x Projetos");
+				List<String> projetos = new ArrayList<String>();
+				List<Document> doc_lista = new ArrayList<Document>();
+				Document escopo=new Document();
+				projetos=c.ConsultaSimplesDistinct("rollout", "Milestone.0.resp_INSTALAÇÃO",p.getEmpresa().getEmpresa_id());
+				dados_tabela="";
+				dados_tabela= dados_tabela+"[";
+				int id=0;
+				if(projetos.size()>0) {
+				for(int indice=0;indice<projetos.size();indice++) {
+					doc_lista=c.consultaaggregationMilestone("rollout", "resp_INSTALAÇÃO", projetos.get(indice),"PROJETO");
+					if(doc_lista.size()>0) {
+						for(int indice2=0;indice2<doc_lista.size();indice2++) {
+							escopo=doc_lista.get(indice2);
+							dados_tabela=dados_tabela+"{\"id\":"+id+",";
+							dados_tabela=dados_tabela+"\"projeto\":\""+escopo.get("_id")+"\",";
+							dados_tabela=dados_tabela+"\"usuario\":\""+projetos.get(indice)+"\",";
+							dados_tabela=dados_tabela+"\"totalatividades_usuario\":"+escopo.getInteger("count")+"},";
+							
+							id=id+1;
+						}
+						
+					}
+				}
+				dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+				}
+				dados_tabela=dados_tabela+"]";
+				//System.out.println(dados_tabela);
+				System.out.println("busca de  usuarios x projetos mapa_operacinal - finalizados");
+				resp.setContentType("application/json");  
+	  		    resp.setCharacterEncoding("UTF-8"); 
+	  		    PrintWriter out = resp.getWriter();
+			    out.print(dados_tabela);
 			}
 		}catch (SQLException e) {
 			conn.fecharConexao();
+			c.fecharConexao();
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}catch (JSONException e) {
-			e.printStackTrace();
-		} catch (EmailException e) {
-			// TODO Auto-generated catch block
+			c.fecharConexao();
 			e.printStackTrace();
 		} catch (FileUploadException e) {
+			c.fecharConexao();
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ParseException e) {
+			c.fecharConexao();
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}  

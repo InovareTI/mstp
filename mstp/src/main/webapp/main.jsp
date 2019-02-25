@@ -236,7 +236,7 @@ response.setDateHeader ("Expires", -1);
 		</script>
 		<style>
 		#mapid { height: 180px; }
-		#map_full { position:fixed;height:100%; width:100%; }
+		#map_full { position:fixed;height:100%; width:550px; }
 		.loader {
   border: 16px solid #f3f3f3;
   border-radius: 50%;
@@ -326,7 +326,7 @@ response.setDateHeader ("Expires", -1);
 							</li>
 							<li class="icon icon-arrow-left"><a class="icon icon-shop" href="#">Projetos</a></li>
 							<li><a class="icon icon-paperplane" href="#" onclick="menu('rollout')">Rollout</a></li>
-							<li><a class="icon icon-world" href="#" onclick="menu('mapa_central')">Mapa</a></li>
+							<li><a class="icon icon-world" href="#" onclick="menu('mapa_Operacional')">Mapa Operacional</a></li>
 							<li class="icon icon-arrow-left">
 								<a class="icon icon-note" href="#">Relatórios</a>
 								<div class="mp-level">
@@ -399,7 +399,7 @@ response.setDateHeader ("Expires", -1);
 					                    <div id='grafico_container2'><div class="loader"></div></div>
 					                </div>
 					            </div>
-					            <div style="overflow: hidden;;width:400px">
+					            <div style="overflow: hidden;width:400px">
 					                <div id="window2" style="height: 350px; ">
 					                    <div>Registro no App por funcionário</div>
 					                    <div id='grafico_container3'><div class="loader"></div></div>
@@ -441,18 +441,66 @@ response.setDateHeader ("Expires", -1);
 						</div><!-- Fim Tab Rollout -->
 					   </div>
 					</div> <!-- /portal -->
+					<div class="janelas" id="mapa_Operacional" style="display:none;">
+						<div id='jqxtabs_mapaOperacional'>
+							<ul style='margin-left: 20px;'>
+				            	<li>Sites & Atividades</li>
+				            	
+	        				</ul>
+	        				<div>
+			        			<div id='jqxWidget_operacional' style="width:100%;margin: auto;float: left">
+							        <div id="docking_operacional" style="width:1200px">
+							            <div style="overflow: hidden;width:400px">
+							                <div id="op_window0" style="height: 40%">
+							                    <div>Alocação de recursos em Projeto</div>
+							                   
+							                    <div id="grid_func_mapaOperacional_AtividadeProjetosUsuario"><div id="jqxLoader_grid_func_mapaOperacional_AtividadeProjetosUsuario"></div></div>
+							                </div>
+							                <div id="op_window1" style="height: 40%">
+							                    <div>Atividades por Projetos</div>
+							                    <div id="grid_func_mapaOperacional_AtividadeProjetos"><div id="jqxLoader_grid_func_mapaOperacional_AtividadeProjetos"></div></div>
+							                </div>
+							            </div>
+							            <div style="overflow: hidden;width:400px">
+							                
+							                <div id="op_window3" style="height: 40%; ">
+							                    <div>Atividades por equipe</div>
+							                    
+							                    <div id="grid_func_mapaOperacional"><div id="jqxLoader_grid_func_mapaOperacional"></div></div>
+							                   
+							                </div>
+							                <div id="op_window2" style="height: 40%; ">
+							                    <div>Escopo de Projetos</div>
+							                    <div id="grid_func_mapaOperacional_SitesProjetos"><div id="jqxLoader_grid_func_mapaOperacional_SitesProjetos"></div></div>
+							                </div>
+							            </div>
+							            
+							            <div style="overflow: hidden;height:800px;width:400px">
+							                <div id="op_window4" style="height: 800px; width:600px">
+							                	<div>Rollout Sites e MSTP Mobile tracker</div>
+							                    <div>
+								                    <div id="map_full"><div class="loader"></div></div>
+													
+												</div>
+							                
+							                </div>
+							            </div>
+							        </div><!--fecha docking-->
+							    </div><!--fecha docking-->
+	        				</div><!-- /fim da primeira tabMapaOperacinal -->
+	        				
+						</div><!-- /tabMapaOperacinal -->
+					</div><!-- /mapaOperacinal -->
 					<div class="janelas" id="mapa_central" style="display:none;"	>
 					
             
-						<div id="map_full"><div class="loader"></div></div>
-						<div id='menu_mapa'><div id="mapa_info"></div></div>
-					
+											
 					
 						<script>
 						
 						function inicializa_mapa_full(opt){
 							$('#map_full').html('');
-							$('#menu_mapa').html('');
+							
 							
 						mapboxgl.accessToken = 'pk.eyJ1IjoiZmFiaW9zYWxidXF1ZXJxdWUiLCJhIjoiY2pjMjYxYzFoMGludzJxczR1ZWp2aTBpaiJ9.KptnIvfz_61BmkgGIR_ZWA';
 						map = new mapboxgl.Map({
@@ -465,54 +513,11 @@ response.setDateHeader ("Expires", -1);
 							if(opt==1){load_site_markers_mapa_central_rollout();}else{load_site_markers_mapa_central();}
 							
 						});
-						//var layerList = document.getElementById('menu_mapa');
-						//var inputs = layerList.getElementsByTagName('input');
-						//function switchLayer(layer) {
-						//    var layerId = layer.target.id;
-						//    map.setStyle('mapbox://styles/mapbox/' + layerId + '-v9');
-						//}
-						//for (var i = 0; i < inputs.length; i++) {
-						//    inputs[i].onclick = switchLayer;
-						//}
+						
 						map.addControl(new mapboxgl.FullscreenControl());
 						map.addControl(new mapboxgl.NavigationControl());
-						var toggleableLayerIds=[];
-						if(opt==1){ 
-							toggleableLayerIds = [ 'ROLLOUT' ];
-						}else{
-							toggleableLayerIds = [ 'VIVO', 'TIM','CLARO','NEXTEL','USUARIOS','ROLLOUT' ];
-						}
-						for (var i = 0; i < toggleableLayerIds.length; i++) {
-						    var id = toggleableLayerIds[i];
-						    var link = document.createElement('a');
-						    link.href = '#';
-						    link.className = 'btn btn-info active';
-						    link.textContent = id;
-						    link.onclick = function (e) {
-						        var clickedLayer = this.textContent;
-						        e.preventDefault();
-						        e.stopPropagation();
-						        if(clickedLayer=='ROLLOUT'){
-						        	$(".janelas").hide();
-						    		document.getElementById("rollout").style.display = "block";
-						        }else{
-						        var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
-						        if (visibility === 'visible') {
-						        	
-						            	map.setLayoutProperty(clickedLayer, 'visibility', 'none');
-						        	    map.setLayoutProperty('clusters_'+clickedLayer, 'visibility', 'none');
-						        	    map.setLayoutProperty('cluster-count_'+clickedLayer, 'visibility', 'none');
-						            this.className = 'btn btn-danger';
-						        } else {
-						            this.className = 'btn btn-info active';
-						            map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
-						            map.setLayoutProperty('clusters_'+clickedLayer, 'visibility', 'visible');
-					        	    map.setLayoutProperty('cluster-count_'+clickedLayer, 'visibility', 'visible');
-						        }}
-						    };
-						    var layers = document.getElementById('menu_mapa');
-						    layers.appendChild(link);
-						}
+						
+						
 						}
 						</script>
 					</div>

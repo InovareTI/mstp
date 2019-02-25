@@ -419,9 +419,10 @@ function menu(opt){
 	}else if(opt=="aprovacoes" && geral.perfil.search("BancoHHApprover")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
-	}else if(opt=="mapa_central" && geral.perfil.search("MapViewer")>=0){
+	}else if(opt=="mapa_Operacional" && geral.perfil.search("MapViewer")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
+		carrega_mapa_operacional();
 		inicializa_mapa_full();
 		
 	}
