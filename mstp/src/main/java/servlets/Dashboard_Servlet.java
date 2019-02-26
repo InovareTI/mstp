@@ -375,9 +375,9 @@ public class Dashboard_Servlet extends HttpServlet {
 		}else if(opt.equals("5")){
 			System.out.println("carregando graficos de registros de usuario por semana");
 			if(p.get_PessoaPerfil_nome().equals("tecnico")) {
-				query="SELECT usuario,count(usuario) from registros where usuario='"+p.get_PessoaUsuario()+"' and week(datetime_servlet)=week(now()) and empresa='"+p.getEmpresa().getEmpresa_id()+"' group by usuario order by count(usuario) desc";
+				query="SELECT usuario,count(usuario) from registros where usuario='"+p.get_PessoaUsuario()+"' and week(datetime_servlet)=week(now()) and empresa='"+p.getEmpresa().getEmpresa_id()+"' and tipo_registro not in('Férias','Folga','Compensação','Licença Médica') group by usuario order by count(usuario) desc";
 			}else {
-				query="SELECT usuario,count(usuario) from registros where week(datetime_servlet)=week(now()) and empresa='"+p.getEmpresa().getEmpresa_id()+"' group by usuario order by count(usuario) desc";
+				query="SELECT usuario,count(usuario) from registros where week(datetime_servlet)=week(now()) and empresa='"+p.getEmpresa().getEmpresa_id()+"' and tipo_registro not in('Férias','Folga','Compensação','Licença Médica') group by usuario order by count(usuario) desc";
 			}
 			//System.out.println(query);
 			rs=conn.Consulta(query);

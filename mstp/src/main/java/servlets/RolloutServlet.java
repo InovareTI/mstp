@@ -1993,7 +1993,11 @@ public class RolloutServlet extends HttpServlet {
 		    						dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\""+linha.getString(nome_campo_aux)+"\",";
 		    					}
 		    				}else {
-		    					dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\""+linha.getString(nome_campo_aux)+"\",";
+		    					if(linha.getString(nome_campo_aux)!=null) {
+		    						dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\""+linha.getString(nome_campo_aux)+"\",";
+		    					}else {
+		    						dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\"\",";
+		    					}
 		    				}
     					}else {
     						int i=0;
@@ -2397,7 +2401,7 @@ public class RolloutServlet extends HttpServlet {
 				//JSONObject campos_tipo = r.getCampos().getCampos_tipo(conn, p);
     			document=new Document();
     			if(rs.next()) {
-    				c.RemoverMuitosSemFiltro("rolloutCampos");
+    				c.RemoverMuitosSemFiltro("rolloutCampos",p.getEmpresa().getEmpresa_id());
     				//System.out.println("entrou no if do rs");
     				String CampoNome="";
     				int colunas = rs.getMetaData().getColumnCount();
@@ -2406,6 +2410,9 @@ public class RolloutServlet extends HttpServlet {
     					//System.out.println("entrou no while do rs");
     					for (int i=1;i<=colunas;i++) {
     						CampoNome=rs.getMetaData().getColumnName(i);
+    						if(CampoNome.equals("empresa")) {
+    							CampoNome="Empresa";
+    						}
         					document.append(CampoNome, rs.getObject(i));
     					}
     					document.append("Update_by", "masteradmin");
@@ -2416,58 +2423,6 @@ public class RolloutServlet extends HttpServlet {
     			}else {
     				System.out.println("Sicronia com Mongo Finalizada porém sem sincronia dos campos do rollout");
     			}
-    			System.out.println("Iniciando sincronia do rollout");
-				rs2= conn.Consulta("select * from rollout where linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" order by recid,siteID,ordenacao");
-    			if(rs2.next()){
-    				c.RemoverMuitosSemFiltro("rollout");
-    				time = new Timestamp(System.currentTimeMillis());
-    				System.out.println("Consulta finalizada no rollout:"+f3.format(time));
-    				String site_aux=rs2.getString("siteID");
-    				document = new Document("recid", rs2.getInt("recid")).append("Empresa",rs2.getInt(28)).append("Linha_ativa", rs2.getString(26));
-    				System.out.println("Sincronia em andamento");
-    				rs2.beforeFirst();
-    				while(rs2.next() ){
-    					if (rs2.getString(3).equals(site_aux)){
-    						if(rs2.getString(22).equals("Milestone")){
-    							imagem_status=rs2.getString(30);
-    							atividade=new Document("Milestone", rs2.getString(6))
-    									.append("sdate_"+rs2.getString(6), checa_formato_data(rs2.getString(7)))
-    									.append("edate_"+rs2.getString(6), checa_formato_data(rs2.getString(8)))
-    									.append("sdate_pre_"+rs2.getString(6), checa_formato_data(rs2.getString(11)))
-    									.append("edate_pre_"+rs2.getString(6), checa_formato_data(rs2.getString(12)))
-    									.append("udate_"+rs2.getString(6), rs2.getString(21))
-    									.append("resp_"+rs2.getString(6), rs2.getString(10))
-    									.append("status_"+rs2.getString(6), imagem_status)
-    							        .append("duracao_"+rs2.getString(6), "");
-    							lista_atividade.add(atividade);
-    						}else{
-    							if(!rs2.getString(23).equals("")) {
-	    							if(campo_tipo.getJSONArray(rs2.getString(6)).get(1).equals("Data")) {
-	    								Date dt_aux=format.parse(rs2.getString(23));
-	    								document.append(rs2.getString(6), dt_aux);
-	    							}else {
-    									document.append(rs2.getString(6), rs2.getString(23));
-    								}
-    							}else {
-    								document.append(rs2.getString(6), rs2.getString(23));
-    							}
-	    					}
-    					}else{
-    						document.append("Milestone", lista_atividade);
-    						document.append("Update_by", "masteradmin");
-    						document.append("Update_time", time);
-    						
-    						c.InserirSimpels("rollout", document);
-    						//milestone = new Document();
-    						lista_atividade.clear();
-    						document = new Document("recid", rs2.getInt("recid")).append("Empresa",rs2.getInt(28)).append("Linha_ativa", rs2.getString(26));
-    						site_aux=rs2.getString(3);
-    						rs2.previous();
-    					}
-    				}
-			}
-    			
-    			
     			System.out.println("Sicronia com Mongo Finalizada");
 			}else if(opt.equals("15")) {
 				
@@ -3234,6 +3189,24 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
+			}else if(opt.equals("25")) {
+				List<String> projetos = new ArrayList<String>();
+				dados_tabela="";
+				Document campo= new Document();
+				FindIterable<Document> findIterable = c.ConsultaOrdenada("rolloutCampos", "ordenacao", 1, p.getEmpresa().getEmpresa_id());
+				MongoCursor<Document> resultado=findIterable.iterator();
+				if(resultado.hasNext()) {
+					while(resultado.hasNext()) {
+						campo=(Document) resultado.next();
+						dados_tabela=dados_tabela+"<option value='"+campo.getString("field_name")+"'>"+campo.getString("field_name")+"</option>";
+						
+					}
+				}
+				System.out.println("Busca por Campos Finalizadas");
+				resp.setContentType("application/html");  
+	  		    resp.setCharacterEncoding("UTF-8"); 
+	  		    PrintWriter out = resp.getWriter();
+			    out.print(dados_tabela);
 			}
 		}catch (SQLException e) {
 			conn.fecharConexao();
@@ -3244,10 +3217,6 @@ public class RolloutServlet extends HttpServlet {
 			c.fecharConexao();
 			e.printStackTrace();
 		} catch (FileUploadException e) {
-			c.fecharConexao();
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParseException e) {
 			c.fecharConexao();
 			// TODO Auto-generated catch block
 			e.printStackTrace();

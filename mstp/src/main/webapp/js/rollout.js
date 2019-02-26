@@ -239,7 +239,7 @@ function carrega_campos_rollout(){
 		$("#select_campos_update_lote").selectpicker('refresh');
 	}
 }
-function verifica_campo_tipo(campo){
+function verifica_campo_tipo(campo,origem){
 	//alert(campo);
 	$.ajax({
 		  type: "POST",
@@ -254,7 +254,7 @@ function verifica_campo_tipo(campo){
 		  success: onSuccessCampoTipo
 		});
 	function onSuccessCampoTipo(data){
-		//alert(data);
+		if(origem=="rollout"){
 		document.getElementById("tipo_campo_lote").value=data;
 		if(data=="Data"){
 			$("#tipo_campos_update_lote").html("<br><hr><br><p><table data-toggle='table' style='width:80%'><tr><td>Valor</td><td><input id='data_atbr_lote' type='text' class='form-control' value=''></td></tr></table></p>")
@@ -275,8 +275,53 @@ function verifica_campo_tipo(campo){
 			 $("#tipo_campos_update_lote").html("<br><hr><br><p><table data-toggle='table' style='width:80%'><tr><td>Valor</td><td><input id='attbr_lote' type='text' class='form-control' value=''></td></tr></table></p>")
 			 
 		}
+		}
+		if(origem=="filtro_operacional"){
+			if(data=="Data"){
+				$("#tipo_campos_filtros_mapaOperacional").html("<br><hr><label style='color:black'>Selecione o período de tempo para filtro:</label><br><p><table data-toggle='table' style='width:80%'><tr><td style='color:black'>Valor</td><td><input id='data_atbr_filtro_mapaOperacional_data' type='text' class='form-control' value=''></td></tr></table></p><br><br><button class='btn btn-primary' onclick=registra_filtro_operacional('data')>Adicionar Filtro</button>")
+				$("#data_atbr_filtro_mapaOperacional_data").jqxDateTimeInput({ width: '300px', height: '25px',selectionMode: 'range',showWeekNumbers: true,allowNullDate: true,showFooter:true,clearString: 'Limpar',formatString: 'dd/MM/yyyy',culture: 'pt-BR' });
+				$("#data_atbr_filtro_mapaOperacional_data").jqxDateTimeInput('val','');
+			}else{
+				$("#tipo_campos_filtros_mapaOperacional").html("<br><hr><label style='color:black'>Selecione a condição e informe o valor:</label><br><p><table data-toggle='table' style='width:80%'><tr style='padding:5px'><td style='padding:5px'><select id='select_condicao_filtro_mapa_operacional' class='selectpicker' data-live-search='true'><option value='equal'>Igual a</option><option value='contem'>Contém</option></select></td></tr><tr style='padding:5px'><td style='padding:5px'><input type='text' id='data_atbr_filtro_mapaOperacional_string' value='' class='form-control'></td></tr></table></p><br><br><button class='btn btn-primary' onclick=registra_filtro_operacional('texto')>Adicionar Filtro</button>")
+				$('#select_condicao_filtro_mapa_operacional').selectpicker('refresh');
+			}
+		}
 	}
 }
+function registra_filtro_operacional(tipo){
+	
+	
+	filtros=JSON.parse(sessionStorage.getItem("filtrosOperacional"));
+	if(filtros==null){
+		filtros={"filtros":[]};
+	}
+	var aux={};
+	if(tipo=='texto'){
+		aux.filtersvalue=document.getElementById("data_atbr_filtro_mapaOperacional_string").value;
+		aux.filtercondition=$('#select_condicao_filtro_mapa_operacional').selectpicker('val');
+		aux.datafield = $('#select_campo_mapa_operacinal').selectpicker('val');
+		filtros.filtros.push(aux);
+    	aux={};
+	}
+       if(tipo=='data'){
+    	   var selection=$('#data_atbr_filtro_mapaOperacional_data').jqxDateTimeInput('getRange');
+    	   aux.datafield = $('#select_campo_mapa_operacinal').selectpicker('val');
+    	   aux.filtercondition='GREATHER EQUAL THAN';
+    	   aux.filtersvalue=selection.from;
+    	   filtros.filtros.push(aux);
+       	   aux={};
+       	   aux.datafield = $('#select_campo_mapa_operacinal').selectpicker('val');
+       	   aux.filtercondition='LESS EQUAL THAN';
+       	   aux.filtersvalue=selection.to;
+       	   filtros.filtros.push(aux);
+    	   aux={};
+   } 	
+        	
+        $("#resumo_tipo_campos_filtros_mapaOperacional").html(JSON.stringify(filtros));
+        sessionStorage.setItem("filtrosOperacional",JSON.stringify(filtros))
+	
+}
+
 function atualiza_lote(){
 	
 	var rows_indexes=$('#jqxgrid').jqxGrid('getselectedrowindexes');
@@ -634,7 +679,7 @@ function carrega_gant(){
 	 $('#jqxLoader_rolout').jqxLoader('close');
 	}
 function SyncToMongoDB() {
-	if(geral.usuario=='masteradmin'){
+	if(geral.usuario.includes('masteradmin')){
 	$.ajax({
 		  type: "POST",
 		  data: {"opt":"14"

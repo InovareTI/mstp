@@ -66,7 +66,7 @@ function corrigir_ponto(){
 	    type: 'red',
 	    buttons: {
 	    	Confirma: function () {
-	    		
+	    		$.alert('Atenção: Esta Função será desabilitada em 31/03/2019.')
 	
 	if(geral.perfil.search("BancoHHApprover")>=0){
 		$.ajax({

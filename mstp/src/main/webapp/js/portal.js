@@ -245,6 +245,21 @@ function carrega_mapa_operacional(){
 		                   ]
 		             });
 		 }
+		 $.ajax({
+	 		  type: "POST",
+	 		  data: {"opt":"25",
+	 			  "_": timestamp
+	 			},		  
+	 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+	 		  url: "./RolloutServlet",
+	 		  cache: false,
+	 		  dataType: "text",
+	 		 success: atualiza_select_campos_mapaOperacional
+	 		});
+		 function atualiza_select_campos_mapaOperacional(data){
+			 $('#select_campo_mapa_operacinal').html(data);
+			 $('#select_campo_mapa_operacinal').selectpicker('refresh');
+		 }
 }
 function carrega_portal(){
 	 var cont=0;

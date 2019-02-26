@@ -475,7 +475,7 @@ response.setDateHeader ("Expires", -1);
 							                    <div style="width:100%;text-align:center" >
 								                    <div style="float:left;width:190px;">Atividade por Equipe</div>
 								                    <div style="display: inline-block;margin:0 auto;width:300px;"></div>
-								                    <div style="float:right;width:20px;cursor: pointer;"><i class="fas fa-filter" onclick="testejs()"></i></div>
+								                    <div style="float:right;width:20px;cursor: pointer;"><i class="fas fa-filter" data-toggle="modal" data-target="#modal_filtros_mapa_operacional"></i></div>
 							                    </div>
 							                    
 							                    <div id="grid_func_mapaOperacional"><div id="jqxLoader_grid_func_mapaOperacional"></div></div>
@@ -1399,7 +1399,7 @@ response.setDateHeader ("Expires", -1);
       	<div>
 	      	<div>
 		      	<table>
-		      		<tr><td>Campo</td><td><select class="selectpicker" data-live-search="true" title="Escolha o Campo" id="select_campos_update_lote" onchange="verifica_campo_tipo(this.value)"></select></td></tr>
+		      		<tr><td>Campo</td><td><select class="selectpicker" data-live-search="true" title="Escolha o Campo" id="select_campos_update_lote" onchange="verifica_campo_tipo(this.value,'rollout')"></select></td></tr>
 		      	</table>
 	      	</div>
 	      	<div id="tipo_campos_update_lote">
@@ -1796,6 +1796,37 @@ response.setDateHeader ("Expires", -1);
 
   </div>
 </div> 
+
+<div id="modal_filtros_mapa_operacional" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+	<div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title" style="color:black">Filtros Mapa Operacional</h4>
+      </div>
+      <div class="modal-body">
+     
+			<table>
+				<tr>
+					<td>
+						<select id="select_campo_mapa_operacinal" class="selectpicker" data-live-search="true" onchange="verifica_campo_tipo(this.value,'filtro_operacional')" title="Selecione o Campo de filtro"></select>
+					</td>
+				</tr>
+			</table>
+			<div id="tipo_campos_filtros_mapaOperacional"></div>
+			<hr>
+			<label style="color:gray">Resumo de Filtros à aplicar:</label>
+			
+			<div id="resumo_tipo_campos_filtros_mapaOperacional" style="color:gray"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-warning" data-dismiss="modal">Aplicar</button><button type="button" class="btn btn-warning" data-dismiss="modal">Aplicar e Salvar</button>
+      </div>
+    </div>
+
+  </div>
+</div> 
+
  
 <div id="modal_rollout_history" class="modal fade" role="dialog">
   <div class="modal-dialog modal-lg">

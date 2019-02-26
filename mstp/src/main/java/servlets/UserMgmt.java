@@ -651,12 +651,12 @@ public class UserMgmt extends HttpServlet {
 				param1=req.getParameter("usuario");
 				int contador=0;
 				if(p.get_PessoaPerfil_nome().equals("tecnico")) {
-					query="SELECT * from registros where usuario='"+p.get_PessoaUsuario()+"' and week(datetime_servlet)=week(now()) and empresa='"+p.getEmpresa().getEmpresa_id()+"' order by datetime_servlet desc";
+					query="SELECT * from registros where usuario='"+p.get_PessoaUsuario()+"' and week(datetime_servlet)=week(now()) and empresa='"+p.getEmpresa().getEmpresa_id()+"' and tipo_registro not in('Férias','Folga','Compensação','Licença Médica') order by datetime_servlet desc";
 				}else {
 				if(param1.equals("todos")) {
-					query="SELECT * from registros where week(datetime_servlet)=week(now()) and empresa='"+p.getEmpresa().getEmpresa_id()+"' order by datetime_servlet desc";
+					query="SELECT * from registros where week(datetime_servlet)=week(now()) and empresa='"+p.getEmpresa().getEmpresa_id()+"' and tipo_registro not in('Férias','Folga','Compensação','Licença Médica') order by datetime_servlet desc";
 				}else {
-					query="SELECT * from registros where usuario='"+param1+"' and week(datetime_servlet)=week(now()) and empresa='"+p.getEmpresa().getEmpresa_id()+"' order by datetime_servlet desc";
+					query="SELECT * from registros where usuario='"+param1+"' and week(datetime_servlet)=week(now()) and empresa='"+p.getEmpresa().getEmpresa_id()+"' and tipo_registro not in('Férias','Folga','Compensação','Licença Médica') order by datetime_servlet desc";
 				}
 				}
 				rs=conn.Consulta(query);
@@ -1229,12 +1229,12 @@ public class UserMgmt extends HttpServlet {
 						query="SELECT * FROM registros where usuario='"+param1+"' and data_dia='"+f2.format(d.getTime())+"' and tipo_registro='Fim_intervalo' order by datetime_servlet desc limit 1";
 						rs2=conn.Consulta(query);
 						if(rs2.next()) {
-							if(TimeUnit.MILLISECONDS.toHours(formatter.parse(rs2.getString("datetime_mobile")).getTime() - formatter.parse(data_mobile_inicial).getTime())<1) {
+							if(TimeUnit.MILLISECONDS.toMinutes(formatter.parse(rs2.getString("datetime_mobile")).getTime() - formatter.parse(data_mobile_inicial).getTime())>72) {
 								Calendar cal = Calendar.getInstance(); // creates calendar
 							    cal.setTime(formatter.parse(data_mobile_inicial)); // sets calendar time/date
 							    cal.add(Calendar.HOUR_OF_DAY, 1); // adds one hour
 							    cal.add(Calendar.MINUTE, 1);
-							    //cal.getTime(); 
+							    time = new Timestamp(cal.getTimeInMillis()); 
 							    insere="update registros set datetime_mobile='"+f3.format(cal.getTime())+"',datetime_servlet='"+time+"',hora="+cal.get(Calendar.HOUR)+",minutos="+cal.get(Calendar.MINUTE)+",almoco_retorno='PTAJ' where sys_contador="+rs2.getInt("sys_contador");
 								conn.Alterar(insere);
 								System.out.println("Usuario "+rs2.getString("usuario")+" com almoco inconsistente inicio: "+data_mobile_inicial +" fim: "+rs2.getString("datetime_mobile")+" - Novo fim: "+f3.format(cal.getTime()));
@@ -1269,6 +1269,11 @@ public class UserMgmt extends HttpServlet {
 							rs2=conn.Consulta(query);
 							if(rs2.next()) {
 							int auxsec=0;
+							Calendar cal = Calendar.getInstance(); // creates calendar
+						    cal.setTime(formatter.parse(data_mobile_inicial)); // sets calendar time/date
+						    cal.add(Calendar.HOUR_OF_DAY, 1); // adds one hour
+						    cal.add(Calendar.MINUTE, 1);
+						    time = new Timestamp(cal.getTimeInMillis());
 							auxsec=numeroAleatorio(10,59);
 							aux_num=numeroAleatorio(8,15);
 							data_mobile=f2.format(d.getTime())+" 14:" +aux_num+ ":"+auxsec;
@@ -1276,7 +1281,7 @@ public class UserMgmt extends HttpServlet {
 							d.set(Calendar.MINUTE,aux_num);
 							time = new Timestamp(d.getTimeInMillis());
 							data_mobile_fim=data_mobile;
-							insere="INSERT INTO registros (id_sistema,empresa,usuario,latitude,longitude,data_dia,distancia,datetime_mobile,datetime_servlet,hora,minutos,tipo_registro,local_registro,tipo_local_registro,site_operadora_registro,mes,almoco_retorno) VALUES ('1','1','"+param1+"','0','0','"+f2.format(d.getTime())+"',0,'"+data_mobile+"','"+time+"',14,"+aux_num+",'Fim_intervalo','Ponto','"+p.getPonto_registro(conn, param1)+"','-',"+(d.get(Calendar.MONTH)+1)+",'PTAJ')";
+							insere="INSERT INTO registros (id_sistema,empresa,usuario,latitude,longitude,data_dia,distancia,datetime_mobile,datetime_servlet,hora,minutos,tipo_registro,local_registro,tipo_local_registro,site_operadora_registro,mes,almoco_retorno) VALUES ('1','1','"+param1+"','0','0','"+f2.format(d.getTime())+"',0,'"+f3.format(time)+"','"+time+"',14,"+aux_num+",'Fim_intervalo','Ponto','"+p.getPonto_registro(conn, param1)+"','-',"+(d.get(Calendar.MONTH)+1)+",'PTAJ')";
 							conn.Inserir_simples(insere);
 							}}
 						

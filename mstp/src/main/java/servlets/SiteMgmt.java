@@ -711,7 +711,7 @@ public class SiteMgmt extends HttpServlet {
 				Document geo = new Document();
 				Document geometry = new Document();
 				Document properties = new Document();
-				c.RemoverMuitosSemFiltro("Rollout_Sites");
+				c.RemoverMuitosSemFiltro("Rollout_Sites",p.getEmpresa().getEmpresa_id());
 				query="select * from rollout_site";
 				rs=conn.Consulta(query);
 				if(rs.next()) {
