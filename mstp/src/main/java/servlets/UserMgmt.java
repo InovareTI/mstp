@@ -1233,7 +1233,8 @@ public class UserMgmt extends HttpServlet {
 								Calendar cal = Calendar.getInstance(); // creates calendar
 							    cal.setTime(formatter.parse(data_mobile_inicial)); // sets calendar time/date
 							    cal.add(Calendar.HOUR_OF_DAY, 1); // adds one hour
-							    cal.add(Calendar.MINUTE, 1);
+							    cal.add(Calendar.MINUTE, 2);
+							    cal.add(Calendar.SECOND, 7);
 							    time = new Timestamp(cal.getTimeInMillis()); 
 							    insere="update registros set datetime_mobile='"+f3.format(cal.getTime())+"',datetime_servlet='"+time+"',hora="+cal.get(Calendar.HOUR)+",minutos="+cal.get(Calendar.MINUTE)+",almoco_retorno='PTAJ' where sys_contador="+rs2.getInt("sys_contador");
 								conn.Alterar(insere);

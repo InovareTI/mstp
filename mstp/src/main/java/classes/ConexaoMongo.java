@@ -212,9 +212,9 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 		
 		return resutado;
 	}
-	public FindIterable<Document> ConsultaRolloutPeriodoData(String Collection,String Campo,String dt_inicio,String dt_fim,int empresa){
+	public FindIterable<Document> ConsultaRolloutPeriodoData(String Collection,List<Bson>Filtros,int empresa){
 		FindIterable<Document> findIterable = null;
-		findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.gte(Campo, checa_formato_data(dt_inicio)),Filters.lte(Campo, checa_formato_data(dt_fim))));
+		findIterable = db.getCollection(Collection).find(Filters.and(Filtros));
 		return findIterable;
 	}
 	public FindIterable<Document> ConsultaFiltrosHistoricoRollout(String Collection,List<String>site,List<String>campos,List<String>autor,String dtinicio,String dtfim){

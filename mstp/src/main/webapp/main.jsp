@@ -1820,7 +1820,7 @@ response.setDateHeader ("Expires", -1);
 			<div id="resumo_tipo_campos_filtros_mapaOperacional" style="color:gray"></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-warning" data-dismiss="modal">Aplicar</button><button type="button" class="btn btn-warning" data-dismiss="modal">Aplicar e Salvar</button>
+        <button type="button" class="btn btn-danger" onclick="limpar_filtros_mapa_operacional()">Limpar Filtros</button><button type="button" class="btn btn-warning" onclick="operacional1()" data-dismiss="modal">Aplicar</button><button type="button" class="btn btn-warning" data-dismiss="modal">Aplicar e Salvar</button>
       </div>
     </div>
 

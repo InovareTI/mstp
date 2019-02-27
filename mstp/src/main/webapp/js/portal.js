@@ -5,6 +5,77 @@ function getWidth(idelemeent){
 	var elmnt = document.getElementById(idelemeent);
 	return elmnt.offsetWidth;
 }
+function limpar_filtros_mapa_operacional(){
+	sessionStorage.removeItem("filtrosOperacional");
+	$("#resumo_tipo_campos_filtros_mapaOperacional").html('');
+}
+function operacional1(){
+	var timestamp =Date.now();
+	$.ajax({
+		  type: "POST",
+		  data: {"opt":"21",
+			  "_": timestamp,
+			  "filtros":sessionStorage.getItem("filtrosOperacional")
+			},		  
+		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+		  url: "./RolloutServlet",
+		  cache: false,
+		  dataType: "text",
+		 success: atualiza_grid_mapa_operacional
+		});
+	function atualiza_grid_mapa_operacional(data){
+		
+		dataaux=JSON.parse(data);
+		
+		 var source =
+	     {
+				 datatype: "json",
+		         datafields: [
+		        	 { name: 'recid' , type: 'int'},
+		        	 { name: 'usuario', type: 'string' },
+		             { name: 'nome', type: 'string' },
+		             { name: 'site_id' , type: 'string'},
+		             { name: 'h_entrada', type: 'string' },
+		             { name: 'u_registro', type: 'string' }
+		             
+		         ],
+	         localdata: dataaux,
+	         id: 'recid',
+	     };
+		 var dataAdapter = new $.jqx.dataAdapter(source);
+		 var photorenderer = function (row, column, value) {
+	         var name = $('#grid_func_mapaOperacional').jqxGrid('getrowdata', row).usuario;
+	         var imgurl = './UserMgmt?opt=32&usuario='+name;
+	         var img = '<div style="background: white;"><img style="margin:2px; margin-left: 10px;" width="42" height="52" src="' + imgurl + '"></div>';
+	         return img;
+	     }
+		 
+	     var renderer = function (row, column, value) {
+	         return '<span style="margin-left: 4px; margin-top: 9px; float: left;">' + value + '</span>';
+	     }
+	     $("#grid_func_mapaOperacional").jqxGrid(
+	             {
+	                 width: getWidth('op_window3'),
+	                 height: 350,
+	                 source: dataAdapter,
+	                 columnsresize: true,
+		             filterable: true,
+		             autoshowfiltericon: true,
+	                 rowsheight: 55,
+	               
+	                 columns: [
+	                       { text: 'Photo', width: 50, cellsrenderer: photorenderer },
+	                       { text: 'Nome', datafield: 'nome', width: 150, cellsrenderer: renderer,filtertype: 'checkedlist' },
+	                       { text: 'Site', datafield: 'site_id', width: 100, cellsrenderer: renderer,filtertype: 'checkedlist' },
+	                       { text: 'Hora Entrada', datafield: 'h_entrada', width: 150, cellsrenderer: renderer,filtertype: 'checkedlist' },
+	                       { text: 'Ultimo Registro', datafield: 'u_registro', width: 150, cellsrenderer: renderer,filtertype: 'checkedlist' }
+	                       
+	                   ]
+	             });
+	    
+}
+	 $('#jqxLoader_grid_func_mapaOperacional').jqxLoader('close');
+}
 function carrega_mapa_operacional(){
 	var timestamp =Date.now();
     $('#jqxtabs_mapaOperacional').jqxTabs({theme: 'light'});
@@ -14,70 +85,8 @@ function carrega_mapa_operacional(){
 	$("#jqxLoader_grid_func_mapaOperacional").jqxLoader({ text: "Carregando Rollout",width: 100, height: 60, imagePosition: 'top' });
 	$('#jqxLoader_grid_func_mapaOperacional').jqxLoader('open');
 	
-	
-		$.ajax({
-	 		  type: "POST",
-	 		  data: {"opt":"21",
-	 			  "_": timestamp
-	 			},		  
-	 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
-	 		  url: "./RolloutServlet",
-	 		  cache: false,
-	 		  dataType: "text",
-	 		 success: atualiza_grid_mapa_operacional
-	 		});
-		function atualiza_grid_mapa_operacional(data){
-			
-			dataaux=JSON.parse(data);
-			
-			 var source =
-		     {
-					 datatype: "json",
-			         datafields: [
-			        	 { name: 'recid' , type: 'int'},
-			        	 { name: 'usuario', type: 'string' },
-			             { name: 'nome', type: 'string' },
-			             { name: 'site_id' , type: 'string'},
-			             { name: 'h_entrada', type: 'string' },
-			             { name: 'u_registro', type: 'string' }
-			             
-			         ],
-		         localdata: dataaux,
-		         id: 'recid',
-		     };
-			 var dataAdapter = new $.jqx.dataAdapter(source);
-			 var photorenderer = function (row, column, value) {
-		         var name = $('#grid_func_mapaOperacional').jqxGrid('getrowdata', row).usuario;
-		         var imgurl = './UserMgmt?opt=32&usuario='+name;
-		         var img = '<div style="background: white;"><img style="margin:2px; margin-left: 10px;" width="42" height="52" src="' + imgurl + '"></div>';
-		         return img;
-		     }
-			 
-		     var renderer = function (row, column, value) {
-		         return '<span style="margin-left: 4px; margin-top: 9px; float: left;">' + value + '</span>';
-		     }
-		     $("#grid_func_mapaOperacional").jqxGrid(
-		             {
-		                 width: getWidth('op_window3'),
-		                 height: 350,
-		                 source: dataAdapter,
-		                 columnsresize: true,
-			             filterable: true,
-			             autoshowfiltericon: true,
-		                 rowsheight: 55,
-		               
-		                 columns: [
-		                       { text: 'Photo', width: 50, cellsrenderer: photorenderer },
-		                       { text: 'Nome', datafield: 'nome', width: 150, cellsrenderer: renderer,filtertype: 'checkedlist' },
-		                       { text: 'Site', datafield: 'site_id', width: 100, cellsrenderer: renderer,filtertype: 'checkedlist' },
-		                       { text: 'Hora Entrada', datafield: 'h_entrada', width: 150, cellsrenderer: renderer,filtertype: 'checkedlist' },
-		                       { text: 'Ultimo Registro', datafield: 'u_registro', width: 150, cellsrenderer: renderer,filtertype: 'checkedlist' }
-		                       
-		                   ]
-		             });
-		    
-	}
-		 $('#jqxLoader_grid_func_mapaOperacional').jqxLoader('close');
+	operacional1();
+		
 		 $.ajax({
 	 		  type: "POST",
 	 		  data: {"opt":"22",

@@ -3036,20 +3036,49 @@ public class RolloutServlet extends HttpServlet {
 			}else if(opt.equals("21")) {
 				System.out.println("buscando registros mapa_operacinal");
 				Long totallinhas;
-				//param1=req.getParameter("campo");
+				param1=req.getParameter("filtros");
+				List<Bson> filtro_list = new ArrayList<Bson>();
+				Bson filtrodoc;
 				//param2=req.getParameter("valor_campo");
 				//param3=req.getParameter("func");
+				if(!param1.equals("") && param1!=null) {
+					System.out.println(param1);
+				JSONObject filtros = new JSONObject(param1);
+				JSONArray filtrosArray=filtros.getJSONArray("filtros");
 				
-				
+				for(int indice=0;indice<filtrosArray.length();indice++) {
+					JSONObject filtro=filtrosArray.getJSONObject(indice);
+					switch(filtro.getString("filtercondition"))
+					{
+						case "contem":
+							filtrodoc=Filters.regex(filtro.getString("datafield"), ".*"+filtro.getString("filtersvalue")+".*");
+							filtro_list.add(filtrodoc);
+							break;
+						case "equal":
+							filtrodoc=Filters.eq(filtro.getString("datafield"), filtro.getString("filtersvalue"));
+							filtro_list.add(filtrodoc);
+							break;
+						case "GREATHER EQUAL THAN":
+							filtrodoc=Filters.gte(filtro.getString("datafield"), checa_formato_data(filtro.getString("filtersvalue")));
+							filtro_list.add(filtrodoc);
+							break;
+						case "LESS EQUAL THAN":
+							filtrodoc=Filters.lte(filtro.getString("datafield"), checa_formato_data(filtro.getString("filtersvalue")));
+							filtro_list.add(filtrodoc);
+							break;
+					}
+				}
+				}
 				dados_tabela="";
 				dados_tabela= dados_tabela+"[";
-				
+				filtrodoc=Filters.eq("Empresa", p.getEmpresa().getEmpresa_id());
+				filtro_list.add(filtrodoc);
 				
 				FindIterable<Document> findIterable;
 				
-				System.out.println("Executando consulta data de Hoje. filtros");
-				totallinhas=c.CountSimplesSemFiltroInicioLimit("rollout");
-				findIterable = c.ConsultaRolloutPeriodoData("rollout","WORK DATE","24/02/2019","26/02/2019",p.getEmpresa().getEmpresa_id());
+				System.out.println("Executando consulta MAPA OPERACIONAL 1");
+				//totallinhas=c.CountSimplesSemFiltroInicioLimit("rollout");
+				findIterable = c.ConsultaRolloutPeriodoData("rollout",filtro_list,p.getEmpresa().getEmpresa_id());
 				MongoCursor<Document> resultado = findIterable.iterator();
 		
     			Document linha=new Document();
@@ -3058,7 +3087,7 @@ public class RolloutServlet extends HttpServlet {
     			String nome="";
     			String chaves="";
     			if(resultado.hasNext()) {
-    				System.out.println("resultados de  registros mapa_operacinal - encontrados");
+    				
 					while(resultado.hasNext()) {
 						linha=resultado.next();
 						//System.out.println(linha.toJson());
@@ -3078,7 +3107,7 @@ public class RolloutServlet extends HttpServlet {
     			}
 				dados_tabela=dados_tabela+"]";
 				//System.out.println(dados_tabela);
-				System.out.println("busca de  registros mapa_operacinal - finalizados");
+				System.out.println("Fim de consulta consulta MAPA OPERACIONAL 1");
 				resp.setContentType("application/json");  
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();

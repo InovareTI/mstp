@@ -307,12 +307,12 @@ function registra_filtro_operacional(tipo){
     	   var selection=$('#data_atbr_filtro_mapaOperacional_data').jqxDateTimeInput('getRange');
     	   aux.datafield = $('#select_campo_mapa_operacinal').selectpicker('val');
     	   aux.filtercondition='GREATHER EQUAL THAN';
-    	   aux.filtersvalue=selection.from;
+    	   aux.filtersvalue=moment(selection.from).format('L')
     	   filtros.filtros.push(aux);
        	   aux={};
        	   aux.datafield = $('#select_campo_mapa_operacinal').selectpicker('val');
        	   aux.filtercondition='LESS EQUAL THAN';
-       	   aux.filtersvalue=selection.to;
+       	   aux.filtersvalue=moment(selection.to).format('L')
        	   filtros.filtros.push(aux);
     	   aux={};
    } 	
@@ -321,7 +321,9 @@ function registra_filtro_operacional(tipo){
         sessionStorage.setItem("filtrosOperacional",JSON.stringify(filtros))
 	
 }
-
+function aplica_filtro_operacional(){
+	
+}
 function atualiza_lote(){
 	
 	var rows_indexes=$('#jqxgrid').jqxGrid('getselectedrowindexes');
