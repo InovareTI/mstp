@@ -94,6 +94,9 @@ public boolean InserirMuitos(String Collection,List<Document> document_list) {
 		return findIterable;
 	}
 	public FindIterable<Document> ConsultaSimplesComFiltroInicioLimit(String Collection,List<Bson> Filtros,Integer inicio,Integer limit){
+		System.out.println("Linhas a ignorar:"+inicio );
+		System.out.println("Limite de Linhas:"+limit );
+		System.out.println("Total de Linhas:"+ (limit-inicio));
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filtros)).skip(inicio).limit(limit);
 		return findIterable;
 	}
@@ -105,7 +108,7 @@ public boolean InserirMuitos(String Collection,List<Document> document_list) {
 		Long linhas = db.getCollection(Collection).count(new Document());
 		return linhas;
 	}
-   public FindIterable<Document> ConsultaRolloutcomFiltrosLista(String Collection,List<Bson> Filtros){
+   public FindIterable<Document> ConsultaCollectioncomFiltrosLista(String Collection,List<Bson> Filtros){
 	
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filtros));
 		return findIterable;
@@ -180,6 +183,24 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 			).forEach(printBlock);
 		return resultado;
 	}
+	public List<Document> consultaaggregation(String Collection,List<Bson>Filtros,String agregado) {
+		List<Document> resultado = new ArrayList<Document>();
+		 Block<Document> printBlock = new Block<Document>() {
+		        @Override
+		        public void apply(final Document document) {
+		        	resultado.add(document);
+		            //System.out.println(document.toJson());
+		        }
+		    };
+		db.getCollection(Collection).aggregate(
+			      Arrays.asList(
+			              Aggregates.match(Filters.and(Filtros)),
+			              
+			              Aggregates.group("$"+agregado, Accumulators.sum("count", 1))
+			      )
+			).forEach(printBlock);
+		return resultado;
+	}
 	public List<Document> consultaaggregationMilestone(String Collection,String Campo, String Valor,String agregado) {
 		List<Document> resultado = new ArrayList<Document>();
 		 Block<Document> printBlock = new Block<Document>() {
@@ -197,8 +218,25 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 			).forEach(printBlock);
 		return resultado;
 	}
-	public List<String> ConsultaSimplesDistinct(String Collection,String campo,int empresa){
-		MongoCursor<String> c = db.getCollection(Collection).distinct(campo,String.class).filter(Filters.eq("Empresa",empresa)).iterator();
+	public List<Document> consultaaggregationMilestone(String Collection,List<Bson>Filtros,String agregado) {
+		List<Document> resultado = new ArrayList<Document>();
+		 Block<Document> printBlock = new Block<Document>() {
+		        @Override
+		        public void apply(final Document document) {
+		        	resultado.add(document);
+		            //System.out.println(document.toJson());
+		        }
+		    };
+		db.getCollection(Collection).aggregate(
+			      Arrays.asList(
+			              Aggregates.match(Filters.and(Filtros)),
+			              Aggregates.group("$"+agregado, Accumulators.sum("count", 1))
+			      )
+			).forEach(printBlock);
+		return resultado;
+	}
+	public List<String> ConsultaSimplesDistinct(String Collection,String campo,List<Bson>Filtros){
+		MongoCursor<String> c = db.getCollection(Collection).distinct(campo,String.class).filter(Filters.and(Filtros)).iterator();
 		List<String> valores= new ArrayList<String>();
 		while(c.hasNext()) {
 			valores.add(c.next());
@@ -206,9 +244,9 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 		return valores;
 	}
 	
-	public Long ConsultaCountComplexa(String Collection,Bson filtro){
+	public Long ConsultaCountComplexa(String Collection,List<Bson> filtro){
 		
-		Long resutado=db.getCollection(Collection).count(filtro);
+		Long resutado=db.getCollection(Collection).count(Filters.and(filtro));
 		
 		return resutado;
 	}
@@ -312,8 +350,8 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 		MongoCollection<Document> coll = db.getCollection(Collection);
 		Document resultado;
 		System.out.println("chegou na funcao do update");
-		//coll.findOneAndUpdate(campo_condicao, campo_valor);
-		//resultado=coll.updateOne(campo_condicao, campo_valor);
+		System.out.println("Filtro:"+campo_condicao.toJson());
+		System.out.println("Update:"+campo_valor.toJson());
 		resultado=coll.findOneAndUpdate(campo_condicao, campo_valor);
 		if(resultado.isEmpty()) {
 			return false;

@@ -44,7 +44,7 @@ $(document).ready(function () {
             $('#range_espelho_analise').jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode: 'range'});
             carrega_portal();
             carrega_usuarios();
-            carrega_tabela_site();
+           // carrega_tabela_site();
             
             calcula_quantidade_hh_disponivel();
             $("#input_sites_arq").fileinput({
@@ -305,7 +305,8 @@ function inicia_assinatura2(){
 		}
 	}
 }
-function inicia_assinatura(){
+function inicia_assinatura(opt){
+	if(opt==1){
 	$.confirm({
 	    title: 'Termos de Uso',
 	    content: 'url:termos.txt',
@@ -333,6 +334,40 @@ function inicia_assinatura(){
 	    	}
 	});
 	}
+	if(opt==2){
+		$.confirm({
+		    title: 'Termos de Uso',
+		    content: 'url:termos.txt',
+		    columnClass: 'medium',
+		    type: 'red',
+		    buttons: {
+		    	Confirma: function () {
+		    		if(geral.perfil.search("AssinaturaManager")>=0){
+		    		$.dialog({
+		    			title:'Pague seguro com PayPal',
+		    			content:'<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">'+
+		    				 	'<input type="hidden" name="cmd" value="_s-xclick">'+
+		    					' <input type="hidden" name="hosted_button_id" value="5Q6QNTBWEPV56">'+
+		    					'<input type="image" src="https://www.paypalobjects.com/pt_BR/BR/i/btn/btn_subscribeCC_LG.gif" border="0" name="submit" alt="PayPal - A maneira fácil e segura de enviar pagamentos online!">'+
+		    					'<img alt="" border="0" src="https://www.paypalobjects.com/pt_BR/i/scr/pixel.gif" width="1" height="1">'+
+		    					'</form>'
+		    		
+		    		});
+		    		}
+		    	},
+		    	Cancela:function(){
+		    		$.alert("Operação abortada!");
+		    		window.close();
+		    		}
+		    	}
+		});
+	}
+	}
+
+
+
+
+
 function carrega_perfil(){
 	geral.perfil="";
 	$.getJSON('./POControl_Servlet?opt=33', function(data) {

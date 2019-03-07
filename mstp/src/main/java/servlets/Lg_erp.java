@@ -104,7 +104,7 @@ public void run_login(HttpServletRequest req, HttpServletResponse resp) throws S
                 p.set_PessoaUltimoLogin(rs.getString("ultimo_acesso"));
                 p.setEmail(rs.getString("email"));
                 
-                session.setMaxInactiveInterval(1800);
+                session.setMaxInactiveInterval(14400);
                 session.setAttribute("user",req.getParameter("user"));
                 p.setPerfil_funcoes(con);
                 session.setAttribute("pessoa",p);

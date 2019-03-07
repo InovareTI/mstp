@@ -54,7 +54,7 @@ response.setDateHeader ("Expires", -1);
 	<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/DataTable/buttons.dataTables.min.css" />
 	<script src="js/DataTable/dataTables.buttons.js" type="text/javascript"></script>
-		<script src="js/DataTable/jszip.min.js" type="text/javascript"></script>
+	<script src="js/DataTable/jszip.min.js" type="text/javascript"></script>
 	<script src="js/DataTable/buttons.print.js" type="text/javascript"></script>
 	<script src="js/DataTable/buttons.html5.js" type="text/javascript"></script>
 
@@ -135,15 +135,15 @@ response.setDateHeader ("Expires", -1);
     <script type="text/javascript" src="js/jqwidgets/jqxexpander.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxscheduler.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxscheduler.api.js"></script>
-     <script type="text/javascript" src="js/jqwidgets/jqxinput.js"></script>
-      <script type="text/javascript" src="js/jqwidgets/jqxdragdrop.js"></script>
+    <script type="text/javascript" src="js/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="js/jqwidgets/jqxdragdrop.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxpivot.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxpivotdesigner.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxpivotgrid.js"></script>
     <script type="text/javascript" src="js/jqwidgets/globalization/globalize.js"></script>
     <script type="text/javascript" src="js/jqwidgets/localization.js"></script>
     <link rel="stylesheet" type="text/css" href="js/dhtmlx/pivot.css" />
-  <script type="text/javascript" src="js/dhtmlx/pivot.js"></script>
+    <script type="text/javascript" src="js/dhtmlx/pivot.js"></script>
     
 	<script type="text/javascript" src="js/starter.js"></script>
 	<script type="text/javascript" src="js/portal.js"></script>
@@ -201,6 +201,9 @@ response.setDateHeader ("Expires", -1);
 	color:black;	
 	}
 	#tabela_usuario_folha_ponto_analise{
+	color:black;	
+	}
+	#tabela_detalhe_sites{
 	color:black;	
 	}
 	#tabela_usuario_analise_HH{
@@ -455,7 +458,7 @@ response.setDateHeader ("Expires", -1);
 							                    <div style="width:100%;text-align:center" >
 								                    <div style="float:left;width:190px;">Alocação de recursos em Projeto</div>
 								                    <div style="display: inline-block;margin:0 auto;width:300px;"></div>
-								                    <div style="float:right;width:20px;cursor: pointer;"><i class="fas fa-filter" onclick="testejs()"></i></div>
+								                    <div style="float:right;width:20px;cursor: pointer;"><i class="fas fa-filter" data-toggle="modal" data-target="#modal_filtros_mapa_operacional" onclick="atualiza_opt_filtro(3)"></i></div>
 							                    </div>
 							                   
 							                    <div id="grid_func_mapaOperacional_AtividadeProjetosUsuario"><div id="jqxLoader_grid_func_mapaOperacional_AtividadeProjetosUsuario"></div></div>
@@ -464,7 +467,7 @@ response.setDateHeader ("Expires", -1);
 							                    <div style="width:100%;text-align:center" >
 								                    <div style="float:left;width:190px;">Atividade Projeto</div>
 								                    <div style="display: inline-block;margin:0 auto;width:300px;"></div>
-								                    <div style="float:right;width:20px;cursor: pointer;"><i class="fas fa-filter" onclick="testejs()"></i></div>
+								                    <div style="float:right;width:20px;cursor: pointer;"><i class="fas fa-filter" data-toggle="modal" data-target="#modal_filtros_mapa_operacional" onclick="atualiza_opt_filtro(4)"></i></div>
 							                    </div>
 							                    <div id="grid_func_mapaOperacional_AtividadeProjetos"><div id="jqxLoader_grid_func_mapaOperacional_AtividadeProjetos"></div></div>
 							                </div>
@@ -475,17 +478,18 @@ response.setDateHeader ("Expires", -1);
 							                    <div style="width:100%;text-align:center" >
 								                    <div style="float:left;width:190px;">Atividade por Equipe</div>
 								                    <div style="display: inline-block;margin:0 auto;width:300px;"></div>
-								                    <div style="float:right;width:20px;cursor: pointer;"><i class="fas fa-filter" data-toggle="modal" data-target="#modal_filtros_mapa_operacional"></i></div>
+								                    <div style="float:right;width:20px;cursor: pointer;"><i class="fas fa-filter" data-toggle="modal" data-target="#modal_filtros_mapa_operacional" onclick="atualiza_opt_filtro(1)"></i></div>
 							                    </div>
-							                    
-							                    <div id="grid_func_mapaOperacional"><div id="jqxLoader_grid_func_mapaOperacional"></div></div>
-							                   
+							                    <div>
+							                   		<div id="jqxLoader_grid_func_mapaOperacional"></div>
+							                    	<div id="grid_func_mapaOperacional"></div>
+							                   </div>
 							                </div>
 							                <div id="op_window2" style="height: 40%; ">
 							                    <div style="width:100%;text-align:center" >
 								                    <div style="float:left;width:190px;">Escopo de Projeto</div>
 								                    <div style="display: inline-block;margin:0 auto;width:300px;"></div>
-								                    <div style="float:right;width:20px;cursor: pointer;"><i class="fas fa-filter" onclick="testejs()"></i></div>
+								                    <div style="float:right;width:20px;cursor: pointer;"><i class="fas fa-filter" data-toggle="modal" data-target="#modal_filtros_mapa_operacional" onclick="atualiza_opt_filtro(2)"></i></div>
 							                    </div>
 							                    <div id="grid_func_mapaOperacional_SitesProjetos"><div id="jqxLoader_grid_func_mapaOperacional_SitesProjetos"></div></div>
 							                </div>
@@ -843,12 +847,20 @@ response.setDateHeader ("Expires", -1);
         		<th>PayPal</th>
         		<th>Descrição</th>
         		</thead>
-        		<tbody><tr><td><div id="btn_assinar1"><button type="button" class="btn btn-info" onclick="inicia_assinatura()">Aceitar & Assinar</button></div></td><td>Módulo de controle de ponto com emissao de espelho de ponto até 70 usuários.</td>
+        		<tbody><tr><td><div id="btn_assinar1"><button type="button" class="btn btn-info" onclick="inicia_assinatura(1)">Aceitar & Assinar</button></div></td><td>Módulo de controle de ponto com emissao de espelho de ponto até 70 usuários.</td>
         		
         		<td>
 					     <A HREF="https://www.paypal.com/cgi-bin/webscr?cmd=_subscr-find&alias=5TTCUD9752CMQ">
 					<IMG SRC="https://www.paypalobjects.com/pt_BR/i/btn/btn_unsubscribe_LG.gif" BORDER="0">
 					</A>
+        		</td>
+        		</tr>
+        		<tr><td><div id="btn_assinar2"><button type="button" class="btn btn-info" onclick="inicia_assinatura(2)">Aceitar & Assinar</button></div></td><td>Módulo de rollout + Mapa Operacional e Base com informações de Site</td>
+        		
+        		<td>
+					     <A HREF="https://www.paypal.com/cgi-bin/webscr?cmd=_subscr-find&alias=5TTCUD9752CMQ">
+							<IMG SRC="https://www.paypalobjects.com/pt_BR/i/btn/btn_unsubscribe_LG.gif" BORDER="0">
+						</A>
         		</td>
         		</tr>
         		</tbody>
@@ -1306,8 +1318,39 @@ response.setDateHeader ("Expires", -1);
         			<div  id="div_tabela_clientes" ></div>
         		</div><!-- /tabela_clientes -->
         		<div class="janelas" id="Sites" style="display:none;">
-        		<input type="hidden" id="flag_substituicao" value="N">
-        			<div  id="div_tabela_Sites" ></div>
+	        		<input type="hidden" id="flag_substituicao" value="N">
+	        			<div id="div_tabela_sites_filtros" class="panel panel-primary" style="width:90%;margin:0 auto;">
+	        				<div class="panel-heading">Filtrar & Buscar Sites</div>
+		        			<div class="panel-body">
+		        			<div style="float: left">
+			        			<select  id="select_operadora_site"  onchange="carrega_tabela_site()" class="selectpicker" data-live-search="true" title="Escolha a Operadora">
+			        			<option value="VIVO">VIVO</option>
+			        			<option value="TIM">TIM</option>
+			        			<option value="OI">OI</option>
+			        			<option value="NEXTEL">NEXTEL</option>
+			        			<option value="CLARO">CLARO</option>
+			        			</select>
+			        			
+			        		</div>
+			        			
+			        		<div style="float: right">
+			        			<button id="btn_buscar_sites"  class="btn btn-primary">Buscar</button>
+			        			<input id="btnSync_rolloutsites" type="button" class="btn btn-primary" onclick="sync_rollout()" value="Sincronizar Sites">
+		        			</div>
+		        			</div>
+	        			</div>
+	        			<p></p>
+	        			<div id="div_tabela_Sites" class="panel panel-primary" style="width:90%;margin:0 auto;">
+        				<div class="panel-heading"><h3 class="panel-title">Tabela de Sites</h3></div>
+	        			<div class="panel-body">
+        				<div id="div_tabela_detalhe_sites">
+					       <div id="tabela_detalhe_sites" >
+					      </div>
+        				
+        				</div>
+        				</div>
+        			</div>
+	        			
         		</div><!-- /tabela_Sites -->
         		<div class="janelas" id="usuarios" style="display:none">
         			<div id="div_tabela_usuario"></div>
@@ -1805,7 +1848,7 @@ response.setDateHeader ("Expires", -1);
         <h4 class="modal-title" style="color:black">Filtros Mapa Operacional</h4>
       </div>
       <div class="modal-body">
-     
+     <input type="hidden" id="opt_mapa_operacinal" value=''>
 			<table>
 				<tr>
 					<td>
@@ -1820,7 +1863,7 @@ response.setDateHeader ("Expires", -1);
 			<div id="resumo_tipo_campos_filtros_mapaOperacional" style="color:gray"></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-danger" onclick="limpar_filtros_mapa_operacional()">Limpar Filtros</button><button type="button" class="btn btn-warning" onclick="operacional1()" data-dismiss="modal">Aplicar</button><button type="button" class="btn btn-warning" data-dismiss="modal">Aplicar e Salvar</button>
+        <button type="button" class="btn btn-danger" onclick="limpar_filtros_mapa_operacional()">Limpar Filtros</button><button type="button" class="btn btn-warning" onclick="atualiza_mapa_operacional()" data-dismiss="modal">Aplicar</button><button type="button" class="btn btn-warning" data-dismiss="modal">Aplicar e Salvar</button>
       </div>
     </div>
 

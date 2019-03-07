@@ -124,6 +124,28 @@ function sync_rollout(){
 		}
 
 	}  
+
+function atualiza_status(){
+	if(geral.usuario.includes('masteradmin')){
+	$.ajax({
+		  type: "POST",
+		  data: {"opt":"26"},		  
+		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+		  url: "./RolloutServlet",
+		  cache: false,
+		  dataType: "text",
+		  success: atualizaStatusReposta
+		});
+	function atualizaStatusReposta(data)
+	{
+		
+		$.alert(data.toString())
+	}
+	}else{
+		$.alert("Sem permissao para essa função!")
+	}
+}
+
 function deleta_campos_rollout(campos){
 	
 	$.ajax({
@@ -289,17 +311,20 @@ function verifica_campo_tipo(campo,origem){
 	}
 }
 function registra_filtro_operacional(tipo){
+	 var opt=document.getElementById('opt_mapa_operacinal').value;
 	
-	
-	filtros=JSON.parse(sessionStorage.getItem("filtrosOperacional"));
+	filtros=JSON.parse(sessionStorage.getItem("filtrosOperacional_"+opt));
 	if(filtros==null){
 		filtros={"filtros":[]};
 	}
 	var aux={};
 	if(tipo=='texto'){
 		aux.filtersvalue=document.getElementById("data_atbr_filtro_mapaOperacional_string").value;
+		document.getElementById("data_atbr_filtro_mapaOperacional_string").value='';
 		aux.filtercondition=$('#select_condicao_filtro_mapa_operacional').selectpicker('val');
+		$('#select_condicao_filtro_mapa_operacional').selectpicker('val','');
 		aux.datafield = $('#select_campo_mapa_operacinal').selectpicker('val');
+		$('#select_campo_mapa_operacinal').selectpicker('val','');
 		filtros.filtros.push(aux);
     	aux={};
 	}
@@ -313,17 +338,16 @@ function registra_filtro_operacional(tipo){
        	   aux.datafield = $('#select_campo_mapa_operacinal').selectpicker('val');
        	   aux.filtercondition='LESS EQUAL THAN';
        	   aux.filtersvalue=moment(selection.to).format('L')
+       	    $('#select_campo_mapa_operacinal').selectpicker('val','');
        	   filtros.filtros.push(aux);
     	   aux={};
    } 	
         	
         $("#resumo_tipo_campos_filtros_mapaOperacional").html(JSON.stringify(filtros));
-        sessionStorage.setItem("filtrosOperacional",JSON.stringify(filtros))
+        sessionStorage.setItem("filtrosOperacional_"+opt,JSON.stringify(filtros))
 	
 }
-function aplica_filtro_operacional(){
-	
-}
+
 function atualiza_lote(){
 	
 	var rows_indexes=$('#jqxgrid').jqxGrid('getselectedrowindexes');
@@ -519,8 +543,8 @@ function carrega_gant(){
 	                    var me = this;
 	                    toolbar.empty();
 	                    container = $("<div style='overflow: hidden; position: relative; margin: 1px;'></div>");
-	                    save_button = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px' href='#'>Salvar</a>");
-	                    drop_button=$("<div style='float: left;' id='dropDownButton_op_rollout'><div style='border: none;' id='jqxTree_bt_rollout'><ul><li><a style='float: left; margin-left: 5px;' href='#' onclick='SyncRollout()'>Atualizar</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_upload_rollout\">Importar</a></li><li><a style='float: left; margin-left: 5px;' href='#' onclick='downloadFunc()'>Exportar</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_rollout_history\">Histórico de Mudanças</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" onclick='SyncToMongoDB()' >Sync TO Mongo</a></li></ul></div></div>");
+	                    save_button = $("<input type=\"button\" class=\"btn btn-primary\" style='float: left; margin-left: 5px' value=\"Salvar\" id='jqxButton_salvar'>");
+	                    drop_button=$("<div style='float: left;' id='dropDownButton_op_rollout'><div style='border: none;' id='jqxTree_bt_rollout'><ul><li><a style='float: left; margin-left: 5px;' href='#' onclick='SyncRollout()'>Atualizar</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_upload_rollout\">Importar</a></li><li><a style='float: left; margin-left: 5px;' href='#' onclick='downloadFunc()'>Exportar</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_rollout_history\">Histórico de Mudanças</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" onclick='SyncToMongoDB()' >Sync TO Mongo</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" onclick='atualiza_status()' >Atualiza Status</a></li></ul></div></div>");
 	                    addButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Nova Atividade</a>");
 	                    batchButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Atualização em Lotes</a>");
 	                    cFilterButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Remover Filtros</a>");
@@ -591,7 +615,13 @@ function carrega_gant(){
 	                    	$("#jqxgrid").jqxGrid('clearfilters');
 	                    });
 	                    save_button.click(function (event) {
+	                    	$('#jqxButton_salvar').jqxButton('val', 'Aguarde...');
+	                    	$('#jqxButton_salvar').jqxButton({
+	                    	    disabled: true
+	                    	});
+	                    	$('#jqxButton_salvar').jqxButton('render');
 	                    	registra_mudancas_bd(g_changes);
+	                    	
 	                    });
 	                    deleteButton.click(function (event) {
 	                    	rm_row_rollout();
@@ -1020,9 +1050,14 @@ function registra_mudancas_bd(changes){
 	function onSuccess16(data)
 	{
 		
-	alert(data);
+	$.alert(data.toString());
 	g_changes.atualizacoes=0;
 	g_changes.campos=[];
+	$('#jqxButton_salvar').jqxButton({
+	    disabled: false
+	});
+	$('#jqxButton_salvar').jqxButton('val', 'Salvar');
+	$('#jqxButton_salvar').jqxButton('render');
 	if(geral.perfil.search("RolloutManager")>=0){
 		
 		 g1(0,'grafico_container5');
@@ -1030,6 +1065,11 @@ function registra_mudancas_bd(changes){
 	 }
 	}
 	}else{
-		alert("Sem Mudanças para registrar!");
+		$.alert("Sem Mudanças para registrar!");
+		$('#jqxButton_salvar').jqxButton({
+		    disabled: false
+		});
+		$('#jqxButton_salvar').jqxButton('val', 'Salvar');
+		$('#jqxButton_salvar').jqxButton('render');
 	}
 }

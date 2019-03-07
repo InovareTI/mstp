@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 
@@ -35,11 +36,13 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.json.JSONObject;
 
 import com.mongodb.Block;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Filters;
 
 import classes.Conexao;
 import classes.ConexaoMongo;
@@ -158,55 +161,63 @@ public class SiteMgmt extends HttpServlet {
 				//System.out.println(param1+"\n"+param2+"\n"+param3+"\n"+param4+"\n"+param5+"\n"+param6+"\n"+param7+"\n"+param8+"\n"+param9);
 				
 			}else if(opt.equals("2")) {
-				//System.out.println("Carregando Sites");
-				//System.out.println("conexao ativa:"+ conn.getConnection().isClosed());
+				//Enumeration<String> nomes=req.getParameterNames();
+				//while(nomes.hasMoreElements()) {
+				//	System.out.println(nomes.nextElement().toString());
+				//}
+				//System.out.println("Inicio:"+req.getParameter("start"));
+				//System.out.println("Tamanho:"+req.getParameter("length"));
+				param1 = req.getParameter("operadora");
+				param2=req.getParameter("pagesize");
+				param3=req.getParameter("pagenum");
+				int tamanho= Integer.parseInt(param2);
+				int pagina= Integer.parseInt(param3);
+				ConexaoMongo c = new ConexaoMongo();
+				Bson filtro;
+				Document site = new Document();
+				List<Bson> lista_filtro= new ArrayList<Bson>();
+				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				lista_filtro.add(filtro);
 				
-				//System.out.println("Carregando Sites");
-				
-					//System.out.println("achou Sites");
-					dados_tabela="<table id=\"tabela_sites\" "
-							+ "data-unique-id=\"siteiD_tbl\" "
-							+ "data-use-row-attr-func=\"true\" "
-							+ "data-toolbar=\"#toolbar_tabela_Sites\"  "
-							+ "data-show-refresh=\"true\" "
-							+ "data-toggle=\"table\"  "
-							+ "data-filter-control=\"true\"  "
-							+ "data-pagination=\"true\" "
-							+ "data-height=\"525\" "
-							+ "data-side-pagination=\"server\" "
-							+ "data-locale=\"pt-BR\" "
-							+ "data-url=\"./SiteMgmt?opt=5\" "
-							+ "data-sort-name=\"siteiD_tbl\" "
-							+ "data-page-size=\"10\" "
-							+ "data-page-list=\"[10, 20, 50, 100, 200]\" "
-							+ "data-sort-order=\"desc\" "
-							+ "data-show-columns=\"true\" "
-							+ "data-search=\"true\">" +"\n";
-					dados_tabela=dados_tabela + "<thead>"+"\n";
-					dados_tabela=dados_tabela +"<tr>"+"\n";
-					dados_tabela=dados_tabela +" <th data-checkbox=\"true\"></th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"site_tbl_operacoes\">Operações</th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"siteiDsys_tbl\" data-visible=\"false\">ID Sistema</th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"siteOperadora_tbl\">Site Operadora</th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"siteiD_tbl\">SiteID</th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"Sitelat_tbl\">Latitude</th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"Sitelng_tbl\">Longitude</th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"Sitecidade_tbl\">Cidade</th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"Sitebairro_tbl\">Bairro</th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"SiteUF_tbl\">UF</th>"+"\n";
-					dados_tabela=dados_tabela +"</tr>"+"\n";
-					dados_tabela=dados_tabela +"</thead>"+"\n";
-					dados_tabela=dados_tabela +"<tbody>"+"\n";
-					
-					
-					dados_tabela=dados_tabela + "</tbody>";
-					dados_tabela=dados_tabela + "</table>";
-					//System.out.println(dados_tabela);
-					resp.setContentType("application/html");  
-					resp.setCharacterEncoding("UTF-8"); 
-					PrintWriter out = resp.getWriter();
-					out.print(dados_tabela);
-					//System.out.println("Resposta Consulta 3 Enviada!");
+				System.out.println("Iniciando busca de sites operadora:"+param1);
+				//long linhas_total= c.ConsultaCountComplexa("sites", lista_filtro);
+				filtro=Filters.eq("site_operadora",param1);
+				lista_filtro.add(filtro);
+				long linhas_total_operadora= c.ConsultaCountComplexa("sites", lista_filtro);
+				dados_tabela="";
+				dados_tabela=dados_tabela+"[{\"totalRecords\":\""+linhas_total_operadora+"\",";
+				//Integer contador=0;
+				//System.out.println(dados_tabela);
+				FindIterable<Document> findIterable = c.ConsultaSimplesComFiltroInicioLimit("sites", lista_filtro,tamanho*pagina,tamanho);
+				//FindIterable<Document> findIterable = c.ConsultaCollectioncomFiltrosLista("sites", lista_filtro);
+				MongoCursor<Document> resultado = findIterable.iterator();
+				String chaves="";
+				if(resultado.hasNext()) {
+					System.out.println("Site encontrados");
+					while(resultado.hasNext()) {
+						site=(Document) resultado.next();
+						
+						dados_tabela=dados_tabela+chaves+"\"site_id\":\""+site.getString("site_id")+"\",";
+						dados_tabela=dados_tabela+"\"site\":\""+site.getString("site_id")+"\",";
+						dados_tabela=dados_tabela+"\"operadora\":\""+site.getString("site_operadora")+"\",";
+						dados_tabela=dados_tabela+"\"uf\":\""+site.getString("site_uf")+"\",";
+						dados_tabela=dados_tabela+"\"municipio\":\""+site.getString("site_municipio")+"\",";
+						dados_tabela=dados_tabela+"\"mapa\":\""+site.getString("site_bairro")+"\"},\n";
+						chaves="{";
+					}
+					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+					dados_tabela=dados_tabela+"]";
+					//dados_tabela=dados_tabela.replace("replace1", contador.toString());
+				}else {
+					System.out.println("Site ñ encontrados");
+					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+					dados_tabela=dados_tabela+"}]";
+				}
+				//System.out.println(dados_tabela);
+				resp.setContentType("application/json");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				out.print(dados_tabela);
 				
 			}else if(opt.equals("3")) {
 				System.out.println("Carregando sites no mapa");
@@ -258,7 +269,7 @@ public class SiteMgmt extends HttpServlet {
 					
 						    		
 							
-					System.out.println(dados_tabela);
+					//System.out.println(dados_tabela);
 					resp.setContentType("application/json");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
@@ -685,63 +696,52 @@ public class SiteMgmt extends HttpServlet {
 					out.print("Sites não disponivel para download");
 				}
 			}else if(opt.equals("12")) {
-				System.out.println("Sincronia de rollout iniciada em "+time);
-				query="select distinct value_atbr_field from rollout where milestone='Site ID' and linha_ativa='Y' and empresa="+p.getEmpresa().getEmpresa_id();
-				rs=conn.Consulta(query);
-				if(rs.next()) {
-					rs.beforeFirst();
-					while(rs.next()) {
-						query="select * from rollout_site where rollout_site_id='"+rs.getString(1)+"'";
-						rs2=conn.Consulta(query);
-						if(rs2.next()) {
-							
-						}else {
-							query="select * from sites where site_id='"+rs.getString(1)+"'";
-							rs3=conn.Consulta(query);
-							if(rs3.next()) {
-								conn.Inserir_simples("insert into rollout_site (rollout_site_id,site_latitude,site_longitude,site_operadora,site_UF,site_cidade,site_estado,site_Bairro,dt_add,user_ad) values ('"+rs.getString(1)+"','"+rs3.getString("site_latitude")+"','"+rs3.getString("site_longitude")+"','"+rs3.getString("site_operadora")+"','"+rs3.getString("site_uf")+"','"+rs3.getString("site_municipio")+"','"+rs3.getString("site_uf")+"','"+rs3.getString("site_bairro")+"','"+time+"','"+p.get_PessoaUsuario()+"')");
-							}
-						}
-					}
-				}
-				System.out.println("Sicronia com MySQL Finalizada");
+				System.out.println("iniciando sincronia de sites");
 				
 				ConexaoMongo c = new ConexaoMongo();
 				Document document = new Document();
 				Document geo = new Document();
 				Document geometry = new Document();
 				Document properties = new Document();
-				c.RemoverMuitosSemFiltro("Rollout_Sites",p.getEmpresa().getEmpresa_id());
-				query="select * from rollout_site";
+				//c.RemoverMuitosSemFiltro("Rollout_Sites",p.getEmpresa().getEmpresa_id());
+				query="select * from sites where site_ativo='Y' and site_latitude<>'' and site_longitude<>'' order by site_id ";
 				rs=conn.Consulta(query);
 				if(rs.next()) {
 					String CampoNome="";
-					rs.beforeFirst();
-					
+					String SiteID="";
+					rs.relative(9930);
+					System.out.println("linha corrente:"+rs.getRow());
+					//c.RemoverMuitosSemFiltro("sites", p.getEmpresa().getEmpresa_id());
 					int colunas = rs.getMetaData().getColumnCount();
+					if(rs.getRow()>9929) {
 					while(rs.next()) {
-						geo.append("type", "Feature");
-						geometry.append("type", "Point");
-						
+						if(!SiteID.equals(rs.getString("site_id"))) {
+							geo.append("type", "Feature");
+							geometry.append("type", "Point");
 							geometry.append("coordinates", verfica_coordenadas(rs.getString("site_latitude"),rs.getString("site_longitude")));
-						
-						geo.append("geometry",geometry);
-						//for (int i=1;i<=colunas;i++) {
-    						//CampoNome=rs.getMetaData().getColumnName(i);
-    						//if(CampoNome.equals("site_id")) {
-    							properties.append("SiteID", rs.getString("rollout_site_id"));
-    						//}
-    						//if(CampoNome.equals("site_operadora")) {
-    							properties.append("Operadora", rs.getString("site_operadora"));
-    						//}
-    					//}
-						geo.append("properties", properties);
-						document.append("Empresa", p.getEmpresa().getEmpresa_id());
-						document.append("GEO", geo);
-    					document.append("Update_by", "masteradmin");
-						document.append("Update_time", time);
-    					c.InserirSimpels("Rollout_Sites", document);
-    					document.clear();
+							geo.append("geometry",geometry);
+							properties.append("SiteID", rs.getString("site_id"));
+	    					properties.append("Operadora", rs.getString("site_operadora"));
+	    					properties.append("UF", rs.getString("site_uf"));
+	    					properties.append("Municipio", rs.getString("site_municipio"));
+							geo.append("properties", properties);
+							document.append("Empresa", p.getEmpresa().getEmpresa_id());
+							for(int i=2;i<colunas;i++) {
+								if(!rs.getMetaData().getColumnName(i).equals("empresa") && !rs.getMetaData().getColumnName(i).equals("last_update") ) {
+									document.append(rs.getMetaData().getColumnName(i), rs.getString(i));
+								}
+							}
+							document.append("GEO", geo);
+	    					document.append("Update_by", "masteradmin");
+							document.append("Update_time", time);
+	    					c.InserirSimpels("sites", document);
+	    					document.clear();
+	    					geo.clear();
+	    					geometry.clear();
+	    					properties.clear();
+	    					SiteID=rs.getString("site_id");
+						}
+					}
 					}
 				}
 				geo.clear();
