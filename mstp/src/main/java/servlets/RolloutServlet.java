@@ -1681,18 +1681,46 @@ public class RolloutServlet extends HttpServlet {
 				}
 			}else if(opt.equals("8")) {
 				param1=req.getParameter("linha");
+				Document filtro=new Document();
+				Document valor=new Document();
+				Document updates= new Document();
 				System.out.println(param1);
     			if(param1.indexOf(",")>0){
     				String []linhas=param1.split(",");
     				for(int j=0;j<linhas.length;j++){
     					if(!linhas[j].equals("")) {
-    						conn.Alterar("update rollout set linha_ativa='N',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+linhas[j]+" and empresa="+p.getEmpresa().getEmpresa_id());
+    						filtro=new Document();
+    						filtro.append("Empresa", p.getEmpresa().getEmpresa_id());
+    						filtro.append("recid",Integer.parseInt(linhas[j]));
+    						valor=new Document();
+    						valor.append("Linha_ativa", "N");
+    						valor.append("update_by", p.get_PessoaUsuario());
+    						valor.append("update_time", checa_formato_data(f2.format(time.getTime())));
+    						
+    						updates=new Document();
+    						updates.append("$set",valor);
+    						c.AtualizaUm("rollout", filtro, updates);
+    						
+    						//conn.Alterar("update rollout set linha_ativa='N',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+linhas[j]+" and empresa="+p.getEmpresa().getEmpresa_id());
     					}
     				}
     			
     			}else{
     				if(param1.length()>0){
-    					conn.Alterar("update rollout set linha_ativa='N',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+param1+" and empresa="+p.getEmpresa().getEmpresa_id());
+    					
+    					filtro=new Document();
+						filtro.append("Empresa", p.getEmpresa().getEmpresa_id());
+						filtro.append("recid",Integer.parseInt(param1));
+						valor=new Document();
+						valor.append("Linha_ativa", "N");
+						valor.append("update_by", p.get_PessoaUsuario());
+						valor.append("update_time", checa_formato_data(f2.format(time.getTime())));
+						
+						updates=new Document();
+						updates.append("$set",valor);
+						c.AtualizaUm("rollout", filtro, updates);
+    					
+    					//conn.Alterar("update rollout set linha_ativa='N',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+param1+" and empresa="+p.getEmpresa().getEmpresa_id());
 
     				}
     			}
@@ -1758,7 +1786,9 @@ public class RolloutServlet extends HttpServlet {
 							System.out.println("filterdatafield:"+filterdatafield);
 							System.out.println("filteroperator:"+filteroperator);
 							filtro=Filters.eq("Empresa", p.getEmpresa().getEmpresa_id());
-							filtro_list.add(filtro);	
+							filtro_list.add(filtro);
+							filtro=Filters.eq("Linha_ativa", "Y");
+							filtro_list.add(filtro);
 						switch(filtercondition)
 						{
 							case "CONTAINS":

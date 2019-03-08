@@ -153,6 +153,16 @@ function operacional1(){
 	    
 }
 	 $('#jqxLoader_grid_func_mapaOperacional').jqxLoader('close');
+	 $('#grid_func_mapaOperacional').on('rowclick', function (event) 
+			 {
+			     var args = event.args;
+			     //console.log(args);
+			     $.getJSON('./SiteMgmt?opt=13&usuario='+args.row.bounddata.usuario+'&_='+timestamp, function(data) {
+			    	 //console.log(data);
+			    	 //map.zoomTo(3, {duration: 9000});
+				     map.flyTo({center: data,zoom: 14});
+			     });
+			 }); 
 }
 function operacional4(){
 	var timestamp =Date.now();

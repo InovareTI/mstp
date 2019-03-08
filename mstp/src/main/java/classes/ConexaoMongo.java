@@ -137,6 +137,13 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa", empresa))).sort(ordenacao);
 		return findIterable;
 	}
+	public FindIterable<Document> ConsultaOrdenadaFiltroListaLimit1(String Collection,String CampoOrdem,int ordem,List<Bson>filtros){
+		Document ordenacao=new Document();
+		ordenacao.append(CampoOrdem, ordem);
+		
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(filtros)).sort(ordenacao).limit(1);
+		return findIterable;
+	}
 	public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,String campo,Integer valor,int empresa){
 		
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.eq(campo, valor)));
@@ -341,6 +348,16 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 		try {
 		coll.deleteMany(Filters.eq("Empresa",empresa));
 		System.out.println("Todos os documentos foram removidos, de "+ Collection );
+		}catch(Exception e) {
+			System.out.println(e.getMessage());
+		}
+		return true;
+	}
+	public boolean RemoverFiltroList(String Collection,List<Bson>filtros) {
+		MongoCollection<Document> coll = db.getCollection(Collection);
+		try {
+		coll.deleteMany(Filters.and(filtros));
+		System.out.println("Todos os documentos filtrados foram removidos, de "+ Collection );
 		}catch(Exception e) {
 			System.out.println(e.getMessage());
 		}

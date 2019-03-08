@@ -321,6 +321,18 @@ response.setDateHeader ("Expires", -1);
 						<h4 class="icon icon-world" style="font-family: Horizon;"><%= session.getAttribute("nome_empresa")%></h4>
 						<ul>
 							<li><a class="icon icon-display" href="#" onclick="menu('portal')">Dashboard</a></li>
+							 <li class="icon icon-arrow-left">
+								<a class="icon icon-settings" href="#">RH</a>
+								<div class="mp-level">
+									<h2 class="icon icon-settings">Recursos Humanos</h2>
+									<ul>
+										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_ponto')">Folha de Ponto</a></li>
+										<li><a class="icon icon-user" href="#" onclick="menu('usuarios')">Gestão de Usuários</a></li>
+										<li><a class="icon icon-user" href="#" onclick="menu('feriados')">Feriados</a></li>
+										<li><a class="icon icon-user" href="#" onclick="menu('...')">Férias</a></li>
+									</ul>
+								</div>
+							</li>
 							<li><a class="icon icon-display" href="#" onclick="menu('po')">Gestão de PO's</a></li>
 							<li><a href="#" onclick="menu('aprovacoes');carrega_aprovacoes_hh();"><i class="fas fa-list-ul"></i>&nbsp;&nbsp;Aprovações</a></li>
 							<li class="icon icon-arrow-left">
@@ -360,8 +372,7 @@ response.setDateHeader ("Expires", -1);
 									<h2 class="icon icon-settings">Configurações</h2>
 									<ul>
 										<li><a class="icon icon-key" href="#" onclick="menu('senha')">Senha</a></li>
-										<li><a class="icon icon-user" href="#" onclick="menu('usuarios')">Usuários</a></li>
-										<li><a class="icon icon-user" href="#" onclick="menu('feriados')">Feriados</a></li>
+										
 										<li><a class="icon icon-user" href="#">Portal</a></li>
 										<li><a class="icon icon-user" href="#" onclick="menu('campos_rollout')">Rollout</a></li>
 										<li><a class="icon icon-user" href="#" onclick="menu('vistoria_campos')">Relatórios de Vistorias</a></li>

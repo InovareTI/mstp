@@ -109,6 +109,7 @@ public class SiteMgmt extends HttpServlet {
 			HttpSession session = req.getSession(true);
 			Pessoa p = (Pessoa) session.getAttribute("pessoa");
 			Conexao conn = (Conexao) session.getAttribute("conexao");
+			ConexaoMongo c = (ConexaoMongo)session.getAttribute("conexaoMongo");
 			double money; 
 			NumberFormat number_formatter = NumberFormat.getCurrencyInstance();
 			String moneyString;
@@ -172,7 +173,7 @@ public class SiteMgmt extends HttpServlet {
 				param3=req.getParameter("pagenum");
 				int tamanho= Integer.parseInt(param2);
 				int pagina= Integer.parseInt(param3);
-				ConexaoMongo c = new ConexaoMongo();
+				//ConexaoMongo c = new ConexaoMongo();
 				Bson filtro;
 				Document site = new Document();
 				List<Bson> lista_filtro= new ArrayList<Bson>();
@@ -455,7 +456,7 @@ public class SiteMgmt extends HttpServlet {
 				System.out.println("Carregando TODOS os sites no mapa");
 				String operadora_aux="";
 				List<Document> lista_sites = new ArrayList<Document>();
-				ConexaoMongo c = new ConexaoMongo();
+				//ConexaoMongo c = new ConexaoMongo();
 				Document document_operadora = new Document();
 				Document document_featurecollection = new Document();
 				JSONObject aux_json = new JSONObject();
@@ -698,7 +699,7 @@ public class SiteMgmt extends HttpServlet {
 			}else if(opt.equals("12")) {
 				System.out.println("iniciando sincronia de sites");
 				
-				ConexaoMongo c = new ConexaoMongo();
+				//ConexaoMongo c = new ConexaoMongo();
 				Document document = new Document();
 				Document geo = new Document();
 				Document geometry = new Document();
@@ -750,16 +751,44 @@ public class SiteMgmt extends HttpServlet {
 				
 				document.clear();
 				
-			    c.fecharConexao();
+			    //c.fecharConexao();
 				
     			System.out.println("Sicronia com Mongo Finalizada");
 				resp.setContentType("application/html");  
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print("Sincronização Completa");
+			}else if(opt.equals("13")) {
+				System.out.println("Buscando ultimo registro de usuário");
+				param1=req.getParameter("usuario");
+				Bson filtro;
+				Document localizacao = new Document();
+				List<Bson>lista_filtro=new ArrayList<Bson>();
+				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				lista_filtro.add(filtro);
+				filtro=Filters.eq("GEO.properties.Usuario",param1);
+				lista_filtro.add(filtro);
+				//ConexaoMongo c = new ConexaoMongo();
+				FindIterable<Document> findIterable=c.ConsultaOrdenadaFiltroListaLimit1("Localiza_Usuarios", "GEO.properties.Data", -1, lista_filtro);
+				MongoCursor<Document> resultado=findIterable.iterator();
+				if(resultado.hasNext()) {
+					localizacao=resultado.next();
+					//System.out.println(localizacao.get("GEO.geometry.coordinates").toString());
+					resp.setContentType("application/json");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print(localizacao.get("GEO",Document.class).get("geometry",Document.class).get("coordinates"));
+				}else {
+					resp.setContentType("application/json");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print("");
+				}
+				
+				
 			}
 			}catch (SQLException e) {
-			
+			    
 				conn.fecharConexao();
 				// TODO Auto-generated catch block
 				e.printStackTrace();
