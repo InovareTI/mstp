@@ -177,7 +177,7 @@ public class RolloutServlet extends HttpServlet {
 		System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações de Rollout do MSTP Web - "+f3.format(time)+" opt:"+opt);
 		try {
 			if(opt.equals("1")){
-
+				//atualiza_sites_integrados(p);
 				JSONObject rollout_campos=r.getCampos().getCampos_tipo(conn,p);
 				Iterator<String>campos_nomes=rollout_campos.keys();
 				rs= conn.Consulta("select * from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresa().getEmpresa_id()+" order by ordenacao");
@@ -221,7 +221,7 @@ public class RolloutServlet extends HttpServlet {
     						
     						campos_aux=campos_aux+"{ \"text\": \"Inicio Previsto\", \"columngroup\":\""+rs.getString("field_name")+"\" , \"datafield\":\"sdate_pre_"+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\", \"cellsformat\":\"dd/MM/yyyy\",\"width\":100},"+ "\n";
     						campos_aux=campos_aux+"{ \"text\": \"Fim Previsto\", \"columngroup\":\""+rs.getString("field_name")+"\" , \"datafield\":\"edate_pre_"+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\", \"cellsformat\":\"dd/MM/yyyy\",\"width\":100},"+ "\n";
-    						campos_aux=campos_aux+"{ \"text\": \"Inicio Real\", \"columngroup\":\""+rs.getString("field_name")+"\" , \"datafield\":\"sdate_"+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\", \"cellsformat\":\"dd/MM/yyyy\",\"width\":100},"+ "\n";
+    						campos_aux=campos_aux+"{ \"text\": \"Inicio Real\", \"columngroup\":\""+rs.getString("field_name")+"\" , \"datafield\":\"sdate_"+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\", \"cellsformat\":\"dd/MM/yyyy\",\"width\":100,\"validation\":\"validaDataActual\"},"+ "\n";
     						campos_aux=campos_aux+"{ \"text\": \"Fim Real\", \"columngroup\":\""+rs.getString("field_name")+"\" , \"datafield\":\"edate_"+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\", \"cellsformat\":\"dd/MM/yyyy\",\"width\":100,\"validation\":\"validaDataActual\"},"+ "\n";
     						campos_aux=campos_aux+"{ \"text\": \"Anotacões\", \"columngroup\":\""+rs.getString("field_name")+"\", \"datafield\":\"udate_"+rs.getString("field_name")+"\",\"columntype\": \"textbox\",\"width\":100},"+ "\n";
     						campos_aux=campos_aux+"{ \"text\": \"Responsavel\", \"columngroup\":\""+rs.getString("field_name")+"\", \"datafield\":\"resp_"+rs.getString("field_name")+"\",\"columntype\": \"combobox\",\"width\":200},"+ "\n";
@@ -1655,6 +1655,7 @@ public class RolloutServlet extends HttpServlet {
 				            }//loop de linhas
 						}//else do arquivo multipart
 					}//loop de arquivos
+					atualiza_sites_integrados(p);
 				}//if de upload de arquivo
 			}else if(opt.equals("6")) {
 				param1=req.getParameter("campo");
@@ -2500,7 +2501,7 @@ public class RolloutServlet extends HttpServlet {
                 String[] elementNames;
                 time = new Timestamp(System.currentTimeMillis());
                 Calendar d =Calendar.getInstance();
-                
+                //atualiza_sites_integrados(p);
                 JSONObject jObj2=null;
                 JSONObject jObj = new JSONObject(param1); 
                 //System.out.println(jObj.get("campos"));
@@ -2659,6 +2660,8 @@ public class RolloutServlet extends HttpServlet {
     							if(!plano.equals("")) {
     								//conn.Alterar("update rollout set status_atividade='iniciada',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id());
     								updates.append("Milestone.$.status_"+cmp, "iniciada");
+    								Long duracao_dias=TimeUnit.MILLISECONDS.toDays((time.getTime())-(checa_formato_data(plano).getTime()));
+									updates.append("Milestone.$."+"duracao_"+cmp,duracao_dias);
     							}
     							update = new Document();
         				        update.append("$set", updates);
@@ -2709,6 +2712,8 @@ public class RolloutServlet extends HttpServlet {
     							if(!plano.equals("")) {
     								//conn.Alterar("update rollout set status_atividade='Finalizada',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id());
     								updates.append("Milestone.$.status_"+cmp, "Finalizada");
+    								//Long duracao_dias=TimeUnit.MILLISECONDS.toDays((time.getTime())-(checa_formato_data(plano).getTime()));
+									//updates.append("Milestone.$."+"duracao_"+cmp,duracao_dias);
     							}
     							update = new Document();
         				        update.append("$set", updates);
@@ -3555,7 +3560,63 @@ public class RolloutServlet extends HttpServlet {
 			
 		} 
 	}
-	
+	public void atualiza_sites_integrados(Pessoa p) {
+		System.out.println("Iniciando sincornia de sites");
+		ConexaoMongo c = new ConexaoMongo();
+		Timestamp time = new Timestamp(System.currentTimeMillis());
+		Bson filtro;
+		Document site = new Document();
+		Document site_novo = new Document();
+		Document geo  = new Document();
+		Document propertie  = new Document();
+		Document geometry  = new Document();
+		List<Bson> lista_filtro=new ArrayList<Bson>();
+		List<String> resultado=new ArrayList<String>();
+		FindIterable<Document> findIterable;
+		MongoCursor<Document> resultado_site;
+		filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+		lista_filtro.add(filtro);
+		//c.RemoverFiltroList("Rollout_Sites", lista_filtro);
+		resultado = c.ConsultaSimplesDistinct("rollout", "Site ID", lista_filtro);
+		
+		for(int indice=0;indice<resultado.size();indice++) {
+			filtro=Filters.eq("GEO.properties.SiteID",resultado.get(indice));
+			lista_filtro.add(filtro);
+			filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+			lista_filtro.add(filtro);
+			findIterable=c.ConsultaCollectioncomFiltrosLista("Rollout_Sites", lista_filtro);
+			resultado_site=findIterable.iterator();
+			if(resultado_site.hasNext()) {
+				
+			}else {
+				lista_filtro.clear();
+				filtro=Filters.eq("site_id",resultado.get(indice));
+				lista_filtro.add(filtro);
+				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				lista_filtro.add(filtro);
+				findIterable=c.ConsultaCollectioncomFiltrosLista("sites", lista_filtro);
+				resultado_site=findIterable.iterator();
+				if(resultado_site.hasNext()) {
+					site=(Document) resultado_site.next();
+					//System.out.println(site.toJson());
+					site_novo.append("Empresa", p.getEmpresa().getEmpresa_id());
+					site_novo.append("Site_id", site.getString("site_id"));
+					geometry =  (Document)site.get("GEO",Document.class).get("geometry");
+					propertie= (Document)site.get("GEO",Document.class).get("properties");
+					geo.append("type", "Feature");
+					geo.append("geometry", geometry);
+					geo.append("properties", propertie);
+					site_novo.append("GEO", geo);
+					site_novo.append("Update_by", p.get_PessoaUsuario());
+					site_novo.append("Update_time", time);
+					c.InserirSimpels("Rollout_Sites", site_novo);
+					site_novo.clear();
+				}
+			}
+			lista_filtro.clear();
+		}
+		System.out.println("Sincronia de sites finalizado ");
+	}
 	public void insere_linha_rollout(Conexao conn,HttpServletRequest req, HttpServletResponse resp,Pessoa p) {
 		
 		String query="";

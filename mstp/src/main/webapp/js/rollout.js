@@ -408,12 +408,12 @@ function carrega_gant(){
 			 }
 			 var d1 = new Date();
 			 if(value > d1.getTime()){
-				 return { result: false, message: "Fim real não pode ser maior que data atual." };
+				 return { result: false, message: "Inicio/Fim real não podem ser maior que data atual." };
 			 }
              return true;
          }
 		 var siteMarcadoIntegrado = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
-             if (sites_aux.includes(value)) {
+             if (sites_aux.indexOf(value)) {
                  return '<span style="margin: 4px; margin-top:8px; float: ' + columnproperties.cellsalign + '; color: #008000;">' + value + '</span>';
              }
              else {
@@ -425,6 +425,10 @@ function carrega_gant(){
 			
 			if(texto_a=="Site ID"){
 				data['campos2'][i].cellsrenderer=siteMarcadoIntegrado;
+			}
+			if(texto_a=="Inicio Real"){
+				
+				data['campos2'][i].validation=validaDataActual;
 			}
 			if(texto_a=="Fim Real"){
 				

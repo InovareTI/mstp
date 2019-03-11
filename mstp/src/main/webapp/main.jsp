@@ -327,9 +327,13 @@ response.setDateHeader ("Expires", -1);
 									<h2 class="icon icon-settings">Recursos Humanos</h2>
 									<ul>
 										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_ponto')">Folha de Ponto</a></li>
-										<li><a class="icon icon-user" href="#" onclick="menu('usuarios')">Gestão de Usuários</a></li>
+										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_ponto_analise')">Análise de Ponto</a></li>
+										<li><a class="icon icon-calendar" href="#" onclick="menu('faltas_relatorio')">Relatório de Faltas</a></li>
+										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_banco_hh')">Banco de Horas</a></li>
+										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_extra_hh')">Horas Extras</a></li>
 										<li><a class="icon icon-user" href="#" onclick="menu('feriados')">Feriados</a></li>
 										<li><a class="icon icon-user" href="#" onclick="menu('...')">Férias</a></li>
+										<li><a class="icon icon-user" href="#" onclick="menu('usuarios')">Gestão de Usuários</a></li>
 									</ul>
 								</div>
 							</li>
@@ -347,12 +351,6 @@ response.setDateHeader ("Expires", -1);
 								<div class="mp-level">
 									<h2 class="icon icon-settings">Relatórios</h2>
 									<ul>
-										<li><a class="icon icon-calendar" href="#" onclick="menu('rel_ponto_kpi');carrega_kpi()">KPI's de Ponto</a></li>
-										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_ponto')">Folha de Ponto</a></li>
-										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_ponto_analise')">Análise de Ponto</a></li>
-										<li><a class="icon icon-calendar" href="#" onclick="menu('faltas_relatorio')">Relatório de Faltas</a></li>
-										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_banco_hh')">Banco de Horas</a></li>
-										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_extra_hh')">Horas Extras</a></li>
 										<li><a class="icon icon-key" href="#" onclick="menu('mstp_mobile_report_diario');g5('category','grafico_container_mstp_mobile_report')">Registros MSTP Mobile</a></li>
 										<li class="icon icon-arrow-left">
 											<a class="icon icon-note" href="#">Rollout</a>

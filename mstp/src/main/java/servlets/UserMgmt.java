@@ -1939,7 +1939,7 @@ public class UserMgmt extends HttpServlet {
 					//rs3=conn.Consulta("select id_usuario,nome,matricula from usuarios where validado='Y and ativo='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
 				}else {
 					aux_usuario=param1;
-					query="select distinct data_dia,id_usuario from registros where usuario='"+param1+"' and str_to_date(datetime_servlet,'%Y-%m-%d') >= str_to_date('"+f2.format(inicio.getTime())+"','%d/%m/%Y') and str_to_date(datetime_servlet,'%Y-%m-%d') <= str_to_date('"+f2.format(fim.getTime())+"','%d/%m/%Y') order by datetime_servlet asc" ;
+					query="select distinct data_dia,usuario from registros where usuario='"+param1+"' and str_to_date(datetime_servlet,'%Y-%m-%d') >= str_to_date('"+f2.format(inicio.getTime())+"','%d/%m/%Y') and str_to_date(datetime_servlet,'%Y-%m-%d') <= str_to_date('"+f2.format(fim.getTime())+"','%d/%m/%Y') order by datetime_servlet asc" ;
 					aux_usuario_dados=p.buscarPessoa(conn, aux_usuario, p.getEmpresa().getEmpresa_id());
 				}
 				
@@ -1967,12 +1967,12 @@ public class UserMgmt extends HttpServlet {
 						HH[2]="0.0";
 						HH[3]="0.0";
 						if(aux_usuario.equals("")) {
-							aux_usuario=rs.getString("id_usuario");
+							aux_usuario=rs.getString(2);
 							aux_usuario_dados=p.buscarPessoa(conn, aux_usuario, p.getEmpresa().getEmpresa_id());
-						}else if(aux_usuario.equals(rs.getString("id_usuario"))) {
+						}else if(aux_usuario.equals(rs.getString(2))) {
 							
 						}else {
-							aux_usuario=rs.getString("id_usuario");
+							aux_usuario=rs.getString(2);
 							aux_usuario_dados=p.buscarPessoa(conn, aux_usuario, p.getEmpresa().getEmpresa_id());
 						}
 						if(rs.getString("data_dia")==null) {
@@ -1989,8 +1989,8 @@ public class UserMgmt extends HttpServlet {
 								tipo_registro="Sem Marcação";
 								tipo_ajustar=" - ";
 							}
-							if(rs.getString("id_usuario")!=null) {
-							aux_usuario=rs.getString("id_usuario");
+							if(rs.getString(2)!=null) {
+							aux_usuario=rs.getString(2);
 							aux_usuario_dados=p.buscarPessoa(conn, aux_usuario, p.getEmpresa().getEmpresa_id());
 							dados_tabela=dados_tabela+"[\""+f2.format(d.getTime())+"\",\""+aux_usuario_dados[0]+"\",\""+aux_usuario_dados[1]+"\",\"\",\"\",\"\",\"\",\"\",\""+tipo_registro+"\",\""+tipo_ajustar+"\",\"-\"],\n";
 							}
