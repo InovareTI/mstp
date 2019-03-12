@@ -576,6 +576,11 @@ public class RolloutServlet extends HttpServlet {
 			                cell.setCellStyle(cellStyle);
 			                sheet.autoSizeColumn(colIndex);
 			                colIndex=colIndex+1;
+			                cell = row2.createCell((short) colIndex);
+			                cell.setCellValue("Duração(D)");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
 	            		}
 	            		
 	            	}
@@ -970,6 +975,21 @@ public class RolloutServlet extends HttpServlet {
 	            				if(!milestone_doc.get("resp_"+campos[indice_campos]).equals("")) {
 	            					cell.setCellStyle(cellStyle2);
 	           					    cell.setCellValue(milestone_doc.getString("resp_"+campos[indice_campos]));
+	            				}else {
+	            					cell.setCellStyle(cellStyle2);
+	            					cell.setCellValue("");
+	            				}
+            				}else {
+            					cell.setCellStyle(cellStyle2);
+            					cell.setCellValue("");
+            				}
+            				colIndex=colIndex+1;
+            				cell = row.createCell((short) colIndex);
+            				if(milestone_doc.get("duracao_"+campos[indice_campos])!=null) {
+	            				if(!milestone_doc.get("duracao_"+campos[indice_campos]).equals("")) {
+	            					cell.setCellStyle(cellStyle2);
+	            					System.out.println(milestone_doc.get("duracao_"+campos[indice_campos]).getClass());
+	           					    cell.setCellValue(milestone_doc.get("duracao_"+campos[indice_campos]).toString());
 	            				}else {
 	            					cell.setCellStyle(cellStyle2);
 	            					cell.setCellValue("");
@@ -2041,10 +2061,14 @@ public class RolloutServlet extends HttpServlet {
     					if(campo_tipo.getJSONArray(nome_campo_aux).get(0).equals("Atributo")) {
 		    				if(campo_tipo.getJSONArray(nome_campo_aux).get(1).equals("Data")) {
 		    					//System.out.println("transformando data de :"+nome_campo_aux +" - valor string:"+linha.getString(nome_campo_aux));
-		    					if(linha.get(nome_campo_aux)!=null && !linha.get(nome_campo_aux).equals("")) {
-		    						dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\""+f2.format(linha.getDate(nome_campo_aux))+"\",";
+		    					if(linha.get(nome_campo_aux)!=null) {
+		    						if( !linha.get(nome_campo_aux).equals("")) {
+		    							dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\""+f2.format(linha.getDate(nome_campo_aux))+"\",";
+		    						}else {
+		    							dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\"\",";
+		    						}
 		    					}else {
-		    						dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\""+linha.getString(nome_campo_aux)+"\",";
+		    						dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\"\",";
 		    					}
 		    				}else {
 		    					if(linha.getString(nome_campo_aux)!=null) {
