@@ -262,40 +262,40 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 		findIterable = db.getCollection(Collection).find(Filters.and(Filtros));
 		return findIterable;
 	}
-	public FindIterable<Document> ConsultaFiltrosHistoricoRollout(String Collection,List<String>site,List<String>campos,List<String>autor,String dtinicio,String dtfim){
+	public FindIterable<Document> ConsultaFiltrosHistoricoRollout(String Collection,List<String>site,List<String>campos,List<String>autor,String dtinicio,String dtfim,int empresa){
 		
 		FindIterable<Document> findIterable = null;
 		if(site.toArray().length>0) {
 			if(autor.toArray().length>0) {
 				if(campos.toArray().length>0) {
 					System.out.println("Realizando Consulta com Sites,Campos e autor para "+dtinicio+ "até "+dtfim);
-					findIterable = db.getCollection(Collection).find(Filters.and(Filters.in("SiteID", site),Filters.in("update_by", autor),Filters.in("Campo", campos),Filters.gte("update_time", checa_formato_data(dtinicio)),Filters.lte("update_time", checa_formato_data(dtfim))));
+					findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.in("SiteID", site),Filters.in("update_by", autor),Filters.in("Campo", campos),Filters.gte("update_time", checa_formato_data(dtinicio)),Filters.lte("update_time", checa_formato_data(dtfim))));
 				}else {
 					System.out.println("Realizando Consulta com Sites e autor para "+dtinicio+ "até "+dtfim);
-					findIterable = db.getCollection(Collection).find(Filters.and(Filters.in("SiteID", site),Filters.in("update_by", autor),Filters.gte("update_time", checa_formato_data(dtinicio)),Filters.lte("update_time", checa_formato_data(dtfim))));
+					findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.in("SiteID", site),Filters.in("update_by", autor),Filters.gte("update_time", checa_formato_data(dtinicio)),Filters.lte("update_time", checa_formato_data(dtfim))));
 				}
 			}else if(campos.toArray().length>0) {
 				System.out.println("Realizando Consulta com Sites,Campos para "+dtinicio+ "até "+dtfim);
-				findIterable = db.getCollection(Collection).find(Filters.and(Filters.in("SiteID", site),Filters.in("Campo", campos),Filters.gte("update_time", checa_formato_data(dtinicio)),Filters.lte("update_time", checa_formato_data(dtfim))));
+				findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.in("SiteID", site),Filters.in("Campo", campos),Filters.gte("update_time", checa_formato_data(dtinicio)),Filters.lte("update_time", checa_formato_data(dtfim))));
 			}else {
 				System.out.println("Realizando Consulta com Sites e autor para "+dtinicio+ "até "+dtfim);
-				findIterable = db.getCollection(Collection).find(Filters.and(Filters.in("SiteID", site),Filters.gte("update_time", checa_formato_data(dtinicio)),Filters.lte("update_time", checa_formato_data(dtfim))));
+				findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.in("SiteID", site),Filters.gte("update_time", checa_formato_data(dtinicio)),Filters.lte("update_time", checa_formato_data(dtfim))));
 			}
 			//findIterable = findIterable.filter(Filters.in("SiteID", site));
 		}else if(autor.toArray().length>0) {
 			if(campos.toArray().length>0) {
 				System.out.println("Realizando Consulta com Campos e autor para "+dtinicio+ "até "+dtfim);
-				findIterable = db.getCollection(Collection).find(Filters.and(Filters.in("update_by", autor),Filters.in("Campo", campos),Filters.gte("update_time", checa_formato_data(dtinicio)),Filters.lte("update_time", checa_formato_data(dtfim))));
+				findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.in("update_by", autor),Filters.in("Campo", campos),Filters.gte("update_time", checa_formato_data(dtinicio)),Filters.lte("update_time", checa_formato_data(dtfim))));
 			}else {
 				System.out.println("Realizando Consulta com autor para "+dtinicio+ "até "+dtfim);
-				findIterable = db.getCollection(Collection).find(Filters.and(Filters.in("update_by", autor),Filters.gte("update_time", checa_formato_data(dtinicio)),Filters.lte("update_time", checa_formato_data(dtfim))));
+				findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.in("update_by", autor),Filters.gte("update_time", checa_formato_data(dtinicio)),Filters.lte("update_time", checa_formato_data(dtfim))));
 			}
 		}else if(campos.toArray().length>0) { 
 			System.out.println("Realizando Consulta com Campos para "+dtinicio+ "até "+dtfim);
-			findIterable = db.getCollection(Collection).find(Filters.and(Filters.in("Campo", campos),Filters.gte("update_time", checa_formato_data(dtinicio)),Filters.lte("update_time", checa_formato_data(dtfim))));
+			findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.in("Campo", campos),Filters.gte("update_time", checa_formato_data(dtinicio)),Filters.lte("update_time", checa_formato_data(dtfim))));
 		}else {
 			System.out.println("Realizando Consulta  para "+dtinicio+ "até "+dtfim);
-			findIterable = db.getCollection(Collection).find(Filters.and(Filters.gte("update_time", checa_formato_data(dtinicio)),Filters.lte("update_time", checa_formato_data(dtfim))));
+			findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa",empresa),Filters.gte("update_time", checa_formato_data(dtinicio)),Filters.lte("update_time", checa_formato_data(dtfim))));
 		}
 		
 		

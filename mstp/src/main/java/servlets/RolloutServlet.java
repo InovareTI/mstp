@@ -1134,7 +1134,7 @@ public class RolloutServlet extends HttpServlet {
 				    			while (i<j && !operacao.equals("abortar"))  {
 				    				 cell = row.getCell(i);
 				    				 colunacelula=i;
-				    				System.out.println("Recid:"+recid+", Linha:"+row.getRowNum()+", celula:"+cell.getColumnIndex()+", operacao:"+operacao+", coluna:"+campos[colunacelula]);
+				    				//System.out.println("Recid:"+recid+", Linha:"+row.getRowNum()+", celula:"+cell.getColumnIndex()+", operacao:"+operacao+", coluna:"+campos[colunacelula]);
 				    				cellValue = dataFormatter.formatCellValue(cell);
 				    				cellValue=cellValue.replace("'","");
 				    				cellValue=cellValue.replace("\"","");
@@ -3051,9 +3051,9 @@ public class RolloutServlet extends HttpServlet {
 				param3=req.getParameter("autor");
 				param4=req.getParameter("inicio");
 				param5=req.getParameter("fim");
-				List<String> autor = new ArrayList();
-				List<String> campos = new ArrayList();
-				List<String> site = new ArrayList();
+				List<String> autor = new ArrayList<String>();
+				List<String> campos = new ArrayList<String>();
+				List<String> site = new ArrayList<String>();
 				
 				
 				
@@ -3093,7 +3093,7 @@ public class RolloutServlet extends HttpServlet {
 				System.out.println("site:"+site.toString());
 				System.out.println("campos:"+campos.toString());
 				System.out.println("autor:"+autor.toString());
-				FindIterable<Document> findIterable=c.ConsultaFiltrosHistoricoRollout("rollout_history", site,campos,autor,param4,param5);
+				FindIterable<Document> findIterable=c.ConsultaFiltrosHistoricoRollout("rollout_history", site,campos,autor,param4,param5,p.getEmpresa().getEmpresa_id());
 				
 				findIterable.forEach((Block<Document>) doc -> {
 					
