@@ -391,6 +391,20 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 			return true;
 		}
 	}
+	public boolean AtualizaMuitos(String Collection,Bson campo_condicao, Document campo_valor) {
+		MongoCollection<Document> coll = db.getCollection(Collection);
+		UpdateResult resultado;
+		//System.out.println("chegou na funcao do update");
+		//System.out.println("Filtro:"+campo_condicao.toJson());
+		//System.out.println("Update:"+campo_valor.toJson());
+		resultado=coll.updateMany(campo_condicao, campo_valor);
+		if(resultado.getModifiedCount()==0) {
+			return false;
+		}else {
+			System.out.println(resultado.getModifiedCount()+" - documentos atualizados");
+			return true;
+		}
+	}
 	public void fecharConexao() {
 		 this.mongoClient.close();
 		 System.out.println("Conexão encerrada com sucesso");

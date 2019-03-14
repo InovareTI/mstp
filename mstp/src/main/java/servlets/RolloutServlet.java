@@ -117,6 +117,13 @@ public class RolloutServlet extends HttpServlet {
 
 	
 	public void rolloutmgmt(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		HttpSession session = req.getSession(true);
+		Pessoa p = (Pessoa) session.getAttribute("pessoa");
+		if(p==null) {
+			resp.sendRedirect("./mstp_login.html");
+			return;
+		}
+		
 		ResultSet rs ;
 		ResultSet rs2 ;
 		String dados_tabela;
@@ -160,10 +167,9 @@ public class RolloutServlet extends HttpServlet {
 		rs2=null;
 		Locale locale_ptBR = new Locale( "pt" , "BR" ); 
 		Locale.setDefault(locale_ptBR);
-		HttpSession session = req.getSession(true);
-		Pessoa p = (Pessoa) session.getAttribute("pessoa");
+		
 		Conexao conn = (Conexao) session.getAttribute("conexao");
-		ConexaoMongo c = (ConexaoMongo) session.getAttribute("conexaoMongo");
+		ConexaoMongo c = new ConexaoMongo();
 		Rollout r = new Rollout();
 		JSONObject campo_tipo=r.getCampos().getCampos_tipo(conn, p);
 		double money; 
@@ -174,6 +180,7 @@ public class RolloutServlet extends HttpServlet {
 		SimpleDateFormat dt_excel = new SimpleDateFormat("ddd MMM dd HH:mm:ss 'BRST' yyyy");
 		DateFormat f3 = DateFormat.getDateTimeInstance();
 		opt=req.getParameter("opt");
+		
 		System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações de Rollout do MSTP Web - "+f3.format(time)+" opt:"+opt);
 		try {
 			if(opt.equals("1")){
@@ -416,7 +423,7 @@ public class RolloutServlet extends HttpServlet {
 			    out.print(jObj);
 					
 					
-			
+			c.fecharConexao();
 			}else if(opt.equals("2")) {
 
 				
@@ -459,7 +466,7 @@ public class RolloutServlet extends HttpServlet {
 					}else{
 						//System.out.println("Consulta returns empty");
 					}
-			
+					c.fecharConexao();
 			}else if(opt.equals("3")) {
 				System.out.println("Iniciando exporte de rollout");
 				int colIndex = 0;
@@ -469,7 +476,7 @@ public class RolloutServlet extends HttpServlet {
 				//System.out.println("Filtros:"+param1);
 				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy"); 
 				
-				FindIterable findIterable = null;
+				FindIterable<Document> findIterable = null;
 				Document Linha= new Document();
 				Date aux_date;
 				JSONObject jObj = new JSONObject(param1);
@@ -988,7 +995,7 @@ public class RolloutServlet extends HttpServlet {
             				if(milestone_doc.get("duracao_"+campos[indice_campos])!=null) {
 	            				if(!milestone_doc.get("duracao_"+campos[indice_campos]).equals("")) {
 	            					cell.setCellStyle(cellStyle2);
-	            					System.out.println(milestone_doc.get("duracao_"+campos[indice_campos]).getClass());
+	            					//System.out.println(milestone_doc.get("duracao_"+campos[indice_campos]).getClass());
 	           					    cell.setCellValue(milestone_doc.get("duracao_"+campos[indice_campos]).toString());
 	            				}else {
 	            					cell.setCellStyle(cellStyle2);
@@ -1016,8 +1023,10 @@ public class RolloutServlet extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print("Rollout não disponivel para download");
 	            }
+	            c.fecharConexao();
 			}else if(opt.equals("4")) {
 				insere_linha_rollout(conn,req,resp,p);
+				c.fecharConexao();
 			}else if(opt.equals("5")) {
 				
 				System.out.println("Iniciando Import de Rollout. usuario:"+p.get_PessoaUsuario()+" | " + f3.format(time));
@@ -1295,7 +1304,7 @@ public class RolloutServlet extends HttpServlet {
 								    	            			 }
 							    	            			}
 						    	            			 }else {
-						    	            				 
+						    	            				if(linha_doc.get(campos[colunacelula])!=null) {
 						    	            				 if(!linha_doc.get(campos[colunacelula]).equals(cellValue)) {
 						    	            					 changes.append(campos[colunacelula], "");
 						    	            					 historico=new Document();
@@ -1312,6 +1321,7 @@ public class RolloutServlet extends HttpServlet {
 							    	         				        lista_hitorico.add(historico);
 							    	         				       
 						    	            				 }
+						    	            				}
 						    	            			 }
 					    							 }else {
 					    								 if(linha_doc.get(campos[colunacelula])!=null) {
@@ -1677,6 +1687,7 @@ public class RolloutServlet extends HttpServlet {
 					}//loop de arquivos
 					atualiza_sites_integrados(p);
 				}//if de upload de arquivo
+				c.fecharConexao();
 			}else if(opt.equals("6")) {
 				param1=req.getParameter("campo");
 				query="select tipo from rollout_campos where field_name='"+param1+"' and empresa="+p.getEmpresa().getEmpresa_id();
@@ -1688,6 +1699,7 @@ public class RolloutServlet extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(rs.getString(1));
 				}
+				c.fecharConexao();
 			}else if(opt.equals("7")) {
 				query="select field_name from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" order by ordenacao";
 				rs=conn.Consulta(query);
@@ -1703,6 +1715,7 @@ public class RolloutServlet extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
 				}
+				c.fecharConexao();
 			}else if(opt.equals("8")) {
 				param1=req.getParameter("linha");
 				Document filtro=new Document();
@@ -1752,6 +1765,7 @@ public class RolloutServlet extends HttpServlet {
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print("OK");
+				 c.fecharConexao();
 			}else if(opt.equals("9")) {
 				//System.out.println("server side ");
 				//JSONObject rollout_campos=r.getCampos().getCampos_tipo(conn,p);
@@ -2198,7 +2212,7 @@ public class RolloutServlet extends HttpServlet {
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
 					
-
+			    c.fecharConexao();
 			}else if(opt.equals("10")) {
 				
 			String imagem_status="";
@@ -2314,7 +2328,7 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
-    			
+			    c.fecharConexao();
 			}else if(opt.equals("11")) {
 				param1=req.getParameter("pivot");
 				param2=req.getParameter("nome");
@@ -2335,6 +2349,7 @@ public class RolloutServlet extends HttpServlet {
 		  		    PrintWriter out = resp.getWriter();
 				    out.print("Erro no salvamento do relatório");
 				}
+				 c.fecharConexao();
 			}else if(opt.equals("12")) {
 				query="";
 				dados_tabela="";
@@ -2350,6 +2365,7 @@ public class RolloutServlet extends HttpServlet {
 		  		    PrintWriter out = resp.getWriter();
 				    out.print(dados_tabela);
 				}
+				 c.fecharConexao();
 			}else if(opt.equals("13")) {
 				System.out.println("Carregando pivot 1");
 				param1=req.getParameter("id");
@@ -2469,7 +2485,7 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
-				 
+			    c.fecharConexao();
 			}else if(opt.equals("14")) {
 				System.out.println("iniciando sincronia de rollout com MongoDB");
 				String imagem_status="";
@@ -2507,6 +2523,7 @@ public class RolloutServlet extends HttpServlet {
     				System.out.println("Sicronia com Mongo Finalizada porém sem sincronia dos campos do rollout");
     			}
     			System.out.println("Sicronia com Mongo Finalizada");
+    			 c.fecharConexao();
 			}else if(opt.equals("15")) {
 				
 				
@@ -2905,7 +2922,7 @@ public class RolloutServlet extends HttpServlet {
 				out.print("Rollout Atualizado!");
 				
 				
-			
+				 c.fecharConexao();
 			}else if(opt.equals("16")) {
 				System.out.println("chegou no opt 16 - plota no mapa os sites filtrados do rollout");
 				
@@ -2975,6 +2992,7 @@ public class RolloutServlet extends HttpServlet {
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print(resultado);
+				 c.fecharConexao();
 			}else if(opt.equals("17")) {
 				System.out.println("buscando sites integrados no rollout") ;
 				
@@ -2991,6 +3009,7 @@ public class RolloutServlet extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				//System.out.println(rollout_filtrado_site.toString());
 				out.print(rollout_filtrado_site.toString());
+				 c.fecharConexao();
 			}else if(opt.equals("18")) {
 				param1=req.getParameter("filtros");
 				List<String> historico_site= new ArrayList<String>();
@@ -3029,7 +3048,7 @@ public class RolloutServlet extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				//System.out.println(rollout_filtrado_site.toString());
 				out.print(historico_site.toString());
-				
+				 c.fecharConexao();
 			}else if(opt.equals("19")) {
 				JSONObject jsonObject_campos = r.getCampos().getCampos_tipo(conn, p);
 				String resultado="";
@@ -3045,6 +3064,7 @@ public class RolloutServlet extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				//System.out.println(rollout_filtrado_site.toString());
 				out.print(resultado);
+				 c.fecharConexao();
 			}else if(opt.equals("20")) {
 				param1=req.getParameter("siteid");
 				param2=req.getParameter("campos");
@@ -3118,6 +3138,7 @@ public class RolloutServlet extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				//System.out.println(rollout_filtrado_site.toString());
 				out.print(historico_site.toString());
+				 c.fecharConexao();
 			}else if(opt.equals("21")) {
 				System.out.println("buscando registros mapa_operacinal");
 				Long totallinhas;
@@ -3197,6 +3218,7 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
+			    c.fecharConexao();
 			}else if(opt.equals("22")) {
 				System.out.println("Executando consulta MAPA OPERACIONAL 2");
 				List<String> projetos = new ArrayList<String>();
@@ -3299,7 +3321,7 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
-				
+			    c.fecharConexao();
 			}else if(opt.equals("23")) {
 				System.out.println("Executando consulta consulta MAPA OPERACIONAL 4");
 				List<String> projetos = new ArrayList<String>();
@@ -3374,6 +3396,7 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
+			    c.fecharConexao();
 			}else if(opt.equals("24")) {
 				System.out.println("Excutando consulta consulta MAPA OPERACIONAL 3");
 				List<String> projetos = new ArrayList<String>();
@@ -3448,6 +3471,7 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
+			    c.fecharConexao();
 			}else if(opt.equals("25")) {
 				List<String> projetos = new ArrayList<String>();
 				dados_tabela="";
@@ -3466,6 +3490,7 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
+			    c.fecharConexao();
 			}else if(opt.equals("26")) {
 				System.out.println("Iniciando ajuste de status");
 				

@@ -133,7 +133,7 @@ $(document).ready(function () {
           	  var button = $(event.relatedTarget) // Button that triggered the modal
           	  var rowindexes = $('#jqxgrid').jqxGrid('getselectedrowindexes');
           	  if(rowindexes.length==0){
-          		$.alert("Nenhum linha selecionada. Utilize os campos de Filtros.(Filtro pelo campo de tempo ainda em Desenvolvimento, demais campos ja estão OK para uso!)");
+          		//$.alert("Nenhum linha selecionada. Utilize os campos de Filtros.(Filtro pelo campo de tempo ainda em Desenvolvimento, demais campos ja estão OK para uso!)");
           		$.ajax({
 			 		  type: "POST",
 			 		  data: {"opt":"19",

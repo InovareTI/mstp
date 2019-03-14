@@ -117,9 +117,7 @@ public class UserMgmt extends HttpServlet {
 		Pessoa p = (Pessoa) session.getAttribute("pessoa");
 		Feriado feriado= new Feriado();
 		Conexao conn = (Conexao) session.getAttribute("conexao");
-		double money; 
-		NumberFormat number_formatter = NumberFormat.getCurrencyInstance();
-		String moneyString;
+		
 		param1="";
 		param2="";
 		param3="";

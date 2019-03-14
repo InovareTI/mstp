@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -45,6 +46,7 @@ import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.bson.Document;
 import org.json.JSONObject;
 
 import java.io.FileOutputStream;
@@ -56,6 +58,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripperByArea;
 
 import classes.Conexao;
+import classes.ConexaoMongo;
 import classes.Pessoa;
 
 /**
@@ -101,11 +104,12 @@ public class Upload_servlet extends HttpServlet {
 	public void upload_po(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
 		
 		//System.out.println("entrou no servlet de upload");
-		ResultSet rs;
+		
 		int last_id=-1;
 		HttpSession session = req.getSession(true);
 		Conexao conn = (Conexao) session.getAttribute("conexao");
 		InputStream inputStream=null;
+		ConexaoMongo c = new ConexaoMongo();
 		ServletContext context = req.getSession().getServletContext();
 		Pessoa p = (Pessoa) session.getAttribute("pessoa");
 		Timestamp time = new Timestamp(System.currentTimeMillis());
@@ -124,13 +128,16 @@ public class Upload_servlet extends HttpServlet {
 			        System.out.println(fieldname+":"+fieldvalue);
 			       if(fieldname.equals("flag")) {
 			    	   if(fieldvalue.equals("S")) {
-			    		   String query="";
-			    		   System.out.println("chegou na query de mudança");
-			    		   query="update sites set site_ativo='N'";
-			    		   if(conn.Update_simples(query)){
-			    			   System.out.println("Sites Desativados por substituição completa em "+time+" por "+p.get_PessoaUsuario());
-			    		   }
-			    	   }
+			    		   //c.RemoverMuitosSemFiltro("sites", p.getEmpresa().getEmpresa_id());
+			    		   Document filtro = new Document();
+			    		   Document update = new Document();
+			    		   Document update1 = new Document();
+			    		   update.append("site_ativo", "N");
+			    		   filtro.append("Empresa", p.getEmpresa().getEmpresa_id());
+			    		   update1.append("$set", update);
+			    		   c.AtualizaMuitos("sites", filtro, update1);
+			    		   System.out.println("Sites Desativados por substituição completa em "+time+" por "+p.get_PessoaUsuario());
+			    		}
 			       }
 				}
 			}
@@ -170,35 +177,181 @@ public class Upload_servlet extends HttpServlet {
 				    		InputStream inputStream2= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
 				    		DataFormatter dataFormatter = new DataFormatter();
 				    		
+				    		Document site = new Document();
+				    		String site_latitude="";
+				    		String site_longitude="";
+				    		String site_id_encontrado="";
+				    		Document geo = new Document();
+				    		Document geometry = new Document();
+				    		Document properties = new Document();
 				    		XSSFWorkbook wb = new XSSFWorkbook(inputStream2);
 				    		Sheet sheet1 = wb.getSheet("SitesImportar");
 				    		Cell cell;
 				    		String cellValue;
 				    		last_id=0;
 				    		for (Row row : sheet1) {
+				    			site_id_encontrado="";
 				    			if(row.getRowNum()>0) {
-				    			sql="insert into sites(site_sequencial,site_uf,site_id,site_nome,site_endereco,site_cep,site_latitude,site_longitude,site_altitude,site_Area_Total,site_area_tarifacao,site_municipio,site_reg_operacional,site_bairro,site_tipo_contrato,site_init_oper,site_owner,site_tipo_construcao,site_tipo_estrutura,site_link,site_operadora,site_modelo,site_antena,site_obs1,site_obs2,dt_add_site,usuario_add_site,empresa) values(\n";
-				    			for (int indexCell=1;indexCell<26;indexCell++) {
+				    			//sql="insert into sites(dt_add_site,usuario_add_site,empresa) values(\n";
+				    			int indexCell=1;
+				    				 site.append("Empresa",p.getEmpresa().getEmpresa_id());
 				    				 cell=row.getCell(indexCell);
 				    				 cellValue = dataFormatter.formatCellValue(cell);
-				    	             //System.out.print(cellValue + "\t");
-				    				 
-				    				 cellValue=cellValue.replace("'", "_");
-				    				 if(indexCell==3 && cellValue.equals("")) {
-				    					 cellValue="SiteNaoEncontrado";
-				    				 }
-				    	             sql=sql+"'"+cellValue+"',\n";
-				    	            
-				    			}
-				    			sql=sql+"'"+time+"','"+p.get_PessoaUsuario()+"',"+p.getEmpresa().getEmpresa_id()+")";
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_sequencial", cellValue);
+				    	             
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_uf", cellValue);
+				    	             properties.append("UF", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_id", cellValue);
+				    	             properties.append("SiteID", cellValue);
+				    	             if(cellValue.equals("")) {
+				    	            	 site_id_encontrado="nao encontrado";
+				    	             }
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_nome", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_endereco", cellValue);
+				    	             site.append("site_ativo", "Y");
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_cep", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site_latitude=cellValue;
+				    	             site.append("site_latitude", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site_longitude = cellValue;
+				    	             site.append("site_longitude", cellValue);
+				    	             geometry.append("type", "Point");
+									 geometry.append("coordinates", verfica_coordenadas(site_longitude,site_latitude));
+									 indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_altitude", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_Area_Total", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_area_tarifacao", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_municipio", cellValue);
+				    	             properties.append("Municipio", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_reg_operacional", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_bairro", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_tipo_contrato", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_init_oper", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_owner", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_tipo_construcao", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_tipo_estrutura", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_link", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_operadora", cellValue);
+				    	             properties.append("Operadora", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_modelo", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_antena", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_obs1", cellValue);
+				    	             indexCell=indexCell+1;
+				    				 cell=row.getCell(indexCell);
+				    				 cellValue = dataFormatter.formatCellValue(cell);
+				    	             cellValue=cellValue.replace("'", "_");
+				    	             site.append("site_obs2", cellValue);
+				    	             site.append("dt_add_site", f3.format(time));
+				    	             geo.append("type","Feature");
+				    	             geo.append("geometry", geometry);
+				    	             geo.append("properties", properties);
+				    	             site.append("GEO", geo);
+				    	             site.append("Update_by", p.get_PessoaUsuario());
+				    	             site.append("Update_time", time);
+				    	             
+				    			
 				    			
 				    			//System.out.println(sql);
-				    			if(!sql.contains("SiteNaoEncontrado")) {
-					    			if(conn.Inserir_simples(sql)) {
-					    				last_id=last_id+1;
-					    			}
+				    			if(!site_id_encontrado.equals("nao encontrado")) {
+					    			c.InserirSimpels("sites", site);
+					    		}
+				    			
 				    			}
-				    			}
+				    			site.clear();
+				    			geo.clear();
+				    			geometry.clear();
+				    			properties.clear();
 				    		}
 				    		time = new Timestamp(System.currentTimeMillis());
 				    		System.out.println(p.get_PessoaUsuario()+" Fim de processamento do arquivo com "+last_id+" linhas inseridas em "+f3.format(time));
@@ -218,11 +371,23 @@ public class Upload_servlet extends HttpServlet {
 			conn.fecharConexao();
 			e.printStackTrace();
 		}catch (Exception e){
+			System.out.println(e.getMessage());
+            e.printStackTrace();
 			inputStream.close();
 			conn.fecharConexao();
-    		System.out.println(e.getMessage());
-            e.printStackTrace();
+    		
     	}
 		
 	}
+	 public List<Double> verfica_coordenadas(String lng,String lat) {
+		 try {
+			 Double f_lat=Double.parseDouble(lat.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
+			 Double f_lng=Double.parseDouble(lng.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
+			 return Arrays.asList(f_lat,f_lng);
+		 }catch (NumberFormatException e) {
+				
+				
+				return Arrays.asList(-10.00,-10.00);
+		}
+	 }
 }

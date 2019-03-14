@@ -1339,12 +1339,24 @@ response.setDateHeader ("Expires", -1);
 			        			<option value="NEXTEL">NEXTEL</option>
 			        			<option value="CLARO">CLARO</option>
 			        			</select>
-			        			
+			        			<input type="text" placeholder="Site ID" value="" class="form-control" id="busca_siteID_tabela">
 			        		</div>
 			        			
 			        		<div style="float: right">
+			        		<div class="btn-group" role="group">
+    						    <button id="btnGroupDrop1" type="button" class="btn btn-primary"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    							     Importar
+    						     <span class="caret"></span> 
+    						    </button>
+    					    <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+    						      <li><a class="dropdown-item" href="#" onclick='atualiza_flag()'>Substuição Completa</a></li>
+    						      <li><a class="dropdown-item" href="#" data-toggle="modal" data-target="#modal_carrega_sites">Adicionar novos Sites</a></li>
+    						      <li><a class="dropdown-item" href="#">Atualizar informações existentes (Em Desenvolvimento)</a></li>
+    					    </ul>
+    					  </div>
+    					  <a id="template_importar_site" href="templates/templateSiteImportacao.xlsx" type="button" class="btn btn-primary">Template(importação)</a>
 			        			<button id="btn_buscar_sites"  class="btn btn-primary">Buscar</button>
-			        			<input id="btnSync_rolloutsites" type="button" class="btn btn-primary" onclick="sync_rollout()" value="Sincronizar Sites">
+			        			
 		        			</div>
 		        			</div>
 	        			</div>
@@ -1668,12 +1680,7 @@ response.setDateHeader ("Expires", -1);
         <h4 class="modal-title">Carregar Sites</h4>
       </div>
       <div class="modal-body">
-      <table >
-      		<tr>
-      		<td style="padding: 10px"><select class="form-control" required id="cliente_carrega_po"><option>Cliente...</option></select></td>
-	        <td style="padding: 10px"><select class="form-control" required id="projeto_carrega_po"><option>Projeto...</option></select></td>
-	        </tr>
-      	</table>
+      
 			<hr>
         <label class="control-label">Selecionar Arquivo</label>
 		<input id="input_sites_arq" name="total_input[]" type="file"  multiple>	

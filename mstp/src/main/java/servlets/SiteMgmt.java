@@ -109,7 +109,7 @@ public class SiteMgmt extends HttpServlet {
 			HttpSession session = req.getSession(true);
 			Pessoa p = (Pessoa) session.getAttribute("pessoa");
 			Conexao conn = (Conexao) session.getAttribute("conexao");
-			ConexaoMongo c = (ConexaoMongo)session.getAttribute("conexaoMongo");
+			ConexaoMongo c = new ConexaoMongo(); 
 			double money; 
 			NumberFormat number_formatter = NumberFormat.getCurrencyInstance();
 			String moneyString;
@@ -160,7 +160,7 @@ public class SiteMgmt extends HttpServlet {
 					out.print("Erro no cadastro do site: "+param1 );
 				}
 				//System.out.println(param1+"\n"+param2+"\n"+param3+"\n"+param4+"\n"+param5+"\n"+param6+"\n"+param7+"\n"+param8+"\n"+param9);
-				
+				c.fecharConexao();
 			}else if(opt.equals("2")) {
 				//Enumeration<String> nomes=req.getParameterNames();
 				//while(nomes.hasMoreElements()) {
@@ -179,7 +179,8 @@ public class SiteMgmt extends HttpServlet {
 				List<Bson> lista_filtro= new ArrayList<Bson>();
 				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
 				lista_filtro.add(filtro);
-				
+				filtro=Filters.eq("site_ativo","Y");
+				lista_filtro.add(filtro);
 				System.out.println("Iniciando busca de sites operadora:"+param1);
 				//long linhas_total= c.ConsultaCountComplexa("sites", lista_filtro);
 				filtro=Filters.eq("site_operadora",param1);
@@ -219,7 +220,8 @@ public class SiteMgmt extends HttpServlet {
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print(dados_tabela);
-				
+				c.fecharConexao();
+			
 			}else if(opt.equals("3")) {
 				System.out.println("Carregando sites no mapa");
 				rs=conn.Consulta("Select distinct local_registro,usuario from registros where data_dia='"+f2.format(d.getTime())+"' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
@@ -279,7 +281,7 @@ public class SiteMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print("vazia");
 				}
-				
+				c.fecharConexao();
 			}else if(opt.equals("4")) {
 				
 				param1=req.getParameter("site");
@@ -289,6 +291,7 @@ public class SiteMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print("Site Desabilitado com Sucesso!");
 				}
+				c.fecharConexao();
 			}else if(opt.equals("5")) {
 				int tot_linha=0;
 				//query="RESET QUERY CACHE";
@@ -388,6 +391,7 @@ public class SiteMgmt extends HttpServlet {
 						out.print(dados_tabela);
 					}
 				}
+				c.fecharConexao();
 			}else if(opt.equals("6")) {
 				
 				param1=req.getParameter("sites");
@@ -398,6 +402,7 @@ public class SiteMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print("Sites Desabilitados com Sucesso!");
 				}
+				c.fecharConexao();
 			}else if(opt.equals("7")){
 				System.out.println("carregando sites novos para aprovação");
 				query="";
@@ -419,7 +424,7 @@ public class SiteMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
 				}
-					
+				c.fecharConexao();
 			}else if(opt.equals("8")){
 				param1=req.getParameter("id");
 				query="update site_aprova set aprovado='Y',dt_aprovado='"+f3.format(time)+"' where sysid="+param1;
@@ -443,6 +448,7 @@ public class SiteMgmt extends HttpServlet {
 					
 					
 				}
+				c.fecharConexao();
 			}else if(opt.equals("9")){
 				param1=req.getParameter("id");
 				query="update site_aprova set aprovado='R',dt_aprovado='"+f3.format(time)+"' where sysid="+param1;
@@ -452,6 +458,7 @@ public class SiteMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print("Solicitação rejeitada com sucesso");
 				}
+				c.fecharConexao();
 			}else if(opt.equals("10")) {
 				System.out.println("Carregando TODOS os sites no mapa");
 				String operadora_aux="";
@@ -611,7 +618,7 @@ public class SiteMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(resultado);
 					System.out.println("Todos os Sites Carregados");
-				
+					c.fecharConexao();
 			}else if(opt.equals("11")) {
 				param1=req.getParameter("operadora");
 				System.out.println("Iniciando export de Sites da Operadora - " + param1);
@@ -696,6 +703,7 @@ public class SiteMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print("Sites não disponivel para download");
 				}
+				c.fecharConexao();
 			}else if(opt.equals("12")) {
 				System.out.println("iniciando sincronia de sites");
 				
@@ -758,6 +766,7 @@ public class SiteMgmt extends HttpServlet {
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print("Sincronização Completa");
+				c.fecharConexao();
 			}else if(opt.equals("13")) {
 				System.out.println("Buscando ultimo registro de usuário");
 				param1=req.getParameter("usuario");

@@ -46,9 +46,10 @@ public class CamposRollout {
 		ResultSet rs;
 		JSONArray dados= new JSONArray() ;
 		JSONObject jsonObject = new JSONObject(); 
+		try {
 		String query="select field_name,field_type,tipo,ordenacao from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id() + " order by ordenacao asc";
 		rs=c.Consulta(query);
-		try {
+		
 			if(rs.next()) {
 				//campo_tipo=rs.getString(1);
 				rs.beforeFirst();
@@ -65,6 +66,9 @@ public class CamposRollout {
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}catch (Exception e) {
+			System.out.println("erro com a pessoa: "+p.get_PessoaName());
 			e.printStackTrace();
 		}
 		return jsonObject;
