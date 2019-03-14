@@ -2528,7 +2528,7 @@ public class RolloutServlet extends HttpServlet {
 				
 				
                 param1=req.getParameter("mudancas");
-                System.out.println(param1);
+                //System.out.println(param1);
                 int cont1=0;
                 int cont2=0;
                 int tamanho=0;
@@ -2758,7 +2758,7 @@ public class RolloutServlet extends HttpServlet {
     							}
     							update = new Document();
         				        update.append("$set", updates);
-        				        System.out.println(filtros.toJson());
+        				        //System.out.println(filtros.toJson());
         				        c.AtualizaUm("rollout", filtros, update);
         				        filtros.clear();
         						update.clear();
@@ -2987,7 +2987,7 @@ public class RolloutServlet extends HttpServlet {
 				resultado=resultado.replaceAll("=", ":");
 				
 				resultado=resultado.substring(9, resultado.length()-1);
-				System.out.println(resultado);
+				//System.out.println(resultado);
 				resp.setContentType("application/text");  
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
@@ -3110,9 +3110,9 @@ public class RolloutServlet extends HttpServlet {
 						autor.add(param3);
 					}
 				}
-				System.out.println("site:"+site.toString());
-				System.out.println("campos:"+campos.toString());
-				System.out.println("autor:"+autor.toString());
+				//System.out.println("site:"+site.toString());
+				//System.out.println("campos:"+campos.toString());
+				//System.out.println("autor:"+autor.toString());
 				FindIterable<Document> findIterable=c.ConsultaFiltrosHistoricoRollout("rollout_history", site,campos,autor,param4,param5,p.getEmpresa().getEmpresa_id());
 				
 				findIterable.forEach((Block<Document>) doc -> {
@@ -3148,7 +3148,7 @@ public class RolloutServlet extends HttpServlet {
 				//param2=req.getParameter("valor_campo");
 				//param3=req.getParameter("func");
 				if(!param1.equals("") && param1!=null) {
-					System.out.println(param1);
+					//System.out.println(param1);
 				JSONObject filtros = new JSONObject(param1);
 				JSONArray filtrosArray=filtros.getJSONArray("filtros");
 				
@@ -3229,7 +3229,7 @@ public class RolloutServlet extends HttpServlet {
 				//param2=req.getParameter("valor_campo");
 				//param3=req.getParameter("func");
 				if(!param1.equals("") && param1!=null) {
-					System.out.println(param1);
+					//System.out.println(param1);
 				JSONObject filtros = new JSONObject(param1);
 				JSONArray filtrosArray=filtros.getJSONArray("filtros");
 				
@@ -3334,7 +3334,7 @@ public class RolloutServlet extends HttpServlet {
 				//param2=req.getParameter("valor_campo");
 				//param3=req.getParameter("func");
 				if(!param1.equals("") && param1!=null) {
-					System.out.println("Filtros Operacional 4:"+param1);
+					//System.out.println("Filtros Operacional 4:"+param1);
 					JSONObject filtros = new JSONObject(param1);
 					JSONArray filtrosArray=filtros.getJSONArray("filtros");
 				
@@ -3410,7 +3410,7 @@ public class RolloutServlet extends HttpServlet {
 				//param2=req.getParameter("valor_campo");
 				//param3=req.getParameter("func");
 				if(!param1.equals("") && param1!=null) {
-					System.out.println("Filtros operacional 3:"+param1);
+					//System.out.println("Filtros operacional 3:"+param1);
 					JSONObject filtros = new JSONObject(param1);
 					JSONArray filtrosArray=filtros.getJSONArray("filtros");
 				

@@ -1332,14 +1332,19 @@ response.setDateHeader ("Expires", -1);
 	        				<div class="panel-heading">Filtrar & Buscar Sites</div>
 		        			<div class="panel-body">
 		        			<div style="float: left">
-			        			<select  id="select_operadora_site"  onchange="carrega_tabela_site()" class="selectpicker" data-live-search="true" title="Escolha a Operadora">
+		        			<table><tr><td>
+			        			<select  style="float: left" id="select_operadora_site"  onchange="carrega_tabela_site()" class="selectpicker" data-live-search="true" title="Escolha a Operadora">
 			        			<option value="VIVO">VIVO</option>
 			        			<option value="TIM">TIM</option>
 			        			<option value="OI">OI</option>
 			        			<option value="NEXTEL">NEXTEL</option>
 			        			<option value="CLARO">CLARO</option>
-			        			</select>
-			        			<input type="text" placeholder="Site ID" value="" class="form-control" id="busca_siteID_tabela">
+			        			</select></td>
+			        			<td>
+			        			<input style="float:left;display:inline;" type="text" autocomplete="off" placeholder="Informe o Site" class="form-control" id="nme_site_tabela">
+			        		</td>
+			        		</tr>
+			        		</table>
 			        		</div>
 			        			
 			        		<div style="float: right">

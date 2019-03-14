@@ -94,9 +94,9 @@ public boolean InserirMuitos(String Collection,List<Document> document_list) {
 		return findIterable;
 	}
 	public FindIterable<Document> ConsultaSimplesComFiltroInicioLimit(String Collection,List<Bson> Filtros,Integer inicio,Integer limit){
-		System.out.println("Linhas a ignorar:"+inicio );
-		System.out.println("Limite de Linhas:"+limit );
-		System.out.println("Total de Linhas:"+ (limit-inicio));
+		//System.out.println("Linhas a ignorar:"+inicio );
+		//System.out.println("Limite de Linhas:"+limit );
+		//System.out.println("Total de Linhas:"+ (limit-inicio));
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filtros)).skip(inicio).limit(limit);
 		return findIterable;
 	}
@@ -303,10 +303,10 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 	}
 	public FindIterable<Document> ConsultaComplexaComFiltro(String Collection,List<Integer> recid,String tipo_valor,String operador,String campo,String valor){
 		System.out.println("Realizando consulta em:");
-		System.out.println(Collection);
-		System.out.println(campo);
-		System.out.println(valor);
-		System.out.println(operador);
+		//System.out.println(Collection);
+		//System.out.println(campo);
+		//System.out.println(valor);
+		//System.out.println(operador);
 		
 		FindIterable<Document> findIterable=null;
 		if(tipo_valor.equals("Data")) {
@@ -366,9 +366,9 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 	public boolean AtualizaUm(String Collection,Document campo_condicao, Document campo_valor) {
 		MongoCollection<Document> coll = db.getCollection(Collection);
 		Document resultado;
-		System.out.println("chegou na funcao do update");
-		System.out.println("Filtro:"+campo_condicao.toJson());
-		System.out.println("Update:"+campo_valor.toJson());
+		//System.out.println("chegou na funcao do update");
+		//System.out.println("Filtro:"+campo_condicao.toJson());
+		//System.out.println("Update:"+campo_valor.toJson());
 		resultado=coll.findOneAndUpdate(campo_condicao, campo_valor);
 		if(resultado.isEmpty()) {
 			return false;
@@ -380,9 +380,9 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 	public boolean AtualizaMuitos(String Collection,Document campo_condicao, Document campo_valor) {
 		MongoCollection<Document> coll = db.getCollection(Collection);
 		UpdateResult resultado;
-		System.out.println("chegou na funcao do update");
-		System.out.println("Filtro:"+campo_condicao.toJson());
-		System.out.println("Update:"+campo_valor.toJson());
+		//System.out.println("chegou na funcao do update");
+		//System.out.println("Filtro:"+campo_condicao.toJson());
+		//System.out.println("Update:"+campo_valor.toJson());
 		resultado=coll.updateMany(campo_condicao, campo_valor);
 		if(resultado.getModifiedCount()==0) {
 			return false;

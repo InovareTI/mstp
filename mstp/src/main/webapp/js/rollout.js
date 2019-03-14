@@ -413,7 +413,7 @@ function carrega_gant(){
              return true;
          }
 		 var siteMarcadoIntegrado = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
-             if (sites_aux.indexOf(value)) {
+             if (sites_aux.indexOf(value)>0) {
                  return '<span style="margin: 4px; margin-top:8px; float: ' + columnproperties.cellsalign + '; color: #008000;">' + value + '</span>';
              }
              else {
