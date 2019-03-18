@@ -1096,6 +1096,10 @@ public class RolloutServlet extends HttpServlet {
 				            rowIterator.next();
 				            double total_linhas=sheet1.getLastRowNum();
 				            System.out.println("Total de linhas no arquivo:"+total_linhas);
+				            //Bson filtro = Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				            //List<Bson> list = new ArrayList<Bson>();
+				            //list.add(filtro);
+				            //c.RemoverFiltroList("rollout", list);
 				            int i=0;
 				            int colunacelula=0;
 				            while (rowIterator.hasNext()) {
@@ -1182,6 +1186,7 @@ public class RolloutServlet extends HttpServlet {
 					    							 milestone_doc=new Document();
 					    							 String status_milestone="";
 					    							 milestone_doc.append("Milestone", campos[colunacelula]);
+					    							 //System.out.println(campos[colunacelula]+ " começando na coluna" + i);
 					    							 if(!cellValue.equals("")) {
 						    	            			if(cell.getCellType() == CellType.NUMERIC) {
 									    	            	if(HSSFDateUtil.isCellDateFormatted(cell)) {
@@ -1241,6 +1246,8 @@ public class RolloutServlet extends HttpServlet {
 						    	            		}
 						    	            		i=i+1;
 					    							cell = row.getCell(i);
+					    							//System.out.println("coluna:"+cell.getColumnIndex());
+					    							//System.out.println("coluna:"+"udate_"+campos[colunacelula]);
 						    	            		cellValue = dataFormatter.formatCellValue(cell);
 						    	            		if(!cellValue.equals("")) {
 						    	            			milestone_doc.append("udate_"+campos[colunacelula],cellValue);
@@ -1249,14 +1256,19 @@ public class RolloutServlet extends HttpServlet {
 						    	            		} 
 						    	            		i=i+1;
 					    							cell = row.getCell(i);
+					    							//System.out.println("coluna:"+cell.getColumnIndex());
+					    							//System.out.println("coluna:"+"resp_"+campos[colunacelula]);
 						    	            		cellValue = dataFormatter.formatCellValue(cell);
 						    	            		if(!cellValue.equals("")) {
 						    	            			milestone_doc.append("resp_"+campos[colunacelula],cellValue);
 						    	            		}else {
 						    	            			milestone_doc.append("resp_"+campos[colunacelula],"");
 						    	            		}
+						    	            		i=i+1;
+						    	            		cell = row.getCell(i);
 						    	            		milestone_doc.append("status_"+campos[colunacelula],status_milestone);
 						    	            		milestone_doc.append("duracao_"+campos[colunacelula],0);
+						    	            		
 						    	            		milestones.add(milestone_doc);
 					    						 }//fim do else do campo de milestone
 					    					 }else{///if de recid=-1
@@ -2047,9 +2059,16 @@ public class RolloutServlet extends HttpServlet {
 					totallinhas=c.CountSimplesComFiltroInicioLimit("rollout",filtro_list);
 					findIterable = c.ConsultaSimplesComFiltroInicioLimit("rollout",filtro_list,pagina_linhas*pagina,pagina_linhas);
 				}else {
+					filtro_list = new ArrayList<Bson>();
+					filtro=Filters.eq("Linha_ativa", "Y");
+					filtro_list.add(filtro);
+					filtro=Filters.eq("Empresa", p.getEmpresa().getEmpresa_id());
+					filtro_list.add(filtro);
+					
 					System.out.println("Executando consulta sem filtros");
-					totallinhas=c.CountSimplesSemFiltroInicioLimit("rollout");
-					findIterable = c.ConsultaSimplesSemFiltroInicioLimit("rollout",pagina_linhas*pagina,pagina_linhas,p.getEmpresa().getEmpresa_id());
+					totallinhas=c.CountSimplesComFiltroInicioLimit("rollout",filtro_list);
+					System.out.println("Encontrou "+ totallinhas);
+					findIterable = c.ConsultaSimplesComFiltroInicioLimit("rollout",filtro_list,pagina_linhas*pagina,pagina_linhas);
 				}
 				
 				MongoCursor<Document> resultado = findIterable.iterator();
