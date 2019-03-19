@@ -389,7 +389,11 @@ public class RolloutServlet extends HttpServlet {
     				}*/
     			
     				List<String> rollout_filtrado_integrado = new ArrayList<String>();
-    				FindIterable<Document> findIterable=c.ConsultaSimplesSemFiltro("Rollout_Sites"); 
+    				Bson filtro;
+    				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+    				List<Bson> rollout_filtrado_integrado_filtro = new ArrayList<Bson>();
+    				rollout_filtrado_integrado_filtro.add(filtro);
+    				FindIterable<Document> findIterable=c.ConsultaCollectioncomFiltrosLista("Rollout_Sites", rollout_filtrado_integrado_filtro); 
     				findIterable.forEach((Block<Document>) doc -> {
     					
     					rollout_filtrado_integrado.add(((Document)((Document)doc.get("GEO")).get("properties")).getString("SiteID"));
@@ -3602,6 +3606,26 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print("tarefa finalizada!");
+			}else if(opt.equals("27")) {
+				Document arvore = new Document();
+				dados_tabela="[";
+				List<Bson> filtro_list_aux = new ArrayList<Bson>();
+				List<Document> lista_itens = new ArrayList<Document>();
+				Bson filtrodoc;
+				filtrodoc=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				filtro_list_aux.add(filtrodoc);
+				FindIterable<Document> findIterable = c.ConsultaCollectioncomFiltrosLista("rollouts_ids",filtro_list_aux);
+				MongoCursor<Document> resultado=findIterable.iterator();
+				if(resultado.hasNext()) {
+					arvore=resultado.next();
+					dados_tabela=dados_tabela+arvore.toJson();
+					dados_tabela=dados_tabela+"]";
+					resp.setContentType("application/json");  
+		  		    resp.setCharacterEncoding("UTF-8"); 
+		  		    PrintWriter out = resp.getWriter();
+				    out.print(dados_tabela);
+				}
+				System.out.println("Arvore montada " + lista_itens.toString());
 			}
 		}catch (SQLException e) {
 			conn.fecharConexao();

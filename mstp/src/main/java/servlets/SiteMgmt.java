@@ -37,6 +37,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.mongodb.Block;
@@ -224,7 +225,49 @@ public class SiteMgmt extends HttpServlet {
 			
 			}else if(opt.equals("3")) {
 				System.out.println("Carregando sites no mapa");
-				rs=conn.Consulta("Select distinct local_registro,usuario from registros where data_dia='"+f2.format(d.getTime())+"' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
+				//Essa função ainda precisa ser adaptada para excuir folgas, pontos ajustados,férias e licença Médica
+				Calendar dia = Calendar.getInstance();
+				dia.set(Calendar.HOUR_OF_DAY,00);
+				
+				dia.set(Calendar.MINUTE,00);
+				Document registro=new Document();
+				Document geo=new Document();
+				Bson filtro;
+				List<Bson> lista_filtro = new ArrayList<Bson>();
+				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				lista_filtro.add(filtro);
+				//filtro=Filters.not("Empresa",p.getEmpresa().getEmpresa_id());
+				lista_filtro.add(filtro);
+				filtro=Filters.gte("data_dia",dia.getTime());
+				lista_filtro.add(filtro);
+				filtro=Filters.lte("data_dia",time);
+				lista_filtro.add(filtro);
+				FindIterable<Document> findIterable =c.ConsultaCollectioncomFiltrosLista("Registros", lista_filtro);
+				MongoCursor<Document> resultado= findIterable.iterator();
+				if(resultado.hasNext()) {
+					
+					
+					dados_tabela="";
+					dados_tabela=  "{"+
+					    "\"type\": \"FeatureCollection\","+
+					    "\"features\": [";
+					while(resultado.hasNext()) {
+						registro=resultado.next();
+						geo = (Document) registro.get("GEO");
+						
+						dados_tabela=dados_tabela+geo.toJson()+",";
+						
+					}
+					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+					dados_tabela=dados_tabela+"]";
+					dados_tabela=dados_tabela +   "}";
+				}else {
+					dados_tabela="";
+					dados_tabela=  "{"+
+					    "\"type\": \"FeatureCollection\","+
+					    "\"features\": []}";
+				}
+				/*rs=conn.Consulta("Select distinct local_registro,usuario,latitude,longitude,tipo_local_registro from registros where data_dia='"+f2.format(d.getTime())+"' and latitude <>'' and longitude <> '' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
 				//System.out.println("Carregando sites no mapa2");
 				if(rs.next()){
 					rs.beforeFirst();
@@ -270,17 +313,14 @@ public class SiteMgmt extends HttpServlet {
 					dados_tabela=dados_tabela+"]";
 					dados_tabela=dados_tabela +   "}";
 					
-						    		
+						*/    		
 							
 					//System.out.println(dados_tabela);
 					resp.setContentType("application/json");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
-				}else {
-					PrintWriter out = resp.getWriter();
-					out.print("vazia");
-				}
+				
 				c.fecharConexao();
 			}else if(opt.equals("4")) {
 				

@@ -1,3 +1,25 @@
+function carrega_tree_rollout(){
+	var timestamp = Date.now();
+	 $("#splitter").jqxSplitter({  width: 1200, height: 600, panels: [{ size: 250}] });
+	$.getJSON('./RolloutServlet?opt=27&_='+timestamp, function(data) {
+		var source =
+        {
+            datatype: "json",
+            datafields: [
+                { name: 'id' },
+                { name: 'parentid' },
+                { name: 'text' },
+                { name: 'value' }
+            ],
+            id: 'id',
+            localdata: data
+        };
+		 var dataAdapter = new $.jqx.dataAdapter(source);
+		 dataAdapter.dataBind();
+		 var records = dataAdapter.getRecordsHierarchy('id', 'parentid', 'items', [{ name: 'text', map: 'label'}]);
+         $('#jqxTree_rollout').jqxTree({ source: records, width: '300px'});
+	});
+}
 function carrega_tabela_campos_rollout() {
 	
 	$.ajax({
@@ -393,8 +415,7 @@ function carrega_gant(){
 	 var timestamp = Date.now();
 	 var sites=[];
 	 var me,container,save_button,addButton,cFilterButton,deleteButton = "";
-	 $("#jqxLoader_rolout").jqxLoader({ text: "Carregando Rollout",width: 100, height: 60, imagePosition: 'top' });
-	 $('#jqxLoader_rolout').jqxLoader('open');
+	 carrega_tree_rollout();
 	 
 	 
 	$.getJSON('./RolloutServlet?opt=1&_='+timestamp, function(data) {

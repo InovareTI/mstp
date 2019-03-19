@@ -122,6 +122,7 @@ response.setDateHeader ("Expires", -1);
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.pager.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.edit.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxpanel.js"></script>
+     <script type="text/javascript" src="js/jqwidgets/jqxsplitter.js"></script>
      <script type="text/javascript" src="js/jqwidgets/jqxtabs.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxcheckbox.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxlistbox.js"></script>
@@ -738,10 +739,12 @@ response.setDateHeader ("Expires", -1);
 					</div><!-- /expander -->
 					<hr>
 							<div class="row" style="width: 100%;height:95%;">
-					 			
 					 			<div id='jqxWidget' style="padding-left:20px; ;font-size: 13px; font-family: Verdana; float: left;width: 100%;height: 100%">
-        								<div id="jqxLoader_rolout"></div>
-        								<div id="jqxgrid"></div>
+						 			 <div id="jqxLoader_rolout"></div>
+						 			 <div id="splitter" >
+						 			 	<div><div id='jqxTree_rollout' style='float: left; margin-left: 60px;'></div></div>
+	        						 	<div><div id="jqxgrid"></div></div>
+	        						</div>
     							</div>
 					 		</div>
         		</div><!-- /rollout -->
