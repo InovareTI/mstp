@@ -795,38 +795,35 @@ public class POControl_Servlet extends HttpServlet {
 		    			//param1=req.getParameter("portal");
 		    			query="select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" order by ordenacao";
 		    			rs=conn.Consulta(query);
-		    			dados_tabela="<table id=\"table_row_fields\" data-toggle=\"table\" data-use-row-attr-func=\"true\" data-height=\"299\">" +"\n";
+		    			dados_tabela="<table id=\"table_row_fields\" data-toggle=\"table\" data-use-row-attr-func=\"true\" >" +"\n";
 		    			if(rs.next()){
 		    				rs.beforeFirst();
 		    				
 		    				dados_tabela=dados_tabela +"<thead>"+"\n";
 		    				dados_tabela=dados_tabela + "<tr>"+"\n";
-		    				while(rs.next()){
-		    					dados_tabela=dados_tabela + "<th class=\"label_janelas\">"+"\n";
-		    					dados_tabela=dados_tabela + rs.getString(2);
+		    				
+		    					dados_tabela=dados_tabela + "<th class=\"label_janelas\"> Campo"+"\n";
+		    					
 		    					dados_tabela=dados_tabela + "</th>"+"\n";
-		    				}
+		    					dados_tabela=dados_tabela + "<th class=\"label_janelas\"> Valor"+"\n";
+		    					
+		    					dados_tabela=dados_tabela + "</th>"+"\n";
 		    				dados_tabela=dados_tabela + "</tr>"+"\n";
 		    				dados_tabela=dados_tabela +"</thead>"+"\n";
 		    				dados_tabela=dados_tabela +"<tbody>"+"\n";
-		    				dados_tabela=dados_tabela + "<tr>"+"\n";
+		    				
 		    				rs.beforeFirst();
 		    				while(rs.next()){
+		    					dados_tabela=dados_tabela + "<tr>"+"\n";
+		    					dados_tabela=dados_tabela +"<td>"+rs.getString("field_name")+"</td>";
 		    					if(rs.getString("tipo").equals("Data")){
-									dados_tabela=dados_tabela + " <td><input type=\"data_row\" class=\"form-control row_rollout label_janelas\" name=\""+rs.getString(2)+"\" id=\""+rs.getString(2)+"\" tipo_campo=\""+rs.getString("field_type")+"\"></td>"+"\n";	
+		    						dados_tabela=dados_tabela + " <td><input type=\"data_row\" class=\"form-control row_rollout label_janelas\" name=\""+rs.getString(2)+"\" id=\""+rs.getString(2)+"\" tipo_info=\""+rs.getString("tipo")+"\" tipo_campo=\""+rs.getString("field_type")+"\"></td>"+"\n";	
 								}else if(rs.getString("tipo").equals("Milestone")){
-									dados_tabela=dados_tabela + "<td class=\"label_janelas\">Plano de Início:<input type=\"data_row\" class=\"form-control row_rollout label_janelas\" tipo_campo=\""+rs.getString("field_type")+"\" name=\""+rs.getString(2)+"_inicio\" id=\""+rs.getString(2)+"_inicio\" >Plano de Fim:<input type=\"data_row\" class=\"form-control row_rollout label_janelas\" tipo_campo=\""+rs.getString("field_type")+"\" name=\""+rs.getString(2)+"_fim\" id=\""+rs.getString(2)+"_fim\" ></td>"+"\n";
-								}else if(rs.getString("tipo").equals("Lista")){
-									valores	=rs.getString("Atributo_parametro").split(",");
-									dados_tabela=dados_tabela + " <td><div type=\"lista\" class=\"row_rollout label_janelas\" name=\""+rs.getString(2)+"\"  tipo_campo=\""+rs.getString("field_type")+"\" id=\""+rs.getString(2)+"\" valores='";
-									for(i=0;i<valores.length;i++){
-										dados_tabela=dados_tabela +valores[i]+",";
-									}
-									dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
-									dados_tabela=dados_tabela +"'></div></td>"+"\n";
+									dados_tabela=dados_tabela + "<td class=\"label_janelas\">Plano de Início:<input type=\"data_row\" class=\"form-control row_rollout label_janelas\" tipo_info=\""+rs.getString("tipo")+"\" tipo_campo=\""+rs.getString("field_type")+"\" name=\""+rs.getString(2)+"_inicio\" id=\""+rs.getString(2)+"_inicio\" >Plano de Fim:<input type=\"data_row\" class=\"form-control row_rollout label_janelas\" tipo_campo=\""+rs.getString("field_type")+"\" name=\""+rs.getString(2)+"_fim\" id=\""+rs.getString(2)+"_fim\" ></td>"+"\n";
 								}else {
-									dados_tabela=dados_tabela + " <td class=\"label_janelas\"><input type=\"text\" class=\"form-control row_rollout label_janelas\" tipo_campo=\""+rs.getString("field_type")+"\" name=\""+rs.getString(2)+"\" id=\"row_field_"+rs.getRow()+"\" ></td>"+"\n";
+									dados_tabela=dados_tabela + " <td class=\"label_janelas\"><input type=\"text\" class=\"form-control row_rollout label_janelas\" tipo_info=\""+rs.getString("tipo")+"\" tipo_campo=\""+rs.getString("field_type")+"\" name=\""+rs.getString(2)+"\" id=\"row_field_"+rs.getRow()+"\" ></td>"+"\n";
 								}
+		    					dados_tabela=dados_tabela + "</tr>"+"\n";
 		    				}
 		    				/*	dados_tabela=dados_tabela + " <td class=\"label_janelas\">"+rs.getString(2)+"</td>"+"\n";
 									if(rs.getString("tipo").equals("Data")){
@@ -848,7 +845,7 @@ public class POControl_Servlet extends HttpServlet {
 								
 								
 		    				}*/
-		    				dados_tabela=dados_tabela + "</tr>"+"\n";
+		    				
 		    				dados_tabela=dados_tabela + "</tbody>";
 							dados_tabela=dados_tabela + "</table>";
 							//System.out.println(dados_tabela);
@@ -1180,6 +1177,7 @@ public class POControl_Servlet extends HttpServlet {
 							dados_tabela=dados_tabela+"\"ctps\":\""+p.getCtps()+"\",\n";
 							dados_tabela=dados_tabela+"\"matricula\":\""+p.getMatricula()+"\",\n";
 							dados_tabela=dados_tabela+"\"empresa_nome\":\""+p.getEmpresa().getNome()+"\",\n";
+							dados_tabela=dados_tabela+"\"empresa_id\":"+p.getEmpresa().getEmpresa_id()+",\n";
 							dados_tabela=dados_tabela+"\"empresa_fantasia\":\""+p.getEmpresa().getNome_fantasia()+"\",\n";
 							dados_tabela=dados_tabela+"\"empresa_cnpj\":\""+p.getEmpresa().getCnpj()+"\",\n";
 							dados_tabela=dados_tabela+"\"empresa_cnae\":\""+p.getEmpresa().getCnae()+"\",\n";

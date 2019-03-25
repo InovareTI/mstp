@@ -42,12 +42,12 @@ public class CamposRollout {
 	public void getCampo_nome (String campo_nome) {
 		this.campo_nome = campo_nome;
 	}
-	public JSONObject getCampos_tipo(Conexao c, Pessoa p) {
+	public JSONObject getCampos_tipo(Conexao c, Pessoa p,String rolloutid) {
 		ResultSet rs;
 		JSONArray dados= new JSONArray() ;
 		JSONObject jsonObject = new JSONObject(); 
 		try {
-		String query="select field_name,field_type,tipo,ordenacao from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id() + " order by ordenacao asc";
+		String query="select field_name,field_type,tipo,ordenacao from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id() + " and rollout_nome='"+rolloutid+"' order by ordenacao asc";
 		rs=c.Consulta(query);
 		
 			if(rs.next()) {

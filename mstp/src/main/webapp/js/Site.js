@@ -79,6 +79,15 @@ function carrega_tabela_site(){
 		        
 		         url: './SiteMgmt',
 		         id: 'site_id',
+		         filter: function() {
+		                // update the grid and send a request to the server.
+		                $("#tabela_detalhe_sites").jqxGrid('updatebounddata', 'filter');
+		            },
+		            sort: function() {
+		                // update the grid and send a request to the server.
+		                $("#tabela_detalhe_sites").jqxGrid('updatebounddata', 'sort');
+		            },
+		            
 		         beforeprocessing: function(data) {
 		                if (data != null && data.length > 0) {
 		                    source.totalrecords = data[0].totalRecords;
@@ -118,11 +127,40 @@ function carrega_tabela_site(){
 			             virtualmode: true,
 			             rendergridrows: function(obj) {
 			                    return obj.data;
-			               },
+			             },
+			             ready: function () {
+			                    
+			                    var localizationObject = {
+			                        filterstringcomparisonoperators: ['contem', 'não contem'],
+			                        // filter numeric comparison operators.
+			                        filternumericcomparisonoperators: ['less than', 'greater than'],
+			                        // filter date comparison operators.
+			                        filterdatecomparisonoperators: ['menor que', 'maior que','maior ou igual a','menor ou igual a','igual a'],
+			                        // filter bool comparison operators.
+			                        filterbooleancomparisonoperators: ['equal', 'not equal']
+			                    }
+			                    $("#jqxgrid").jqxGrid('localizestrings', localizationObject);
+			                },
+			                updatefilterconditions: function (type, defaultconditions) {
+			                    var stringcomparisonoperators = ['CONTAINS', 'DOES_NOT_CONTAIN'];
+			                    var numericcomparisonoperators = ['LESS_THAN', 'GREATER_THAN'];
+			                    var datecomparisonoperators = ['LESS_THAN', 'GREATER_THAN','GREATER_THAN_OR_EQUAL','LESS_THAN_OR_EQUAL','EQUAL'];
+			                    var booleancomparisonoperators = ['EQUAL', 'NOT_EQUAL'];
+			                    switch (type) {
+			                        case 'stringfilter':
+			                            return stringcomparisonoperators;
+			                        case 'numericfilter':
+			                            return numericcomparisonoperators;
+			                        case 'datefilter':
+			                            return datecomparisonoperators;
+			                        case 'booleanfilter':
+			                            return booleancomparisonoperators;
+			                    }
+			                },
 			             pagesizeoptions: ['20', '50', '100'],
 		                 columns: [
 		                       
-		                       { text: 'Site', datafield: 'site', width: 150, filtertype: 'checkedlist' },
+		                       { text: 'Site', datafield: 'site', width: 150, columntype: 'textbox' },
 		                       { text: 'Operadora', datafield: 'operadora', width: 100, filtertype: 'checkedlist' },
 		                       { text: 'UF', datafield: 'uf', width: 150, filtertype: 'checkedlist' },
 		                       { text: 'Municipio', datafield: 'municipio', width: 150, filtertype: 'checkedlist' },

@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -47,7 +48,12 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.json.JSONObject;
+
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Filters;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -357,7 +363,7 @@ public class Upload_servlet extends HttpServlet {
 				    		System.out.println(p.get_PessoaUsuario()+" Fim de processamento do arquivo com "+last_id+" linhas inseridas em "+f3.format(time));
 				    		wb.close();
 				    		
-				        	
+				    		atualiza_sites_integrados(p);
 				        }
 			    }
 			}
@@ -378,6 +384,63 @@ public class Upload_servlet extends HttpServlet {
     		
     	}
 		
+	}
+	public void atualiza_sites_integrados(Pessoa p) {
+		System.out.println("Iniciando sincornia de sites");
+		ConexaoMongo c = new ConexaoMongo();
+		Timestamp time = new Timestamp(System.currentTimeMillis());
+		Bson filtro;
+		Document site = new Document();
+		Document site_novo = new Document();
+		Document geo  = new Document();
+		Document propertie  = new Document();
+		Document geometry  = new Document();
+		List<Bson> lista_filtro=new ArrayList<Bson>();
+		List<String> resultado=new ArrayList<String>();
+		FindIterable<Document> findIterable;
+		MongoCursor<Document> resultado_site;
+		filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+		lista_filtro.add(filtro);
+		//c.RemoverFiltroList("Rollout_Sites", lista_filtro);
+		resultado = c.ConsultaSimplesDistinct("rollout", "Site ID", lista_filtro);
+		
+		for(int indice=0;indice<resultado.size();indice++) {
+			filtro=Filters.eq("GEO.properties.SiteID",resultado.get(indice));
+			lista_filtro.add(filtro);
+			filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+			lista_filtro.add(filtro);
+			findIterable=c.ConsultaCollectioncomFiltrosLista("Rollout_Sites", lista_filtro);
+			resultado_site=findIterable.iterator();
+			if(resultado_site.hasNext()) {
+				
+			}else {
+				lista_filtro.clear();
+				filtro=Filters.eq("site_id",resultado.get(indice));
+				lista_filtro.add(filtro);
+				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				lista_filtro.add(filtro);
+				findIterable=c.ConsultaCollectioncomFiltrosLista("sites", lista_filtro);
+				resultado_site=findIterable.iterator();
+				if(resultado_site.hasNext()) {
+					site=(Document) resultado_site.next();
+					//System.out.println(site.toJson());
+					site_novo.append("Empresa", p.getEmpresa().getEmpresa_id());
+					site_novo.append("Site_id", site.getString("site_id"));
+					geometry =  (Document)site.get("GEO",Document.class).get("geometry");
+					propertie= (Document)site.get("GEO",Document.class).get("properties");
+					geo.append("type", "Feature");
+					geo.append("geometry", geometry);
+					geo.append("properties", propertie);
+					site_novo.append("GEO", geo);
+					site_novo.append("Update_by", p.get_PessoaUsuario());
+					site_novo.append("Update_time", time);
+					c.InserirSimpels("Rollout_Sites", site_novo);
+					site_novo.clear();
+				}
+			}
+			lista_filtro.clear();
+		}
+		System.out.println("Sincronia de sites finalizado ");
 	}
 	 public List<Double> verfica_coordenadas(String lng,String lat) {
 		 try {

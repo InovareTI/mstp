@@ -45,7 +45,7 @@ $(document).ready(function () {
             carrega_portal();
             carrega_usuarios();
            // carrega_tabela_site();
-            
+            carrega_tree_rollout();
             calcula_quantidade_hh_disponivel();
             $("#input_sites_arq").fileinput({
             	language: "pt-BR",
@@ -80,16 +80,7 @@ $(document).ready(function () {
 			    allowedFileExtensions: ['xlsx'],
 			    maxFileCount: 5
 			});
-            $("#input_usuario3_arq").fileinput({
-            	language: "pt-BR",
-			    uploadUrl: "./RolloutServlet?opt=5", // server upload action
-			    uploadAsync: false,
-			    allowedFileExtensions: ['xlsx'],
-			    maxFileCount: 1
-			}).on('filebatchuploadsuccess', function(event, data) {
-				$.alert("Acompanhe o progresso do carregamento em \"Minhas Importações\"");
-				carrega_gant();
-			});
+            
             $("#jqxExpander").jqxExpander({ width: '100%'});
             $("#nova_senha").jqxPasswordInput({placeHolder: "Nova Senha:", showStrength: true, showStrengthPosition: "top",
                 passwordStrength: function (password, characters, defaultStrength) {
@@ -115,11 +106,33 @@ $(document).ready(function () {
             });
             
             carrega_tabela_campos_rollout();
-            carrega_gant();
+            //if(geral.perfil.search("RolloutView")>=0 || geral.perfil.search("RolloutManager")>=0){
+            	
+            	carrega_gant();
+            
             //carrega_cliente_table();
             load_site_markers();
             carrega_select_func_ponto();
-            
+          
+            $('#modal_upload_rollout').on('show.bs.modal', function (event) {
+            	var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
+	           	 var rolloutid;
+	           	 if (item) {
+	           		 rolloutid=item.value;
+	           	 }else{
+	           		 rolloutid="Rollout1";
+	           	 }
+            	$("#input_usuario3_arq").fileinput({
+                	language: "pt-BR",
+    			    uploadUrl: "./RolloutServlet?opt=5&rolloutid="+rolloutid, // server upload action
+    			    uploadAsync: false,
+    			    allowedFileExtensions: ['xlsx'],
+    			    maxFileCount: 1
+    			}).on('filebatchuploadsuccess', function(event, data) {
+    				$.alert("Acompanhe o progresso do carregamento em \"Minhas Importações\"");
+    				//carrega_gant();
+    			});
+          });
             $('#modal_ajuste_ponto').on('show.bs.modal', function (event) {
             	
             	  var button = $(event.relatedTarget) // Button that triggered the modal
@@ -159,10 +172,12 @@ $(document).ready(function () {
                         { name: 'Valor Anterior', type: 'string' },
                         { name: 'Novo Valor', type: 'string' },
                         { name: 'Atualizado Por', type: 'string' },
-                        { name: 'Data da Atualização', type: 'string' }
+                        { name: 'Data da Atualização', type: 'date' }
                     ],
                     id: 'id',
-                    localdata: '[]'
+                    localdata: '[]',
+                    sortcolumn: 'Data da Atualização',
+                    sortdirection: 'desc'
                 };
           		var dataAdapter = new $.jqx.dataAdapter(source);
           		$("#grid_historico_rollout").jqxGrid(
@@ -171,6 +186,7 @@ $(document).ready(function () {
           	                source: dataAdapter,
           	                columnsresize: true,
           	                filterable: true,
+          	                sortable: true,
           	                autoshowfiltericon: true,
           	                columns: [
           	                    { text: 'ID', datafield: 'recid',filtertype: 'checkedlist' },
@@ -181,7 +197,7 @@ $(document).ready(function () {
           	                    { text: 'Valor Anterior', datafield: 'Valor Anterior',filtertype: 'checkedlist', width: 100},
           	                    { text: 'Novo Valor', datafield: 'Novo Valor',filtertype: 'checkedlist', width: 100},
           	                    { text: 'Atualizado Por', datafield: 'Atualizado Por',filtertype: 'checkedlist', width: 110},
-          	                    { text: 'Data da Atualização', datafield: 'Data da Atualização',filtertype: 'checkedlist', width: 170}
+          	                    { text: 'Data da Atualização', datafield: 'Data da Atualização',filtertype: 'checkedlist',cellsformat:"dd/MM/yyyy HH:mm:ss", width: 170}
           	                ]
           	            });
           	  }else{
@@ -225,10 +241,12 @@ $(document).ready(function () {
 	                        { name: 'Valor Anterior', type: 'string' },
 	                        { name: 'Novo Valor', type: 'string' },
 	                        { name: 'Atualizado Por', type: 'string' },
-	                        { name: 'Data da Atualização', type: 'string' }
+	                        { name: 'Data da Atualização', type: 'date' }
 	                    ],
 	                    id: 'id',
-	                    localdata: dataaux
+	                    localdata: dataaux,
+	                    sortcolumn: 'Data da Atualização',
+	                    sortdirection: 'desc'
 	                };
 	          		var dataAdapter = new $.jqx.dataAdapter(source);
 	          		$("#grid_historico_rollout").jqxGrid(
@@ -237,6 +255,7 @@ $(document).ready(function () {
 	          	                source: dataAdapter,
 	          	                columnsresize: true,
 	          	                filterable: true,
+	          	                sortable: true,
 	          	                autoshowfiltericon: true,
 	          	                columns: [
 	          	                    { text: 'ID', datafield: 'recid',filtertype: 'checkedlist' },
@@ -247,7 +266,7 @@ $(document).ready(function () {
 	          	                    { text: 'Valor Anterior', datafield: 'Valor Anterior',filtertype: 'checkedlist', width: 100},
 	          	                    { text: 'Novo Valor', datafield: 'Novo Valor',filtertype: 'checkedlist', width: 100},
 	          	                    { text: 'Atualizado Por', datafield: 'Atualizado Por',filtertype: 'checkedlist', width: 110},
-	          	                    { text: 'Data da Atualização', datafield: 'Data da Atualização',filtertype: 'checkedlist', width: 170}
+	          	                    { text: 'Data da Atualização', datafield: 'Data da Atualização',filtertype: 'checkedlist',cellsformat:"dd/MM/yyyy HH:mm:ss", width: 170}
 	          	                ]
 	          	            });
 	          	}
@@ -381,6 +400,7 @@ function carrega_perfil(){
 		 geral.pis=data.pis;
 		 geral.matricula=data.matricula;
 		 geral.admissao=data.admissao;
+		 geral.empresa_id=data.empresa_id;
 		 geral.empresa_nome=data.empresa_nome;
 		 geral.empresa_cnpj=data.empresa_cnpj;
 		 geral.empresa_cnae=data.empresa_cnae;
@@ -416,7 +436,12 @@ function menu(opt){
 	else if(opt=="campos_rollout" && geral.perfil.search("RolloutManager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
-	}else if(opt=="rollout" && geral.perfil.search("RolloutManager")>=0){
+	}else if(opt=="arvore_rollout_conf" && geral.perfil.search("RolloutManager")>=0){
+		$(".janelas").hide();
+		document.getElementById(opt).style.display = "block";
+		carrega_tree_rollout_conf();
+	}
+	else if(opt=="rollout" && geral.perfil.search("RolloutManager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
 	}else if(opt=="pivot_design_div" && geral.perfil.search("RolloutManager")>=0){

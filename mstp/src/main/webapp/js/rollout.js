@@ -1,6 +1,56 @@
+function atualiza_dash_rollout(){
+	if(geral.empresa_id==1){
+	filtros={"filtros":[]};
+	 var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
+	var rolloutid;
+	 if (item != null) {
+		 rolloutid=item.value;
+		 if(rolloutid=="Rollout"){
+			 return;
+		 }
+	 }else{
+		 rolloutid="Rollout1";
+	 }
+	var aux={};
+	var filtersinfo = $('#jqxgrid').jqxGrid('getfilterinformation');
+	if(filtersinfo){
+	for(var j=0;j<filtersinfo.length;j++){
+    	for (var i = 0; i < filtersinfo[j].filter.getfilters().length; i++) {
+        	aux.filtersvalue=filtersinfo[j].filter.getfilters()[i].value;
+        	aux.filtercondition=filtersinfo[j].filter.getfilters()[i].condition;
+        	aux.datafield = filtersinfo[j].filtercolumn;
+        	
+        	filtros.filtros.push(aux);
+        	aux={};
+    	}
+    	
+    }
+	}
+	$.ajax({
+		  type: "POST",
+		  data: {"opt":"29",
+			  "filtros":JSON.stringify(filtros),"rolloutid":rolloutid},		  
+		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+		  url: "./RolloutServlet",
+		  cache: false,
+		  dataType: "text",
+		  success: atualiza_dash
+		});
+	function atualiza_dash(data){
+		//alert(data);
+		aux=JSON.parse(data);
+		$('#quadro_1_1').html("Total Work Date");
+		$('#quadro_1_2').html(aux.quadro_1_2);
+		$('#quadro_2_2').html(aux.quadro_2_2);
+		$('#quadro_3_2').html(aux.quadro_3_2);
+		$('#quadro_4_2').html(aux.quadro_4_2);
+		$('#quadro_5_2').html(aux.quadro_5_2);
+	}
+	}
+}
 function carrega_tree_rollout(){
 	var timestamp = Date.now();
-	 $("#splitter").jqxSplitter({  width: 1200, height: 600, panels: [{ size: 250}] });
+	 $("#splitter").jqxSplitter({ width: '100%', theme:'light', height: '90%', panels: [{ size: 250}] });
 	$.getJSON('./RolloutServlet?opt=27&_='+timestamp, function(data) {
 		var source =
         {
@@ -17,8 +67,170 @@ function carrega_tree_rollout(){
 		 var dataAdapter = new $.jqx.dataAdapter(source);
 		 dataAdapter.dataBind();
 		 var records = dataAdapter.getRecordsHierarchy('id', 'parentid', 'items', [{ name: 'text', map: 'label'}]);
-         $('#jqxTree_rollout').jqxTree({ source: records, width: '300px'});
+         $('#jqxTree_rollout').jqxTree({  theme:'light',source: records, hasThreeStates: true, checkboxes: true,height: '100%', width: '100%'});
+         $('#jqxTree_rollout').on('select',function (event)
+        		 {
+        	       $('#jqxgrid').jqxGrid('destroy');
+        	       $('#container_rollout').html('<div id="jqxgrid"></div>')
+        	 		carrega_gant();
+        		 });
+         var contextMenu = $("#jqxMenu_tree_rollout").jqxMenu({  theme:'light',width: '120px',  height: '56px', autoOpenPopup: false, mode: 'popup' });
+         var clickedItem = null;
+         var attachContextMenu = function () {
+             // open the context menu when the user presses the mouse right button.
+             $("#jqxTree_rollout li").on('mousedown', function (event) {
+                 var target = $(event.target).parents('li:first')[0];
+                 var rightClick = isRightClick(event);
+                 if (rightClick && target != null) {
+                     $("#jqxTree_rollout").jqxTree('selectItem', target);
+                     var scrollTop = $(window).scrollTop();
+                     var scrollLeft = $(window).scrollLeft();
+                     contextMenu.jqxMenu('open', parseInt(event.clientX) + 5 + scrollLeft, parseInt(event.clientY) + 5 + scrollTop);
+                     return false;
+                 }
+             });
+         }
+         attachContextMenu();
+         $("#jqxMenu_tree_rollout").on('itemclick', function (event) {
+             var item = $.trim($(event.args).text());
+             switch (item) {
+                 case "Renomear":
+                     var selectedItem = $('#jqxTree_rollout').jqxTree('selectedItem');
+                     if (selectedItem != null) {
+                    	 $('#modal_atualiza_no_rollout').modal('show');
+                         attachContextMenu();
+                     }
+                     break;
+                 case "Remove Item":
+                     var selectedItem = $('#jqxTree_rollout').jqxTree('selectedItem');
+                     if (selectedItem != null) {
+                         $('#jqxTree_rollout').jqxTree('removeItem', selectedItem.element);
+                         attachContextMenu();
+                     }
+                     break;
+             }
+         });
+         $(document).on('contextmenu', function (e) {
+             if ($(e.target).parents('.jqx-tree').length > 0) {
+                 return false;
+             }
+             return true;
+         });
+         function isRightClick(event) {
+             var rightclick;
+             if (!event) var event = window.event;
+             if (event.which) rightclick = (event.which == 3);
+             else if (event.button) rightclick = (event.button == 2);
+             return rightclick;
+         }
 	});
+}
+function atualiza_nome_rollout(){
+	var nome_rollout = document.getElementById("novo_nome_rollout").value;
+	
+	var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
+	 var rolloutid;
+	 if (item != null) {
+		 rolloutid=item.value;
+		 if(nome_rollout==""){$.alert("Nome do rollout nao pode ser vazio!")}else{
+		 $.ajax({
+			  type: "POST",
+			  data: {"opt":"30","rolloutid":rolloutid,"novo_nome":nome_rollout},		  
+			  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+			  url: "./RolloutServlet",
+			  cache: false,
+			  dataType: "text",
+			  success: onSuccess30_noatualizado
+			});
+		function onSuccess30_noatualizado(data){
+			carrega_tree_rollout();
+			$.alert({type:"green",content:"Rollout nome atualzado"});
+		}
+		 }
+	 }else{
+		 $.alert("Não identificamos o rollout selecionado!")
+	 }
+	
+}
+function carrega_tree_rollout_conf(){
+	var timestamp = Date.now();
+	 
+	$.getJSON('./RolloutServlet?opt=27&_='+timestamp, function(data) {
+		var source =
+        {
+            datatype: "json",
+            datafields: [
+                { name: 'id' },
+                { name: 'parentid' },
+                { name: 'text' },
+                { name: 'value' }
+            ],
+            id: 'id',
+            localdata: data
+        };
+		 var dataAdapter = new $.jqx.dataAdapter(source);
+		 dataAdapter.dataBind();
+		 var records = dataAdapter.getRecordsHierarchy('id', 'parentid', 'items', [{ name: 'text', map: 'label'}]);
+         $('#jqxTree_rollout_conf').jqxTree({ source: records, hasThreeStates: true, checkboxes: true,height: '450px', width: '300px'});
+         
+         //$('#jqxTree_rollout_conf').jqxTree({height: '450px', width: '300px'});
+ 		$('#AddBefore').jqxButton({ height: '30px', width: '120px'});
+         $('#AddAfter').jqxButton({ height: '30px', width: '120px'});
+         $('#Remove').jqxButton({ height: '30px', width: '120px'});
+         $('#Update').jqxButton({ height: '30px', width: '120px'});
+         $('#SaveTree').jqxButton({ height: '30px', width: '370px'});
+         $('#AddBefore').click(function () {
+             var selectedItem = $('#jqxTree_rollout_conf').jqxTree('selectedItem');
+             if (selectedItem != null) {
+                 $('#jqxTree_rollout_conf').jqxTree('addBefore', { label: 'Item' }, selectedItem.element, false);
+                 // update the tree.
+                 $('#jqxTree_rollout_conf').jqxTree('render');
+             }
+         });
+         $('#AddAfter').click(function () {
+             var selectedItem = $('#jqxTree_rollout_conf').jqxTree('selectedItem');
+             if (selectedItem != null) {
+                 $('#jqxTree_rollout_conf').jqxTree('addAfter', { label: 'Item' }, selectedItem.element, false);
+                 // update the tree.
+                 $('#jqxTree_rollout_conf').jqxTree('render');
+             }
+         });
+         $("#input_item_tree_conf").jqxInput({placeHolder: "Insira novo nome", height: 30, width: 250, minLength: 1});
+         $('#Update').click(function () {
+             var selectedItem = $('#jqxTree_rollout_conf').jqxTree('selectedItem');
+             if (selectedItem != null) {
+                 $('#jqxTree_rollout_conf').jqxTree('updateItem', { label: $('#input_item_tree_conf').jqxInput('val') }, selectedItem.element);
+                 // update the tree.
+                 $('#jqxTree_rollout_conf').jqxTree('render');
+             }
+         });
+         $('#Remove').click(function () {
+             var selectedItem = $('#jqxTree_rollout_conf').jqxTree('selectedItem');
+             if (selectedItem != null) {
+                 // removes the selected item. The last parameter determines whether to refresh the Tree or not.
+                 // If you want to use the 'removeItem' method in a loop, set the last parameter to false and call the 'render' method after the loop.
+                 $('#jqxTree_rollout_conf').jqxTree('removeItem', selectedItem.element, false);
+                 // update the tree.
+                 $('#jqxTree_rollout_conf').jqxTree('render');
+             }
+         });
+	});
+}
+
+function corrigerolloutspazio() {
+	
+	$.ajax({
+		  type: "POST",
+		  data: {"opt":"28"},		  
+		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+		  url: "./RolloutServlet",
+		  cache: false,
+		  dataType: "text",
+		  success: onSuccess28_spazio
+		});
+	function onSuccess28_spazio(data){
+		$.alert("ajuste finalizado")
+	}
 }
 function carrega_tabela_campos_rollout() {
 	
@@ -265,9 +477,16 @@ function add_campo_rollout(){
 	}
 	}
 function carrega_campos_rollout(){
+	var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
+  	 var rolloutid;
+  	 if (item) {
+  		 rolloutid=item.value;
+  	 }else{
+  		 rolloutid="Rollout1";
+  	 }
 	$.ajax({
 		  type: "POST",
-		  data: {"opt":"7"
+		  data: {"opt":"7","rolloutid":rolloutid
 			
 			
 			},		  
@@ -415,10 +634,18 @@ function carrega_gant(){
 	 var timestamp = Date.now();
 	 var sites=[];
 	 var me,container,save_button,addButton,cFilterButton,deleteButton = "";
-	 carrega_tree_rollout();
 	 
-	 
-	$.getJSON('./RolloutServlet?opt=1&_='+timestamp, function(data) {
+	 var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
+	 var rolloutid;
+	 if (item != null) {
+		 rolloutid=item.value;
+		 if(rolloutid=="Rollout"){
+			 return;
+		 }
+	 }else{
+		 rolloutid="Rollout1";
+	 }
+	$.getJSON('./RolloutServlet?opt=1&rolloutid='+rolloutid+'&_='+timestamp, function(data) {
 			
 		var sites_aux=[];
 		sites_aux=data['sites'];
@@ -487,6 +714,7 @@ function carrega_gant(){
             filter: function() {
                 // update the grid and send a request to the server.
                 $("#jqxgrid").jqxGrid('updatebounddata', 'filter');
+                //alert("alert filter1");
             },
             sort: function() {
                 // update the grid and send a request to the server.
@@ -505,6 +733,7 @@ function carrega_gant(){
 			
             formatData: function(data) {
             	data.opt=9;
+            	data.rolloutid=rolloutid;
             	data._=timestamp;
 				//alert(JSON.stringify(data));
                 return data;
@@ -513,6 +742,7 @@ function carrega_gant(){
                 if (!source.totalRecords) {
                     source.totalRecords = data.length;
                 }
+                atualiza_dash_rollout();
             },
             loadError: function(xhr, status, error) {
                 throw new Error(error);
@@ -569,7 +799,7 @@ function carrega_gant(){
 	                    toolbar.empty();
 	                    container = $("<div style='overflow: hidden; position: relative; margin: 1px;'></div>");
 	                    save_button = $("<input type=\"button\" class=\"btn btn-primary\" style='float: left; margin-left: 5px' value=\"Salvar\" id='jqxButton_salvar'>");
-	                    drop_button=$("<div style='float: left;' id='dropDownButton_op_rollout'><div style='border: none;' id='jqxTree_bt_rollout'><ul><li><a style='float: left; margin-left: 5px;' href='#' onclick='SyncRollout()'>Atualizar</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_upload_rollout\">Importar</a></li><li><a style='float: left; margin-left: 5px;' href='#' onclick='downloadFunc()'>Exportar</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_rollout_history\">Histórico de Mudanças</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" onclick='SyncToMongoDB()' >Sync TO Mongo</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" onclick='atualiza_status()' >Atualiza Status</a></li></ul></div></div>");
+	                    drop_button=$("<div style='float: left;' id='dropDownButton_op_rollout'><div style='border: none;' id='jqxTree_bt_rollout'><ul><li><a style='float: left; margin-left: 5px;' href='#' onclick='SyncRollout();'>Atualizar</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_upload_rollout\">Importar</a></li><li><a style='float: left; margin-left: 5px;' href='#' onclick='downloadFunc()'>Exportar</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_rollout_history\">Histórico de Mudanças</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" onclick='SyncToMongoDB()' >Sync TO Mongo</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" onclick='atualiza_status()' >Atualiza Status</a></li></ul></div></div>");
 	                    addButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Nova Atividade</a>");
 	                    batchButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Atualização em Lotes</a>");
 	                    cFilterButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Remover Filtros</a>");
@@ -697,14 +927,7 @@ function carrega_gant(){
 	                   		
 	                   		$("#table_row_fields").bootstrapTable();
 	                   		$('input[type=data_row]').w2field('date', { format: 'dd/mm/yyyy'});
-	                   		$(".row_rollout").each(function(){
-	                   			if($(this).attr('type')=="lista"){
-	                   				//alert($(this).attr('valores'));
-	                   				aux=$(this).attr('valores').split(",");
-	                   				$("#"+$(this).attr('name')).jqxComboBox({ source: aux, width: '200px', height: '25px'});
-	                   			}
-	                   			
-	                   		});
+	                   		
 	                   		$('#modal_row_add').modal('show');
 	                   	 }
 	                   	
@@ -734,6 +957,8 @@ function carrega_gant(){
          registra_mudança_campos(args.rowindex,args.datafield,args.value,args.columntype,args.oldvalue);
      });
 	 $('#jqxLoader_rolout').jqxLoader('close');
+	 
+	 
 	}
 function SyncToMongoDB() {
 	if(geral.usuario.includes('masteradmin')){
@@ -774,10 +999,17 @@ function downloadFunc(){
 					for(var v=0;v<rowindexes.length;v++){
 						filtros.filtros.push($('#jqxgrid').jqxGrid('getrowid', rowindexes[v]));
 					}
+					 var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
+					 var rolloutid;
+					 if (item != null) {
+						 rolloutid=item.label;
+					 }else{
+						 rolloutid="Rollout1";
+					 }
 					$.ajax({
-        		        url: './RolloutServlet?opt=3&tipo=selecionadas',
+        		        url: './RolloutServlet?opt=3&tipo=selecionadas&rolloutid='+rolloutid,
         		        method: 'GET',
-        		        data:{"filtros":JSON.stringify(filtros)},
+        		        data:{"filtros":JSON.stringify(filtros),"rolloutid":rolloutid},
         		        xhrFields: {
         		            responseType: 'blob'
         		        },
@@ -812,10 +1044,17 @@ function downloadFunc(){
                     	
                     }
                 	//alert(JSON.stringify(filtros));
+                	var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
+					 var rolloutid;
+					 if (item != null) {
+						 rolloutid=item.label;
+					 }else{
+						 rolloutid="Rollout1";
+					 }
         		    $.ajax({
-        		        url: './RolloutServlet?opt=3&tipo=filtro',
+        		        url: './RolloutServlet?opt=3&tipo=filtro&rolloutid='+rolloutid,
         		        method: 'GET',
-        		        data:{"filtros":JSON.stringify(filtros)},
+        		        data:{"filtros":JSON.stringify(filtros),"rolloutid":rolloutid},
         		        xhrFields: {
         		            responseType: 'blob'
         		        },
@@ -835,10 +1074,17 @@ function downloadFunc(){
 				text:"Completo",
 				
 				action:function(){
+					var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
+					 var rolloutid;
+					 if (item) {
+						 rolloutid=item.label;
+					 }else{
+						 rolloutid="Rollout1";
+					 }
 					 $.ajax({
-            		        url: './RolloutServlet?opt=3&tipo=completo',
+            		        url: './RolloutServlet?opt=3&tipo=completo&rolloutid='+rolloutid,
             		        method: 'GET',
-            		        data:{"filtros":JSON.stringify(filtros)},
+            		        data:{"filtros":JSON.stringify(filtros),"rolloutid":rolloutid},
             		        xhrFields: {
             		            responseType: 'blob'
             		        },
@@ -930,10 +1176,12 @@ function busca_historico_rollout_filtros(){
                 { name: 'Valor Anterior', type: 'string' },
                 { name: 'Novo Valor', type: 'string' },
                 { name: 'Atualizado Por', type: 'string' },
-                { name: 'Data da Atualização', type: 'string' }
+                { name: 'Data da Atualização', type: 'date	' }
             ],
             id: 'id',
-            localdata: dataaux
+            localdata: dataaux,
+            sortcolumn: 'Data da Atualização',
+            sortdirection: 'desc'
         };
   		var dataAdapter = new $.jqx.dataAdapter(source);
   		$("#grid_historico_rollout").jqxGrid(
@@ -942,6 +1190,7 @@ function busca_historico_rollout_filtros(){
   	                source: dataAdapter,
   	                columnsresize: true,
   	                filterable: true,
+  	                sortable: true,
   	                autoshowfiltericon: true,
   	                columns: [
   	                    { text: 'ID', datafield: 'recid',filtertype: 'checkedlist' },
@@ -952,9 +1201,11 @@ function busca_historico_rollout_filtros(){
   	                    { text: 'Valor Anterior', datafield: 'Valor Anterior',filtertype: 'checkedlist', width: 100},
   	                    { text: 'Novo Valor', datafield: 'Novo Valor',filtertype: 'checkedlist', width: 100},
   	                    { text: 'Atualizado Por', datafield: 'Atualizado Por',filtertype: 'checkedlist', width: 110},
-  	                    { text: 'Data da Atualização', datafield: 'Data da Atualização',filtertype: 'checkedlist', width: 170}
+  	                    { text: 'Data da Atualização', datafield: 'Data da Atualização',filtertype: 'checkedlist',cellsformat:"dd/MM/yyyy HH:mm:ss", width: 170}
   	                ]
   	            });
+  		
+  		
 	}
 }
 function rm_row_rollout(){
@@ -1030,7 +1281,7 @@ function add_new_row_rollout(){
 		}else{
 			map[$(this).attr('name')] = $(this).val();
 		}
-		linha={nome_campo:$(this).attr('name'),valor_campo:$(this).val(),tipo_campo:$(this).attr('tipo_campo')}
+		linha={nome_campo:$(this).attr('name'),valor_campo:$(this).val(),tipo_campo:$(this).attr('tipo_campo'),tipo_info:$(this).attr('tipo_info')}
 		
 		row.rows.push(linha)
 		$(this).val('');
