@@ -16,6 +16,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
@@ -24,7 +25,6 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -46,10 +46,12 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.bson.Document;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import classes.ConexaoMongo;
 import classes.Conexao;
 import classes.Feriado;
 import classes.Pessoa;
@@ -394,7 +396,7 @@ public class UserMgmt extends HttpServlet {
 				param1=req.getParameter("data");
 				System.out.println("Inserindo horas de "+p.get_PessoaUsuario()+" em "+f3.format(time));
 				//System.out.println(param1);
-				JSONObject jObj ;
+				
 				JSONObject jObj2;
 				JSONArray campos = new JSONArray(param1);
 				
@@ -795,8 +797,10 @@ public class UserMgmt extends HttpServlet {
 							insere_regitro(p,rs.getString("usuario"),"Licença Médica",conn,"0","0",rs.getString("other2")+" 00:00:00","0","","Licença Médica, - , - ");
 							
 						}else {
-							insere_regitro(p,rs.getString("usuario"),"Entrada",conn,"0","0",rs.getString("dt_entrada"),"0",rs.getString("dt_entrada"),"PontoAjustado,Spazio RIO,SPAZIO");
-							insere_regitro(p,rs.getString("usuario"),"Saída",conn,"0","0",rs.getString("dt_saida"),"0",rs.getString("dt_saida"),"PontoAjustado,Spazio RIO,SPAZIO");
+							insere_regitro(p,rs.getString("usuario"),"Entrada",conn,"0","0",rs.getString("dt_entrada"),"0",rs.getString("dt_entrada"),"PontoAjustado,"+p.getEmpresa().getNome()+","+p.getEmpresa().getNome());
+							insere_regitro(p,rs.getString("usuario"),"Saída",conn,"0","0",rs.getString("dt_saida"),"0",rs.getString("dt_saida"),"PontoAjustado,"+p.getEmpresa().getNome()+","+p.getEmpresa().getNome());
+							insere_regitro(p,rs.getString("usuario"),"Inicio_intervalo",conn,"0","0",rs.getString("dt_ini_inter"),"0",rs.getString("dt_ini_inter"),"PontoAjustado,"+p.getEmpresa().getNome()+","+p.getEmpresa().getNome());
+							insere_regitro(p,rs.getString("usuario"),"Fim_intervalo",conn,"0","0",rs.getString("dt_fim_inter"),"0",rs.getString("dt_fim_inter"),"PontoAjustado,"+p.getEmpresa().getNome()+","+p.getEmpresa().getNome());
 						}
 							rs2=conn.Consulta("select * from usuarios where id_usuario='"+rs.getString("usuario")+"'");
 							if(rs2.next()) {
@@ -907,7 +911,7 @@ public class UserMgmt extends HttpServlet {
 	            }
 			}else if(opt.equals("17")){
 				
-				InputStream inputStream=null;
+				
 				if (ServletFileUpload.isMultipartContent(req)) {
 					List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
 					//System.out.println("Multipart size: " + multiparts.size());
@@ -917,7 +921,7 @@ public class UserMgmt extends HttpServlet {
 						if (item.isFormField()) {
 					       // processFormField(item);
 					    } else {
-					    	inputStream = item.getInputStream();
+					    	
 					    	InputStream inputStream2= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
 				    		DataFormatter dataFormatter = new DataFormatter();
 				    		int indexCell=1;
@@ -1006,6 +1010,7 @@ public class UserMgmt extends HttpServlet {
 				    			}
 				    			}
 				    		}
+				    		wb.close();
 					    }
 					}
 					resp.setContentType("application/json"); 
@@ -1014,6 +1019,7 @@ public class UserMgmt extends HttpServlet {
 		        	PrintWriter pw = resp.getWriter();
 		        	pw.print(jsonObject); 
 		        	pw.close();
+		        	
 		        	System.out.println(p.get_PessoaUsuario()+" Fim de processamento do arquivo com "+last_id+" linhas atualizadas em "+f3.format(time));
 				}
 					    
@@ -1030,7 +1036,7 @@ public class UserMgmt extends HttpServlet {
 				Double total_horas_acumuladas=0.0;
 				Double total_horas_acumuladas_sabado=0.0;
 				Double total_horas_acumuladas_domingo=0.0;
-				String achou="";
+				
 				resp.setContentType("application/html");  
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
@@ -1050,7 +1056,7 @@ public class UserMgmt extends HttpServlet {
 					query="SELECT * FROM registros where usuario='"+param2+"' and data_dia='"+f2.format(data_HH.getTime())+"' and tipo_registro='Folga' order by datetime_servlet asc limit 1";
 					rs2=conn.Consulta(query);
 					if(rs2.next()) {
-						achou="s";
+						
 					}
 					query="SELECT * FROM registros where usuario='"+param2+"' and data_dia='"+f2.format(data_HH.getTime())+"' and tipo_registro='Entrada' order by datetime_servlet asc limit 1";
 					rs2=conn.Consulta(query);
@@ -1066,7 +1072,7 @@ public class UserMgmt extends HttpServlet {
 					}
 					if(!param3.equals("") && !param4.equals("")) {
 						HH_aux=calcula_hh(param3,param4,feriado,conn,p);
-						achou="s";
+						
 						if(Double.parseDouble(HH_aux[1])>0.0) {
 							if(HH_aux[3].equals("Sábado")){
 								total_horas_acumuladas_sabado=total_horas_acumuladas_sabado+Double.parseDouble(HH_aux[1]);
@@ -1155,7 +1161,7 @@ public class UserMgmt extends HttpServlet {
 				//System.out.println(query);
 				//rs=conn.Consulta(query);
 				String data_mobile_inicial="";
-				String data_mobile_fim="";	
+					
 				d.setTime(dt_inicio);
 				fim.add(Calendar.DAY_OF_MONTH, 1);
 				SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy H:m:s");
@@ -1246,7 +1252,7 @@ public class UserMgmt extends HttpServlet {
 								d.set(Calendar.HOUR_OF_DAY,14);
 								d.set(Calendar.MINUTE,aux_num);
 								time = new Timestamp(d.getTimeInMillis());
-								data_mobile_fim=data_mobile;
+								
 								insere="update registros set datetime_mobile='"+data_mobile+"',datetime_servlet='"+time+"',hora=14,minutos="+aux_num+",almoco_retorno='PTAJ' where sys_contador="+rs2.getInt("sys_contador");
 								conn.Alterar(insere);
 							}
@@ -1259,7 +1265,7 @@ public class UserMgmt extends HttpServlet {
 								d.set(Calendar.HOUR_OF_DAY,13);
 								d.set(Calendar.MINUTE,aux_num);
 								time = new Timestamp(d.getTimeInMillis());
-								data_mobile_fim=data_mobile;
+								
 								insere="update registros set datetime_mobile='"+data_mobile+"',datetime_servlet='"+time+"',hora=14,minutos="+aux_num+",almoco_retorno='PTAJ' where sys_contador="+rs2.getInt("sys_contador");
 								conn.Alterar(insere);
 							}
@@ -1279,7 +1285,7 @@ public class UserMgmt extends HttpServlet {
 							d.set(Calendar.HOUR_OF_DAY,14);
 							d.set(Calendar.MINUTE,aux_num);
 							time = new Timestamp(d.getTimeInMillis());
-							data_mobile_fim=data_mobile;
+							
 							insere="INSERT INTO registros (id_sistema,empresa,usuario,latitude,longitude,data_dia,distancia,datetime_mobile,datetime_servlet,hora,minutos,tipo_registro,local_registro,tipo_local_registro,site_operadora_registro,mes,almoco_retorno) VALUES ('1','1','"+param1+"','0','0','"+f2.format(d.getTime())+"',0,'"+f3.format(time)+"','"+time+"',14,"+aux_num+",'Fim_intervalo','Ponto','"+p.getPonto_registro(conn, param1)+"','-',"+(d.get(Calendar.MONTH)+1)+",'PTAJ')";
 							conn.Inserir_simples(insere);
 							}}
@@ -1408,7 +1414,7 @@ public class UserMgmt extends HttpServlet {
 				String emailstr;
 				md = MessageDigest.getInstance( "SHA-256" );
 				
-				InputStream inputStream=null;
+				
 				if (ServletFileUpload.isMultipartContent(req)) {
 					List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
 					//System.out.println("Multipart size: " + multiparts.size());
@@ -1418,7 +1424,7 @@ public class UserMgmt extends HttpServlet {
 						if (item.isFormField()) {
 					       // processFormField(item);
 					    } else {
-					    	inputStream = item.getInputStream();
+					    	
 					    	InputStream inputStream2= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
 				    		DataFormatter dataFormatter = new DataFormatter();
 				    		int indexCell=1;
@@ -1536,6 +1542,7 @@ public class UserMgmt extends HttpServlet {
 				    				 }
 				    			}
 				    		}
+				    		wb.close();
 					    }
 					}
 					resp.setContentType("application/json"); 
@@ -1906,7 +1913,7 @@ public class UserMgmt extends HttpServlet {
 			}else if(opt.equals("30")) {
 
 				param1=req.getParameter("func");
-				ResultSet rs3;
+				
 				param3=req.getParameter("inicio");
 				param4=req.getParameter("fim");
 				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy"); 
@@ -2243,7 +2250,7 @@ public class UserMgmt extends HttpServlet {
 	public void insere_regitro(Pessoa p,String usuario,String tipo_registro, Conexao conn,String lat,String lng,String timestam,String distancia,String datetime,String Localidade) {
 		String query,query2,insere;
 		Locale brasil = new Locale("pt", "BR");
-		String param1,param2,param3,param4,param5,param7;
+		String param1,param2,param3,param4,param5;
 		String array_string_aux[];
 		Calendar d = Calendar.getInstance();
 		Date data = d.getTime();
@@ -2258,9 +2265,12 @@ public class UserMgmt extends HttpServlet {
 		param3=timestam;
 		param4=distancia;
 		param5=datetime;
+		Document registro=new Document();
+		Document geo = new Document();
+		Document geometry = new Document();
+		Document properties = new Document();
 		
-		param7=Localidade;
-		
+		ConexaoMongo cm = new ConexaoMongo();
 		array_string_aux=Localidade.split(",");
 		
 		try {
@@ -2278,7 +2288,38 @@ public class UserMgmt extends HttpServlet {
 			//System.out.println(insere);
 			if(conn.Inserir_simples(insere)){
 	    		System.out.println("Registro Cadastrado");
-	    			
+	    		geo.append("type", "Feature");
+				geometry.append("type", "Point");
+				geometry.append("coordinates", verfica_coordenadas(param1,param2));
+				geo.append("geometry",geometry);
+				properties.append("Usuario", p.get_PessoaUsuario());
+				properties.append("Local_Registro", array_string_aux[1]);
+				properties.append("Tipo_local", array_string_aux[0]);
+				properties.append("Hora_Registro", f3.format(d.getTime()));
+				properties.append("Distancia_local", param4);
+				properties.append("Coordenadas", param1+","+param2);
+				geo.append("properties", properties);
+				registro.append("Usuario", p.get_PessoaUsuario());
+				registro.append("Empresa", p.getEmpresa().getEmpresa_id());
+				registro.append("data_dia", d.getTime());
+				registro.append("data_dia_string", f2.format(d.getTime()));
+				registro.append("datetime_mobile", param5);
+				//System.out.println("hora formartada:"+ checa_formato_data_e_hora(f3.format(mobile_time.getTime())));
+				registro.append("datetime_mobile_data", checa_formato_data_e_hora(f3.format(d.getTime())));
+				registro.append("datetime_servlet", date_sql);
+				registro.append("hora", d.get(Calendar.HOUR_OF_DAY));
+				registro.append("minuto", d.get(Calendar.MINUTE));
+				registro.append("dia", d.get(Calendar.DAY_OF_MONTH));
+				registro.append("mes", (d.get(Calendar.MONTH)+1));
+				registro.append("ano", d.get(Calendar.YEAR));
+				registro.append("tipo_registro", tipo_registro);
+				registro.append("local_registro", array_string_aux[0]);
+				registro.append("distancia", param4);
+				registro.append("tipo_local_registro", array_string_aux[1]);
+				registro.append("site_operadora_registro", array_string_aux[2]);
+				registro.append("timeStamp_mobile", param3);
+				registro.append("GEO", geo);
+	    		cm.InserirSimpels("Registros", registro);
 			}
 			if(tipo_registro.equals("Saída")) {
 				format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -2509,6 +2550,7 @@ public class UserMgmt extends HttpServlet {
 			return null;
 		}
 	}
+	
 	public int numeroAleatorio(int min, int max){
 
 	    Random rand = new Random();
@@ -2516,5 +2558,28 @@ public class UserMgmt extends HttpServlet {
 
 	    return randomNum;
 	}
+	public List<Double> verfica_coordenadas(String lng,String lat) {
+		 try {
+			 Double f_lat=Double.parseDouble(lat.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
+			 Double f_lng=Double.parseDouble(lng.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
+			 return Arrays.asList(f_lat,f_lng);
+		 }catch (NumberFormatException e) {
+				
+				
+				return Arrays.asList(-10.00,-10.00);
+		}
+	}
+	 public Date checa_formato_data_e_hora(String data) {
+			try {
+				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+				
+				Date d1=format.parse(data);
+				return d1;
+			}catch (ParseException e) {
+				//System.out.println(data + " - Data inválida");
+				return null;
+				
+			} 
+		}
 	}
 

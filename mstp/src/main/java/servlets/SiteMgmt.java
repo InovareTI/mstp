@@ -125,7 +125,8 @@ public class SiteMgmt extends HttpServlet {
 			param9="";
 			last_id=0;
 			opt=req.getParameter("opt");
-			System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações de Sites do MSTP Web - "+f3.format(time)+" opt:"+opt);
+			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Sites opt - "+ opt);
+			//System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações de Sites do MSTP Web - "+f3.format(time)+" opt:"+opt);
 			try {
 			if(opt.equals("1")){
 				param1=req.getParameter("siteid");
@@ -745,61 +746,47 @@ public class SiteMgmt extends HttpServlet {
 				}
 				c.fecharConexao();
 			}else if(opt.equals("12")) {
-				System.out.println("iniciando sincronia de sites");
-				
+				System.out.println("iniciando ajuste de coordenadas");
+				String lat="";
+				String lng ="";
 				//ConexaoMongo c = new ConexaoMongo();
-				Document document = new Document();
-				Document geo = new Document();
-				Document geometry = new Document();
-				Document properties = new Document();
-				//c.RemoverMuitosSemFiltro("Rollout_Sites",p.getEmpresa().getEmpresa_id());
-				query="select * from sites where site_ativo='Y' and site_latitude<>'' and site_longitude<>'' order by site_id ";
-				rs=conn.Consulta(query);
-				if(rs.next()) {
-					String CampoNome="";
-					String SiteID="";
-					rs.relative(9930);
-					System.out.println("linha corrente:"+rs.getRow());
-					//c.RemoverMuitosSemFiltro("sites", p.getEmpresa().getEmpresa_id());
-					int colunas = rs.getMetaData().getColumnCount();
-					if(rs.getRow()>9929) {
-					while(rs.next()) {
-						if(!SiteID.equals(rs.getString("site_id"))) {
-							geo.append("type", "Feature");
-							geometry.append("type", "Point");
-							geometry.append("coordinates", verfica_coordenadas(rs.getString("site_latitude"),rs.getString("site_longitude")));
-							geo.append("geometry",geometry);
-							properties.append("SiteID", rs.getString("site_id"));
-	    					properties.append("Operadora", rs.getString("site_operadora"));
-	    					properties.append("UF", rs.getString("site_uf"));
-	    					properties.append("Municipio", rs.getString("site_municipio"));
-							geo.append("properties", properties);
-							document.append("Empresa", p.getEmpresa().getEmpresa_id());
-							for(int i=2;i<colunas;i++) {
-								if(!rs.getMetaData().getColumnName(i).equals("empresa") && !rs.getMetaData().getColumnName(i).equals("last_update") ) {
-									document.append(rs.getMetaData().getColumnName(i), rs.getString(i));
-								}
-							}
-							document.append("GEO", geo);
-	    					document.append("Update_by", "masteradmin");
-							document.append("Update_time", time);
-	    					c.InserirSimpels("sites", document);
-	    					document.clear();
-	    					geo.clear();
-	    					geometry.clear();
-	    					properties.clear();
-	    					SiteID=rs.getString("site_id");
-						}
-					}
-					}
+				//Document document = new Document();
+				Document site = new Document();
+				Document update = new Document();
+				Document comando = new Document();
+				Document filtro_site = new Document();
+				//Document geometry = new Document();
+				//Document properties = new Document();
+				List<Bson> filtroSite = new ArrayList<Bson>();
+				Bson filtro;
+				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				filtroSite.add(filtro);
+				filtro=Filters.eq("site_operadora","TIM");
+				filtroSite.add(filtro);
+				filtro=Filters.eq("site_uf","SC");
+				filtroSite.add(filtro);
+				FindIterable<Document> findIterable = c.ConsultaCollectioncomFiltrosLista("sites", filtroSite);
+				MongoCursor<Document> resultado = findIterable.iterator();
+				while(resultado.hasNext()) {
+					site=resultado.next();
+					update.clear();
+					comando.clear();
+					filtro_site.clear();
+					filtro_site.append("site_id", site.getString("site_id"));
+					filtro_site.append("Empresa", p.getEmpresa().getEmpresa_id());
+					filtro_site.append("site_operadora", site.getString("site_operadora"));
+					filtro_site.append("site_uf", site.getString("site_uf"));
+						lat=site.getString("site_latitude").replaceAll("[^\\x00-\\x7F]", "").replaceAll("[\\p{Cntrl}&&[^\r\n\t]]", "").replaceAll("\\p{C}", "");
+						lng=site.getString("site_longitude").replaceAll("[^\\x00-\\x7F]", "").replaceAll("[\\p{Cntrl}&&[^\r\n\t]]", "").replaceAll("\\p{C}", "");
+						update.append("site_latitude", lat);
+						update.append("site_longitude", lng);
+						comando.append("$set", update);
+						System.out.println("Atualizando site "+site.getString("site_id")+" com novas coordenadas "+ lat+","+lng+".fim");
+						c.AtualizaUm("sites", filtro_site, comando);
+						
+					
 				}
-				geo.clear();
-				geometry.clear();
-				properties.clear();
 				
-				document.clear();
-				
-			    //c.fecharConexao();
 				
     			System.out.println("Sicronia com Mongo Finalizada");
 				resp.setContentType("application/html");  

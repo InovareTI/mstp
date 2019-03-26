@@ -166,20 +166,8 @@ response.setDateHeader ("Expires", -1);
      <link href='https://api.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.css' rel='stylesheet' />
 
 	<link rel="manifest" href="/manifest.json" />
-	<script type="text/javascript" src="OneSignalSDKWorker.js"></script>
-	<script type="text/javascript" src="OneSignalSDKUpdaterWorker.js"></script>
-	<script>
-		  var OneSignal = window.OneSignal || [];
-		  OneSignal.push(function() {
-		    OneSignal.init({
-		      appId: "ae9ad50e-520d-436a-b0b0-23aaddedee7b",
-		      autoRegister: false,
-		      notifyButton: {
-		        enable: true,
-		      },
-		    });
-		  });
-		</script>
+	
+	
     
 	<style>
 	.card {
@@ -1410,7 +1398,7 @@ response.setDateHeader ("Expires", -1);
     					  </div>
     					  <a id="template_importar_site" href="templates/templateSiteImportacao.xlsx" type="button" class="btn btn-primary">Template(importação)</a>
 			        			<button id="btn_buscar_sites"  class="btn btn-primary">Buscar</button>
-			        			
+			        			<input id="btnSync_rolloutsites" type="button" class="btn btn-primary" onclick="sync_rollout()" value="Ajustar Coordenadas">
 		        			</div>
 		        			</div>
 	        			</div>

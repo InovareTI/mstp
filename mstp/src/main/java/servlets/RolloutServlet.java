@@ -4,7 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.net.URL;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,15 +16,14 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
@@ -34,14 +33,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.swing.text.ChangedCharSetException;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.mail.EmailException;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
@@ -68,14 +65,13 @@ import com.mongodb.Block;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
-import com.mysql.cj.x.protobuf.MysqlxCrud.Update;
-import com.sun.mail.imap.protocol.Status;
+
 
 import classes.Conexao;
 import classes.ConexaoMongo;
 import classes.Pessoa;
 import classes.Rollout;
-import classes.Semail;
+
 
 /**
  * Servlet implementation class RolloutServlet
@@ -180,7 +176,7 @@ public class RolloutServlet extends HttpServlet {
 		SimpleDateFormat dt_excel = new SimpleDateFormat("ddd MMM dd HH:mm:ss 'BRST' yyyy");
 		DateFormat f3 = DateFormat.getDateTimeInstance();
 		opt=req.getParameter("opt");
-		System.out.println("MSTP WEB - "+f3.format(time)+" "+ p.get_PessoaUsuario()+" acessando servlet de Rollout opt - "+ opt);
+		System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Rollout opt - "+ opt);
 		//System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações de Rollout do MSTP Web - "+f3.format(time)+" opt:"+opt);
 		try {
 			if(opt.equals("1")){
@@ -1753,7 +1749,9 @@ public class RolloutServlet extends HttpServlet {
 				    			}//if linha maior que 2
 				    			
 				            }//loop de linhas
+				            wb.close();
 						}//else do arquivo multipart
+						
 					}//loop de arquivos
 					atualiza_sites_integrados(p);
 				}//if de upload de arquivo
@@ -3063,7 +3061,7 @@ public class RolloutServlet extends HttpServlet {
 				rollout_filtrado.append("\"rollout\"", document_featurecollection.toJson().toString());
 				
 				FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",checa_formato_data(f2.format(time).toString()),p.getEmpresa().getEmpresa_id());
-				List<Document> lista_sites= new ArrayList();
+				List<Document> lista_sites= new ArrayList<Document>();
 				document_featurecollection.clear();
 				document_featurecollection.append("type", "FeatureCollection");
 				document_featurecollection.append("operadora", "USUARIOS");
@@ -4069,9 +4067,9 @@ public class RolloutServlet extends HttpServlet {
 		Document site_filtro_update = new Document();
 		Document update = new Document();
 		Document comando_update = new Document();
-		Timestamp time = new Timestamp(System.currentTimeMillis());
+		
 		Bson filtro;
-		List<Document> milestones=new ArrayList<Document>();
+		
 		List<Bson> lista_filtro=new ArrayList<Bson>();
 		filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
 		lista_filtro.add(filtro);
