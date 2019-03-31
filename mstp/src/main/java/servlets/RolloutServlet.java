@@ -79,7 +79,7 @@ import classes.Rollout;
 @WebServlet("/RolloutServlet")
 public class RolloutServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
+	  
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -176,7 +176,7 @@ public class RolloutServlet extends HttpServlet {
 		SimpleDateFormat dt_excel = new SimpleDateFormat("ddd MMM dd HH:mm:ss 'BRST' yyyy");
 		DateFormat f3 = DateFormat.getDateTimeInstance();
 		opt=req.getParameter("opt");
-		System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Rollout opt - "+ opt);
+		System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Rollout opt - "+ opt );
 		//System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações de Rollout do MSTP Web - "+f3.format(time)+" opt:"+opt);
 		try {
 			if(opt.equals("1")){
@@ -469,12 +469,14 @@ public class RolloutServlet extends HttpServlet {
 					}
 					c.fecharConexao();
 			}else if(opt.equals("3")) {
-				System.out.println("Iniciando exporte de rollout");
+				//System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Rollout opt - "+ opt );
+				//System.out.println("Iniciando exporte de rollout")
 				int colIndex = 0;
 				int rowIndex = 0;
 				param1=req.getParameter("filtros");
 				param2=req.getParameter("tipo");
 				param3=req.getParameter("rolloutid");
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" iniciando export de rollout  - "+ param2 +" , rolloutid "+param3 );
 				//System.out.println("Filtros:"+param1);
 				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy"); 
 				JSONObject campo_tipo=r.getCampos().getCampos_tipo(conn, p,param3);
@@ -832,6 +834,7 @@ public class RolloutServlet extends HttpServlet {
 	                	findIterable = c.ConsultaCollectioncomFiltrosLista("rollout",filtro_list);
 	                }
 	                }else if(param2.equals("completo")){
+	                	filtro_list.clear();
 	                	filtro=Filters.eq("Empresa", p.getEmpresa().getEmpresa_id());
 						filtro_list.add(filtro);
 						filtro=Filters.eq("Linha_ativa", "Y");
@@ -1053,11 +1056,12 @@ public class RolloutServlet extends HttpServlet {
 	               }//fim do while do mongodb
 	            	
 		            
-	            	System.out.println("Arquivo Criado & finalizado");
+	            	
 	            	resp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 	                resp.setHeader("Content-Disposition", "attachment; filename="+time.toString()+"_rollout_mstp.xlsx");
 	                workbook.write(resp.getOutputStream());
 	                workbook.close();
+	                System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+"  export finalizado para rollout  - "+ param2 +" , rolloutid "+param3 );
 	            }else {
 	            	resp.setContentType("application/html");  
 					resp.setCharacterEncoding("UTF-8"); 
@@ -1071,8 +1075,9 @@ public class RolloutServlet extends HttpServlet {
 			}else if(opt.equals("5")) {
 				param3=req.getParameter("rolloutid");
 				JSONObject campo_tipo=r.getCampos().getCampos_tipo(conn, p,param3);
-				System.out.println("MSTP WEB - "+f3.format(time)+" "+ p.get_PessoaUsuario()+" iniciando import de  rolloutID "+ param3);
-				System.out.println("Tamanho de campos do rollout - "+campo_tipo.length());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+"iniciando import de  rolloutID" + param3 );
+				//System.out.println("MSTP WEB - "+f3.format(time)+" "+ p.get_PessoaUsuario()+" iniciando import de  rolloutID "+ param3)
+				//System.out.println("Tamanho de campos do rollout - "+campo_tipo.length());
 				InputStream inputStream=null;
 				if (ServletFileUpload.isMultipartContent(req)) {
 					List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
@@ -1139,7 +1144,7 @@ public class RolloutServlet extends HttpServlet {
 				        	int last_recid=0;
 				        	findIterable=c.LastRegisterCollention("rollout", "recid");
 				        	changes=findIterable.first();
-				        	last_recid=changes.getInteger("recid");
+				        	last_recid=Integer.parseInt(changes.get("recid").toString());
 				        	Iterator<Row> rowIterator = sheet1.iterator();
 				            rowIterator.next();
 				            double total_linhas=sheet1.getLastRowNum();
@@ -1207,9 +1212,9 @@ public class RolloutServlet extends HttpServlet {
 				    					
 				    					//campos[colunacelula])
 					    				if(campo_tipo.has(campos[colunacelula])) {
-					    					System.out.println("achou a coluna");
+					    					//System.out.println("achou a coluna");
 					    					 if(recid==-1) {
-					    						 System.out.println("Iniciando Operação de insert para rolloutID:"+param3);
+					    						 //System.out.println("Iniciando Operação de insert para rolloutID:"+param3);
 					    						 changes.append("recid", last_recid);
 					    						 changes.append("Empresa", p.getEmpresa().getEmpresa_id());
 					    						 changes.append("Linha_ativa", "Y");
@@ -1734,6 +1739,7 @@ public class RolloutServlet extends HttpServlet {
     							}else if(operacao.equals("update")){
     								filtros.append("recid",recid);
         							filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
+        							filtros.append("rolloutId",param3);
         							update = new Document();
         							if(!changes.isEmpty()) {
         								//System.out.println(changes.toJson());
@@ -2683,10 +2689,10 @@ public class RolloutServlet extends HttpServlet {
 				        historico.append("TipoCampo" , "Milestone");
 				        historico.append("Milestone" , cmp);
 				        historico.append("Campo",jObj2.getString("colum"));
-				        if(jObj2.getString("oldvalue").equals("")) {
-				        	 historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
+				        if(jObj2.get("oldvalue").equals("")) {
+				        	 historico.append("Valor Anterior" , jObj2.get("oldvalue").toString());
 				        }else {
-				        	 historico.append("Valor Anterior" , jObj2.getString("oldvalue").substring(0, 10));
+				        	 historico.append("Valor Anterior" , jObj2.get("oldvalue").toString().substring(0, 10));
 				        }
 				        if(plano.equals("")) {
 				        	historico.append("Novo Valor" , plano);
@@ -2729,10 +2735,10 @@ public class RolloutServlet extends HttpServlet {
 				        historico.append("TipoCampo" , "Milestone");
 				        historico.append("Milestone" , cmp);
 				        historico.append("Campo",jObj2.getString("colum"));
-				        if(jObj2.getString("oldvalue").equals("")) {
-				        	 historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
+				        if(jObj2.get("oldvalue").equals("")) {
+				        	 historico.append("Valor Anterior" , jObj2.get("oldvalue").toString());
 				        }else {
-				        	 historico.append("Valor Anterior" , jObj2.getString("oldvalue").substring(0, 10));
+				        	 historico.append("Valor Anterior" , jObj2.get("oldvalue").toString().substring(0, 10));
 				        }
 				        if(plano.equals("")) {
 				        	historico.append("Novo Valor" , plano);
@@ -2774,10 +2780,10 @@ public class RolloutServlet extends HttpServlet {
     				        historico.append("TipoCampo" , "Milestone");
     				        historico.append("Milestone" , cmp);
     				        historico.append("Campo",jObj2.getString("colum"));
-    				        if(jObj2.getString("oldvalue").equals("")) {
-    				        	 historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
+    				        if(jObj2.get("oldvalue").equals("")) {
+    				        	 historico.append("Valor Anterior" , jObj2.get("oldvalue").toString());
     				        }else {
-    				        	 historico.append("Valor Anterior" , jObj2.getString("oldvalue").substring(0, 10));
+    				        	 historico.append("Valor Anterior" , jObj2.get("oldvalue").toString().substring(0, 10));
     				        }
     				        if(plano.equals("")) {
     				        	historico.append("Novo Valor" , plano);
@@ -2828,10 +2834,10 @@ public class RolloutServlet extends HttpServlet {
     				        historico.append("TipoCampo" , "Milestone");
     				        historico.append("Milestone" , cmp);
     				        historico.append("Campo",jObj2.getString("colum"));
-    				        if(jObj2.getString("oldvalue").equals("")) {
-    				        	historico.append("Valor Anterior" , jObj2.getString("oldvalue"));
+    				        if(jObj2.get("oldvalue").equals("")) {
+    				        	historico.append("Valor Anterior" , jObj2.get("oldvalue").toString());
     				        }else {
-    				        	 historico.append("Valor Anterior" , jObj2.getString("oldvalue").substring(0, 10));
+    				        	 historico.append("Valor Anterior" , jObj2.get("oldvalue").toString().substring(0, 10));
     				        }
     				        if(plano.equals("")) {
     				        	historico.append("Novo Valor" , plano);
@@ -4036,15 +4042,19 @@ public class RolloutServlet extends HttpServlet {
 			    out.print("Nome do Rollout Atualizado!");
 			}
 		}catch (SQLException e) {
-			conn.fecharConexao();
+			
 			c.fecharConexao();
+			
+			System.out.println("ERROR: MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" - servlet de Rollout opt - "+ opt );
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}catch (JSONException e) {
 			c.fecharConexao();
+			System.out.println("ERROR: MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" - servlet de Rollout opt - "+ opt );
 			e.printStackTrace();
 		} catch (FileUploadException e) {
 			c.fecharConexao();
+			System.out.println("ERROR: MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" - servlet de Rollout opt - "+ opt );
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}  
@@ -4152,7 +4162,7 @@ public class RolloutServlet extends HttpServlet {
 	public void insere_linha_rollout(ConexaoMongo c,HttpServletRequest req, HttpServletResponse resp,Pessoa p) {
 		
 		
-		String param1;
+		String param1,param2;
 		
 		FindIterable<Document> findIterable;
 		
@@ -4165,7 +4175,7 @@ public class RolloutServlet extends HttpServlet {
 		System.out.println("Adicionando linha ao rollout ...");
 		param1=req.getParameter("linha");
 		int linha_id=0;
-		
+		param2= req.getParameter("rolloutid");
 		JSONObject jObj = new JSONObject(param1); 
 		System.out.println(jObj.toString());
 		JSONArray campos = jObj.getJSONArray("rows");
@@ -4176,7 +4186,7 @@ public class RolloutServlet extends HttpServlet {
 		MongoCursor<Document> resultado = findIterable.iterator();
 		if(resultado.hasNext()) {
 			last_site=resultado.next();
-			linha_id=last_site.getInteger("recid");
+			linha_id=Integer.parseInt(last_site.get("recid").toString());
 		}else {
 			return;
 		}
@@ -4197,6 +4207,7 @@ public class RolloutServlet extends HttpServlet {
 			new_site.append("recid", linha_id);
 			new_site.append("Empresa", p.getEmpresa().getEmpresa_id());
 			new_site.append("Linha_ativa", "Y");
+			new_site.append("rolloutId", param2);
 			if(campos.getJSONObject(i).getString("tipo_campo").equals("Atributo")) {
 				if(campos.getJSONObject(i).getString("tipo_info").equals("Texto") || campos.getJSONObject(i).getString("tipo_info").equals("Numero") || campos.getJSONObject(i).getString("tipo_info").equals("Lista")) {
 					new_site.append(campos.getJSONObject(i).getString("nome_campo"), campos.getJSONObject(i).getString("valor_campo"));

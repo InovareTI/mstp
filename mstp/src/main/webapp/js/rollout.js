@@ -68,6 +68,8 @@ function carrega_tree_rollout(){
 		 dataAdapter.dataBind();
 		 var records = dataAdapter.getRecordsHierarchy('id', 'parentid', 'items', [{ name: 'text', map: 'label'}]);
          $('#jqxTree_rollout').jqxTree({  theme:'light',source: records, hasThreeStates: true, checkboxes: true,height: '100%', width: '100%'});
+         $('#jqxTree_rollout').jqxTree('expandAll');
+         $("#jqxTree_rollout").jqxTree('selectItem', $("#Rollout1")[0]);
          $('#jqxTree_rollout').on('select',function (event)
         		 {
         	       $('#jqxgrid').jqxGrid('destroy');
@@ -643,6 +645,7 @@ function carrega_gant(){
 			 return;
 		 }
 	 }else{
+		 
 		 rolloutid="Rollout1";
 	 }
 	$.getJSON('./RolloutServlet?opt=1&rolloutid='+rolloutid+'&_='+timestamp, function(data) {
@@ -912,7 +915,7 @@ function carrega_gant(){
 	                    addButton.click(function (event) {
 	                    	 $.ajax({
 	                   		  type: "POST",
-	                   		  data: {"opt":"23"
+	                   		  data: {"opt":"23","rolloutid":rolloutid
 	                   			
 	                   			},		  
 	                   		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
@@ -1002,7 +1005,7 @@ function downloadFunc(){
 					 var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
 					 var rolloutid;
 					 if (item != null) {
-						 rolloutid=item.label;
+						 rolloutid=item.value;
 					 }else{
 						 rolloutid="Rollout1";
 					 }
@@ -1047,7 +1050,7 @@ function downloadFunc(){
                 	var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
 					 var rolloutid;
 					 if (item != null) {
-						 rolloutid=item.label;
+						 rolloutid=item.value;
 					 }else{
 						 rolloutid="Rollout1";
 					 }
@@ -1077,7 +1080,7 @@ function downloadFunc(){
 					var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
 					 var rolloutid;
 					 if (item) {
-						 rolloutid=item.label;
+						 rolloutid=item.value;
 					 }else{
 						 rolloutid="Rollout1";
 					 }
@@ -1260,6 +1263,17 @@ function rm_row_rollout(){
 	}
 
 function add_new_row_rollout(){
+	var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
+	 var rolloutid;
+	 if (item != null) {
+		 rolloutid=item.value;
+		 if(rolloutid=="Rollout"){
+			 return;
+		 }
+	 }else{
+		 $.alert("Selecione o rollout na árvore de rollout");
+		 return;
+	 }
 	var map = {};
 	//var datainformation = $('#jqxgrid').jqxGrid('getdatainformation');
 	//var rowscount = datainformation.rowscount;
@@ -1292,7 +1306,7 @@ function add_new_row_rollout(){
 	$.ajax({
  		  type: "POST",
  		  data: {"opt":"4",
- 			"linha":JSON.stringify(row)
+ 			"linha":JSON.stringify(row),"rolloutid":rolloutid
  			},		  
  		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
  		  url: "./RolloutServlet",

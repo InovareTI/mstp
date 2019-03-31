@@ -10,8 +10,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.NumberFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+
 
 import java.util.Locale;
 
@@ -84,11 +83,11 @@ public class POControl_Servlet extends HttpServlet {
 		String param7;
 		String param8;
 		String param9;
-		String param10;
+		
 		String retorno="";
 		String query;
-		String query2 = "";
-		String param12;
+		
+		
 		
 		
 		int last_id;
@@ -104,9 +103,9 @@ public class POControl_Servlet extends HttpServlet {
 		param7="";
 		param8="";
 		param9="";
-		param10="";
+	
 		
-		param12="";
+		
 		insere="";
 		opt="";
 		dados_tabela="";
@@ -123,7 +122,8 @@ public class POControl_Servlet extends HttpServlet {
 		DateFormat f2 = DateFormat.getDateInstance(DateFormat.MEDIUM, locale_ptBR);
 		DateFormat f3 = DateFormat.getDateTimeInstance();
 		opt=req.getParameter("opt");
-		System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações Gerais do MSTP Web - "+f3.format(time)+" opt:"+opt);
+		System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Operações Gerais opt - "+ opt );
+		//System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações Gerais do MSTP Web - "+f3.format(time)+" opt:"+opt);
 		try {
 		if(opt.equals("1")){
 			query="";
@@ -789,11 +789,12 @@ public class POControl_Servlet extends HttpServlet {
 		    			
 		    			
 		    		}else if(opt.equals("23")){
-		    			String[] valores;
-		    			int i=0;
+		    			
+		    			
+		    			param1=req.getParameter("rolloutid");
 		    			//System.out.println("Buscando campos do rollout ...");
 		    			//param1=req.getParameter("portal");
-		    			query="select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" order by ordenacao";
+		    			query="select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param1+"' order by ordenacao";
 		    			rs=conn.Consulta(query);
 		    			dados_tabela="<table id=\"table_row_fields\" data-toggle=\"table\" data-use-row-attr-func=\"true\" >" +"\n";
 		    			if(rs.next()){
@@ -1226,19 +1227,69 @@ public class POControl_Servlet extends HttpServlet {
 							
 						}
 					}else if(opt.equals("37")){
-						query="select * from empresas where assinado='Y' and id_empresa="+p.getEmpresa().getEmpresa_id();
+						query="select * from modulo_mstp where empresa="+p.getEmpresa().getEmpresa_id();
 						rs=conn.Consulta(query);
-						if(rs.next()) {
-							resp.setContentType("application/text");  
-							resp.setCharacterEncoding("UTF-8"); 
-							PrintWriter out = resp.getWriter();
-							out.print("ok");
-						}else {
-							resp.setContentType("application/text");  
-							resp.setCharacterEncoding("UTF-8"); 
-							PrintWriter out = resp.getWriter();
-							out.print("nok");
-						}
+						String Classe;
+						String color;
+							dados_tabela="<table id=\"tabela_modulo_mstp\" data-use-row-attr-func=\"true\" data-toggle=\"table\"  data-pagination=\"true\" data-search=\"true\">" +"\n";
+							dados_tabela=dados_tabela + "<thead>"+"\n";
+							dados_tabela=dados_tabela +"<tr>"+"\n";
+							dados_tabela=dados_tabela +" <th data-checkbox=\"true\"></th>"+"\n";
+							dados_tabela=dados_tabela +" <th data-field=\"id_modulo_nome\" data-filter-control=\"select\">Nome Módulo</th>"+"\n";
+							dados_tabela=dados_tabela +" <th data-field=\"modulo_desc\" data-filter-control=\"select\">Descrição</th>"+"\n";
+							dados_tabela=dados_tabela +" <th data-field=\"modulo_dt_assinado\" data-filter-control=\"select\">Data da Assinatura</th>"+"\n";
+							dados_tabela=dados_tabela +" <th style data-field=\"modulo_valor\">Valor Módulo</th>"+"\n";
+							dados_tabela=dados_tabela +" <th style data-field=\"modulo_termo\">Termo de Aceito</th>"+"\n";
+							dados_tabela=dados_tabela +" <th style data-field=\"modulo_dt_termo\">Data de Aceite</th>"+"\n";
+							dados_tabela=dados_tabela +" <th style data-field=\"modulo_Status_Assinatura\">Assinar</th>"+"\n";
+							
+							dados_tabela=dados_tabela +"</tr>"+"\n";
+							dados_tabela=dados_tabela +"</thead>"+"\n";
+							dados_tabela=dados_tabela +"<tbody>"+"\n";
+							if(rs.next()){
+								rs.beforeFirst();
+								while(rs.next()){
+									
+									dados_tabela=dados_tabela + "<tr   data-index=\""+rs.getRow()+"\">"+"\n";
+									dados_tabela=dados_tabela + " <td ></td>"+"\n";
+									dados_tabela=dados_tabela + " <td >"+rs.getString("modulo_nome")+"</td>"+"\n";
+									dados_tabela=dados_tabela + " <td >"+rs.getString("modulo_descricao")+"</td>"+"\n";
+									dados_tabela=dados_tabela + " <td >"+rs.getString("dt_assinado")+"</td>"+"\n";
+									dados_tabela=dados_tabela + " <td >"+rs.getString("valor")+"</td>"+"\n";
+									dados_tabela=dados_tabela + " <td >"+rs.getString("termo_aceite")+"</td>"+"\n";
+									dados_tabela=dados_tabela + " <td >"+rs.getString("dt_termo_aceite")+"</td>"+"\n";
+									if(rs.getString("assinado").equals("Y")){
+										dados_tabela=dados_tabela + " <td >Assinado</td>"+"\n";
+									}else{
+										if(rs.getString("termo_aceite").equals("Y")){
+											dados_tabela=dados_tabela + " <td >"+rs.getString("botao")+"</td>"+"\n";
+										}else {
+											
+											dados_tabela=dados_tabela + " <td ><button type=\"button\" class=\"btn btn-info\" onclick=\"inicia_assinatura(1)\">Termo de Aceite</button></td>"+"\n";
+										}
+										
+									}
+									
+									
+									
+									dados_tabela=dados_tabela + "</tr>"+"\n";
+								}
+								
+								dados_tabela=dados_tabela + "</tbody>";
+								dados_tabela=dados_tabela + "</table>";
+								resp.setContentType("application/text")  ;
+								resp.setCharacterEncoding("UTF-8"); 
+								PrintWriter out = resp.getWriter();
+								out.print(dados_tabela);
+							}else {
+								
+								dados_tabela=dados_tabela + "</tbody>";
+								dados_tabela=dados_tabela + "</table>";
+								resp.setContentType("application/text")  ;
+								resp.setCharacterEncoding("UTF-8"); 
+								PrintWriter out = resp.getWriter();
+								out.print(dados_tabela);
+							}
 					}else if(opt.equals("38")) {
 						int contador=0;
 						String progress_bar="";
@@ -1273,6 +1324,18 @@ public class POControl_Servlet extends HttpServlet {
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
+						}
+					}else if(opt.equals("39")) {
+						if(conn.Alterar("update modulo_mstp set termo_aceite='Y',dt_termo_aceite='"+time+"' where empresa="+p.getEmpresa().getEmpresa_id())) {
+							resp.setContentType("application/json");  
+							resp.setCharacterEncoding("UTF-8"); 
+							PrintWriter out = resp.getWriter();
+							out.print("Termo aceite com Sucesso");
+						}else {
+							resp.setContentType("application/json");  
+							resp.setCharacterEncoding("UTF-8"); 
+							PrintWriter out = resp.getWriter();
+							out.print("Erro na aceitação do Termo");
 						}
 					}
 				
