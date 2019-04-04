@@ -528,8 +528,24 @@ public class SiteMgmt extends HttpServlet {
 					document_featurecollection.clear();
 					//System.out.println(document_operadora.toString());
 				});
-				
-				FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",checa_formato_data(f2.format(time).toString()),p.getEmpresa().getEmpresa_id());
+				Bson filtro=Filters.gte("GEO.properties.Data", checa_formato_data(f2.format(time).toString()));
+				List<Bson> usuarios_logados_filtros= new ArrayList<Bson>();
+				usuarios_logados_filtros.add(filtro);
+				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				usuarios_logados_filtros.add(filtro);
+				FindIterable<Document> findIterable2;
+				List<String> logins=c.ConsultaSimplesDistinct("Localiza_Usuarios", "GEO.properties.Usuario", usuarios_logados_filtros);
+				for(int indice=0;indice<logins.size();indice++) {
+					usuarios_logados_filtros.clear();
+					filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+					usuarios_logados_filtros.add(filtro);
+					filtro=Filters.gte("GEO.properties.Data", checa_formato_data(f2.format(time).toString()));
+					usuarios_logados_filtros.add(filtro);
+					filtro=Filters.eq("GEO.properties.Usuario",logins.get(indice));
+					usuarios_logados_filtros.add(filtro);
+					findIterable2=c.ConsultaOrdenadaFiltroListaLimit1("Localiza_Usuarios", "GEO.properties.Data", -1, usuarios_logados_filtros);
+				}
+				findIterable2=c.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",checa_formato_data(f2.format(time).toString()),p.getEmpresa().getEmpresa_id());
 				lista_sites.clear();
 				document_featurecollection.append("type", "FeatureCollection");
 				document_featurecollection.append("operadora", "USUARIOS");
