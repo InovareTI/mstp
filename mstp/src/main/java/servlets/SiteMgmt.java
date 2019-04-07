@@ -6,14 +6,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
-import java.text.NumberFormat;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Enumeration;
+
 import java.util.List;
 import java.util.Locale;
 
@@ -37,7 +37,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.json.JSONArray;
+
 import org.json.JSONObject;
 
 import com.mongodb.Block;
@@ -87,7 +87,7 @@ public class SiteMgmt extends HttpServlet {
 		gerenciamento_sites(request,response);
 	}
 	 public void gerenciamento_sites(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-			ResultSet rs,rs2,rs3 ;
+			ResultSet rs;
 			String param1;
 			String param2;
 			String param3;
@@ -104,16 +104,15 @@ public class SiteMgmt extends HttpServlet {
 			String opt;
 			Locale locale_ptBR = new Locale( "pt" , "BR" ); 
 			Locale.setDefault(locale_ptBR);
-			Calendar d = Calendar.getInstance();
+		
 			DateFormat f2 = DateFormat.getDateInstance(DateFormat.MEDIUM, locale_ptBR);
 			DateFormat f3 = DateFormat.getDateTimeInstance();
 			HttpSession session = req.getSession(true);
 			Pessoa p = (Pessoa) session.getAttribute("pessoa");
 			Conexao conn = (Conexao) session.getAttribute("conexao");
 			ConexaoMongo c = new ConexaoMongo(); 
-			double money; 
-			NumberFormat number_formatter = NumberFormat.getCurrencyInstance();
-			String moneyString;
+			
+			
 			param1="";
 			param2="";
 			param3="";
@@ -501,8 +500,8 @@ public class SiteMgmt extends HttpServlet {
 				}
 				c.fecharConexao();
 			}else if(opt.equals("10")) {
-				System.out.println("Carregando TODOS os sites no mapa");
-				String operadora_aux="";
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" carregando sites e usuários mapa operacional");
+		
 				List<Document> lista_sites = new ArrayList<Document>();
 				//ConexaoMongo c = new ConexaoMongo();
 				Document document_operadora = new Document();
@@ -535,8 +534,12 @@ public class SiteMgmt extends HttpServlet {
 				usuarios_logados_filtros.add(filtro);
 				FindIterable<Document> findIterable2;
 				List<String> logins=c.ConsultaSimplesDistinct("Localiza_Usuarios", "GEO.properties.Usuario", usuarios_logados_filtros);
+				document_featurecollection.append("type", "FeatureCollection");
+				document_featurecollection.append("operadora", "USUARIOS");
+				lista_sites.clear();
 				for(int indice=0;indice<logins.size();indice++) {
 					usuarios_logados_filtros.clear();
+					usuarios_logados_filtros= new ArrayList<Bson>();
 					filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
 					usuarios_logados_filtros.add(filtro);
 					filtro=Filters.gte("GEO.properties.Data", checa_formato_data(f2.format(time).toString()));
@@ -544,11 +547,10 @@ public class SiteMgmt extends HttpServlet {
 					filtro=Filters.eq("GEO.properties.Usuario",logins.get(indice));
 					usuarios_logados_filtros.add(filtro);
 					findIterable2=c.ConsultaOrdenadaFiltroListaLimit1("Localiza_Usuarios", "GEO.properties.Data", -1, usuarios_logados_filtros);
-				}
-				findIterable2=c.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",checa_formato_data(f2.format(time).toString()),p.getEmpresa().getEmpresa_id());
-				lista_sites.clear();
-				document_featurecollection.append("type", "FeatureCollection");
-				document_featurecollection.append("operadora", "USUARIOS");
+				
+				//findIterable2=c.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",checa_formato_data(f2.format(time).toString()),p.getEmpresa().getEmpresa_id());
+				
+				
 				findIterable2.forEach((Block<Document>) doc2 -> {
 					JSONObject aux = new JSONObject(doc2.toJson());
 					Document auxdoc=new Document();
@@ -559,6 +561,7 @@ public class SiteMgmt extends HttpServlet {
 					//System.out.println("Entrou no loop da data");
 					lista_sites.add((Document)auxdoc.get("GEO"));
 				});
+			}
 				document_featurecollection.append("features",lista_sites );
 				document_operadora.append("\"USUARIOS\"", document_featurecollection.toJson().toString());
 				lista_sites.clear();
