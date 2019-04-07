@@ -1,3 +1,26 @@
+function add_justificativas(){
+	
+	var justificativa= document.getElementById("input_justificativa").value;
+	var desc_jus= document.getElementById("input_justificativa_desc").value;
+	var foto= document.getElementById("input_justificativa_foto").checked;
+	
+	 $.ajax({
+  		  type: "POST",
+  		  data: {"opt":"33",
+  			  "justificativa":justificativa,
+  			  "desc":desc_jus,
+  			  "foto":foto
+  		  },		  
+  		  url: "./UserMgmt",
+  		  cache: false,
+  		  dataType: "text",
+  		  success: Add_justificatas_resultado
+  		});
+	function Add_justificatas_resultado(data){
+		$.alert(data.toString())
+	}
+}
+
 function carrega_faltas(){
 
 	

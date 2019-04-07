@@ -435,6 +435,9 @@ function menu(opt){
 	else if(opt=="usuarios" && geral.perfil.search("Usuarios Manager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
+	}else if(opt=="justificativas" && geral.perfil.search("Usuarios Manager")>=0){
+		$(".janelas").hide();
+		document.getElementById(opt).style.display = "block";
 	}else if(opt=="vistoria_campos" && geral.perfil.search("VistoriaManager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";

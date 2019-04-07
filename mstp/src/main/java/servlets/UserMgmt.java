@@ -2224,6 +2224,26 @@ public class UserMgmt extends HttpServlet {
 			        out.flush();
 			    	//out.print(dados_tabela);
 			}
+		}else if(opt.equals("33")) {
+			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Iniciando cadastro de nova justificativas." );
+			param1=req.getParameter("justificativa");
+			param2=req.getParameter("desc");
+			param3=req.getParameter("foto");
+			ConexaoMongo c = new ConexaoMongo();
+			Document justificativa = new Document();
+			justificativa.append("Empresa", p.getEmpresa().getEmpresa_id());
+			justificativa.append("Justificativa", param1);
+			justificativa.append("Descrição", param2);
+			justificativa.append("Foto_requerida", param3);
+			justificativa.append("update_by", p.get_PessoaUsuario());
+			justificativa.append("update_time", time);
+			c.InserirSimpels("Justificativas", justificativa);
+			
+			resp.setContentType("application/text");  
+			resp.setCharacterEncoding("UTF-8"); 
+			PrintWriter out = resp.getWriter();
+			out.print("Cadastro executado com sucesso.");
+			
 		}
 		}catch (SQLException e) {
 			

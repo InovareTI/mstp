@@ -317,6 +317,7 @@ response.setDateHeader ("Expires", -1);
 									<ul>
 										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_ponto')">Folha de Ponto</a></li>
 										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_ponto_analise')">Análise de Ponto</a></li>
+										<li><a class="icon icon-calendar" href="#" onclick="menu('justificativas')">Justificativas de Ponto</a></li>
 										<li><a class="icon icon-calendar" href="#" onclick="menu('faltas_relatorio')">Relatório de Faltas</a></li>
 										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_banco_hh')">Banco de Horas</a></li>
 										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_extra_hh')">Horas Extras</a></li>
@@ -517,7 +518,7 @@ response.setDateHeader ("Expires", -1);
 	        				
 						</div><!-- /tabMapaOperacinal -->
 					</div><!-- /mapaOperacinal -->
-					<div class="janelas" id="mapa_central" style="display:none;"	>
+					<div class="janelas" id="mapa_central" style="display:none;">
 					
             
 											
@@ -587,6 +588,22 @@ response.setDateHeader ("Expires", -1);
 								    </table>
 								    </div>
 		        				</div>
+	        		</div>
+					</div>
+					<div class="janelas" id="justificativas" style="display:none;width:100%;height:100%;">
+						<div class="panel panel-default" style="width:90%;margin:0 auto">
+	        				<div class="panel-heading">Justificativas de Ponto</div>
+		        				<div class="panel-body">
+		        				<div id='justificativa_div_inserir'><button type="button" class="btn btn-info" data-toggle="modal" data-target="#modal_add_justificativa">Nova Justificativa</button></div>
+		        				</div>
+	        			</div>
+	        			<div class="panel panel-default" style="width:90%;margin:0 auto">
+	        				<div class="panel-heading">Tabela de Justificativas</div>
+		        			<div class="panel-body" >
+		        				<div id='tabela_justificativa'>
+			        				
+			        			</div>
+		        			</div>
 	        		</div>
 					</div>
 					<div class="janelas" id="vistoria_campos" style="display:none;width:100%;height:100%;">
@@ -1782,6 +1799,41 @@ response.setDateHeader ("Expires", -1);
 
   </div>
 </div> 
+
+<div id="modal_add_justificativa" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title" style="color:black">Adicionar Nova Justificativa</h4>
+      </div>
+      <div class="modal-body">
+     
+     <table data-toggle="bootstrap-table">
+     	<tr>
+     		<td style="padding: 5px"><input type="text" class="form-control" id="input_justificativa" value="" placeholder="Justificativa"></td>
+     	</tr>
+     	<tr>
+     		<td style="padding: 5px"><input type="text" class="form-control" id="input_justificativa_desc" value="" placeholder=" Descrição Justificativa"></td>
+     	</tr>
+     	<tr>
+     		<td style="padding: 5px"><label class="control-label" style="color:black">Foto Requirida:</label><input type="checkbox" class="form-control" id="input_justificativa_foto" value="Foto Requirida"></td>
+     	</tr>
+     </table>
+			
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" data-dismiss="modal" onclick="add_justificativas()" >Salvar</button><button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
 <div id="modal_upload_rollout" class="modal fade" role="dialog">
   <div class="modal-dialog">
 
