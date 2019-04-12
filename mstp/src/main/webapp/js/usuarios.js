@@ -1,3 +1,85 @@
+function remover_justificativa(){
+	var rowindexes = $('#grid_justificativas').jqxGrid('getselectedrowindexes');
+	filtros={"filtros":[]};
+	for(var v=0;v<rowindexes.length;v++){
+			filtros.filtros.push($('#grid_justificativas').jqxGrid('getrowid', rowindexes[v]));
+		}
+	var timestamp =Date.now();
+	$.ajax({
+		  type: "POST",
+		  data: {"opt":"36",
+			  "_": timestamp,
+			  "filtros":JSON.stringify(filtros)
+			},		  
+		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+		  url: "./UserMgmt",
+		  cache: false,
+		  dataType: "text",
+		 success: sucesso_remove_justificativas
+		});
+	function sucesso_remove_justificativas(data){
+		$.alert(data.toString());
+		carrega_justificativas();
+	}
+}
+function carrega_justificativas(){
+	var timestamp =Date.now();
+	$.ajax({
+		  type: "POST",
+		  data: {"opt":"35",
+			  "_": timestamp
+			  
+			},		  
+		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+		  url: "./UserMgmt",
+		  cache: false,
+		  dataType: "text",
+		 success: sucesso_carrega_justificativas
+		});	
+	 function sucesso_carrega_justificativas(data){
+		 dataaux=JSON.parse(data);
+			
+		 var source =
+	     {
+				 datatype: "json",
+		         datafields: [
+		        	 { name: 'id' , type: 'string'},
+		        	 { name: 'justificativa', type: 'string' },
+		             { name: 'descricao', type: 'string' },
+		             { name: 'foto' , type: 'string'},
+		             { name: 'owner' , type: 'string'},
+		             { name: 'dtadd' , type: 'string'}
+		             
+		         ],
+	         localdata: dataaux,
+	         id: 'id',
+	     };
+		 var dataAdapter = new $.jqx.dataAdapter(source);
+		 
+	    
+	     $("#grid_justificativas").jqxGrid(
+	             {
+	            	 width: getWidth('container_tabela_justificativas')-50,
+	                 height: 350,
+	                 source: dataAdapter,
+	                 columnsresize: true,
+		             filterable: true,
+		             autoshowfiltericon: true,
+	                 rowsheight: 55,
+	                 selectionmode: 'checkbox',
+	                 columns: [
+	                       { text: 'Justificativa', datafield: 'justificativa',filtertype: 'textbox'},
+	                       { text: 'Descrição', datafield: 'descricao',filtertype: 'checkedlist' },
+	                       { text: 'Foto Requirida', datafield: 'foto',filtertype: 'checkedlist' },
+	                       { text: 'Criado Por', datafield: 'owner',filtertype: 'checkedlist' },
+	                       { text: 'Criado em', datafield: 'dtadd',filtertype: 'checkedlist' },
+	                       
+	                   ]
+	                  
+	             });
+	 }
+
+}
 function add_justificativas(){
 	
 	var justificativa= document.getElementById("input_justificativa").value;
@@ -17,7 +99,8 @@ function add_justificativas(){
   		  success: Add_justificatas_resultado
   		});
 	function Add_justificatas_resultado(data){
-		$.alert(data.toString())
+		$.alert(data.toString());
+		carrega_justificativas();
 	}
 }
 

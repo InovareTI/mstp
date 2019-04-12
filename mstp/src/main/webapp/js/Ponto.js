@@ -7,7 +7,11 @@ function atualiza_range_espelho(){
      $("#range_espelho").jqxDateTimeInput('setRange', firstDay, lastDay);
 	
 }
-
+function visualiza_foto_justificativa(id_ajuste){
+	new PhotoViewer([{
+        src: './UserMgmt?opt=34&ajuste='+id_ajuste,
+      }]);
+}
 function carrega_kpi(){
 	
 		$('#tabela_kpi_ponto').DataTable({

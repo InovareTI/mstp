@@ -37,7 +37,8 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-
+import org.bson.types.ObjectId;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.mongodb.Block;
@@ -172,26 +173,124 @@ public class SiteMgmt extends HttpServlet {
 				param1 = req.getParameter("operadora");
 				param2=req.getParameter("pagesize");
 				param3=req.getParameter("pagenum");
+				String filtervalue="";
+				String filtercondition="";
+				String filterdatafield="";
+				String status_milestone="";
+				String filteroperator="";
+				Bson filtro;
+				Document site = new Document();
+				List<Bson> filtro_list= new ArrayList<Bson>();
 				int tamanho= Integer.parseInt(param2);
 				int pagina= Integer.parseInt(param3);
 				//ConexaoMongo c = new ConexaoMongo();
-				Bson filtro;
-				Document site = new Document();
-				List<Bson> lista_filtro= new ArrayList<Bson>();
+				int filterscount = Integer.parseInt(req.getParameter("filterscount"));
 				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
-				lista_filtro.add(filtro);
+				filtro_list.add(filtro);
 				filtro=Filters.eq("site_ativo","Y");
-				lista_filtro.add(filtro);
-				System.out.println("Iniciando busca de sites operadora:"+param1);
-				//long linhas_total= c.ConsultaCountComplexa("sites", lista_filtro);
+				filtro_list.add(filtro);
 				filtro=Filters.eq("site_operadora",param1);
-				lista_filtro.add(filtro);
-				long linhas_total_operadora= c.ConsultaCountComplexa("sites", lista_filtro);
+				filtro_list.add(filtro);
+				for (Integer i=0; i < filterscount; i++)
+				{
+				 filtervalue = req.getParameter("filtervalue" + i);
+				 filtercondition = req.getParameter("filtercondition" + i);
+				 filterdatafield = req.getParameter("filterdatafield" + i);
+				 //filterdatafield = filterdatafield.replaceAll("([^A-Za-z0-9])", "");
+				 filteroperator = req.getParameter("filteroperator" + i);
+				 //System.out.println("filtervalue:"+filtervalue);
+					System.out.println("filtercondition:"+filtercondition);
+					System.out.println("filterdatafield:"+filterdatafield);
+					System.out.println("filteroperator:"+filteroperator);
+					
+				switch(filtercondition)
+				{
+					case "CONTAINS":
+						
+							filtro=Filters.regex(filterdatafield, ".*"+filtervalue+".*");
+							filtro_list.add(filtro);
+						
+						
+						break;
+					case "CONTAINS_CASE_SENSITIVE":
+						//where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE BINARY '%" + filtervalue + "%'";
+						break;
+					case "DOES_NOT_CONTAIN":
+						break;
+					case "DOES_NOT_CONTAIN_CASE_SENSITIVE":
+						
+						break;
+					case "EQUAL":
+						filtro=Filters.eq(filterdatafield, filtervalue);
+						filtro_list.add(filtro);
+						
+						break;
+					case "EQUAL_CASE_SENSITIVE":
+						
+						break;
+					case "NOT_EQUAL":
+						
+						break;
+					case "NOT_EQUAL_CASE_SENSITIVE":
+						
+						break;
+					case "GREATER_THAN":
+						
+								filtro=Filters.gt(filterdatafield,filtervalue);
+								filtro_list.add(filtro);
+						
+						break;
+					case "LESS_THAN":
+						
+								filtro=Filters.lt(filterdatafield, filtervalue);
+								filtro_list.add(filtro);
+						
+						break;
+					case "GREATER_THAN_OR_EQUAL":
+						
+								filtro=Filters.gte(filterdatafield, filtervalue);
+								filtro_list.add(filtro);
+						
+						break;
+					case "LESS_THAN_OR_EQUAL":
+						
+								filtro=Filters.lte(filterdatafield, filtervalue);
+								filtro_list.add(filtro);
+						
+						break;
+					case "STARTS_WITH":
+						//where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE '" + filtervalue + "%'";
+						break;
+					case "STARTS_WITH_CASE_SENSITIVE":
+						//where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE BINARY '" + filtervalue + "%'";
+						break;
+					case "ENDS_WITH":
+						//where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE '%" + filtervalue + "'";
+						break;
+					case "ENDS_WITH_CASE_SENSITIVE":
+						//where += " milestone='" + filterdatafield + "' and value_atbr_field LIKE BINARY '%" + filtervalue + "'";
+						break;
+					case "NULL":
+						//where += " milestone='" + filterdatafield + "' and value_atbr_field IS NULL";
+						break;
+					case "NOT_NULL":
+						//where += " milestone='" + filterdatafield + "' and value_atbr_field IS NOT NULL";
+						break;
+				}
+									
+						
+			}
+				
+				
+				//System.out.println("Iniciando busca de sites operadora:"+param1);
+				//long linhas_total= c.ConsultaCountComplexa("sites", lista_filtro);
+				
+				long linhas_total_operadora= c.ConsultaCountComplexa("sites", filtro_list);
 				dados_tabela="";
 				dados_tabela=dados_tabela+"[{\"totalRecords\":\""+linhas_total_operadora+"\",";
 				//Integer contador=0;
 				//System.out.println(dados_tabela);
-				FindIterable<Document> findIterable = c.ConsultaSimplesComFiltroInicioLimit("sites", lista_filtro,tamanho*pagina,tamanho);
+				FindIterable<Document> findIterable = c.ConsultaSimplesComFiltroInicioLimit("sites", filtro_list,tamanho*pagina,tamanho);
 				//FindIterable<Document> findIterable = c.ConsultaCollectioncomFiltrosLista("sites", lista_filtro);
 				MongoCursor<Document> resultado = findIterable.iterator();
 				String chaves="";
@@ -201,11 +300,12 @@ public class SiteMgmt extends HttpServlet {
 						site=(Document) resultado.next();
 						
 						dados_tabela=dados_tabela+chaves+"\"site_id\":\""+site.getString("site_id")+"\",";
-						dados_tabela=dados_tabela+"\"site\":\""+site.getString("site_id")+"\",";
-						dados_tabela=dados_tabela+"\"operadora\":\""+site.getString("site_operadora")+"\",";
-						dados_tabela=dados_tabela+"\"uf\":\""+site.getString("site_uf")+"\",";
-						dados_tabela=dados_tabela+"\"municipio\":\""+site.getString("site_municipio")+"\",";
-						dados_tabela=dados_tabela+"\"mapa\":\""+site.getString("site_bairro")+"\"},\n";
+						
+						dados_tabela=dados_tabela+"\"site_operadora\":\""+site.getString("site_operadora")+"\",";
+						dados_tabela=dados_tabela+"\"site_uf\":\""+site.getString("site_uf")+"\",";
+						dados_tabela=dados_tabela+"\"site_municipio\":\""+site.getString("site_municipio")+"\",";
+						dados_tabela=dados_tabela+"\"site_latitude\":\""+site.getString("site_latitude")+"\",";
+						dados_tabela=dados_tabela+"\"site_longitude\":\""+site.getString("site_longitude")+"\"},\n";
 						chaves="{";
 					}
 					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
@@ -765,15 +865,48 @@ public class SiteMgmt extends HttpServlet {
 				}
 				c.fecharConexao();
 			}else if(opt.equals("12")) {
-				System.out.println("iniciando ajuste de coordenadas");
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" iniciando ajustes de coordenadas" );
 				String lat="";
 				String lng ="";
+				Document site = new Document();
+				Document filtro_site = new Document();
+				param1=req.getParameter("filtros");
+				param2 =req.getParameter("operadora");
+				List<Bson> filtro_list = new ArrayList<Bson>();
+				Bson filtrodoc;
+				JSONObject jObj = new JSONObject(param1);
+				JSONArray filtros = jObj.getJSONArray("filtros");
+				
+				filtrodoc=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				filtro_list.add(filtrodoc);
+				filtrodoc=Filters.eq("site_operadora",param2);
+				filtro_list.add(filtrodoc);
+	        	for (Integer i=0; i < filtros.length(); i++)
+				{
+	        		filtrodoc=Filters.eq("site_id",filtros.get(i).toString());
+	    			filtro_list.add(filtrodoc);
+	    			FindIterable<Document> findIterable=c.ConsultaCollectioncomFiltrosLista("sites", filtro_list);
+	        		MongoCursor<Document> resultado = findIterable.iterator();
+	        		if(resultado.hasNext()) {
+	        			site =resultado.next();
+	        			lat=site.getString("site_latitude");
+	    				lng =site.getString("site_longitude");
+	    				filtro_site.append("site_id", filtros.get(i).toString());
+	    				filtro_site.append("Empresa", p.getEmpresa().getEmpresa_id());
+	    				filtro_site.append("site_operadora", param2);
+	    				
+	        		}
+	        		filtro_list.remove(filtro_list.size()-1);
+				}
+				
+				
+				
 				//ConexaoMongo c = new ConexaoMongo();
 				//Document document = new Document();
-				Document site = new Document();
+				
 				Document update = new Document();
 				Document comando = new Document();
-				Document filtro_site = new Document();
+				
 				//Document geometry = new Document();
 				//Document properties = new Document();
 				List<Bson> filtroSite = new ArrayList<Bson>();

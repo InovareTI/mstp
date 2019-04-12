@@ -16,6 +16,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -47,9 +48,15 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Filters;
 
 import classes.ConexaoMongo;
 import classes.Conexao;
@@ -131,7 +138,8 @@ public class UserMgmt extends HttpServlet {
 		last_id=0;
 		
 		opt=req.getParameter("opt");
-		System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações de Usuários do MSTP Web - "+f3.format(time)+" opt:"+opt);
+		//System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações de Usuários do MSTP Web - "+f3.format(time)+" opt:"+opt);
+		System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Usuários opt - "+ opt );
 		try {
 			Semail email= new Semail();
 			if(opt.equals("1")){
@@ -500,7 +508,7 @@ public class UserMgmt extends HttpServlet {
 					dados_tabela=dados_tabela +" <th data-field=\"approve_desc\">Descrição</th>"+"\n";
 					dados_tabela=dados_tabela +" <th data-field=\"approve_dt_sub\">Data de Envio</th>"+"\n";
 					dados_tabela=dados_tabela +" <th data-field=\"approve_anotacoes\">Anotações</th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"approve_origem\" data-filter-control=\"select\">Origem</th>"+"\n";
+					dados_tabela=dados_tabela +" <th data-field=\"foto_justificativa\" data-filter-control=\"select\">Foto</th>"+"\n";
 					dados_tabela=dados_tabela +"</tr>"+"\n";
 					dados_tabela=dados_tabela +"</thead>"+"\n";
 					dados_tabela=dados_tabela +"<tbody>"+"\n";
@@ -514,7 +522,7 @@ public class UserMgmt extends HttpServlet {
 						dados_tabela=dados_tabela +" <td>Hora Inicio:"+rs.getString("entrada")+"<br>Hora Fim:"+rs.getString("saida")+"<br>Horas Extras normais:"+rs.getDouble("he_quantidade")+"<br>Horas Extras noturnas:"+rs.getString("horas_noturnas")+"</td>"+"\n";
 						dados_tabela=dados_tabela +" <td>"+rs.getString("he_data")+"</td>"+"\n";
 						dados_tabela=dados_tabela +" <td>"+rs.getString("obs_hh")+"</td>"+"\n";
-						dados_tabela=dados_tabela +" <td>"+rs.getString("origen")+"</td>"+"\n";
+						dados_tabela=dados_tabela +" <td>Foto Não requirida</td>"+"\n";
 						dados_tabela=dados_tabela +"</tr>"+"\n";
 					}
 					dados_tabela=dados_tabela + "</tbody>";
@@ -549,7 +557,7 @@ public class UserMgmt extends HttpServlet {
 					dados_tabela=dados_tabela +" <th data-field=\"approve_desc\">Descrição</th>"+"\n";
 					dados_tabela=dados_tabela +" <th data-field=\"approve_dt_sub\">Data de Envio</th>"+"\n";
 					dados_tabela=dados_tabela +" <th data-field=\"approve_anotacoes\">Anotações</th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"approve_origem\" data-filter-control=\"select\">Origem</th>"+"\n";
+					dados_tabela=dados_tabela +" <th data-field=\"foto_justificativa\" data-filter-control=\"select\">Origem</th>"+"\n";
 					dados_tabela=dados_tabela +"</tr>"+"\n";
 					dados_tabela=dados_tabela +"</thead>"+"\n";
 					dados_tabela=dados_tabela +"<tbody>"+"\n";
@@ -585,7 +593,7 @@ public class UserMgmt extends HttpServlet {
 					dados_tabela=dados_tabela +" <th data-field=\"approve_desc\">Descrição</th>"+"\n";
 					dados_tabela=dados_tabela +" <th data-field=\"approve_dt_sub\">Data de Envio</th>"+"\n";
 					dados_tabela=dados_tabela +" <th data-field=\"approve_anotacoes\">Anotações</th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"approve_origem\" data-filter-control=\"select\">Origem</th>"+"\n";
+					dados_tabela=dados_tabela +" <th data-field=\"foto_justificativa\" data-filter-control=\"select\">Origem</th>"+"\n";
 					dados_tabela=dados_tabela +"</tr>"+"\n";
 					dados_tabela=dados_tabela +"</thead>"+"\n";
 					dados_tabela=dados_tabela +"<tbody>"+"\n";
@@ -728,6 +736,7 @@ public class UserMgmt extends HttpServlet {
 				}
 			}else if(opt.equals("12")){
 				System.out.println("carregando ajustes de ponto para aprovação");
+				String caminho_foto="";
 				query="";
 				query="select * from ajuste_ponto where aprovada='N' and empresa="+p.getEmpresa().getEmpresa_id();
 				rs=conn.Consulta(query);
@@ -736,11 +745,20 @@ public class UserMgmt extends HttpServlet {
 					dados_tabela="[\n";
 					while(rs.next()) {
 						if((rs.getString("motivo").equals("FOLGA")) && (!rs.getString("other2").equals(""))) {
-							dados_tabela=dados_tabela+"{\"aprove_oper\":\"<div style='float:left;padding-left: 10px;'><a href='#' onclick=aprova1_registro('AjustePonto','"+rs.getInt("id_ajuste_ponto")+"-AP')><i class='fas fa-check fa-lg'></i></a></div><div style='float:left;padding-left: 10px;'><a href='#' onclick=rejeita1_registro('AjustePonto','"+rs.getInt("id_ajuste_ponto")+"-AP')><i class='fas fa-times fa-lg' style='color:red'></i></a></div>\",\"aprove_id\":\""+rs.getInt("id_ajuste_ponto")+"-AP\",\"aprove_tipo\":\"Ajuste de Ponto\",\"aprove_pessoa\":\""+rs.getString("usuario")+"\",\"approve_desc\":\"FOLGA - "+rs.getString("other2")+"\",\"approve_dt_sub\":\""+rs.getString("dt_solicitado")+"\",\"approve_anotacoes\":\""+rs.getString("motivo")+"\",\"approve_origem\":\"Manual - MSTP WEB\"},\n";
+							dados_tabela=dados_tabela+"{\"aprove_oper\":\"<div style='float:left;padding-left: 10px;'><a href='#' onclick=aprova1_registro('AjustePonto','"+rs.getInt("id_ajuste_ponto")+"-AP')><i class='fas fa-check fa-lg'></i></a></div><div style='float:left;padding-left: 10px;'><a href='#' onclick=rejeita1_registro('AjustePonto','"+rs.getInt("id_ajuste_ponto")+"-AP')><i class='fas fa-times fa-lg' style='color:red'></i></a></div>\",\"aprove_id\":\""+rs.getInt("id_ajuste_ponto")+"-AP\",\"aprove_tipo\":\"Ajuste de Ponto\",\"aprove_pessoa\":\""+rs.getString("usuario")+"\",\"approve_desc\":\"FOLGA - "+rs.getString("other2")+"\",\"approve_dt_sub\":\""+rs.getString("dt_solicitado")+"\",\"approve_anotacoes\":\""+rs.getString("motivo")+"\",\"foto_justificativa\":\"Foto Não Requirida.\"},\n";
 						}else if((rs.getString("motivo").equals("Banco de Horas - Consumo de 8h")) && (!rs.getString("other2").equals(""))) {
-							dados_tabela=dados_tabela+"{\"aprove_oper\":\"<div style='float:left;padding-left: 10px;'><a href='#' onclick=aprova1_registro('AjustePonto','"+rs.getInt("id_ajuste_ponto")+"-AP')><i class='fas fa-check fa-lg'></i></a></div><div style='float:left;padding-left: 10px;'><a href='#' onclick=rejeita1_registro('AjustePonto','"+rs.getInt("id_ajuste_ponto")+"-AP')><i class='fas fa-times fa-lg' style='color:red'></i></a></div>\",\"aprove_id\":\""+rs.getInt("id_ajuste_ponto")+"-AP\",\"aprove_tipo\":\"Ajuste de Ponto\",\"aprove_pessoa\":\""+rs.getString("usuario")+"\",\"approve_desc\":\"Compensação por Banco de Horas. Consumo de 8H - "+rs.getString("other2")+"\",\"approve_dt_sub\":\""+rs.getString("dt_solicitado")+"\",\"approve_anotacoes\":\""+rs.getString("motivo")+"\",\"approve_origem\":\"Manual - MSTP WEB\"},\n";
+							dados_tabela=dados_tabela+"{\"aprove_oper\":\"<div style='float:left;padding-left: 10px;'><a href='#' onclick=aprova1_registro('AjustePonto','"+rs.getInt("id_ajuste_ponto")+"-AP')><i class='fas fa-check fa-lg'></i></a></div><div style='float:left;padding-left: 10px;'><a href='#' onclick=rejeita1_registro('AjustePonto','"+rs.getInt("id_ajuste_ponto")+"-AP')><i class='fas fa-times fa-lg' style='color:red'></i></a></div>\",\"aprove_id\":\""+rs.getInt("id_ajuste_ponto")+"-AP\",\"aprove_tipo\":\"Ajuste de Ponto\",\"aprove_pessoa\":\""+rs.getString("usuario")+"\",\"approve_desc\":\"Compensação por Banco de Horas. Consumo de 8H - "+rs.getString("other2")+"\",\"approve_dt_sub\":\""+rs.getString("dt_solicitado")+"\",\"approve_anotacoes\":\""+rs.getString("motivo")+"\",\"foto_justificativa\":\"Foto Não Requirida.\"},\n";
 						}else {
-						dados_tabela=dados_tabela+"{\"aprove_oper\":\"<div style='float:left;padding-left: 10px;'><a href='#' onclick=aprova1_registro('AjustePonto','"+rs.getInt("id_ajuste_ponto")+"-AP')><i class='fas fa-check fa-lg'></i></a></div><div style='float:left;padding-left: 10px;'><a href='#' onclick=rejeita1_registro('AjustePonto','"+rs.getInt("id_ajuste_ponto")+"-AP')><i class='fas fa-times fa-lg' style='color:red'></i></a></div>\",\"aprove_id\":\""+rs.getInt("id_ajuste_ponto")+"-AP\",\"aprove_tipo\":\"Ajuste de Ponto\",\"aprove_pessoa\":\""+rs.getString("usuario")+"\",\"approve_desc\":\"Hora Inicio: "+rs.getString("dt_entrada")+"<br>Hora Fim: "+rs.getString("dt_saida")+"\",\"approve_dt_sub\":\""+rs.getString("dt_solicitado")+"\",\"approve_anotacoes\":\""+rs.getString("motivo")+"\",\"approve_origem\":\"Manual - MSTP WEB\"},\n";
+							if(rs.getBlob("foto_justificativa")!=null) {
+								if(!rs.getString("foto_justificativa").equals("")) {
+								caminho_foto="<a class='btn btn-success' href='#' onclick=visualiza_foto_justificativa("+rs.getInt("id_ajuste_ponto")+")>Visualizar Foto</a>";
+								}else {
+									caminho_foto="Foto Não Requirida.";
+								}
+							}else {
+								caminho_foto="Foto Não Requirida.";
+							}
+						dados_tabela=dados_tabela+"{\"aprove_oper\":\"<div style='float:left;padding-left: 10px;'><a href='#' onclick=aprova1_registro('AjustePonto','"+rs.getInt("id_ajuste_ponto")+"-AP')><i class='fas fa-check fa-lg'></i></a></div><div style='float:left;padding-left: 10px;'><a href='#' onclick=rejeita1_registro('AjustePonto','"+rs.getInt("id_ajuste_ponto")+"-AP')><i class='fas fa-times fa-lg' style='color:red'></i></a></div>\",\"aprove_id\":\""+rs.getInt("id_ajuste_ponto")+"-AP\",\"aprove_tipo\":\"Ajuste de Ponto\",\"aprove_pessoa\":\""+rs.getString("usuario")+"\",\"approve_desc\":\"Hora Inicio: "+rs.getString("dt_entrada")+"<br>Hora Fim: "+rs.getString("dt_saida")+"\",\"approve_dt_sub\":\""+rs.getString("dt_solicitado")+"\",\"approve_anotacoes\":\""+rs.getString("motivo")+"\",\"foto_justificativa\":\""+caminho_foto+"\"},\n";
 						}
 						}
 					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
@@ -1940,7 +1958,8 @@ public class UserMgmt extends HttpServlet {
 				String aux_usuario;
 				String[] aux_usuario_dados=new String[2];
 				if(param1.equals("TODOS")) {
-					query="select distinct registros.data_dia,usuarios.id_usuario from usuarios left join registros on usuarios.empresa='"+p.getEmpresa().getEmpresa_id()+"' and registros.usuario=usuarios.id_usuario and str_to_date(registros.datetime_servlet,'%Y-%m-%d') >= str_to_date('"+f2.format(inicio.getTime())+"','%d/%m/%Y') and str_to_date(registros.datetime_servlet,'%Y-%m-%d') <= str_to_date('"+f2.format(fim.getTime())+"','%d/%m/%Y') order by datetime_servlet,usuario asc" ;
+					//query="select distinct registros.data_dia,usuarios.id_usuario from usuarios left join registros on usuarios.empresa='"+p.getEmpresa().getEmpresa_id()+"' and registros.usuario=usuarios.id_usuario and str_to_date(registros.datetime_servlet,'%Y-%m-%d') >= str_to_date('"+f2.format(inicio.getTime())+"','%d/%m/%Y') and str_to_date(registros.datetime_servlet,'%Y-%m-%d') <= str_to_date('"+f2.format(fim.getTime())+"','%d/%m/%Y') order by datetime_servlet,usuario asc" ;
+					query="select data_dia,usuario from registros where usuario in (select id_usuario from usuarios where empresa='"+p.getEmpresa().getEmpresa_id()+"' and ATIVO='Y') and str_to_date(datetime_servlet,'%Y-%m-%d') >= str_to_date('"+f2.format(inicio.getTime())+"','%d/%m/%Y') and str_to_date(datetime_servlet,'%Y-%m-%d') <= str_to_date('"+f2.format(fim.getTime())+"','%d/%m/%Y') order by datetime_servlet asc" ;
 					//rs3=conn.Consulta("select id_usuario,nome,matricula from usuarios where validado='Y and ativo='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
 				}else {
 					aux_usuario=param1;
@@ -2244,6 +2263,79 @@ public class UserMgmt extends HttpServlet {
 			PrintWriter out = resp.getWriter();
 			out.print("Cadastro executado com sucesso.");
 			
+		}else if(opt.equals("34")) {
+			param1=req.getParameter("ajuste");
+			ServletOutputStream out = resp.getOutputStream();
+			query="";
+			Blob image = null;
+			
+			query="select foto_justificativa from ajuste_ponto where id_ajuste_ponto="+param1+" and empresa="+p.getEmpresa().getEmpresa_id();
+			rs=conn.Consulta(query);
+			if(rs.next()) {
+				System.out.println(" foto encontrada");
+				image=rs.getBlob(1);
+				
+				byte byteArray[]=image.getBytes(1, (int) image.length());
+				resp.setContentType("image/png");
+				out.write(byteArray);
+				out.flush();
+				out.close();
+				System.out.println(" foto carregada");
+				
+			}
+		}else if(opt.equals("35")) {
+			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" carregando tabela de justificativas" );
+			Document justificativa=new Document();
+			List<Bson> filtro_list = new ArrayList<Bson>();
+			ConexaoMongo c = new ConexaoMongo();
+			Bson filtrodoc;
+			dados_tabela="";
+			filtrodoc=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+			filtro_list.add(filtrodoc);
+			FindIterable<Document> findIterable= c.ConsultaCollectioncomFiltrosLista("Justificativas", filtro_list);
+			MongoCursor<Document> resultado = findIterable.iterator();
+			dados_tabela="[";
+			if(resultado.hasNext()) {
+			while(resultado.hasNext()) {
+				justificativa=resultado.next();
+				dados_tabela=dados_tabela+"{\"id\":\""+justificativa.get("_id")+"\",";
+				dados_tabela=dados_tabela+"\"justificativa\":\""+justificativa.get("Justificativa")+"\",";
+				dados_tabela=dados_tabela+"\"descricao\":\""+justificativa.get("Descrição")+"\",";
+				dados_tabela=dados_tabela+"\"foto\":\""+justificativa.get("Foto_requerida")+"\",";
+				dados_tabela=dados_tabela+"\"owner\":\""+justificativa.get("update_by")+"\",";
+				dados_tabela=dados_tabela+"\"dtadd\":\""+f3.format(justificativa.getDate("update_time"))+"\"},";
+			}
+			
+			dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+			}
+			dados_tabela=dados_tabela+"]";
+			//System.out.println(dados_tabela);
+			resp.setContentType("application/json");  
+  		    resp.setCharacterEncoding("UTF-8"); 
+  		    PrintWriter out = resp.getWriter();
+		    out.print(dados_tabela);
+		    c.fecharConexao();
+		}else if(opt.equals("36")) {
+			param1=req.getParameter("filtros");
+			List<Bson> filtro_list = new ArrayList<Bson>();
+			Bson filtrodoc;
+			JSONObject jObj = new JSONObject(param1);
+			JSONArray filtros = jObj.getJSONArray("filtros");
+			ConexaoMongo c = new ConexaoMongo();
+			filtrodoc=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+			filtro_list.add(filtrodoc);
+        	for (Integer i=0; i < filtros.length(); i++)
+			{
+        		filtrodoc=Filters.eq("_id",new ObjectId(filtros.get(i).toString()));
+    			filtro_list.add(filtrodoc);
+        		c.RemoverFiltroList("Justificativas", filtro_list);
+        		filtro_list.remove(filtro_list.size()-1);
+			}
+        	resp.setContentType("application/html");  
+  		    resp.setCharacterEncoding("UTF-8"); 
+  		    PrintWriter out = resp.getWriter();
+		    out.print("Justificativas Removidas com sucesso!");
+		    c.fecharConexao();
 		}
 		}catch (SQLException e) {
 			

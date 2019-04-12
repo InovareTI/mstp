@@ -182,8 +182,8 @@ public class RolloutServlet extends HttpServlet {
 			if(opt.equals("1")){
 				param1=req.getParameter("rolloutid");
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+ p.get_PessoaUsuario()+" carregando estrutura do rolloutID "+ param1);
-				JSONObject rollout_campos=r.getCampos().getCampos_tipo(conn,p,param1);
-				Iterator<String>campos_nomes=rollout_campos.keys();
+				//JSONObject rollout_campos=r.getCampos().getCampos_tipo(conn,p,param1);
+				//Iterator<String>campos_nomes=rollout_campos.keys();
 				rs= conn.Consulta("select * from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param1+"' order by ordenacao");
 				String campos_aux="";
 				dados_tabela="{ \"columgroup\": ["+"\n";
@@ -3745,29 +3745,31 @@ public class RolloutServlet extends HttpServlet {
 				ajusta_rollout_spazio(p);
 				System.out.println("fim ajuste do rollout spazio");
 			}else if(opt.equals("29")) {
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" atualizando rollout dashboard para empresa - "+ p.getEmpresa().getEmpresa_id() );
+				long result1=0;
+				long result2=0;
+				long result3 = 0;
 				param1=req.getParameter("filtros");
 				param2=req.getParameter("rolloutid");
-				JSONObject campo_tipo=r.getCampos().getCampos_tipo(conn, p,param2);
-				System.out.println(param1);
-				System.out.println(param2);
-				System.out.println("tamanho de campos:"+campo_tipo.length());
-				
-				long result1;
-				long result2;
 				List<String> site_list;
 				List<String> site_list2;
 				List<String> site_list3;
 				Double valor=0.0;
-				JSONObject jObj = new JSONObject(param1);
-				Document siteinfo = new Document();
-				JSONArray filtros = jObj.getJSONArray("filtros");
 				List<Bson> filtro_list = new ArrayList<Bson>();
 				Bson filtro;
+				JSONObject campo_tipo=r.getCampos().getCampos_tipo(conn, p,param2);
+			    JSONObject jObj = new JSONObject(param1);
+				Document siteinfo = new Document();
+				JSONArray filtros = jObj.getJSONArray("filtros");
+				
             	FindIterable<Document> findIterable;
             	String filtervalue="";
             	String filtercondition="";
             	String filterdatafield="";
             	String filteroperator="";
+				if(p.getEmpresa().getEmpresa_id()==1) {
+				
+				
 				if(filtros.length()>0) {
 					System.out.println("contando com filtro");
     				//JSONArray filtros = jObj.getJSONArray("filtros");
@@ -4020,11 +4022,43 @@ public class RolloutServlet extends HttpServlet {
 				dados_tabela=dados_tabela+"\"quadro_3_2\":\"" +moneyString+"\",";
 				dados_tabela=dados_tabela+"\"quadro_4_2\":" +site_list.size()+",";
 				dados_tabela=dados_tabela+"\"quadro_5_2\":" +site_list2.size()+"}";
-				System.out.println(dados_tabela);
-				resp.setContentType("application/json");  
+				//System.out.println(dados_tabela);
+				resp.setContentType("application/json");
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
+				}else if(p.getEmpresa().getEmpresa_id()==5) {
+					campo_tipo=r.getCampos().getCampos_tipo(conn, p,param2);
+					String[] nomes_campos=JSONObject.getNames(campo_tipo);
+					System.out.println("entrou na empresa 5");
+					filtro=Filters.eq("Empresa", p.getEmpresa().getEmpresa_id());
+					filtro_list.add(filtro);
+					filtro=Filters.eq("rolloutId", param2);
+					filtro_list.add(filtro);
+					filtro=Filters.eq("Linha_ativa", "Y");
+					filtro_list.add(filtro);
+					result1 = c.ConsultaCountComplexa("rollout",filtro_list);
+				
+					result2 = c.ConsultaSimplesDistinct("rollout", "PO", filtro_list).size();
+					site_list = c.ConsultaSimplesDistinct("rollout", "Site ID", filtro_list);
+					for(int indice_campos=0;indice_campos<nomes_campos.length;indice_campos++) {
+						if(campo_tipo.getJSONArray(nomes_campos[indice_campos]).get(0).equals("Milestone")){
+							site_list2 = c.ConsultaSimplesDistinct("rollout", "Milestone.0.resp_"+nomes_campos[indice_campos], filtro_list);
+							result3=result3+site_list2.size();
+						}
+					}
+					dados_tabela="{";
+					dados_tabela=dados_tabela+"\"quadro_1_2\":" +result1+",";
+					dados_tabela=dados_tabela+"\"quadro_2_2\":" +result2+",";
+					dados_tabela=dados_tabela+"\"quadro_3_2\":\"0\",";
+					dados_tabela=dados_tabela+"\"quadro_4_2\":"+site_list.size()+",";
+					dados_tabela=dados_tabela+"\"quadro_5_2\":"+result3+"}";
+					//System.out.println(dados_tabela);
+					resp.setContentType("application/json");  
+		  		    resp.setCharacterEncoding("UTF-8"); 
+		  		    PrintWriter out = resp.getWriter();
+				    out.print(dados_tabela);
+				}
 			}else if(opt.equals("30")) {
 				param1=req.getParameter("rolloutid");
 				param2=req.getParameter("novo_nome");

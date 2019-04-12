@@ -46,7 +46,7 @@ response.setDateHeader ("Expires", -1);
 	<link rel="stylesheet" type="text/css" href="css/customizacoes35.css" />
 	<link rel="stylesheet" type="text/css" href="css/icons.css" />
 	<link rel="stylesheet" type="text/css" href="css/component.css" />
-	
+	<link href="js/plugins/photoviewer/photoviewer.css" rel="stylesheet">
 	
 	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.css">
 	<script src="js/jquery-3.2.1.min.js" type="text/javascript"></script>
@@ -145,7 +145,7 @@ response.setDateHeader ("Expires", -1);
     <script type="text/javascript" src="js/jqwidgets/localization.js"></script>
     <link rel="stylesheet" type="text/css" href="js/dhtmlx/pivot.css" />
     <script type="text/javascript" src="js/dhtmlx/pivot.js"></script>
-    
+    <script src="js/plugins/photoviewer/photoviewer.js"></script>
 	<script type="text/javascript" src="js/starter.js"></script>
 	<script type="text/javascript" src="js/portal.js"></script>
 	<script type="text/javascript" src="js/rollout.js"></script>
@@ -594,13 +594,13 @@ response.setDateHeader ("Expires", -1);
 						<div class="panel panel-default" style="width:90%;margin:0 auto">
 	        				<div class="panel-heading">Justificativas de Ponto</div>
 		        				<div class="panel-body">
-		        				<div id='justificativa_div_inserir'><button type="button" class="btn btn-info" data-toggle="modal" data-target="#modal_add_justificativa">Nova Justificativa</button></div>
+		        				<div id='justificativa_div_inserir'><button type="button" class="btn btn-info" data-toggle="modal" data-target="#modal_add_justificativa">Nova Justificativa</button><button type="button" class="btn btn-danger" onclick="remover_justificativa()">Remover Justificativa</button></div>
 		        				</div>
 	        			</div>
 	        			<div class="panel panel-default" style="width:90%;margin:0 auto">
 	        				<div class="panel-heading">Tabela de Justificativas</div>
-		        			<div class="panel-body" >
-		        				<div id='tabela_justificativa'>
+		        			<div class="panel-body" id="container_tabela_justificativas">
+		        				<div id='grid_justificativas'>
 			        				
 			        			</div>
 		        			</div>
@@ -1395,7 +1395,7 @@ response.setDateHeader ("Expires", -1);
 			        			<option value="CLARO">CLARO</option>
 			        			</select></td>
 			        			<td>
-			        			<input style="float:left;display:inline;" type="text" autocomplete="off" placeholder="Informe o Site" class="form-control" id="nme_site_tabela">
+			        			
 			        		</td>
 			        		</tr>
 			        		</table>
@@ -1415,7 +1415,7 @@ response.setDateHeader ("Expires", -1);
     					  </div>
     					  <a id="template_importar_site" href="templates/templateSiteImportacao.xlsx" type="button" class="btn btn-primary">Template(importação)</a>
 			        			<button id="btn_buscar_sites"  class="btn btn-primary">Buscar</button>
-			        			<input id="btnSync_rolloutsites" type="button" class="btn btn-primary" onclick="sync_rollout()" value="Ajustar Coordenadas">
+			        			<input id="btn_inverter_coordenadas" type="button" class="btn btn-primary" onclick="inverter_coordenadas()" value="Ajustar Coordenadas">
 		        			</div>
 		        			</div>
 	        			</div>

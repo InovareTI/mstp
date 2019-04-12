@@ -1,3 +1,33 @@
+function inverter_coordenadas(){
+	var operadora =  $('#select_operadora_site').val();
+	if(operadora==''){
+		$.alert("Selecione uma Operadora");
+		return;
+	}
+	var rowindexes = $('#tabela_detalhe_sites').jqxGrid('getselectedrowindexes');
+	filtros={"filtros":[]};
+	for(var v=0;v<rowindexes.length;v++){
+			filtros.filtros.push($('#tabela_detalhe_sites').jqxGrid('getrowid', rowindexes[v]));
+		}
+	var timestamp =Date.now();
+	$.ajax({
+		  type: "POST",
+		  data: {"opt":"12",
+			  "_": timestamp,
+			  "operadora":operadora,
+			  "filtros":JSON.stringify(filtros)
+			},		  
+		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+		  url: "./SiteMgmt",
+		  cache: false,
+		  dataType: "text",
+		 success: sucesso_inversao_coordenadas
+		});
+	function sucesso_inversao_coordenadas(data){
+		$.alert(data.toString());
+	}
+}
+
 function append_site_novo_aprovacoes(){
 	var $table = $('#tabela_aprovacoes');
 	 $.getJSON('./SiteMgmt?opt=7', function(data) {	
@@ -69,11 +99,11 @@ function carrega_tabela_site(){
 					 datatype: "json",
 			         datafields: [
 			        	 { name: 'site_id' , type: 'string'},
-			        	 { name: 'site', type: 'string' },
-			             { name: 'operadora', type: 'string' },
-			             { name: 'uf' , type: 'string'},
-			             { name: 'municipio', type: 'string' },
-			             { name: 'mapa', type: 'string' }
+			        	 { name: 'site_operadora', type: 'string' },
+			             { name: 'site_uf' , type: 'string'},
+			             { name: 'site_municipio', type: 'string' },
+			             { name: 'site_latitude', type: 'string' },
+			             { name: 'site_longitude', type: 'string' }
 			             
 			         ],
 		        
@@ -160,12 +190,12 @@ function carrega_tabela_site(){
 			             pagesizeoptions: ['20', '50', '100'],
 		                 columns: [
 		                       
-		                       { text: 'Site', datafield: 'site', width: 150, columntype: 'textbox' },
-		                       { text: 'Operadora', datafield: 'operadora', width: 100, filtertype: 'checkedlist' },
-		                       { text: 'UF', datafield: 'uf', width: 150, filtertype: 'checkedlist' },
-		                       { text: 'Municipio', datafield: 'municipio', width: 150, filtertype: 'checkedlist' },
-		                       { text: 'Mapa', datafield: 'mapa', width: 150, filtertype: 'checkedlist' },
-		                       
+		                       { text: 'Site', datafield: 'site_id', width: 150, columntype: 'textbox' },
+		                       { text: 'Operadora', datafield: 'site_operadora', width: 100, columntype: 'textbox' },
+		                       { text: 'UF', datafield: 'site_uf', width: 150, columntype: 'textbox' },
+		                       { text: 'Municipio', datafield: 'site_municipio', width: 150, columntype: 'textbox' },
+		                       { text: 'Latitude', datafield: 'site_latitude', width: 150, columntype: 'textbox' },
+		                       { text: 'Longitude', datafield: 'site_longitude', width: 150, columntype: 'textbox' }
 		                   ]
 		             });
 		    

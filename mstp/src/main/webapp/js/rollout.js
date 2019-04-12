@@ -1,5 +1,5 @@
 function atualiza_dash_rollout(){
-	if(geral.empresa_id==1){
+	
 	filtros={"filtros":[]};
 	 var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
 	var rolloutid;
@@ -39,14 +39,18 @@ function atualiza_dash_rollout(){
 	function atualiza_dash(data){
 		//alert(data);
 		aux=JSON.parse(data);
-		$('#quadro_1_1').html("Total Work Date");
+		if(geral.empresa_id==1){
+			$('#quadro_1_1').html("Total Work Date");
+		}else{
+			$('#quadro_1_1').html("Total Atividades");
+		}
 		$('#quadro_1_2').html(aux.quadro_1_2);
 		$('#quadro_2_2').html(aux.quadro_2_2);
 		$('#quadro_3_2').html(aux.quadro_3_2);
 		$('#quadro_4_2').html(aux.quadro_4_2);
 		$('#quadro_5_2').html(aux.quadro_5_2);
 	}
-	}
+	
 }
 function carrega_tree_rollout(){
 	var timestamp = Date.now();
