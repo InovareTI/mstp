@@ -176,7 +176,7 @@ public class RolloutServlet extends HttpServlet {
 		SimpleDateFormat dt_excel = new SimpleDateFormat("ddd MMM dd HH:mm:ss 'BRST' yyyy");
 		DateFormat f3 = DateFormat.getDateTimeInstance();
 		opt=req.getParameter("opt");
-		System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Rollout opt - "+ opt );
+		//System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Rollout opt - "+ opt );
 		//System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações de Rollout do MSTP Web - "+f3.format(time)+" opt:"+opt);
 		try {
 			if(opt.equals("1")){
@@ -385,10 +385,10 @@ public class RolloutServlet extends HttpServlet {
     					}
     				}*/
     			
-    				List<String> rollout_filtrado_integrado = new ArrayList<String>();
+    				List<String> rollout_filtrado_integrado = new ArrayList<>();
     				Bson filtro;
     				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
-    				List<Bson> rollout_filtrado_integrado_filtro = new ArrayList<Bson>();
+    				List<Bson> rollout_filtrado_integrado_filtro = new ArrayList<>();
     				rollout_filtrado_integrado_filtro.add(filtro);
     				FindIterable<Document> findIterable=c.ConsultaCollectioncomFiltrosLista("Rollout_Sites", rollout_filtrado_integrado_filtro); 
     				findIterable.forEach((Block<Document>) doc -> {
@@ -425,6 +425,8 @@ public class RolloutServlet extends HttpServlet {
 					
 					
 			c.fecharConexao();
+			Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("2")) {
 
 				
@@ -468,6 +470,8 @@ public class RolloutServlet extends HttpServlet {
 						//System.out.println("Consulta returns empty");
 					}
 					c.fecharConexao();
+					Timestamp time2 = new Timestamp(System.currentTimeMillis());
+					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("3")) {
 				//System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Rollout opt - "+ opt );
 				//System.out.println("Iniciando exporte de rollout")
@@ -1069,9 +1073,13 @@ public class RolloutServlet extends HttpServlet {
 					out.print("Rollout não disponivel para download");
 	            }
 	            c.fecharConexao();
+	            Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("4")) {
 				insere_linha_rollout(c,req,resp,p);
 				c.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("5")) {
 				param3=req.getParameter("rolloutid");
 				JSONObject campo_tipo=r.getCampos().getCampos_tipo(conn, p,param3);
@@ -1762,6 +1770,8 @@ public class RolloutServlet extends HttpServlet {
 					atualiza_sites_integrados(p);
 				}//if de upload de arquivo
 				c.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("6")) {
 				param1=req.getParameter("campo");
 				query="select tipo from rollout_campos where field_name='"+param1+"' and empresa="+p.getEmpresa().getEmpresa_id();
@@ -1774,6 +1784,8 @@ public class RolloutServlet extends HttpServlet {
 					out.print(rs.getString(1));
 				}
 				c.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("7")) {
 				param1=req.getParameter("rolloutid");
 				query="select field_name from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param1+"' order by ordenacao";
@@ -1791,6 +1803,8 @@ public class RolloutServlet extends HttpServlet {
 					out.print(dados_tabela);
 				}
 				c.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("8")) {
 				param1=req.getParameter("linha");
 				Document filtro=new Document();
@@ -1841,19 +1855,21 @@ public class RolloutServlet extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				out.print("OK");
 				 c.fecharConexao();
+				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
+					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("9")) {
 				//System.out.println("server side ");
 				//JSONObject rollout_campos=r.getCampos().getCampos_tipo(conn,p);
 				param1=req.getParameter("pagesize");
 				param2=req.getParameter("pagenum");
 				param3=req.getParameter("rolloutid");
-				System.out.println("MSTP WEB - "+f3.format(time)+" "+ p.get_PessoaUsuario()+" carregando rolloutID "+ param3);
+				//System.out.println("MSTP WEB - "+f3.format(time)+" "+ p.get_PessoaUsuario()+" carregando rolloutID "+ param3);
 				JSONObject campo_tipo=r.getCampos().getCampos_tipo(conn, p,param3);
 				Iterator<String>campos_nomes=campo_tipo.keys();
 				Long totallinhas;
 				int pagina_linhas=0;
 				int pagina=0;
-				List<Bson> filtro_list = new ArrayList<Bson>();
+				List<Bson> filtro_list = new ArrayList<>();
 				Bson filtro;
 				String filtervalue="";
 				String filtercondition="";
@@ -1863,8 +1879,8 @@ public class RolloutServlet extends HttpServlet {
 				
 				pagina_linhas=Integer.parseInt(param1);
 				pagina=Integer.parseInt(param2);
-				System.out.println("pagina_linhas:"+pagina_linhas);
-				System.out.println("pagina:"+pagina);
+				//System.out.println("pagina_linhas:"+pagina_linhas);
+				//System.out.println("pagina:"+pagina);
 				
 				
 				int filterscount = Integer.parseInt(req.getParameter("filterscount"));
@@ -2135,9 +2151,9 @@ public class RolloutServlet extends HttpServlet {
 					filtro_list.add(filtro);
 					filtro=Filters.eq("rolloutId", param3);
 					filtro_list.add(filtro);
-					System.out.println("Executando consulta sem filtros");
+					//System.out.println("Executando consulta sem filtros");
 					totallinhas=c.CountSimplesComFiltroInicioLimit("rollout",filtro_list);
-					System.out.println("Encontrou "+ totallinhas);
+					//System.out.println("Encontrou "+ totallinhas);
 					findIterable = c.ConsultaSimplesComFiltroInicioLimit("rollout",filtro_list,pagina_linhas*pagina,pagina_linhas);
 				}
 				
@@ -2153,7 +2169,7 @@ public class RolloutServlet extends HttpServlet {
     			}else {
     				dados_tabela=dados_tabela+"{\"totalRecords\":\""+totallinhas+"\",";
     			while(resultado.hasNext()) {
-    				linha=(Document) resultado.next();
+    				linha=resultado.next();
     				List<Document> milestones=(List<Document>) linha.get("Milestone");
     				//String site_aux=linha.getString("Site ID");
     				dados_tabela=dados_tabela+chaves+"\"id\":"+linha.get("recid")+",";
@@ -2317,6 +2333,8 @@ public class RolloutServlet extends HttpServlet {
 			    out.print(dados_tabela);
 					
 			    c.fecharConexao();
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("10")) {
 				
 			String imagem_status="";
@@ -2433,6 +2451,8 @@ public class RolloutServlet extends HttpServlet {
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
 			    c.fecharConexao();
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("11")) {
 				param1=req.getParameter("pivot");
 				param2=req.getParameter("nome");
@@ -2454,6 +2474,8 @@ public class RolloutServlet extends HttpServlet {
 				    out.print("Erro no salvamento do relatório");
 				}
 				 c.fecharConexao();
+				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
+					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("12")) {
 				query="";
 				dados_tabela="";
@@ -2470,6 +2492,8 @@ public class RolloutServlet extends HttpServlet {
 				    out.print(dados_tabela);
 				}
 				 c.fecharConexao();
+				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
+					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("13")) {
 				System.out.println("Carregando pivot 1");
 				param1=req.getParameter("id");
@@ -2590,6 +2614,8 @@ public class RolloutServlet extends HttpServlet {
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
 			    c.fecharConexao();
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("14")) {
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+ p.get_PessoaUsuario()+" iniciando sincronia de campos do rollout entre mysql e mongo");
 				String imagem_status="";
@@ -2628,6 +2654,8 @@ public class RolloutServlet extends HttpServlet {
     			}
     			System.out.println("MSTP WEB - "+f3.format(time)+" "+ p.get_PessoaUsuario()+" finalizada sincronia de campos do rollout entre mysql e mongo");
     			 c.fecharConexao();
+    			 Timestamp time2 = new Timestamp(System.currentTimeMillis());
+    				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("15")) {
 				
 				
@@ -3027,6 +3055,8 @@ public class RolloutServlet extends HttpServlet {
 				
 				
 				 c.fecharConexao();
+				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
+					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("16")) {
 				System.out.println("chegou no opt 16 - plota no mapa os sites filtrados do rollout");
 				param3=req.getParameter("rolloutid");
@@ -3098,6 +3128,8 @@ public class RolloutServlet extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				out.print(resultado);
 				 c.fecharConexao();
+				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
+					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("17")) {
 				System.out.println("buscando sites integrados no rollout") ;
 				
@@ -3115,6 +3147,8 @@ public class RolloutServlet extends HttpServlet {
 				//System.out.println(rollout_filtrado_site.toString());
 				out.print(rollout_filtrado_site.toString());
 				 c.fecharConexao();
+				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
+					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("18")) {
 				param1=req.getParameter("filtros");
 				List<String> historico_site= new ArrayList<String>();
@@ -3154,6 +3188,8 @@ public class RolloutServlet extends HttpServlet {
 				//System.out.println(rollout_filtrado_site.toString());
 				out.print(historico_site.toString());
 				 c.fecharConexao();
+				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
+					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("19")) {
 				param1=req.getParameter("rolloutid");
 				//JSONObject campo_tipo=r.getCampos().getCampos_tipo(conn, p,param3);
@@ -3172,6 +3208,8 @@ public class RolloutServlet extends HttpServlet {
 				//System.out.println(rollout_filtrado_site.toString());
 				out.print(resultado);
 				 c.fecharConexao();
+				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
+					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("20")) {
 				param1=req.getParameter("siteid");
 				param2=req.getParameter("campos");
@@ -3246,6 +3284,8 @@ public class RolloutServlet extends HttpServlet {
 				//System.out.println(rollout_filtrado_site.toString());
 				out.print(historico_site.toString());
 				 c.fecharConexao();
+				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
+					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("21")) {
 				System.out.println("buscando registros mapa_operacinal");
 				Long totallinhas;
@@ -3332,6 +3372,8 @@ public class RolloutServlet extends HttpServlet {
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
 			    c.fecharConexao();
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("22")) {
 				System.out.println("Executando consulta MAPA OPERACIONAL 2");
 				//Document update = new Document();
@@ -3453,6 +3495,8 @@ public class RolloutServlet extends HttpServlet {
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
 			    c.fecharConexao();
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("23")) {
 				System.out.println("Executando consulta consulta MAPA OPERACIONAL 4");
 				List<String> projetos = new ArrayList<String>();
@@ -3528,6 +3572,8 @@ public class RolloutServlet extends HttpServlet {
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
 			    c.fecharConexao();
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("24")) {
 				System.out.println("Excutando consulta consulta MAPA OPERACIONAL 3");
 				List<String> projetos = new ArrayList<String>();
@@ -3603,6 +3649,8 @@ public class RolloutServlet extends HttpServlet {
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
 			    c.fecharConexao();
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("25")) {
 				List<String> projetos = new ArrayList<String>();
 				dados_tabela="";
@@ -3622,6 +3670,8 @@ public class RolloutServlet extends HttpServlet {
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
 			    c.fecharConexao();
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("26")) {
 				System.out.println("Iniciando ajuste de status");
 				
@@ -3714,6 +3764,9 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print("tarefa finalizada!");
+			    c.fecharConexao();
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("27")) {
 				Document arvore = new Document();
 				dados_tabela="[";
@@ -3739,11 +3792,14 @@ public class RolloutServlet extends HttpServlet {
 		  		    PrintWriter out = resp.getWriter();
 				    out.print(dados_tabela);
 				}
-				
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("28")) {
 				System.out.println("iniciando ajuste do rollout spazio");
 				ajusta_rollout_spazio(p);
 				System.out.println("fim ajuste do rollout spazio");
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("29")) {
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" atualizando rollout dashboard para empresa - "+ p.getEmpresa().getEmpresa_id() );
 				long result1=0;
@@ -3981,7 +4037,7 @@ public class RolloutServlet extends HttpServlet {
 					}
 						
                 }else {
-                	System.out.println("contando sem filtro");
+                	//System.out.println("contando sem filtro");
                 	filtro=Filters.eq("Empresa", p.getEmpresa().getEmpresa_id());
 					filtro_list.add(filtro);
 					filtro=Filters.eq("rolloutId", param2);
@@ -4030,7 +4086,7 @@ public class RolloutServlet extends HttpServlet {
 				}else if(p.getEmpresa().getEmpresa_id()==5) {
 					campo_tipo=r.getCampos().getCampos_tipo(conn, p,param2);
 					String[] nomes_campos=JSONObject.getNames(campo_tipo);
-					System.out.println("entrou na empresa 5");
+					//System.out.println("entrou na empresa 5");
 					filtro=Filters.eq("Empresa", p.getEmpresa().getEmpresa_id());
 					filtro_list.add(filtro);
 					filtro=Filters.eq("rolloutId", param2);
@@ -4059,6 +4115,8 @@ public class RolloutServlet extends HttpServlet {
 		  		    PrintWriter out = resp.getWriter();
 				    out.print(dados_tabela);
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("30")) {
 				param1=req.getParameter("rolloutid");
 				param2=req.getParameter("novo_nome");
@@ -4074,6 +4132,8 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print("Nome do Rollout Atualizado!");
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}
 		}catch (SQLException e) {
 			

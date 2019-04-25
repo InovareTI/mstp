@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -67,15 +68,12 @@ public class Dashboard_Servlet extends HttpServlet {
 		ResultSet rs2 ;
 		String tabela;
 		String opt;
-		String insere;
+		
 		String query;
-		String param1;
-		String param2;
-		String param3;
-		String param4;
+		
 		String dtfrom;
 		String dtto;
-		int last_id;
+		
 		HttpSession session = req.getSession(true);
 		Conexao conn = (Conexao) session.getAttribute("conexao");
 		Pessoa p= (Pessoa) session.getAttribute("pessoa");
@@ -87,7 +85,7 @@ public class Dashboard_Servlet extends HttpServlet {
 		String moneyString;
 		//System.out.println("Chegou no servlet de Dashboard");
 		try {
-			System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações de Gráficos do MSTP Web - "+f3.format(time));
+			//System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações de Gráficos do MSTP Web - "+f3.format(time));
 			if(opt.equals("1")){
 				//System.out.println("Pie Chart starts...");
     			rs=conn.Consulta("select empresa_emissora,count(po_number) from po_table  group by empresa_emissora");
@@ -118,7 +116,8 @@ public class Dashboard_Servlet extends HttpServlet {
 	    		  
 	    			PrintWriter out = resp.getWriter();
 	    			out.print(tabela);
-	    			//System.out.println("Resposta 3 enviada com Sucesso");
+	    			Timestamp time2 = new Timestamp(System.currentTimeMillis());
+					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("2")){
 				//param1=(req.getParameter("ano"));
 				//param2=(req.getParameter("periodo"));
@@ -174,6 +173,8 @@ public class Dashboard_Servlet extends HttpServlet {
     		  
     			PrintWriter out = resp.getWriter();
     			out.print(tabela);
+    			Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}else if(opt.equals("3")){
 			dtfrom=req.getParameter("dtfrom");
 			dtto=req.getParameter("dtto");
@@ -285,6 +286,8 @@ public class Dashboard_Servlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(tabela);
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}else if(opt.equals("4")){
 			
 			
@@ -372,8 +375,10 @@ public class Dashboard_Servlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(tabela);
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}else if(opt.equals("5")){
-			System.out.println("carregando graficos de registros de usuario por semana");
+			//System.out.println("carregando graficos de registros de usuario por semana");
 			if(p.get_PessoaPerfil_nome().equals("tecnico")) {
 				query="SELECT usuario,count(usuario) from registros where usuario='"+p.get_PessoaUsuario()+"' and week(datetime_servlet)=week(now()) and empresa='"+p.getEmpresa().getEmpresa_id()+"' and tipo_registro not in('Férias','Folga','Compensação','Licença Médica') group by usuario order by count(usuario) desc";
 			}else {
@@ -396,8 +401,10 @@ public class Dashboard_Servlet extends HttpServlet {
   		    resp.setCharacterEncoding("UTF-8"); 
   		    PrintWriter out = resp.getWriter();
 		    out.print(tabela);
+		    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}else if(opt.equals("6")){
-			System.out.println("Carregando horas trabalhadas por usuário na semana");
+			//System.out.println("Carregando horas trabalhadas por usuário na semana");
 			Calendar d1 = Calendar.getInstance();
 			Calendar d2 = Calendar.getInstance();
 			int aux_hora=0;
@@ -448,8 +455,10 @@ public class Dashboard_Servlet extends HttpServlet {
 		    		  "</div>"+
 		    		"</div>"
 		    		);
+		    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}else if(opt.equals("7")){
-			System.out.println("carregando dashboard grafico de pendencias");
+			//System.out.println("carregando dashboard grafico de pendencias");
 			query="";
 			tabela="";
 			query="select count(id_ajuste_ponto) from ajuste_ponto where aprovada='N' and empresa="+p.getEmpresa().getEmpresa_id();
@@ -494,6 +503,8 @@ public class Dashboard_Servlet extends HttpServlet {
   		    resp.setCharacterEncoding("UTF-8"); 
   		    PrintWriter out = resp.getWriter();
 		    out.print(tabela);
+		    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}else if(opt.equals("8")){
 			query="";
 			query="select resumo.usuario,sum(resumo.horas) from "
@@ -531,6 +542,7 @@ public class Dashboard_Servlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(tabela);
+			    
 			}else {
 				tabela="{\"categoria\":\n[\"Sem Registro Completos\"],";
 				tabela=tabela+"\"serie\":[\n";
@@ -540,6 +552,8 @@ public class Dashboard_Servlet extends HttpServlet {
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(tabela);
 			}
+			Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}else if(opt.equals("9")) {
 
 			dtfrom=req.getParameter("dtfrom");
@@ -571,7 +585,8 @@ public class Dashboard_Servlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(tabela);
-		
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}
 				
 			

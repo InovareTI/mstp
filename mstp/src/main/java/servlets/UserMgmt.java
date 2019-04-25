@@ -70,6 +70,8 @@ import classes.Semail;
 @WebServlet("/UserMgmt")
 public class UserMgmt extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	private static final String padrao_data_br = "dd/MM/yyyy";
+	private static final String padrao_data_hora_br = "dd/MM/yyyy HH:mm:ss";
        
     /**
      * @see HttpServlet#HttpServlet()
@@ -103,6 +105,7 @@ public class UserMgmt extends HttpServlet {
 	}
 	@SuppressWarnings("null")
 	public void gerenciamento_usuarios(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		
 		ResultSet rs,rs2 ;
 		String param1;
 		String param2;
@@ -116,6 +119,7 @@ public class UserMgmt extends HttpServlet {
 		int last_id;
 		String dados_tabela;
 		Timestamp time = new Timestamp(System.currentTimeMillis());
+		
 		String opt;
 		Locale locale_ptBR = new Locale( "pt" , "BR" ); 
 		Locale.setDefault(locale_ptBR);
@@ -139,7 +143,7 @@ public class UserMgmt extends HttpServlet {
 		
 		opt=req.getParameter("opt");
 		//System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações de Usuários do MSTP Web - "+f3.format(time)+" opt:"+opt);
-		System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Usuários opt - "+ opt );
+		//System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Usuários opt - "+ opt );
 		try {
 			Semail email= new Semail();
 			if(opt.equals("1")){
@@ -147,7 +151,7 @@ public class UserMgmt extends HttpServlet {
 				param2=req.getParameter("mes");
 				param3=req.getParameter("inicio");
 				param4=req.getParameter("fim");
-				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy"); 
+				SimpleDateFormat format = new SimpleDateFormat(padrao_data_br); 
 				Calendar inicio= Calendar.getInstance();
 				Calendar fim= Calendar.getInstance();
 				Date dt_inicio=format.parse(param3);
@@ -347,6 +351,7 @@ public class UserMgmt extends HttpServlet {
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
+					
 				}else {
 					dados_tabela="{\"draw\": 1,\n";
 					dados_tabela=dados_tabela+"\"recordsTotal\": 0 ,\n";
@@ -358,11 +363,13 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("2")){
 				if(p.get_PessoaPerfil_nome().equals("tecnico")) {
 					query="select * from usuarios where id_usuario='"+p.get_PessoaUsuario()+"' and ativo='Y' and validado='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"'";
 				}else {
-					query="select * from usuarios where ativo='Y' and validado='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"'";
+					query="select * from usuarios where ativo='Y' and validado='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"' and exibe_ponto_analise='Y'";
 				}
 				rs=conn.Consulta(query);
 				if(rs.next()) {
@@ -377,6 +384,8 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime()))+" segundos");
 			}else if(opt.equals("3")){
 				param1=req.getParameter("users");
 				if(param1.indexOf(",")>0) {
@@ -399,7 +408,8 @@ public class UserMgmt extends HttpServlet {
 						out.print("Usuários Desabilitados com Sucesso!");
 					}
 				}
-				
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("4")){
 				param1=req.getParameter("data");
 				System.out.println("Inserindo horas de "+p.get_PessoaUsuario()+" em "+f3.format(time));
@@ -415,6 +425,8 @@ public class UserMgmt extends HttpServlet {
 						
 					
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("5")){
 				query="select * from horas_extras where id_usuario='"+p.get_PessoaUsuario()+"' and aprovada='Y' and compensada='N'";
 				System.out.println("Carregabdo extrato de horas "+p.get_PessoaUsuario()+" em "+f3.format(time));
@@ -464,6 +476,8 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("6")){
 				double horas;
 				query="select sum(he_quantidade),sum(horas_noturnas) from horas_extras where id_usuario='"+p.get_PessoaUsuario()+"' and aprovada='Y' and compensada='N'";
@@ -477,6 +491,8 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(horas);
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("7")){
 				query="";
 				if(p.getPerfil_funcoes().contains("BancoHHApprover")) {
@@ -606,6 +622,8 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("8")){
 				if(p.getPerfil_funcoes().contains("BancoHHApprover")) {
 				param1=req.getParameter("he");
@@ -631,6 +649,8 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print("Sem Privilégios para essa Operação");
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("9")){
 				if(p.getPerfil_funcoes().contains("BancoHHApprover")) {
 				param1=req.getParameter("he");
@@ -655,6 +675,8 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print("Sem Privilégios para essa Operação");
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("10")){
 				param1=req.getParameter("usuario");
 				int contador=0;
@@ -706,6 +728,8 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("11")){
 				param1=req.getParameter("entrada");
 				param2=req.getParameter("saida");
@@ -734,6 +758,8 @@ public class UserMgmt extends HttpServlet {
 					
 					out.print("Solicitação enviada com sucesso!");
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("12")){
 				System.out.println("carregando ajustes de ponto para aprovação");
 				String caminho_foto="";
@@ -769,7 +795,8 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
 				}
-					
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");	
 			}else if(opt.equals("13")){
 				if(p.getPerfil_funcoes().contains("AjustePontoApprover")) {
 				param1=req.getParameter("id");
@@ -795,6 +822,8 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print("Sem privilégio para essa Operação");
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("14")){
 				if(p.getPerfil_funcoes().contains("AjustePontoApprover")) {
 				param1=req.getParameter("id");
@@ -840,6 +869,8 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print("Sem privilégio para essa Operação");
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("15")){
 				param1=req.getParameter("usuario");
 				query="select * from usuarios where id_usuario='"+param1+"' and ativo='Y' and validado='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"'";
@@ -861,7 +892,8 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
 				}
-			
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("16")){
 				int colIndex = 0;
 				int rowIndex = 0;
@@ -922,11 +954,14 @@ public class UserMgmt extends HttpServlet {
 	                	 }
 		                 rowIndex=rowIndex+1;
 	                 }
-	                 resp.setContentType("application/vnd.ms-excel");
-	                 resp.setHeader("Content-Disposition", "attachment; filename=usuarios_mstp");
+	                // resp.setContentType("application/vnd.ms-excel");
+	                 resp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+	                 resp.setHeader("Content-Disposition", "attachment; filename=usuarios_mstp.xlsx");
 	                 workbook.write(resp.getOutputStream());
 	                 workbook.close();
 	            }
+	            Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("17")){
 				
 				
@@ -1040,13 +1075,14 @@ public class UserMgmt extends HttpServlet {
 		        	
 		        	System.out.println(p.get_PessoaUsuario()+" Fim de processamento do arquivo com "+last_id+" linhas atualizadas em "+f3.format(time));
 				}
-					    
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");    
 			}else if(opt.equals("18")){
 				param1=req.getParameter("mes");
 				param2=req.getParameter("func");
 				param7=req.getParameter("inicio");
 				param8=req.getParameter("fim");
-				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy"); 
+				SimpleDateFormat format = new SimpleDateFormat(padrao_data_br); 
 				
 				Date dt_inicio=format.parse(param7);
 				Date dt_fim=format.parse(param8);
@@ -1159,6 +1195,8 @@ public class UserMgmt extends HttpServlet {
 					total_horas_acumulada_domingostring=total_horas_acumulada_domingostring+":"+minutos_acumuladosint;
 				}
 				out.print("Total Horas Acumuluadas:"+total_horas_acumuladastring +";\n Total Horas Sabado:" +total_horas_acumulada_sabadostring+";\n Total Horas Domingo:" +total_horas_acumulada_domingostring+";");
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("19")){
 
 				param1=req.getParameter("func");
@@ -1168,7 +1206,7 @@ public class UserMgmt extends HttpServlet {
 				String insere="";
 				param3=req.getParameter("inicio");
 				param4=req.getParameter("fim");
-				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy"); 
+				SimpleDateFormat format = new SimpleDateFormat(padrao_data_br); 
 				Calendar inicio= Calendar.getInstance();
 				Calendar fim= Calendar.getInstance();
 				Date dt_inicio=format.parse(param3);
@@ -1326,7 +1364,8 @@ public class UserMgmt extends HttpServlet {
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
 					out.print("Ponto Corrigido");
-				
+					Timestamp time2 = new Timestamp(System.currentTimeMillis());
+					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("20")){
 				System.out.println("Caregando tabela de kpi de ponto");
 				double total_user=0;
@@ -1422,6 +1461,8 @@ public class UserMgmt extends HttpServlet {
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print(dados_tabela);
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("21")){
 				MessageDigest md;
 				String retornaSenha;
@@ -1571,7 +1612,8 @@ public class UserMgmt extends HttpServlet {
 		        	pw.close();
 		        	System.out.println(p.get_PessoaUsuario()+" Fim de processamento do arquivo com "+last_id+" linhas atualizadas em "+f3.format(time));
 				}
-					
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("22")){
 				double total_user_mensal=0;
 				double total_user_mensal_entrada=0;
@@ -1626,7 +1668,8 @@ public class UserMgmt extends HttpServlet {
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print(dados_tabela);
-				
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("23")){
 				
 				System.out.println("Carregando Faltas");
@@ -1708,7 +1751,6 @@ public class UserMgmt extends HttpServlet {
 				
 				rs=conn.Consulta(query);
 				if(rs.next()) {
-					//rs.beforeFirst();
 					dados_tabela="{\"draw\": 1,\n";
 					dados_tabela=dados_tabela+"\"recordsTotal\": replace1 ,\n";
 					dados_tabela=dados_tabela+"\"recordsFiltered\": 7 ,\n";
@@ -1773,7 +1815,8 @@ public class UserMgmt extends HttpServlet {
 					out.print(dados_tabela);
 				}
 				}
-				
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("24")){
 				
 				System.out.println("Reset de Senha Iniciado por - "+p.get_PessoaUsuario());
@@ -1821,7 +1864,8 @@ public class UserMgmt extends HttpServlet {
 					}
 					
 				}
-				
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("25")){
 				System.out.println("Carregando Feriados");
 				query="select * from feriados where empresa="+p.getEmpresa().getEmpresa_id();
@@ -1842,6 +1886,8 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("26")) {
 
     			//System.out.println("chegou aqui!");
@@ -1884,7 +1930,8 @@ public class UserMgmt extends HttpServlet {
     			}else{
 	    			System.out.println("Consulta returns empty");
     			}
-    		
+    			Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("27")){
 				param1=req.getParameter("id");
 				param2=req.getParameter("nome");
@@ -1903,6 +1950,8 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print("Erro no Registro do Feriado!");
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("28")){
 				param1=req.getParameter("id");
 				query="delete from feriados where id_feriado="+param1+" and empresa="+p.getEmpresa().getEmpresa_id();
@@ -1917,6 +1966,8 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print("Erro na Exclusão do Feriado!");
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("29")){
 				param1=req.getParameter("id");
 				param2=req.getParameter("nome");
@@ -1927,14 +1978,15 @@ public class UserMgmt extends HttpServlet {
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
 					out.print("Feriado Atualizado com Sucesso!");*/
-				
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("30")) {
 
 				param1=req.getParameter("func");
 				
 				param3=req.getParameter("inicio");
 				param4=req.getParameter("fim");
-				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy"); 
+				SimpleDateFormat format = new SimpleDateFormat(padrao_data_br); 
 				Calendar inicio= Calendar.getInstance();
 				Calendar fim= Calendar.getInstance();
 				Date dt_inicio=format.parse(param3);
@@ -1956,10 +2008,14 @@ public class UserMgmt extends HttpServlet {
 				HH[2]="0.0";
 				HH[3]="0.0";
 				String aux_usuario;
+				String query2="";
 				String[] aux_usuario_dados=new String[2];
 				if(param1.equals("TODOS")) {
-					//query="select distinct registros.data_dia,usuarios.id_usuario from usuarios left join registros on usuarios.empresa='"+p.getEmpresa().getEmpresa_id()+"' and registros.usuario=usuarios.id_usuario and str_to_date(registros.datetime_servlet,'%Y-%m-%d') >= str_to_date('"+f2.format(inicio.getTime())+"','%d/%m/%Y') and str_to_date(registros.datetime_servlet,'%Y-%m-%d') <= str_to_date('"+f2.format(fim.getTime())+"','%d/%m/%Y') order by datetime_servlet,usuario asc" ;
-					query="select data_dia,usuario from registros where usuario in (select id_usuario from usuarios where empresa='"+p.getEmpresa().getEmpresa_id()+"' and ATIVO='Y') and str_to_date(datetime_servlet,'%Y-%m-%d') >= str_to_date('"+f2.format(inicio.getTime())+"','%d/%m/%Y') and str_to_date(datetime_servlet,'%Y-%m-%d') <= str_to_date('"+f2.format(fim.getTime())+"','%d/%m/%Y') order by datetime_servlet asc" ;
+					//select distinct registros.data_dia,t_aux.id_usuario from (select distinct id_usuario,empresa from usuarios where empresa='5' and ATIVO='Y') as t_aux left join registros on t_aux.empresa='5' and registros.usuario=t_aux.id_usuario and str_to_date(registros.datetime_servlet,'%Y-%m-%d') >= str_to_date('18/04/2019','%d/%m/%Y') and str_to_date(registros.datetime_servlet,'%Y-%m-%d') <= str_to_date('18/04/2019','%d/%m/%Y') order by datetime_servlet,usuario asc
+					query="select distinct registros.data_dia,t_aux.id_usuario from (select distinct id_usuario,empresa from usuarios where empresa='"+p.getEmpresa().getEmpresa_id()+"' and ATIVO='Y' and exibe_ponto_analise='Y') as t_aux left join registros on t_aux.empresa='"+p.getEmpresa().getEmpresa_id()+"' and registros.usuario=t_aux.id_usuario and str_to_date(registros.datetime_servlet,'%Y-%m-%d') >= str_to_date('"+f2.format(inicio.getTime())+"','%d/%m/%Y') and str_to_date(registros.datetime_servlet,'%Y-%m-%d') <= str_to_date('"+f2.format(fim.getTime())+"','%d/%m/%Y') order by datetime_servlet,usuario asc" ;
+					//query="select distinct data_dia,usuario from registros where usuario in (select distinct id_usuario from usuarios where empresa='"+p.getEmpresa().getEmpresa_id()+"' and ATIVO='Y') and str_to_date(datetime_servlet,'%Y-%m-%d') >= str_to_date('"+f2.format(inicio.getTime())+"','%d/%m/%Y') and str_to_date(datetime_servlet,'%Y-%m-%d') <= str_to_date('"+f2.format(fim.getTime())+"','%d/%m/%Y') order by datetime_servlet asc" ;
+					
+					query2="select distinct id_usuario from usuarios where empresa='"+p.getEmpresa().getEmpresa_id()+"' and ATIVO='Y' and exibe_ponto_analise='Y' and id_usuario not in (select distinct usuario from registros where str_to_date(datetime_servlet,'%Y-%m-%d') >= str_to_date('"+f2.format(inicio.getTime())+"','%d/%m/%Y') and str_to_date(datetime_servlet,'%Y-%m-%d') <= str_to_date('"+f2.format(fim.getTime())+"','%d/%m/%Y') order by datetime_servlet asc)";
 					//rs3=conn.Consulta("select id_usuario,nome,matricula from usuarios where validado='Y and ativo='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
 				}else {
 					aux_usuario=param1;
@@ -2180,7 +2236,8 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
 				}
-			
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("31")) {
 				param1 = req.getParameter("inicio");
 				param2 = req.getParameter("fim");
@@ -2189,7 +2246,7 @@ public class UserMgmt extends HttpServlet {
 				param5 = req.getParameter("ano_base");
 				query="insert into ferias (nome_func,inicio,fim,duracao,ano_ref,dt_add,user_add,processada,empresa) values('"+param4+"','"+param1+"','"+param2+"',"+param3+","+param5+",'"+time+"','"+p.get_PessoaUsuario()+"','Y',"+p.getEmpresa().getEmpresa_id()+")";
 				if(conn.Inserir_simples(query)) {
-					SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy"); 
+					SimpleDateFormat format = new SimpleDateFormat(padrao_data_br); 
 					Calendar inicio= Calendar.getInstance();
 					Calendar fim= Calendar.getInstance();
 					Date dt_inicio=format.parse(param1);
@@ -2213,7 +2270,8 @@ public class UserMgmt extends HttpServlet {
 				}
 				
 				
-				
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("32")) {
 				System.out.println("Buscando fotos de usuários");
 				param1=req.getParameter("usuario");
@@ -2243,6 +2301,8 @@ public class UserMgmt extends HttpServlet {
 			        out.flush();
 			    	//out.print(dados_tabela);
 			}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}else if(opt.equals("33")) {
 			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Iniciando cadastro de nova justificativas." );
 			param1=req.getParameter("justificativa");
@@ -2262,7 +2322,8 @@ public class UserMgmt extends HttpServlet {
 			resp.setCharacterEncoding("UTF-8"); 
 			PrintWriter out = resp.getWriter();
 			out.print("Cadastro executado com sucesso.");
-			
+			Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}else if(opt.equals("34")) {
 			param1=req.getParameter("ajuste");
 			ServletOutputStream out = resp.getOutputStream();
@@ -2283,6 +2344,8 @@ public class UserMgmt extends HttpServlet {
 				System.out.println(" foto carregada");
 				
 			}
+			Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}else if(opt.equals("35")) {
 			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" carregando tabela de justificativas" );
 			Document justificativa=new Document();
@@ -2315,6 +2378,8 @@ public class UserMgmt extends HttpServlet {
   		    PrintWriter out = resp.getWriter();
 		    out.print(dados_tabela);
 		    c.fecharConexao();
+		    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}else if(opt.equals("36")) {
 			param1=req.getParameter("filtros");
 			List<Bson> filtro_list = new ArrayList<Bson>();
@@ -2336,6 +2401,8 @@ public class UserMgmt extends HttpServlet {
   		    PrintWriter out = resp.getWriter();
 		    out.print("Justificativas Removidas com sucesso!");
 		    c.fecharConexao();
+		    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}
 		}catch (SQLException e) {
 			
@@ -2366,7 +2433,7 @@ public class UserMgmt extends HttpServlet {
 		String array_string_aux[];
 		Calendar d = Calendar.getInstance();
 		Date data = d.getTime();
-		SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+		SimpleDateFormat format = new SimpleDateFormat(padrao_data_hora_br);
 		DateFormat f2 = DateFormat.getDateInstance(DateFormat.MEDIUM, brasil);
 		DateFormat f3 = DateFormat.getDateTimeInstance();
 		Timestamp time = new Timestamp(System.currentTimeMillis());
@@ -2683,7 +2750,7 @@ public class UserMgmt extends HttpServlet {
 	}
 	 public Date checa_formato_data_e_hora(String data) {
 			try {
-				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+				SimpleDateFormat format = new SimpleDateFormat(padrao_data_hora_br);
 				
 				Date d1=format.parse(data);
 				return d1;

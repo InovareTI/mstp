@@ -13,6 +13,7 @@ import java.text.NumberFormat;
 
 
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -122,7 +123,7 @@ public class POControl_Servlet extends HttpServlet {
 		DateFormat f2 = DateFormat.getDateInstance(DateFormat.MEDIUM, locale_ptBR);
 		DateFormat f3 = DateFormat.getDateTimeInstance();
 		opt=req.getParameter("opt");
-		System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Operações Gerais opt - "+ opt );
+		//System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Operações Gerais opt - "+ opt );
 		//System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações Gerais do MSTP Web - "+f3.format(time)+" opt:"+opt);
 		try {
 		if(opt.equals("1")){
@@ -192,6 +193,8 @@ public class POControl_Servlet extends HttpServlet {
 				}else{
 					//System.out.println("Consulta returns empty");
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("2")){
 				//System.out.println("Deletando PO's");
 				param1=req.getParameter("po");
@@ -211,6 +214,8 @@ public class POControl_Servlet extends HttpServlet {
 					conn.Excluir("delete from po_table where po_number='"+param1+"'");
 					conn.Excluir("delete from po_item_table where po_number='"+param1+"'");
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("3")){
 				
 				rs=conn.Consulta("Select po_item_table.* from po_item_table,po_table where  po_table.validada='Y' and po_table.po_number=po_item_table.po_number order by po_item_id");
@@ -275,7 +280,8 @@ public class POControl_Servlet extends HttpServlet {
 				}else{
 					//System.out.println("Consulta returns empty");
 				}
-				
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				
 			}else if(opt.equals("4")){
 				//System.out.println("Validando PO's");
@@ -295,6 +301,8 @@ public class POControl_Servlet extends HttpServlet {
 					
 					conn.Alterar("update po_table set validada='Y',dt_validada='"+time+"' where po_number='"+param1+"'");
 				}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("5")){
 				
                 //System.out.println("Carregando PO de Subcon");
@@ -346,6 +354,8 @@ public class POControl_Servlet extends HttpServlet {
 					}else{
 						//System.out.println("Consulta returns empty");
 					}
+					Timestamp time2 = new Timestamp(System.currentTimeMillis());
+					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}else if(opt.equals("6")){
 					
 	                //System.out.println("Carregando tabela de Projetos");
@@ -397,6 +407,8 @@ public class POControl_Servlet extends HttpServlet {
 						}else{
 							//System.out.println("Consulta returns empty");
 						}
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("7")){
 						
 		                System.out.println("Cadastrando Projeto...");
@@ -428,7 +440,8 @@ public class POControl_Servlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print(last_id);
 						//System.out.println("Resposta Consulta 3 Enviada!");
-							
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("8")){
 							
 			                System.out.println("Carregando tabela de Clientes");
@@ -472,6 +485,8 @@ public class POControl_Servlet extends HttpServlet {
 								}else{
 									//System.out.println("Consulta returns empty");
 								}
+								Timestamp time2 = new Timestamp(System.currentTimeMillis());
+								System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("9")){
 							System.out.println("Cadastrando Cliente...");
 			                param1=req.getParameter("nomeCompleto");
@@ -499,7 +514,8 @@ public class POControl_Servlet extends HttpServlet {
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print(last_id);
-							
+							Timestamp time2 = new Timestamp(System.currentTimeMillis());
+							System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 							
 						}else if(opt.equals("10")){
 						param1=req.getParameter("cliente");	
@@ -519,7 +535,8 @@ public class POControl_Servlet extends HttpServlet {
 			    		resp.setCharacterEncoding("UTF-8"); 
 			    		PrintWriter out = resp.getWriter();
 			    		out.print(dados_tabela);
-							
+			    		Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 							
 						}else if(opt.equals("11")){
 							
@@ -539,7 +556,8 @@ public class POControl_Servlet extends HttpServlet {
 			    		resp.setCharacterEncoding("UTF-8"); 
 			    		PrintWriter out = resp.getWriter();
 			    		out.print(dados_tabela);
-							
+			    		Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 							
 						}else if(opt.equals("12")){
 							System.out.println("função migrada para o rollout servlet opt 12");
@@ -602,7 +620,8 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(retorno);
-						
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						
 					}else if(opt.equals("15")){
 						//System.out.println("Ordenando Campos...");
@@ -628,7 +647,8 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print("Ordem de campos atualizada!");
-						
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						
 					}else if(opt.equals("16")){
 						System.out.println("movido para o servlet de rollout");
@@ -662,6 +682,8 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print("Campos Removidos");
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("18")){
 						if(p.get_PessoaPerfil_nome().equals("tecnico")) {
 							query="Select usuarios.* from usuarios where  usuarios.ativo='Y' and usuarios.id_usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresa().getEmpresa_id()+"'";
@@ -671,7 +693,7 @@ public class POControl_Servlet extends HttpServlet {
 						rs=conn.Consulta(query);
 						if(rs.next()){
 							
-							dados_tabela="<table id=\"tabela_usuario\" data-use-row-attr-func=\"true\" data-toolbar=\"#toolbar_tabela_usuario\" data-reorderable-rows=\"true\" data-show-refresh=\"true\" data-toggle=\"table\"  data-filter-control=\"true\" data-click-to-select=\"true\" data-pagination=\"true\" data-page-size=\"20\" data-search=\"true\">" +"\n";
+							dados_tabela="<table id=\"tabela_usuario\" data-use-row-attr-func=\"true\" data-toolbar=\"#toolbar_tabela_usuario\" data-reorderable-rows=\"true\" data-show-refresh=\"true\" data-toggle=\"table\"  data-filter-control=\"true\" data-click-to-select=\"true\" data-pagination=\"true\" data-page-size=\"10\" data-search=\"true\">" +"\n";
 							dados_tabela=dados_tabela + "<thead>"+"\n";
 							dados_tabela=dados_tabela +"<tr>"+"\n";
 							dados_tabela=dados_tabela +" <th data-checkbox=\"true\"></th>"+"\n";
@@ -698,16 +720,15 @@ public class POControl_Servlet extends HttpServlet {
 							}
 							dados_tabela=dados_tabela + "</tbody>";
 							dados_tabela=dados_tabela + "</table>";
-							//System.out.println(dados_tabela);
+							
 							resp.setContentType("application/html");  
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
-							//System.out.println("Resposta Consulta 3 Enviada!");
-						}else{
-							//System.out.println("Consulta returns empty");
+							
 						}
-						
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						
 					}else if(opt.equals("19")){
 						System.out.println("Função Migrada para Servlet de usuário opt 26");
@@ -754,7 +775,8 @@ public class POControl_Servlet extends HttpServlet {
 				    		resp.setCharacterEncoding("UTF-8"); 
 				    		PrintWriter out = resp.getWriter();
 				    		out.print(mensagem_retorno);
-		    			
+				    		Timestamp time2 = new Timestamp(System.currentTimeMillis());
+							System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		    		}else if(opt.equals("21")){
 		    			String charts="";
 		    			System.out.println("Carregando Portal...");
@@ -772,10 +794,11 @@ public class POControl_Servlet extends HttpServlet {
 				    	resp.setCharacterEncoding("UTF-8"); 
 				    	PrintWriter out = resp.getWriter();
 				    	out.print(charts);
-		    			
+				    	Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		    		}else if(opt.equals("22")){
 		    			
-		    		System.out.println("Salvando Portal...");
+		    		//System.out.println("Salvando Portal...");
 		    			param1=req.getParameter("portal");
 		    			query="select user_portal from portal_user where id_usuario='"+session.getAttribute("user")+"'";
 		    			rs=conn.Consulta(query);
@@ -786,7 +809,8 @@ public class POControl_Servlet extends HttpServlet {
 		    				query="insert into portal_user (id_usuario,user_portal) values('"+session.getAttribute("user")+"','"+param1+"')";
 		    				conn.Inserir_simples(query);
 		    			}
-		    			
+		    			Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		    			
 		    		}else if(opt.equals("23")){
 		    			
@@ -860,6 +884,8 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		    		}else if(opt.equals("24")){
 		    			System.out.println("funcao migrada para rollout servlet opt 24");
 		    		}else if(opt.equals("99")){
@@ -867,7 +893,8 @@ public class POControl_Servlet extends HttpServlet {
 		    			conn.fecharConexao();
 		    			session.removeAttribute("user");
 		    			session.invalidate();
-		    			session = null;
+		    			Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		    			
 		    		}else if(opt.equals("25")){
 		    			//System.out.println("saindo do Servlet");
@@ -888,7 +915,8 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print("OK");
-		    			
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		    		}else if(opt.equals("26")){
 						//System.out.println("Editando CampPO's");
 						param1=req.getParameter("campos");
@@ -920,8 +948,10 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("27")){
-						System.out.println("carregando ajuda....");
+						//System.out.println("carregando ajuda....");
 						//param1=req.getParameter("campos");
 						//System.out.println(param1);
 						dados_tabela="";
@@ -941,9 +971,11 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("28")){
 						int linha_id=0;
-						System.out.println("linkando po no rollout ....");
+						//System.out.println("linkando po no rollout ....");
 						//param1=req.getParameter("campos");
 						//System.out.println(param1);
 						query="select distinct recid from rollout order by recid desc limit 1";
@@ -991,9 +1023,11 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print("Dados Sincronizados!");
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("29")){
 						String Classe="";
-						System.out.println("Carregando Faturamento ....");
+						//System.out.println("Carregando Faturamento ....");
 						param1=req.getParameter("conta");
 						param2=req.getParameter("projeto");
 						//System.out.println(param1);
@@ -1064,9 +1098,11 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("30")){
 						
-						System.out.println("Carregando Milestones para o faturamento ....");
+						//System.out.println("Carregando Milestones para o faturamento ....");
 						dados_tabela="";
 						query="select * from rollout_campos where field_type='Milestone'";
 		    			rs=conn.Consulta(query);
@@ -1083,6 +1119,8 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("31")){
 		    			int aux_id,j,i=0;
 		    			int aux_id_qtd=0;
@@ -1133,8 +1171,10 @@ public class POControl_Servlet extends HttpServlet {
 		    				}
 		    				//System.out.println(fluxo.getJSONObject(i).getString("milestone"));
 		    			}
+		    			Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("32")){
-						System.out.println("Sincronizando tabela de faturamento...");
+						//System.out.println("Sincronizando tabela de faturamento...");
 						query="select * from faturamento where milestones_trigger<>'0' and status_faturamento='Aguardando Execução'";
 						rs=conn.Consulta(query);
 						if(rs.next()){
@@ -1157,6 +1197,8 @@ public class POControl_Servlet extends HttpServlet {
 								}
 							}
 						}
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("33")){
 						query="";
 						query="select * from perfil_funcoes where usuario_id='"+p.get_PessoaUsuario()+"' and ativo='Y'";
@@ -1198,6 +1240,8 @@ public class POControl_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("[\"perfil nao definido\"]");
 						}
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("34")){
 						param1=req.getParameter("titulo");
 						param2=req.getParameter("mensagem");
@@ -1215,17 +1259,22 @@ public class POControl_Servlet extends HttpServlet {
 								conn.Inserir_simples("insert into updates_message (id_message,usuario,titulo,message,messagem_lida,dt_message) values("+id_message+",'"+rs.getString(1)+"','"+param1+"','"+param2+"','N','"+time+"')");
 							}
 						}
-								
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("35")){
 						query="update empresas set modulo='Módulo de controle Usuarios',assinado='Y',dt_termo_aceite='"+time+"',valor='R$326,00' where id_empresa="+p.getEmpresa().getEmpresa_id();
 						if(conn.Update_simples(query)) {
 							
 						}
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("36")){
 						query="update empresas set modulo='Módulo de controle Usuarios',assinado='Cancelado',dt_termo_aceite='"+time+"',valor='R$326,00' where id_empresa="+p.getEmpresa().getEmpresa_id();
 						if(conn.Update_simples(query)) {
 							
 						}
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("37")){
 						query="select * from modulo_mstp where empresa="+p.getEmpresa().getEmpresa_id();
 						rs=conn.Consulta(query);
@@ -1290,6 +1339,8 @@ public class POControl_Servlet extends HttpServlet {
 								PrintWriter out = resp.getWriter();
 								out.print(dados_tabela);
 							}
+							Timestamp time2 = new Timestamp(System.currentTimeMillis());
+							System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("38")) {
 						int contador=0;
 						String progress_bar="";
@@ -1325,6 +1376,8 @@ public class POControl_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
 						}
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("39")) {
 						if(conn.Alterar("update modulo_mstp set termo_aceite='Y',dt_termo_aceite='"+time+"' where empresa="+p.getEmpresa().getEmpresa_id())) {
 							resp.setContentType("application/json");  
@@ -1337,6 +1390,8 @@ public class POControl_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("Erro na aceitação do Termo");
 						}
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}
 				
 				} catch (SQLException e) {

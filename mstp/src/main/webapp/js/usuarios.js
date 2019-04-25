@@ -184,6 +184,7 @@ function carrega_usuarios(){
 		});
 	function onSuccess18(data)
 	{
+		$('#jqxtabs_usuario').jqxTabs({height:800,theme: 'light'});
 		$("#div_tabela_usuario").html("<div id=\"toolbar_tabela_usuario\" role=\"toolbar\" class=\"btn-toolbar\">"+
         		
     			"<button type=\"button\" class=\"btn btn-info\" data-toggle=\"modal\" data-target=\"#modal_user_add\">Novo Usuário</button>"+

@@ -32,7 +32,7 @@ $(document).ready(function () {
                         break;
                 }
             }
-            $('#jqxtabs').jqxTabs({height:800,theme: 'light',initTabContent: initWidgets});
+            $('#jqxtabs').jqxTabs({height:800,theme: 'light'});
             $('#jqxtabs').on('selected', function (event) {
             	//console.log(event);
                 if(event.args.item==1){

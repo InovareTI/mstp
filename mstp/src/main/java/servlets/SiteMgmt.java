@@ -16,6 +16,7 @@ import java.util.Date;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -125,7 +126,7 @@ public class SiteMgmt extends HttpServlet {
 			param9="";
 			last_id=0;
 			opt=req.getParameter("opt");
-			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Sites opt - "+ opt);
+			//System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Sites opt - "+ opt);
 			//System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações de Sites do MSTP Web - "+f3.format(time)+" opt:"+opt);
 			try {
 			if(opt.equals("1")){
@@ -163,6 +164,8 @@ public class SiteMgmt extends HttpServlet {
 				}
 				//System.out.println(param1+"\n"+param2+"\n"+param3+"\n"+param4+"\n"+param5+"\n"+param6+"\n"+param7+"\n"+param8+"\n"+param9);
 				c.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("2")) {
 				//Enumeration<String> nomes=req.getParameterNames();
 				//while(nomes.hasMoreElements()) {
@@ -322,7 +325,8 @@ public class SiteMgmt extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				out.print(dados_tabela);
 				c.fecharConexao();
-			
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("3")) {
 				System.out.println("Carregando sites no mapa");
 				//Essa função ainda precisa ser adaptada para excuir folgas, pontos ajustados,férias e licença Médica
@@ -422,6 +426,8 @@ public class SiteMgmt extends HttpServlet {
 					out.print(dados_tabela);
 				
 				c.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("4")) {
 				
 				param1=req.getParameter("site");
@@ -432,6 +438,8 @@ public class SiteMgmt extends HttpServlet {
 					out.print("Site Desabilitado com Sucesso!");
 				}
 				c.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("5")) {
 				int tot_linha=0;
 				//query="RESET QUERY CACHE";
@@ -532,6 +540,8 @@ public class SiteMgmt extends HttpServlet {
 					}
 				}
 				c.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("6")) {
 				
 				param1=req.getParameter("sites");
@@ -543,6 +553,8 @@ public class SiteMgmt extends HttpServlet {
 					out.print("Sites Desabilitados com Sucesso!");
 				}
 				c.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("7")){
 				System.out.println("carregando sites novos para aprovação");
 				query="";
@@ -565,6 +577,8 @@ public class SiteMgmt extends HttpServlet {
 					out.print(dados_tabela);
 				}
 				c.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("8")){
 				param1=req.getParameter("id");
 				query="update site_aprova set aprovado='Y',dt_aprovado='"+f3.format(time)+"' where sysid="+param1;
@@ -589,6 +603,8 @@ public class SiteMgmt extends HttpServlet {
 					
 				}
 				c.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("9")){
 				param1=req.getParameter("id");
 				query="update site_aprova set aprovado='R',dt_aprovado='"+f3.format(time)+"' where sysid="+param1;
@@ -599,6 +615,8 @@ public class SiteMgmt extends HttpServlet {
 					out.print("Solicitação rejeitada com sucesso");
 				}
 				c.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("10")) {
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" carregando sites e usuários mapa operacional");
 		
@@ -627,7 +645,7 @@ public class SiteMgmt extends HttpServlet {
 					document_featurecollection.clear();
 					//System.out.println(document_operadora.toString());
 				});
-				Bson filtro=Filters.gte("GEO.properties.Data", checa_formato_data(f2.format(time).toString()));
+				Bson filtro=Filters.gte("GEO.properties.Data", ChecaFormatoData(f2.format(time).toString()));
 				List<Bson> usuarios_logados_filtros= new ArrayList<Bson>();
 				usuarios_logados_filtros.add(filtro);
 				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
@@ -642,7 +660,7 @@ public class SiteMgmt extends HttpServlet {
 					usuarios_logados_filtros= new ArrayList<Bson>();
 					filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
 					usuarios_logados_filtros.add(filtro);
-					filtro=Filters.gte("GEO.properties.Data", checa_formato_data(f2.format(time).toString()));
+					filtro=Filters.gte("GEO.properties.Data", ChecaFormatoData(f2.format(time).toString()));
 					usuarios_logados_filtros.add(filtro);
 					filtro=Filters.eq("GEO.properties.Usuario",logins.get(indice));
 					usuarios_logados_filtros.add(filtro);
@@ -779,24 +797,35 @@ public class SiteMgmt extends HttpServlet {
 					out.print(resultado);
 					System.out.println("Todos os Sites Carregados");
 					c.fecharConexao();
+					Timestamp time2 = new Timestamp(System.currentTimeMillis());
+					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("11")) {
+				
 				param1=req.getParameter("operadora");
-				System.out.println("Iniciando export de Sites da Operadora - " + param1);
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" iniciando export de sites operadora - "+ param1);
 				XSSFWorkbook workbook = new XSSFWorkbook();
 				XSSFSheet sheet = workbook.createSheet("SitesMSTP");
 				Row row;
 				long rowIndex=0;
 				int colIndex=0;
-				int contador=1;
-				int total_colunas;
 				Cell cell;
-				query="Select sys_id,site_id,site_latitude,site_longitude,site_municipio,site_bairro,site_uf,site_nome,site_sequencial,site_operadora,site_cep,site_owner from sites where site_ativo='Y' and site_operadora='"+param1+"' and empresa="+p.getEmpresa().getEmpresa_id()+" order by sys_id asc";
+				Bson filtro;
+				Document site ;
+				List<Bson> filtros = new ArrayList<>();
+				filtro = Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				filtros.add(filtro);
+				filtro = Filters.eq("site_operadora",param1);
+				filtros.add(filtro);
+				FindIterable<Document> findIterable = c.ConsultaCollectioncomFiltrosLista("sites", filtros);
+				MongoCursor<Document> resultado=findIterable.iterator();
+				
+				//query="Select sys_id,site_id,site_latitude,site_longitude,site_municipio,site_bairro,site_uf,site_nome,site_sequencial,site_operadora,site_cep,site_owner from sites where site_ativo='Y' and site_operadora='"+param1+"' and empresa="+p.getEmpresa().getEmpresa_id()+" order by sys_id asc";
 				//System.out.println(query);
-				rs=conn.Consulta(query);
-				if(rs.next()) {
+				//rs=conn.Consulta(query);
+				if(resultado.hasNext()) {
 					rowIndex=1;
 	            	row = sheet.createRow((short) rowIndex);
-	            	total_colunas=rs.getMetaData().getColumnCount();
+	            	//total_colunas=rs.getMetaData().getColumnCount();
 	            	XSSFCellStyle cellStyle = workbook.createCellStyle();
             	
                 cellStyle.setAlignment(HorizontalAlignment.CENTER);
@@ -825,33 +854,331 @@ public class SiteMgmt extends HttpServlet {
                 cellStyle2.setRightBorderColor(IndexedColors.BLACK.getIndex());
                 cellStyle2.setBorderTop(BorderStyle.THIN);
                 cellStyle2.setTopBorderColor(IndexedColors.BLACK.getIndex());
-                while(contador<total_colunas) {
-	                cell = row.createCell((short) colIndex);
-	                cell.setCellValue(rs.getMetaData().getColumnLabel(contador));
-	                sheet.autoSizeColumn(colIndex);
-	                cell.setCellStyle(cellStyle);
-	                colIndex=colIndex+1;
-	                contador=contador+1;
-                }
-                rs.beforeFirst();
-                while(rs.next()) {
+               
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("MSTP ID");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+                cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Sequencial");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("UF");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Sigla");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Nome");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Endereço");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Cep");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Latitude");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Longitude");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Altitude");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Area Total");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Area de Tarifacao");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Municipio");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Regiao Operacional");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Bairro");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Tipo de Contrato");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("inicio Operacao");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Proprietario");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Tipo de Construcao");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Tipo de Estrutura");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Link web");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Operadora");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Site Modelo");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	            
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Antena");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Observação 1");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	            colIndex=colIndex+1;
+	           
+	            cell = row.createCell((short) colIndex);
+	            cell.setCellValue("Observação 2");
+	            sheet.autoSizeColumn(colIndex);
+	            cell.setCellStyle(cellStyle);
+	           
+	           
+	            System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" cabeçalho de arquivo criado export de sites operadora - "+ param1);
+	        while(resultado.hasNext()) {
+	        		site = resultado.next();
                 	rowIndex=rowIndex+1;
 	            	row = sheet.createRow((int)rowIndex);
-	            	//System.out.println("linha:"+rowIndex);
-	            	contador=1;
+	            	
+	            	
 	            	colIndex=0;
-	            	for(contador=1;contador<total_colunas;contador++) {
-	            		//System.out.println("coluna:"+contador);
-	            		cell = row.createCell((short) colIndex);
-	                    cell.setCellValue(rs.getString(contador));
-	                    //sheet.autoSizeColumn(colIndex);
-	                    cell.setCellStyle(cellStyle2);
-	                    colIndex=colIndex+1;
-	                    
-	            	}
+	            	cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getObjectId("_id").toString());
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		            
+	               
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_sequencial"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_uf"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_id"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_nome"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_endereco"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_cep"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_latitude"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_longitude"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_altitude"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_Area_Total"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_area_tarifacao"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_municipio"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_reg_operacional"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_bairro"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_tipo_contrato"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_init_oper"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_owner"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_tipo_construcao"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_tipo_estrutura"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_link"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_operadora"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_modelo"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_antena"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		           
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_obs1"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            colIndex=colIndex+1;
+		            
+		            cell = row.createCell((short) colIndex);
+		            cell.setCellValue(site.getString("site_obs2"));
+		            sheet.autoSizeColumn(colIndex);
+		            cell.setCellStyle(cellStyle2);
+		            
+		           
                 }
-                
-				System.out.println("Arquivo Exportde Sites Criado & finalizado");
+	            System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Arquivo Exporte Sites Criado & finalizado Operadora - "+ param1);
+
             	resp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
                 resp.setHeader("Content-Disposition", "attachment; filename=sites_mstp.xlsx");
                 workbook.write(resp.getOutputStream());
@@ -864,15 +1191,21 @@ public class SiteMgmt extends HttpServlet {
 					out.print("Sites não disponivel para download");
 				}
 				c.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("12")) {
-				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" iniciando ajustes de coordenadas" );
+				
 				String lat="";
 				String lng ="";
 				Document site = new Document();
 				Document filtro_site = new Document();
+				Document update = new Document();
+				Document comando = new Document();
 				param1=req.getParameter("filtros");
 				param2 =req.getParameter("operadora");
-				List<Bson> filtro_list = new ArrayList<Bson>();
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" iniciando ajustes de coordenadas - " + param1);
+				List<Bson> filtro_list = new ArrayList<>();
+				List<Double> coordenadas = new ArrayList<>();
 				Bson filtrodoc;
 				JSONObject jObj = new JSONObject(param1);
 				JSONArray filtros = jObj.getJSONArray("filtros");
@@ -894,7 +1227,12 @@ public class SiteMgmt extends HttpServlet {
 	    				filtro_site.append("site_id", filtros.get(i).toString());
 	    				filtro_site.append("Empresa", p.getEmpresa().getEmpresa_id());
 	    				filtro_site.append("site_operadora", param2);
-	    				
+	    				update.append("site_latitude", lng);
+	    				update.append("site_longitude", lat);
+	    				coordenadas=verfica_coordenadas(lng, lat);
+	    				update.append("GEO.geometry.coordinates", coordenadas);
+	    				comando.append("$set", update);
+	    				c.AtualizaUm("sites", filtro_site, comando);
 	        		}
 	        		filtro_list.remove(filtro_list.size()-1);
 				}
@@ -904,8 +1242,7 @@ public class SiteMgmt extends HttpServlet {
 				//ConexaoMongo c = new ConexaoMongo();
 				//Document document = new Document();
 				
-				Document update = new Document();
-				Document comando = new Document();
+				/*
 				
 				//Document geometry = new Document();
 				//Document properties = new Document();
@@ -939,29 +1276,31 @@ public class SiteMgmt extends HttpServlet {
 					
 				}
 				
-				
+				*/
     			System.out.println("Sicronia com Mongo Finalizada");
 				resp.setContentType("application/html");  
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print("Sincronização Completa");
 				c.fecharConexao();
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("13")) {
-				System.out.println("Buscando ultimo registro de usuário");
+				System.out.println("Buscando ultimo registro de usuários");
 				param1=req.getParameter("usuario");
 				Bson filtro;
-				Document localizacao = new Document();
-				List<Bson>lista_filtro=new ArrayList<Bson>();
+				Document localizacao ;
+				List<Bson>lista_filtro=new ArrayList<>();
 				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
 				lista_filtro.add(filtro);
 				filtro=Filters.eq("GEO.properties.Usuario",param1);
 				lista_filtro.add(filtro);
-				//ConexaoMongo c = new ConexaoMongo();
+				
 				FindIterable<Document> findIterable=c.ConsultaOrdenadaFiltroListaLimit1("Localiza_Usuarios", "GEO.properties.Data", -1, lista_filtro);
 				MongoCursor<Document> resultado=findIterable.iterator();
 				if(resultado.hasNext()) {
 					localizacao=resultado.next();
-					//System.out.println(localizacao.get("GEO.geometry.coordinates").toString());
+					
 					resp.setContentType("application/json");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
@@ -973,7 +1312,8 @@ public class SiteMgmt extends HttpServlet {
 					out.print("");
 				}
 				
-				
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}
 			}catch (SQLException e) {
 			    
@@ -982,18 +1322,18 @@ public class SiteMgmt extends HttpServlet {
 				e.printStackTrace();
 			} 
 	 }
-	 public Date checa_formato_data(String data) {
+	 public Date ChecaFormatoData(String data) {
 			try {
 				SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
-				Date d1=format.parse(data);
-				return d1;
+				return format.parse(data);
+				
 			}catch (ParseException e) {
-				//System.out.println(data + " - Data inválida");
+				
 				return null;
 				
 			} 
 		}
-	 public List<Double> verfica_coordenadas(String lng,String lat) {
+	 public List<Double> verfica_coordenadas(String lat,String lng) {
 	 try {
 		 Double f_lat=Double.parseDouble(lat.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
 		 Double f_lng=Double.parseDouble(lng.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());

@@ -1412,7 +1412,21 @@ response.setDateHeader ("Expires", -1);
     						      <li><a class="dropdown-item" href="#" data-toggle="modal" data-target="#modal_carrega_sites">Adicionar novos Sites</a></li>
     						      <li><a class="dropdown-item" href="#">Atualizar informações existentes (Em Desenvolvimento)</a></li>
     					    </ul>
+    					     
     					  </div>
+    					  <div class="btn-group" role="group">
+    						    <button id="btnGroupDropExport" type="button" class="btn btn-primary"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    							     Exportar
+    						     <span class="caret"></span> 
+    						    </button>
+	    					 <ul class="dropdown-menu" aria-labelledby="btnGroupDropExport">
+	  								<li><a class="dropdown-item" href="#" onclick="exportarTodosSites('VIVO')">VIVO</a></li>
+	  								<li><a class="dropdown-item" href="#" onclick="exportarTodosSites('NEXTEL')">NEXTEL</a></li>
+	  								<li><a class="dropdown-item" href="#" onclick="exportarTodosSites('CLARO')">CLARO</a></li>
+	  								<li><a class="dropdown-item" href="#" onclick="exportarTodosSites('OI')">OI</a></li>
+	  								<li><a class="dropdown-item" href="#" onclick="exportarTodosSites('TIM')">TIM</a></li>
+	  						  	</ul>
+  						  	 </div>
     					  <a id="template_importar_site" href="templates/templateSiteImportacao.xlsx" type="button" class="btn btn-primary">Template(importação)</a>
 			        			<button id="btn_buscar_sites"  class="btn btn-primary">Buscar</button>
 			        			<input id="btn_inverter_coordenadas" type="button" class="btn btn-primary" onclick="inverter_coordenadas()" value="Ajustar Coordenadas">
@@ -1433,7 +1447,16 @@ response.setDateHeader ("Expires", -1);
 	        			
         		</div><!-- /tabela_Sites -->
         		<div class="janelas" id="usuarios" style="display:none">
-        			<div id="div_tabela_usuario"></div>
+        			<div id='jqxtabs_usuario'>
+						<ul style='margin-left: 20px;'>
+				            <li>Usuários</li>
+				            <li>Grupos</li>
+	        			</ul>
+	        			<div>
+        					<div id="div_tabela_usuario"></div>
+        				</div>
+        				<div><div id="div_tabela_usuario_grupo"></div></div>
+        			</div>
         		</div>
         		<div class="janelas" id="campos_rollout" style="display:none;">
 				<div id="div_tabela_campos_rollout"></div>

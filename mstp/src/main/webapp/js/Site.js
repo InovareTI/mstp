@@ -1,5 +1,6 @@
 function inverter_coordenadas(){
 	var operadora =  $('#select_operadora_site').val();
+	var valor;
 	if(operadora==''){
 		$.alert("Selecione uma Operadora");
 		return;
@@ -7,7 +8,10 @@ function inverter_coordenadas(){
 	var rowindexes = $('#tabela_detalhe_sites').jqxGrid('getselectedrowindexes');
 	filtros={"filtros":[]};
 	for(var v=0;v<rowindexes.length;v++){
-			filtros.filtros.push($('#tabela_detalhe_sites').jqxGrid('getrowid', rowindexes[v]));
+		    valor=$('#tabela_detalhe_sites').jqxGrid('getrowid', rowindexes[v]);
+		    if(valor!=null && valor!=""){
+		    	filtros.filtros.push(valor);
+		    }
 		}
 	var timestamp =Date.now();
 	$.ajax({
@@ -332,9 +336,9 @@ function atualiza_flag(){
 }
 function exportarTodosSites(Operadora){
 	var timestamp = Date.now();	
-	$('#btnGroupDrop2').addClass( "disabled" );
-	$('#btnGroupDrop2').text('Aguarde a Finalização...');
-	$('#btnGroupDrop2').prop('disabled', true);
+	$('#btnGroupDropExport').addClass( "disabled" );
+	$('#btnGroupDropExport').text('Aguarde a Finalização...');
+	$('#btnGroupDropExport').prop('disabled', true);
 	 $.ajax({
 	        url: './SiteMgmt?opt=11',
 	        method: 'GET',
@@ -350,9 +354,9 @@ function exportarTodosSites(Operadora){
 	            a.download = Operadora+'_SitesMSTP_'+timestamp+'.xlsx';
 	            a.click();
 	            window.URL.revokeObjectURL(url);
-	            $('#btnGroupDrop2').removeClass( "disabled" );
-	    		$('#btnGroupDrop2').prop('disabled', false);
-	    		$('#btnGroupDrop2').text('Exportar');
+	            $('#btnGroupDropExport').removeClass( "disabled" );
+	    		$('#btnGroupDropExport').prop('disabled', false);
+	    		$('#btnGroupDropExport').text('Exportar');
 	    	
 	        }
 	    });

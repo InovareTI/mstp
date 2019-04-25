@@ -7,6 +7,8 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -68,16 +70,18 @@ public class Lg_erp extends HttpServlet {
 	
 public void run_login(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
-		Conexao con = new Conexao();
 		
-		//System.out.println("conexao com bd ok");
-		//ConexaoMongo c = new ConexaoMongo();
-       
-        MessageDigest md;
-        ResultSet rs ;
-        
+	     Conexao con = new Conexao();
         //System.out.println("Servlet de Login.");
 		try {
+			
+			Timestamp time = new Timestamp(System.currentTimeMillis());
+			DateFormat f3 = DateFormat.getDateTimeInstance();
+			//System.out.println("conexao com bd ok");
+			//ConexaoMongo c = new ConexaoMongo();
+	       
+	        MessageDigest md;
+	        ResultSet rs ;
 			HttpSession session = req.getSession(true);
 				md = MessageDigest.getInstance( "SHA-256" );
 				md.update( req.getParameter("pwd").getBytes());     
@@ -122,12 +126,15 @@ public void run_login(HttpServletRequest req, HttpServletResponse resp) throws S
                 //session.setAttribute("user_equipe",rs.getString("id_equipe"));
                 //session.setAttribute("user_empresa",rs.getString("id_empresa"));
                 session.setAttribute("nome_empresa",p.getEmpresa().getNome_fantasia());
-                Timestamp time = new Timestamp(System.currentTimeMillis());
+                
                 //System.out.println("minha empresa");
                 con.Update_simples("UPDATE usuarios SET ultimo_acesso='"+time+"' WHERE (id_usuario='"+req.getParameter("user")+"' or email='"+req.getParameter("user")+"')");
-                System.out.println(req.getParameter("user")+" Usuário validado e logado");
+                Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Usuário validado e logado - tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+                //System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Usuário validado e logado");
+                //System.out.println(req.getParameter("user")+" Usuário validado e logado");
                 rs.close();
-                rs=null;
+               
                resp.sendRedirect("./main.jsp");
         	}
 	        

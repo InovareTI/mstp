@@ -416,6 +416,6 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 	}
 	public void fecharConexao() {
 		 this.mongoClient.close();
-		 System.out.println("Conexão encerrada com sucesso");
+		 //System.out.println("Conexão encerrada com sucesso");
 	}
 }
