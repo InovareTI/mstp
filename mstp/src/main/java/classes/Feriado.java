@@ -6,18 +6,33 @@ import java.sql.SQLException;
 public class Feriado {
 	private String data;
 	private String nome;
+	private String estado;
 	
 	public Feriado() {
 		data="";
 		nome="";
+		estado="";
 	}
 	
-	public Boolean verifica_feriado(String data, Conexao c,Pessoa p) {
+	public Boolean verifica_feriado(String data,String estado_usuario, Conexao c,int empresa) {
 		ResultSet rs;
-		rs=c.Consulta("select * from feriados where dt_inicio='"+data+"' and empresa="+p.getEmpresa().getEmpresa_id());
+		rs=c.Consulta("select * from feriados where dt_inicio='"+data+"' and empresa="+empresa);
 		try {
 			if(rs.next()) {
-				return true;
+				if(rs.getString("nacional").equals("Y")) {
+					return true;
+				}else {
+					rs.beforeFirst();
+					//System.out.println("iniciando pesquisa para estado "+ estado_usuario + " na data "+data);
+					while(rs.next()) {
+						if(rs.getString("estado").equals(estado_usuario)) {
+							return true;
+						}
+					}
+					return false;
+				}
+				
+				
 			}else {
 				return false;
 			}

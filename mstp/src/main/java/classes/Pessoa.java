@@ -38,6 +38,25 @@ public class Pessoa {
 		matricula="";
 	}
 	
+	public String getEstadoUsuario(String usuarioPesquisado,Conexao c) {
+		String query;
+		ResultSet rs;
+		query="select estado from usuarios where id_usuario='"+usuarioPesquisado+"' and ativo='Y' and empresa='"+getEmpresa().getEmpresa_id()+"'";
+		rs=c.Consulta(query);
+		try {
+			if(rs.next()) {
+				//System.out.println(rs.getString("estado"));
+				return rs.getString("estado");
+			}else {
+				return "";
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return "";
+		}
+	}
+	
 	public String getPonto_registro(Conexao c,String Usuario) {
 		String query;
 		ResultSet rs;

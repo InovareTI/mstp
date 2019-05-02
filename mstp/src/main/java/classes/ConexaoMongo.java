@@ -24,6 +24,7 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.InsertManyOptions;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.UpdateResult;
@@ -79,6 +80,10 @@ public boolean InserirMuitos(String Collection,List<Document> document_list) {
 		}
 		
 	}
+public void criar2dsphereindex(){
+	db.getCollection("sites").createIndex(Indexes.geo2dsphere("GEO.geometry"));
+	
+}
 	public FindIterable<Document> ConsultaSimplesSemFiltro(String Collection){
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(new Document());
 		return findIterable;

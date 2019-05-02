@@ -158,7 +158,7 @@ public class UserMgmt extends HttpServlet {
 				Date dt_fim=format.parse(param4);
 				inicio.setTime(dt_inicio);
 				fim.setTime(dt_fim);
-				System.out.println("inicio:"+f2.format(inicio.getTime())+" fim: "+f2.format(fim.getTime()));
+				//System.out.println("inicio:"+f2.format(inicio.getTime())+" fim: "+f2.format(fim.getTime()));
 				String local;
 				String encontrado="n";
 				String tipo_registro="Normal";
@@ -201,7 +201,7 @@ public class UserMgmt extends HttpServlet {
 							}else if(d.get(Calendar.DAY_OF_WEEK)==7) {
 								tipo_registro="Sábado";
 								tipo_ajustar=" - ";
-							}else if(feriado.verifica_feriado(f2.format(d.getTime()), conn, p)) {
+							}else if(feriado.verifica_feriado(f2.format(d.getTime()),p.getEstadoUsuario(param1,conn), conn, p.getEmpresa().getEmpresa_id())) {
 								tipo_registro="Feriado";
 								tipo_ajustar=" - ";
 							}else {
@@ -291,9 +291,9 @@ public class UserMgmt extends HttpServlet {
 						if(!entrada.equals("") && !saida.equals("")) {
 							//System.out.println(entrada);
 							//System.out.println(rs.getString("data_dia"));
-							HH=calcula_hh(entrada,saida,feriado,conn,p);
+							HH=calcula_hh(entrada,saida,feriado,conn,p,param1);
 						}else if(!entrada.equals("") && saida.equals("")) {
-							HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p);
+							HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,param1);
 						}
 							}}}
 						}
@@ -322,7 +322,7 @@ public class UserMgmt extends HttpServlet {
 							}else if(d.get(Calendar.DAY_OF_WEEK)==7) {
 								tipo_registro="Sábado";
 								tipo_ajustar=" - ";
-							}else if(feriado.verifica_feriado(f2.format(d.getTime()), conn, p)) {
+							}else if(feriado.verifica_feriado(f2.format(d.getTime()),p.getEstadoUsuario(param1,conn), conn, p.getEmpresa().getEmpresa_id())) {
 								tipo_registro="Feriado";
 								tipo_ajustar=" - ";
 							}else {
@@ -1125,7 +1125,7 @@ public class UserMgmt extends HttpServlet {
 						param4="";
 					}
 					if(!param3.equals("") && !param4.equals("")) {
-						HH_aux=calcula_hh(param3,param4,feriado,conn,p);
+						HH_aux=calcula_hh(param3,param4,feriado,conn,p,param2);
 						
 						if(Double.parseDouble(HH_aux[1])>0.0) {
 							if(HH_aux[3].equals("Sábado")){
@@ -1139,7 +1139,7 @@ public class UserMgmt extends HttpServlet {
 							}
 						}
 					}else if(!param3.equals("") && param4.equals("")) {
-						HH_aux=calcula_hh(param3,param3.substring(0, 10)+" 18:30:00",feriado,conn,p);
+						HH_aux=calcula_hh(param3,param3.substring(0, 10)+" 18:30:00",feriado,conn,p,param2);
 						if(HH_aux[3].equals("Sábado")){
 							total_horas_acumuladas_sabado=total_horas_acumuladas_sabado+Double.parseDouble(HH_aux[1]);
 						}else if(HH_aux[3].equals("Domingo")) {
@@ -1995,6 +1995,7 @@ public class UserMgmt extends HttpServlet {
 				fim.setTime(dt_fim);
 				System.out.println("inicio:"+f2.format(inicio.getTime())+" fim: "+f2.format(fim.getTime()));
 				String local;
+				Integer distancia=0;
 				String encontrado="n";
 				String tipo_registro="Normal";
 				String tipo_ajustar=" - ";
@@ -2062,7 +2063,7 @@ public class UserMgmt extends HttpServlet {
 							}else if(d.get(Calendar.DAY_OF_WEEK)==7) {
 								tipo_registro="Sábado";
 								tipo_ajustar=" - ";
-							}else if(feriado.verifica_feriado(f2.format(d.getTime()), conn, p)) {
+							}else if(feriado.verifica_feriado(f2.format(d.getTime()),p.getEstadoUsuario(aux_usuario,conn), conn, p.getEmpresa().getEmpresa_id())) {
 								tipo_registro="Feriado";
 								tipo_ajustar=" - ";
 							}else {
@@ -2081,7 +2082,7 @@ public class UserMgmt extends HttpServlet {
 							}else if(d.get(Calendar.DAY_OF_WEEK)==7) {
 								tipo_registro="Sábado";
 								tipo_ajustar=" - ";
-							}else if(feriado.verifica_feriado(f2.format(d.getTime()), conn, p)) {
+							}else if(feriado.verifica_feriado(f2.format(d.getTime()),p.getEstadoUsuario(aux_usuario, conn),conn, p.getEmpresa().getEmpresa_id())) {
 								tipo_registro="Feriado";
 								tipo_ajustar=" - ";
 							}else {
@@ -2113,6 +2114,7 @@ public class UserMgmt extends HttpServlet {
 						rs2=conn.Consulta(query);
 						if(rs2.next()) {
 							dados_tabela=dados_tabela + "\""+rs2.getString("datetime_mobile").substring(rs2.getString("datetime_mobile").indexOf("/",3)+5)+"\","+"\n";
+							distancia=rs2.getInt("distancia");
 							entrada=rs2.getString("datetime_servlet");
 							local=rs2.getString("tipo_local_registro");
 							if(local.equals("Site")) {
@@ -2121,6 +2123,7 @@ public class UserMgmt extends HttpServlet {
 						}else {
 							dados_tabela=dados_tabela + "\"\","+"\n";
 							tipo_registro="Anormal";
+							distancia=0;
 							entrada="";
 						}
 						query="SELECT * FROM registros where usuario='"+aux_usuario+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Inicio_intervalo' order by datetime_servlet desc limit 1";
@@ -2128,6 +2131,7 @@ public class UserMgmt extends HttpServlet {
 						if(rs2.next()) {
 							dados_tabela=dados_tabela + "\""+rs2.getString("datetime_mobile").substring(rs2.getString("datetime_mobile").indexOf("/",3)+5)+"\","+"\n";
 							local=rs2.getString("tipo_local_registro");
+							distancia=rs2.getInt("distancia");
 							if(local.equals("Site")) {
 								local=rs2.getString("site_operadora_registro")+"-"+rs2.getString("local_registro");
 							}
@@ -2140,6 +2144,7 @@ public class UserMgmt extends HttpServlet {
 						if(rs2.next()) {
 							dados_tabela=dados_tabela + "\""+rs2.getString("datetime_mobile").substring(rs2.getString("datetime_mobile").indexOf("/",3)+5)+"\","+"\n";
 							local=rs2.getString("tipo_local_registro");
+							distancia=rs2.getInt("distancia");
 							if(local.equals("Site")) {
 								local=rs2.getString("site_operadora_registro")+"-"+rs2.getString("local_registro");
 							}
@@ -2152,7 +2157,7 @@ public class UserMgmt extends HttpServlet {
 						if(rs2.next()) {
 							dados_tabela=dados_tabela + "\""+rs2.getString("datetime_mobile").substring(rs2.getString("datetime_mobile").indexOf("/",3)+5)+"\","+"\n";
 							saida=rs2.getString("datetime_servlet");
-							
+							distancia=rs2.getInt("distancia");
 							local=rs2.getString("tipo_local_registro");
 							if(local.equals("Site")) {
 								local=rs2.getString("site_operadora_registro")+"-"+rs2.getString("local_registro");
@@ -2165,23 +2170,16 @@ public class UserMgmt extends HttpServlet {
 						if(!entrada.equals("") && !saida.equals("")) {
 							//System.out.println(entrada);
 							//System.out.println(rs.getString("data_dia"));
-							HH=calcula_hh(entrada,saida,feriado,conn,p);
+							HH=calcula_hh(entrada,saida,feriado,conn,p,aux_usuario);
 						}else if(!entrada.equals("") && saida.equals("")) {
-							HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p);
+							HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,aux_usuario);
 						}
 							}}
 						}
 						dados_tabela=dados_tabela + "\""+local+"\","+"\n";
 						dados_tabela=dados_tabela + "\""+tipo_registro+"\","+"\n";
-						if(tipo_registro.equals("Anormal")) {
-							if(p.get_PessoaUsuario().equals(param1)) {
-							dados_tabela=dados_tabela + "\"<button class='btn btn-link' style='height:25px' data-toggle='modal' data-target='#modal_ajuste_ponto' data-dia='"+f2.format(d.getTime())+"'>Ajustar</button>\""+"\n";
-							}else {
-								dados_tabela=dados_tabela + "\" - \""+"\n";	
-							}
-						}else {
-							dados_tabela=dados_tabela + "\"OK\""+"\n";
-						}
+						dados_tabela=dados_tabela + "\""+distancia+"\""+"\n";
+						
 						
 						dados_tabela=dados_tabela + ",\""+HH[0]+":"+HH[1]+"\""+"\n";
 						dados_tabela=dados_tabela + "],"+"\n";
@@ -2196,7 +2194,7 @@ public class UserMgmt extends HttpServlet {
 							}else if(d.get(Calendar.DAY_OF_WEEK)==7) {
 								tipo_registro="Sábado";
 								tipo_ajustar=" - ";
-							}else if(feriado.verifica_feriado(f2.format(d.getTime()), conn, p)) {
+							}else if(feriado.verifica_feriado(f2.format(d.getTime()),p.getEstadoUsuario(aux_usuario, conn), conn, p.getEmpresa().getEmpresa_id())) {
 								tipo_registro="Feriado";
 								tipo_ajustar=" - ";
 							}else {
@@ -2639,7 +2637,7 @@ public class UserMgmt extends HttpServlet {
 					e.printStackTrace();
 				} 
 			}
-	public String[] calcula_hh(String entrada,String saida,Feriado f,Conexao c, Pessoa p) {
+	public String[] calcula_hh(String entrada,String saida,Feriado f,Conexao c, Pessoa p,String usuarioPesquisado) {
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Locale locale_ptBR = new Locale( "pt" , "BR" ); 
 		DateFormat f2 = DateFormat.getDateInstance(DateFormat.MEDIUM, locale_ptBR);
@@ -2667,7 +2665,7 @@ public class UserMgmt extends HttpServlet {
 			double horas_extras=0.0;
 			double horas_extras_noturnas=0.0;
 			if(hora_entrada.get(Calendar.DAY_OF_WEEK)!=1 && hora_entrada.get(Calendar.DAY_OF_WEEK)!=7) {
-				if(f.verifica_feriado(f2.format(hora_entrada.getTime()), c, p)) {
+				if(f.verifica_feriado(f2.format(hora_entrada.getTime()),p.getEstadoUsuario(usuarioPesquisado, c), c, p.getEmpresa().getEmpresa_id())) {
 
 					 
 					horas_extras=total_horas-1.2;
