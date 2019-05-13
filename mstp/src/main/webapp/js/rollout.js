@@ -238,11 +238,45 @@ function corrigerolloutspazio() {
 		$.alert("ajuste finalizado")
 	}
 }
-function carrega_tabela_campos_rollout() {
+function busca_rollouts(){
+	//alert("testando campos");
+	if(sessionStorage.getItem("rolloutsid")){
+		//alert("usando dados offline");
+		var aux=sessionStorage.getItem("rolloutsid_"+geral.empresa_id);
+			$('#select_rollout_campos').html(aux);
+			$('#select_rollout_campos').selectpicker();
+			$('#select_rollout_campos').selectpicker('refresh');
+	}else{
+		//alert("buscando rollouts no banco");
+		$.ajax({
+			  type: "POST",
+			  data: {"opt":"31"},		  
+			  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+			  url: "./RolloutServlet",
+			  cache: false,
+			  dataType: "text",
+			  success: atualiza_select_rollout
+			});
+		function atualiza_select_rollout(data){
+			//alert(data);
+			$('#select_rollout_campos').html(data);
+			$('#select_rollout_campos').selectpicker();
+			$('#select_rollout_campos').selectpicker('refresh');
+			sessionStorage.setItem("rolloutsid_"+geral.empresa_id, data);
+		}
+	}
+}
+function carrega_tabela_campos_rollout(rollout) {
+	
+	document.getElementById("rolloutid_campos_conf").value=rollout;
+	if(rollout==null || rollout==""){
+		rollout="Rollout1";
+		document.getElementById("rolloutid_campos_conf").value="Rollout1";
+	}
 	
 	$.ajax({
 		  type: "POST",
-		  data: {"opt":"2"},		  
+		  data: {"opt":"2","rollout":rollout},		  
 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
 		  url: "./RolloutServlet",
 		  cache: false,
@@ -254,14 +288,18 @@ function carrega_tabela_campos_rollout() {
 	{
 		$("#div_tabela_campos_rollout").html("<div id=\"toolbar_campos_rollout\" role=\"toolbar\" class=\"btn-toolbar\">"+
         		
-    			"<button type=\"button\" class=\"btn btn-info\" data-toggle=\"modal\" data-target=\"#Modal_campos_rollout\">Novo</button>"+
+    			"<button type=\"button\" class=\"btn btn-info\" data-toggle=\"modal\" data-target=\"#Modal_campos_rollout\">Novo Campo</button>"+
     			"<button id=\"edita_campo\" type=\"button\" class=\"btn btn-info\">Editar</button>"+
     			"<button id=\"desabilita_campo\" type=\"button\" class=\"btn btn-danger\">Desabilitar Campo</button>"+
     			"<button type=\"button\" class=\"btn btn-primary\" onclick=\"carrega_tabela_campos_rollout()\">Atualizar</button>"+
     			"<button type=\"button\" class=\"btn btn-primary\" onclick=\"ordem_tabela()\">Salvar</button>"+
-    		    "</div>" + data);
+    		    "<select id=\"select_rollout_campos\" class=\"selectpicker\" data-live-search=\"true\" title=\"Escolha o Rollout\" onchange=\"carrega_tabela_campos_rollout(this.value)\"></select>"+
+    			"</div>" + data);
 		
 		$('#tabela_campos_rollout').bootstrapTable();
+		
+		$('#select_rollout_campos').selectpicker('refresh');
+		busca_rollouts();
 		var $table = $('#tabela_campos_rollout'),
 		$button = $('#desabilita_campo');
 		$(function () {
@@ -391,7 +429,7 @@ function deleta_campos_rollout(campos){
 	$.ajax({
 		  type: "POST",
 		  data: {"opt":"17",
-			     "campos":campos},		  
+			     "campos":campos,"rollout":document.getElementById("rolloutid_campos_conf").value},		  
 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
 		  url: "./POControl_Servlet",
 		  cache: false,
@@ -410,6 +448,7 @@ function ordem_tabela(){
 	data_ordem=$('#tabela_campos_rollout').bootstrapTable('getData');
 	var ordem_campo_padrao = '{"tamanho":0,"ordem":[]}';
 	var ordem_campo = JSON.parse(ordem_campo_padrao);
+	var rollout = document.getElementById("rolloutid_campos_conf").value;
 	i=0;
 	//alert(JSON.stringify(data_ordem));
 	
@@ -422,7 +461,7 @@ function ordem_tabela(){
 	
 	$.ajax({
 		  type: "POST",
-		  data: {"opt":"15","ordem":JSON.stringify(ordem_campo)},		  
+		  data: {"opt":"15","ordem":JSON.stringify(ordem_campo),"rollout":rollout},		  
 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
 		  url: "./POControl_Servlet",
 		  cache: false,
@@ -444,7 +483,7 @@ function ordem_tabela(){
 function add_campo_rollout(){
 	//alert("adicionando campos");
 	var e,tipoc,tipoa,nome,desc,lista,chk,percent;
-	
+	var rollout=document.getElementById("rolloutid_campos_conf").value;
 	e= document.getElementById("tipo_campo_rollout");
 	tipoc=e.options[e.selectedIndex].text;
 	lista=document.getElementById("lista_atributo").value;
@@ -466,7 +505,8 @@ function add_campo_rollout(){
 			"tipoatrb":tipoa,
 			"lista":lista,
 			"trigger":chk,
-			"percent":percent
+			"percent":percent,
+			"rollout":rollout
 			},		  
 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
 		  url: "./POControl_Servlet",

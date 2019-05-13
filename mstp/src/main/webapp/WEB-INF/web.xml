@@ -15,7 +15,6 @@
   <servlet>
     <servlet-name>servlets.Jobs_Servlet</servlet-name>
     <servlet-class>servlets.Jobs_Servlet</servlet-class>
-    
   </servlet>
   <servlet-mapping>
     <servlet-name>servlets.Jobs_Servlet</servlet-name>

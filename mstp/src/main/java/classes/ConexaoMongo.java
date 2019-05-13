@@ -14,6 +14,8 @@ import org.json.JSONObject;
 
 import com.mongodb.Block;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoClientURI;
 import com.mongodb.MongoCredential;
 import com.mongodb.MongoWriteException;
 import com.mongodb.ServerAddress;
@@ -41,13 +43,28 @@ public class ConexaoMongo {
 	String dbname = "mstpDB";
     String user = "mstpwebDB";
     String password = "Xmqxf9qdCXusVYsH";
-
+	
+	
     //System.out.println("host: " + host + "\ndbname: " + dbname + "\nuser: " + user + "\npassword: " + password);
-
+     //password = "";
      credential = MongoCredential.createCredential(user, dbname, password.toCharArray());
+    // credential = MongoCredential.createCredential(user, dbname, password.toCharArray());
      mongoClient = new MongoClient(new ServerAddress(host), Arrays.asList(credential));
+     MongoClientOptions.Builder optionsBuilder = MongoClientOptions.builder();
+
+     optionsBuilder.connectTimeout(60000);
+
+     optionsBuilder.socketTimeout(60000);
+
+     optionsBuilder.serverSelectionTimeout(60000);
+
+     MongoClientOptions options = optionsBuilder.build();
+     //mongoClient = new MongoClient(new ServerAddress("mongodb://localhost:27017"), Arrays.asList(credential),options);
+     //MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
 
      db = mongoClient.getDatabase(dbname);
+     System.out.println("conectado com sucesso");
+     
 	}
 	public boolean InserirSimpels(String Collection,Document document) {
 		

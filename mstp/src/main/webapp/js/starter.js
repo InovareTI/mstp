@@ -32,6 +32,7 @@ $(document).ready(function () {
                         break;
                 }
             }
+            $('#jqxtabs_usuario').jqxTabs({height:800,theme: 'light'});
             $('#jqxtabs').jqxTabs({height:800,theme: 'light'});
             $('#jqxtabs').on('selected', function (event) {
             	//console.log(event);
@@ -43,7 +44,7 @@ $(document).ready(function () {
             $('#range_espelho').jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode: 'range'});
             $('#range_espelho_analise').jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode: 'range'});
             carrega_portal();
-            carrega_usuarios();
+           
            // carrega_tabela_site();
             carrega_tree_rollout();
             calcula_quantidade_hh_disponivel();
@@ -67,6 +68,13 @@ $(document).ready(function () {
 				console.log(response);
 		});
             $("#input_usuario1_arq").fileinput({
+            	language: "pt-BR",
+			    uploadUrl: "./UserMgmt?opt=17", // server upload action
+			    uploadAsync: false,
+			    allowedFileExtensions: ['xlsx'],
+			    maxFileCount: 5
+			});
+            $("#input_PO_file").fileinput({
             	language: "pt-BR",
 			    uploadUrl: "./UserMgmt?opt=17", // server upload action
 			    uploadAsync: false,
@@ -113,7 +121,8 @@ $(document).ready(function () {
             //carrega_cliente_table();
             load_site_markers();
             carrega_select_func_ponto();
-          
+            carrega_usuarios();
+            carrega_PO(0)
             $('#modal_upload_rollout').on('show.bs.modal', function (event) {
             	var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
 	           	 var rolloutid;
@@ -405,10 +414,13 @@ function menu(opt){
 	}else if(opt=="clientes" && geral.perfil.search("ClienteManager")>=0){
 		$(".janelas").hide();
     	document.getElementById(opt).style.display = "block";
+	}else if(opt=="equipe_diarias" && geral.perfil.search("DiariaManager")>=0){
+		$(".janelas").hide();
+		document.getElementById(opt).style.display = "block";
 	}else if(opt=="rollout" && geral.perfil.search("RolloutView")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
-	}else if(opt=="po" && geral.perfil.search("POManager")>=0){
+	}else if(opt=="PO" && geral.perfil.search("POManager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
 	}

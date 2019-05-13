@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Blob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -17,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -24,11 +26,14 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.mail.EmailException;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.bson.Document;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import classes.Conexao;
+import classes.ConexaoMongo;
 import classes.Pessoa;
 import classes.Semail;
 
@@ -116,6 +121,7 @@ public class POControl_Servlet extends HttpServlet {
 		HttpSession session = req.getSession(true);
 		Pessoa p = (Pessoa) session.getAttribute("pessoa");
 		Conexao conn = (Conexao) session.getAttribute("conexao");
+		ConexaoMongo c = new ConexaoMongo();
 		double money; 
 		NumberFormat number_formatter = NumberFormat.getCurrencyInstance();
 		String moneyString;
@@ -132,24 +138,22 @@ public class POControl_Servlet extends HttpServlet {
 			query="Select "+p.get_PessoaPerfil_campos()+" from po_table order by po_id desc";
 			//System.out.println(query);
 			rs=conn.Consulta(query);
-			
+			dados_tabela="<table id=\"tabela_de_po\"  data-use-row-attr-func=\"true\" data-reorderable-rows=\"true\" data-toggle=\"table\"  data-filter-control=\"true\" data-click-to-select=\"true\" data-pagination=\"true\"  data-search=\"true\" data-advanced-search=\"true\">" +"\n";
+			dados_tabela=dados_tabela + "<thead>"+"\n";
+			dados_tabela=dados_tabela +"<tr>"+"\n";
+			dados_tabela=dados_tabela +" <th data-checkbox=\"true\"></th>"+"\n";
+			dados_tabela=dados_tabela +" <th data-field=\"po\" data-filter-control=\"select\">PO</th>"+"\n";
+			dados_tabela=dados_tabela +" <th data-field=\"po1\" data-filter-control=\"select\">Emissão</th>"+"\n";
+			dados_tabela=dados_tabela +" <th data-field=\"po2\">Validada</th>"+"\n";
+			dados_tabela=dados_tabela +" <th style data-field=\"po3\">Data Validação</th>"+"\n";
+			dados_tabela=dados_tabela +" <th style data-field=\"po4\">Emissor</th>"+"\n";
+			dados_tabela=dados_tabela +" <th style data-field=\"po5\" data-filter-control=\"select\">Data Carregada</th>"+"\n";
+			dados_tabela=dados_tabela +" <th style data-field=\"po8\">Valor Total</th>"+"\n";
+			dados_tabela=dados_tabela +" <th style data-field=\"po9\">Arquivo PO</th>"+"\n";
+			dados_tabela=dados_tabela +"</tr>"+"\n";	
+			dados_tabela=dados_tabela +"</thead>"+"\n";
+			dados_tabela=dados_tabela +"<tbody>"+"\n";
 				if(rs.next()){
-					
-					dados_tabela="<table id=\"tabela_de_po\"  data-use-row-attr-func=\"true\" data-reorderable-rows=\"true\" data-toggle=\"table\"  data-filter-control=\"true\" data-click-to-select=\"true\" data-pagination=\"true\"  data-search=\"true\" data-advanced-search=\"true\">" +"\n";
-					dados_tabela=dados_tabela + "<thead>"+"\n";
-					dados_tabela=dados_tabela +"<tr>"+"\n";
-					dados_tabela=dados_tabela +" <th data-checkbox=\"true\"></th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"po\" data-filter-control=\"select\">PO</th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"po1\" data-filter-control=\"select\">Emissão</th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"po2\">Validada</th>"+"\n";
-					dados_tabela=dados_tabela +" <th style data-field=\"po3\">Data Validação</th>"+"\n";
-					dados_tabela=dados_tabela +" <th style data-field=\"po4\">Emissor</th>"+"\n";
-					dados_tabela=dados_tabela +" <th style data-field=\"po5\" data-filter-control=\"select\">Data Carregada</th>"+"\n";
-					dados_tabela=dados_tabela +" <th style data-field=\"po8\">Valor Total</th>"+"\n";
-					dados_tabela=dados_tabela +" <th style data-field=\"po9\">Arquivo PO</th>"+"\n";
-					dados_tabela=dados_tabela +"</tr>"+"\n";	
-					dados_tabela=dados_tabela +"</thead>"+"\n";
-					dados_tabela=dados_tabela +"<tbody>"+"\n";
 					rs.beforeFirst();
 					if(p.get_PessoaPerfil_nome().equals("Financeiro")){
 						while(rs.next()){
@@ -182,17 +186,16 @@ public class POControl_Servlet extends HttpServlet {
 							dados_tabela=dados_tabela + "</tr>"+"\n";
 						}
 					}
-					dados_tabela=dados_tabela + "</tbody>";
-					dados_tabela=dados_tabela + "</table>";
-					//System.out.println(dados_tabela);
-					resp.setContentType("application/html");  
-					resp.setCharacterEncoding("UTF-8"); 
-					PrintWriter out = resp.getWriter();
-					out.print(dados_tabela);
+					
 					//System.out.println("Resposta Consulta 3 Enviada!");
-				}else{
-					//System.out.println("Consulta returns empty");
 				}
+				dados_tabela=dados_tabela + "</tbody>";
+				dados_tabela=dados_tabela + "</table>";
+				//System.out.println(dados_tabela);
+				resp.setContentType("application/html");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				out.print(dados_tabela);
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("2")){
@@ -564,7 +567,7 @@ public class POControl_Servlet extends HttpServlet {
 						}else if(opt.equals("13")){
 							System.out.println("Função Migrada para servlet de rollout opt 13");
 						}else if(opt.equals("14")){
-						//System.out.println("Cadastrando Campo...");
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" Inserção de Campos no rollout.");
 		                param1=req.getParameter("nome");
 		    			param2=req.getParameter("tipo");
 		    			param3=req.getParameter("Desc");
@@ -572,11 +575,13 @@ public class POControl_Servlet extends HttpServlet {
 		    			param5=req.getParameter("lista");
 		    			param6=req.getParameter("trigger");
 		    			param7=req.getParameter("percent");
+		    			param8=req.getParameter("rollout");
+		    			int rolloutid=Integer.parseInt(param8.replace("Rollout", ""));
 		    			int ordem=0;
 		    			 time = new Timestamp(System.currentTimeMillis());
 		    			
 		    			insere="";
-		    			rs=conn.Consulta("select * from rollout_campos where field_name='"+param1+"' and empresa="+p.getEmpresa().getEmpresa_id());
+		    			rs=conn.Consulta("select * from rollout_campos where field_name='"+param1+"' and empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param8+"'");
 		    			if(param2.equals("Milestone")){
 		    				param4="Milestone";
 		    			}
@@ -585,34 +590,26 @@ public class POControl_Servlet extends HttpServlet {
 		    				last_id=rs.getInt(1);
 		    				retorno="Campo editado com Sucesso. ID do campo: "+last_id;
 		    			}else{
-		    			rs=conn.Consulta("select ordenacao from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" order by ordenacao desc limit 1");	
+		    			rs=conn.Consulta("select ordenacao from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param8+"' order by ordenacao desc limit 1");	
 		    			if(rs.next()) {
 		    				ordem=rs.getInt(1);
 		    				ordem=ordem+1;
-		    				insere="INSERT INTO rollout_campos (field_name,field_type,field_owner,field_creation_date,fiel_creation_owner,field_status,tipo,Atributo_parametro,trigger_pagamento,percent_pagamento,empresa,ordenacao) "
-					                + "VALUES ('"+param1+"','"+param2+"','"+session.getAttribute("user")+"','"+time+"','"+session.getAttribute("user")+"','ATIVO','"+param4+"','"+param5+"',"+param6+",'"+param7+"',"+p.getEmpresa().getEmpresa_id()+","+ordem+")";
+		    				insere="INSERT INTO rollout_campos (field_name,field_type,field_owner,field_creation_date,fiel_creation_owner,field_status,tipo,Atributo_parametro,trigger_pagamento,percent_pagamento,empresa,ordenacao,rollout_id,rollout_nome) "
+					                + "VALUES ('"+param1+"','"+param2+"','"+session.getAttribute("user")+"','"+time+"','"+session.getAttribute("user")+"','ATIVO','"+param4+"','"+param5+"',"+param6+",'"+param7+"',"+p.getEmpresa().getEmpresa_id()+","+ordem+","+rolloutid+",'"+param8+"')";
 		    			}else {
 		    				ordem=1;
-		    				insere="INSERT INTO rollout_campos (field_name,field_type,field_owner,field_creation_date,fiel_creation_owner,field_status,tipo,Atributo_parametro,trigger_pagamento,percent_pagamento,empresa,ordenacao) "
-					                + "VALUES ('"+param1+"','"+param2+"','"+session.getAttribute("user")+"','"+time+"','"+session.getAttribute("user")+"','ATIVO','"+param4+"','"+param5+"',"+param6+",'"+param7+"',"+p.getEmpresa().getEmpresa_id()+",1)";
+		    				insere="INSERT INTO rollout_campos (field_name,field_type,field_owner,field_creation_date,fiel_creation_owner,field_status,tipo,Atributo_parametro,trigger_pagamento,percent_pagamento,empresa,ordenacao,rollout_id,rollout_nome) "
+					                + "VALUES ('"+param1+"','"+param2+"','"+session.getAttribute("user")+"','"+time+"','"+session.getAttribute("user")+"','ATIVO','"+param4+"','"+param5+"',"+param6+",'"+param7+"',"+p.getEmpresa().getEmpresa_id()+",1,"+rolloutid+",'"+param8+"')";
 		    			}
 		    			
 		    			if(conn.Inserir_simples(insere)){
 				    		//System.out.println("CAMPO Cadastrado");
-				    		rs=conn.Consulta("Select field_id from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" order by field_id desc limit 1");
+				    		rs=conn.Consulta("Select field_id from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param8+"' order by field_id desc limit 1");
 				    		if(rs.next()){
 				    			last_id=rs.getInt(1);
 				    			retorno="Campo inserido com Sucesso. ID do campo: "+last_id;
 				    		}
-				    		query="select distinct recid from rollout where empresa="+p.getEmpresa().getEmpresa_id()+" and linha_ativa='Y' order by recid";
-				    		rs=conn.Consulta(query);
-				    		if(rs.next()) {
-				    			rs.beforeFirst();
-				    			while(rs.next()) {
-				    				query="insert into rollout (recid,milestone,siteID,tipo_campo,update_by,update_time,empresa,linha_ativa,ordenacao) values ("+rs.getInt("recid")+",'"+param1+"','site"+rs.getInt("recid")+"','"+param2+"','"+p.get_PessoaUsuario()+"','"+time+"',"+p.getEmpresa().getEmpresa_id()+",'Y',"+ordem+")";
-				    				conn.Inserir_simples(query);
-				    			}
-				    		}
+				    		
 		    			}
 		    			}
 		    			//System.out.println(param1+"\n"+param2+"\n"+param3+"\n"+param4+"\n"+param5+"\n"+param6+"\n"+param7+"\n"+param8+"\n"+param9);
@@ -626,7 +623,7 @@ public class POControl_Servlet extends HttpServlet {
 					}else if(opt.equals("15")){
 						//System.out.println("Ordenando Campos...");
 		                param1=req.getParameter("ordem");
-		                
+		                param2=req.getParameter("rollout");
 		                
 		                JSONObject jObj = new JSONObject(param1); 
 		    			JSONArray campos = jObj.getJSONArray("ordem"); 
@@ -637,10 +634,10 @@ public class POControl_Servlet extends HttpServlet {
 		    			int i=0;
 		    			//System.out.println(jObj.get("ordem"));
 		    			while(i<tamanho){
-		    				query="update rollout_campos set ordenacao="+campos.getJSONObject(i).getInt("posicao")+" where field_id="+campos.getJSONObject(i).getInt("campoid")+" and empresa="+p.getEmpresa().getEmpresa_id();
+		    				query="update rollout_campos set ordenacao="+campos.getJSONObject(i).getInt("posicao")+" where field_id="+campos.getJSONObject(i).getInt("campoid")+" and empresa="+p.getEmpresa().getEmpresa_id() +" and rollout_nome='"+param2+"'";
 		    				conn.Alterar(query);
-		    				query="update rollout set ordenacao="+campos.getJSONObject(i).getInt("posicao")+" where milestone='"+campos.getJSONObject(i).getString("campo_nome")+"' and empresa="+p.getEmpresa().getEmpresa_id();
-		    				conn.Alterar(query);
+		    				//query="update rollout set ordenacao="+campos.getJSONObject(i).getInt("posicao")+" where milestone='"+campos.getJSONObject(i).getString("campo_nome")+"' and empresa="+p.getEmpresa().getEmpresa_id();
+		    				//conn.Alterar(query);
 		    				i++;
 		    			}
 						resp.setContentType("application/html");  
@@ -655,7 +652,13 @@ public class POControl_Servlet extends HttpServlet {
 					}else if(opt.equals("17")){
 						//System.out.println("Deletando PO's");
 						param1=req.getParameter("campos");
+						param2=req.getParameter("rollout");
 						//System.out.println(param1);
+						Document condicao=new Document();
+						Document update=new Document();
+						Document comando_update=new Document();
+						condicao.append("Empresa", p.getEmpresa().getEmpresa_id());
+						condicao.append("rolloutId", param2);
 						
 						if(param1.indexOf("'")>0){
 							param1.replace("'","");
@@ -665,7 +668,15 @@ public class POControl_Servlet extends HttpServlet {
 							for(int i=0;i<campos.length;i++){
 								//System.out.println("delete from po_table where po_number="+po[i]);
 								rs=conn.Consulta("Select field_name from rollout_campos where field_id="+campos[i]+" and empresa="+p.getEmpresa().getEmpresa_id());
+								if(rs.next()) {
+									update=new Document();
+									update.append(rs.getString("field_name"), "");
+									comando_update.append("$unset", update);
+									c.AtualizaMuitos("rollout", condicao, comando_update);
+								}
 								conn.Excluir("delete from rollout_campos where field_id="+campos[i]+" and empresa="+p.getEmpresa().getEmpresa_id());
+								
+								
 								if(rs.next()){
 								conn.Excluir("delete from rollout where milestone='"+rs.getString(1)+"' and empresa="+p.getEmpresa().getEmpresa_id());
 								}
@@ -676,6 +687,10 @@ public class POControl_Servlet extends HttpServlet {
 							conn.Excluir("delete from rollout_campos where field_id="+param1+" and empresa="+p.getEmpresa().getEmpresa_id());
 							if(rs.next()){
 							conn.Excluir("delete from rollout where milestone='"+rs.getString(1)+"' and empresa="+p.getEmpresa().getEmpresa_id());
+							update=new Document();
+							update.append(rs.getString("field_name"), "");
+							comando_update.append("$unset", update);
+							c.AtualizaMuitos("rollout", condicao, comando_update);
 							}
 						}
 						resp.setContentType("application/html");  
@@ -1344,8 +1359,11 @@ public class POControl_Servlet extends HttpServlet {
 					}else if(opt.equals("38")) {
 						int contador=0;
 						String progress_bar="";
-						
-						query="select *,now() from arquivos_importados where arq_usuario='"+p.get_PessoaUsuario()+"' order by id_sys_arq desc";
+						if(p.get_PessoaUsuario().toUpperCase().contains("MASTERADMIN")) {
+							query="select *,now() from arquivos_importados order by id_sys_arq desc";
+						}else {
+							query="select *,now() from arquivos_importados where arq_usuario='"+p.get_PessoaUsuario()+"' order by id_sys_arq desc";
+						}
 						rs=conn.Consulta(query);
 						if(rs.next()) {
 							rs.beforeFirst();
@@ -1361,14 +1379,14 @@ public class POControl_Servlet extends HttpServlet {
 								if(rs.getString("status_processamento").equals("100")) {
 									progress_bar=progress_bar.replaceAll("progress-bar-striped","progress-bar-success");
 								}
-								dados_tabela=dados_tabela + "["+"\n";
+								dados_tabela=dados_tabela + "[";
 								dados_tabela=dados_tabela + "\""+rs.getString("arq_dt_inserido")+"\",";
 								dados_tabela=dados_tabela + "\""+rs.getString("arq_usuario")+"\",";
 								dados_tabela=dados_tabela + "\""+rs.getString("arq_nome")+"\",";
-								dados_tabela=dados_tabela + "\"Arquivo\",";
-								dados_tabela=dados_tabela + "\""+progress_bar+"\"],";
+								dados_tabela=dados_tabela + "\"<div style='color:black'><a style='color:black' href='./POControl_Servlet?opt=40&idarq="+rs.getInt("id_sys_arq")+"'>Baixar</a></div>\",";
+								dados_tabela=dados_tabela + "\""+progress_bar+"\"],"+"\n";
 							}
-							dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+							dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
 							dados_tabela=dados_tabela+"]}";
 							dados_tabela=dados_tabela.replace("replace1", Integer.toString(contador));
 							resp.setContentType("application/json");  
@@ -1389,6 +1407,28 @@ public class POControl_Servlet extends HttpServlet {
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print("Erro na aceitação do Termo");
+						}
+						Timestamp time2 = new Timestamp(System.currentTimeMillis());
+						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+					}else if(opt.equals("40")) {
+						param1=req.getParameter("idarq");
+						//System.out.println("Carregando foto de perfil de "+p.get_PessoaUsuario());
+						ServletOutputStream out = resp.getOutputStream();
+						query="";
+						query="select * from arquivos_importados where id_sys_arq="+param1;
+						rs=conn.Consulta(query);
+						if(rs.next()) {
+							//System.out.println(" foto encontrada");
+							XSSFWorkbook workbook=new XSSFWorkbook(rs.getBlob("arq").getBinaryStream());
+							
+							//byte byteArray[]=workbook.getBytes(1, (int) image.length());
+							resp.setContentType(rs.getString("arq_tipo"));
+							resp.setHeader("Content-Disposition", "attachment; filename="+rs.getString("arq_nome"));
+			                workbook.write(resp.getOutputStream());
+			                workbook.close();
+							//System.out.println(" foto carregada");
+							
+						
 						}
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");

@@ -499,11 +499,12 @@ function carrega_select_func_ponto(){
 		$("#select_func_folha_ponto").html(data);
 		$("#select_func_folha_ponto_analise").html(data);
 		$("#select_func_faltas").html(data);
-		
+		$("#select_func_diaria").html(data);
 		$("#select_autor_historico_filtro").html(data);
 		$('#select_func_folha_ponto').selectpicker('refresh');
 		$('#select_func_folha_ponto_analise').selectpicker('refresh');
 		$('#select_func_faltas').selectpicker('refresh');
+		$("#select_func_diaria").selectpicker('refresh');
 		$("#select_autor_historico_filtro").selectpicker('refresh');
 	}
 }

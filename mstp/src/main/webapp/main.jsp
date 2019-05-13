@@ -90,12 +90,10 @@ response.setDateHeader ("Expires", -1);
   	
   	<script src="js/bootstrap-table-reorder-rows.min.js"></script>
   	<script src="js/jquery.tablednd.js"></script>
-  	
+  	<script src="js/bootstrap-datetimepicker.min.js"></script>
    	<script src="js/locale/pt-br.js"></script>
-   	<script src="js/bootstrap-datetimepicker.min.js"></script>
-  	
+   	
   	<script type="text/javascript" src="js/w2ui-1/w2ui-1.4.3.min.js"></script>
-  	
   	<script type="text/javascript" src="js/jqwidgets/jqxcore.js"></script>
   	<script type="text/javascript" src="js/jqwidgets/jqxloader.js"></script>
   	<script type="text/javascript" src="js/jqwidgets/jqxdatetimeinput.js"></script>
@@ -153,6 +151,7 @@ response.setDateHeader ("Expires", -1);
 	<script type="text/javascript" src="js/project.js"></script>
 	<script type="text/javascript" src="js/clientes.js"></script>
 	<script type="text/javascript" src="js/usuarios.js"></script>
+	<script type="text/javascript" src="js/POControl.js"></script>
 	<script type="text/javascript" src="js/mapa_controle.js"></script>
 	<script type="text/javascript" src="js/Site.js"></script>
 	<script type="text/javascript" src="js/banco_horas.js"></script>
@@ -319,15 +318,16 @@ response.setDateHeader ("Expires", -1);
 										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_ponto_analise')">Análise de Ponto</a></li>
 										<li><a class="icon icon-calendar" href="#" onclick="menu('justificativas')">Justificativas de Ponto</a></li>
 										<li><a class="icon icon-calendar" href="#" onclick="menu('faltas_relatorio')">Relatório de Faltas</a></li>
+										<li><a class="icon icon-calendar" href="#" onclick="menu('calendariofff')">Calendário de Folgas,Feriados e Férias</a></li>
 										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_banco_hh')">Banco de Horas</a></li>
 										<li><a class="icon icon-calendar" href="#" onclick="menu('usuarios_extra_hh')">Horas Extras</a></li>
 										<li><a class="icon icon-user" href="#" onclick="menu('feriados')">Feriados</a></li>
-										<li><a class="icon icon-user" href="#" onclick="menu('...')">Férias</a></li>
+										<li><a class="icon icon-user" href="#" onclick="menu('...')">Calendário de Férias</a></li>
 										<li><a class="icon icon-user" href="#" onclick="menu('usuarios')">Gestão de Usuários</a></li>
 									</ul>
 								</div>
 							</li>
-							<li><a class="icon icon-display" href="#" onclick="menu('po')">Gestão de PO's</a></li>
+							<li><a class="icon icon-display" href="#" onclick="menu('PO')">Gestão de PO's</a></li>
 							<li><a href="#" onclick="menu('aprovacoes');carrega_aprovacoes_hh();"><i class="fas fa-list-ul"></i>&nbsp;&nbsp;Aprovações</a></li>
 							<li class="icon icon-arrow-left">
 								<a class="icon icon-male" href="#" onclick="menu('clientes')">Clientes</a>
@@ -336,6 +336,15 @@ response.setDateHeader ("Expires", -1);
 							<li class="icon icon-arrow-left"><a class="icon icon-shop" href="#">Projetos</a></li>
 							<li><a class="icon icon-paperplane" href="#" onclick="menu('rollout')">Rollout</a></li>
 							<li><a class="icon icon-world" href="#" onclick="menu('mapa_Operacional')">Mapa Operacional</a></li>
+							 <li class="icon icon-arrow-left">
+								<a class="icon icon-settings" href="#">Gestão de Custos</a>
+								<div class="mp-level">
+									<h2 class="icon icon-settings">Gestão de Custos</h2>
+									<ul>
+										<li><a class="icon icon-calendar" href="#" onclick="menu('equipe_diarias')">Díárias de Equipes</a></li>
+									</ul>
+								</div>
+							</li>
 							<li class="icon icon-arrow-left">
 								<a class="icon icon-note" href="#">Relatórios</a>
 								<div class="mp-level">
@@ -369,9 +378,10 @@ response.setDateHeader ("Expires", -1);
 												<ul>
 													<li><a class="icon icon-user" href="#" onclick="menu('campos_rollout')">Campos do Rollout</a></li>
 													<li><a class="icon icon-key" href="#" onclick="menu('arvore_rollout_conf')">Árvore de Rollout</a></li>
+													<li><a class="icon icon-user" href="#" onclick="menu('vistoria_campos')">Checklist</a></li>
 												</ul></div></li>
 										
-										<li><a class="icon icon-user" href="#" onclick="menu('vistoria_campos')">Relatórios de Vistorias</a></li>
+										
 										<li><a class="icon icon-user" href="#" onclick="menu('Sites')">Sites</a></li>
 										<div id="assinatura_menu_div" style="display:none" ><li><a class="icon icon-user" href="#" onclick="menu('assinaturas')">Assinatura</a></li></div>
 									</ul>
@@ -548,6 +558,27 @@ response.setDateHeader ("Expires", -1);
 						}
 						</script>
 					</div>
+					<div class="janelas" id="equipe_diarias" style="display:none;width:100%;height:100%;">
+					
+						<div class="panel panel-primary" style="width:90%;margin:0 auto">
+		        				<div class="panel-heading">Espelho de Diárias</div>
+			        				<div class="panel-body">
+				        				<div>
+				        					<select id="select_func_diaria" class="selectpicker" data-live-search="true" title="Escolha o Funcionário" onchange="exibe_diarias(this.value)"></select>
+				        			  		<div style="float: right">
+				        			  			<button class="btn btn-primary">Novo Espelho de diária</button>
+				        			  		</div>
+				        			  	</div>
+			        				</div>
+		        		</div>
+		        		<div class="panel panel-primary" style="width:90%;margin:0 auto">
+		        				<div class="panel-heading">Resumo de Diárias</div>
+			        				<div class="panel-body">
+			        					<div id="grid_resumo_diarias"></div>
+			        				</div>
+		        		</div>
+					
+					</div>
 					<div class="janelas" id="pivot_view_div" style="display:none;width:100%;height:100%;">
 					<div class="panel panel-default" style="width:90%;margin:0 auto">
 	        				<div class="panel-heading">Pivots de rollout</div>
@@ -606,15 +637,16 @@ response.setDateHeader ("Expires", -1);
 		        			</div>
 	        		</div>
 					</div>
+					
 					<div class="janelas" id="vistoria_campos" style="display:none;width:100%;height:100%;">
 					<div class="panel panel-default" style="width:90%;margin:0 auto">
-	        				<div class="panel-heading">Definir novo Relatório de Vistoria</div>
+	        				<div class="panel-heading">Definir novo Relatório de CheckList</div>
 		        				<div class="panel-body">
 		        				<div id='novo_rel_vistoria'><button type="button" class="btn btn-info" data-toggle="modal" data-target="#modal_campos_vistoria">Novo Relatório</button></div>
 		        				</div>
 	        		</div>
 					<div class="panel panel-default" style="width:90%;margin:0 auto">
-	        				<div class="panel-heading">Definições de relatórios de vistorias</div>
+	        				<div class="panel-heading">Definições de relatórios de checklist</div>
 		        			<div class="panel-body" >
 		        				<div id='tabela_container_vistoria_campos'>
 			        				<table style="color:black;width:100%" class="display" id="tabela_relatorios">
@@ -634,7 +666,7 @@ response.setDateHeader ("Expires", -1);
 			        			</div>
 		        			</div>
 	        		</div></div>
-	        		<div class="janelas" id="po" style="display:none;width:100%;height:100%;"	>
+	        		<div class="janelas" id="PO" style="display:none;width:100%;height:100%;"	>
 	        	
         			<div id="div_tabela_po"><button class="btn btn-lg btn-warning"><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span> Carregando...</button></div>
         	
@@ -1235,6 +1267,9 @@ response.setDateHeader ("Expires", -1);
         				</div>
         			</div>
         		</div>
+        		<div class="janelas" id="PO" style="display:none;margin:0 auto;"	>
+        			<div id="div_tabela_po"><button class="btn btn-lg btn-warning"><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span> Carregando...</button></div>
+        		</div>
         		<div class="janelas" id="feriados" style="display:none;margin:0 auto;"	>
         		<div id="div_tabela_feriados_panel" class="panel panel-primary" style="width:90%;margin:0 auto;">
         				<div class="panel-heading"><h3 class="panel-title">Gerenciar Feriados</h3></div>
@@ -1455,10 +1490,35 @@ response.setDateHeader ("Expires", -1);
 	        			<div>
         					<div id="div_tabela_usuario"></div>
         				</div>
-        				<div><div id="div_tabela_usuario_grupo"></div></div>
+        				<div>
+        				
+        							<div id='jqxWidget2' style="padding-left:20px;font-size: 13px; font-family: Verdana; float: left;width: 100%;height: 100%">
+						 			 
+						 			 <div id="splitter2" >
+						 			 	<div><label style="color:gray">Organização de Grupos</label>
+							 			 	<p>
+	                    						<input type="button" id='btn_grupo_time' value="Novo Grupo" />
+	                    						</p>
+	                    						<br>
+	               							 
+						 			 		<div id='jqxTree_grupos_usuarios' style='float: left;paading:10px'></div>
+						 			 	 
+						 			 	<div id='jqxMenu_tree_grupos_usuarios'>
+									            <ul>
+									                <li>Renomear</li>
+									                
+									            </ul>
+									      </div>
+						 			 	</div>
+	        						 	<div id="container_grupos_usuarios"><div id="jqxgrid_grupo_usuario"></div></div>
+	        						</div>
+    							</div>
+        				
+						</div>
         			</div>
         		</div>
         		<div class="janelas" id="campos_rollout" style="display:none;">
+        		<input type="hidden" id="rolloutid_campos_conf" value="">
 				<div id="div_tabela_campos_rollout"></div>
 			</div>
         		 <div class="janelas" id="senha" style="display:none;">
@@ -1888,10 +1948,10 @@ response.setDateHeader ("Expires", -1);
     <div class="modal-content" style="display:block;">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h4 class="modal-title" style="color:black">Criar novo Template de Vistoria</h4>
+        <h4 class="modal-title" style="color:black">Criar novo Template de Checklist</h4>
       </div>
       <div class="modal-body" style="display:block;">
-      <div><button type="button" id="add_item_arvore" class="btn btn-default">Criar Grupo</button><button type="button" class="btn btn-default" data-dismiss="modal" onclick="criar_relatorio()">Criar Item</button><button type="button" class="btn btn-default" id="Remove_item">Remover</button></div>
+      <div><button type="button" id="add_grupo_arvore" class="btn btn-default">Criar Grupo</button><button type="button" class="btn btn-default"  id="add_item_arvore">Criar Item</button><button type="button" class="btn btn-default" id="Remove_item">Remover</button></div>
       <div style="display:inline-block;" id="conteudo_arvore_relatorio">
       		<div id='campos_relatorio' style='float:left;margin-left: 20px;'>
                 <ul>
@@ -2060,7 +2120,34 @@ response.setDateHeader ("Expires", -1);
 
   </div>
 </div> 
+<div id="PO_upload_Modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
 
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Carregar PO</h4>
+      </div>
+      <div class="modal-body">
+      <table >
+      		<tr>
+      		<td style="padding: 10px"><select class="form-control" required id="cliente_carrega_po" onchange="carrega_select_projeto(this)"><option>Cliente...</option></select></td>
+	        <td style="padding: 10px"><select class="form-control" required id="projeto_carrega_po"><option>Projeto...</option></select></td>
+	        </tr>
+      	</table>
+			<hr>
+        <label class="control-label">Selecionar Arquivo</label>
+		<input id="input_PO_file" name="total_input[]" type="file"  multiple>	
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div> 
 <div id="modal_ajuste_ponto" class="modal fade subconpo" role="dialog">
   <div class="modal-dialog">
 

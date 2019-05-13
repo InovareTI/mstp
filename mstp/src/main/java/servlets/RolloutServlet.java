@@ -428,10 +428,10 @@ public class RolloutServlet extends HttpServlet {
 			Timestamp time2 = new Timestamp(System.currentTimeMillis());
 			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("2")) {
-
-				
+				param1=req.getParameter("rollout");
+				System.out.println("rollout para consulta: "+ param1);
                 
-				rs=conn.Consulta("Select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" order by ordenacao");
+				rs=conn.Consulta("Select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param1+"' order by ordenacao");
 	    		
 					if(rs.next()){
 						
@@ -851,6 +851,9 @@ public class RolloutServlet extends HttpServlet {
 					}
 	               MongoCursor<Document> resultado_rollout=findIterable.iterator();
 	               String[]campos_nome=JSONObject.getNames(campo_tipo);
+	               //System.out.println("tamanho campos_nome"+campos_nome.length);
+	               //System.out.println("tamanho campos_tipo"+campo_tipo.length());
+	               //System.out.println("conteudo campos_tipo"+campo_tipo.toString());
 	               String[]campos=new String[campo_tipo.length()];
 	               //System.out.println(campo_tipo.toString());
 	               for(int j=0;j<campo_tipo.length();j++) {
@@ -1086,6 +1089,16 @@ public class RolloutServlet extends HttpServlet {
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+"iniciando import de  rolloutID" + param3 );
 				//System.out.println("MSTP WEB - "+f3.format(time)+" "+ p.get_PessoaUsuario()+" iniciando import de  rolloutID "+ param3)
 				//System.out.println("Tamanho de campos do rollout - "+campo_tipo.length());
+				List<Bson> filtro_lista = new ArrayList<Bson>();
+	        	Bson filtro;
+	        	//filtro=Filters.eq("Empresa",5);
+	        	//filtro_lista.add(filtro);
+	        	//filtro=Filters.eq("rolloutId","Rollout10");
+	        	//filtro_lista.add(filtro);
+				//if(p.get_PessoaUsuario().toUpperCase().equals("MASTERADMIN_CIENGE")) {
+				//	System.out.println("iniciando limpeza do rollout");
+				//	c.RemoverFiltroList("rollout", filtro_lista);
+				//}
 				InputStream inputStream=null;
 				if (ServletFileUpload.isMultipartContent(req)) {
 					List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
@@ -1123,8 +1136,7 @@ public class RolloutServlet extends HttpServlet {
 				        	jsonObject.put("Sucesso", "Sucesso"); 
 				        	PrintWriter pw = resp.getWriter();
 				        	pw.print(jsonObject); 
-				        	List<Bson> filtro_lista = new ArrayList<Bson>();
-				        	Bson filtro;
+				        	
 				        	
 				        	filtro=Filters.eq("Empresa",null);
 				        	filtro_lista.add(filtro);	
@@ -1151,6 +1163,7 @@ public class RolloutServlet extends HttpServlet {
 	    	            	 }
 				        	int last_recid=0;
 				        	findIterable=c.LastRegisterCollention("rollout", "recid");
+				        	
 				        	changes=findIterable.first();
 				        	last_recid=Integer.parseInt(changes.get("recid").toString());
 				        	Iterator<Row> rowIterator = sheet1.iterator();
@@ -1179,7 +1192,7 @@ public class RolloutServlet extends HttpServlet {
 				    				cellValue = dataFormatter.formatCellValue(cell);
 				    				cellValue=cellValue.replace("'","");
 				    				cellValue=cellValue.replace("\"","");
-				    				cellValue=cellValue.replace("\\","_");
+				    				cellValue=cellValue.replace("\\\"","_");
 				    				cellValue=cellValue.replace("\n","|");
 				    				if(row.getFirstCellNum()==0) {
 			    						if(i==0) {
@@ -2324,7 +2337,9 @@ public class RolloutServlet extends HttpServlet {
     			//	dados_tabela= dados_tabela+"]";
     			//}
     			
-    			//System.out.println(dados_tabela);
+    			
+    			//	System.out.println(dados_tabela);
+    			
     			//JSONObject jObj = new JSONObject(dados_tabela);
     			//System.out.println(jObj.toString());
     			resp.setContentType("application/json");  
@@ -4132,6 +4147,29 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print("Nome do Rollout Atualizado!");
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			}else if(opt.equals("31")) {
+				System.out.println("buscando rollouts para campos e configura");
+				Document rollout;
+				Bson filtro;
+				List<Bson> filtros=new ArrayList<>();
+				filtro=Filters.eq("Empresa", p.getEmpresa().getEmpresa_id());
+				filtros.add(filtro);
+				FindIterable<Document> finditerable=c.ConsultaCollectioncomFiltrosLista("rollouts_ids", filtros);
+				MongoCursor<Document> resultado = finditerable.iterator();
+				dados_tabela="";
+				if(resultado.hasNext()) {
+					while(resultado.hasNext()) {
+						rollout=resultado.next();
+						dados_tabela=dados_tabela+"<option value='"+rollout.getString("value")+"'>"+rollout.getString("text")+"</option>";
+					}
+				}
+				System.out.println(dados_tabela);
+				resp.setContentType("application/html");  
+	  		    resp.setCharacterEncoding("UTF-8"); 
+	  		    PrintWriter out = resp.getWriter();
+			    out.print(dados_tabela);
 			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}

@@ -36,8 +36,8 @@ public class Conexao
 		try	{
 			
 			 Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
-			String databaseURL = "jdbc:mysql://node21665-inovareti.jelastic.saveincloud.net/mstpDB?user=mstpwebDB&password=Xmqxf9qdCXusVYsH";
-			//String databaseURL = "jdbc:mysql://localhost/mstpDB";
+			//String databaseURL = "jdbc:mysql://node21665-inovareti.jelastic.saveincloud.net/mstpDB?user=mstpwebDB&password=Xmqxf9qdCXusVYsH";
+			String databaseURL = "jdbc:mysql://localhost/mstpDB?user=root&password=r2d2c3p0";
 			connection = DriverManager.getConnection(databaseURL);
 			connection.setAutoCommit(false);
 			//this.connection=c;

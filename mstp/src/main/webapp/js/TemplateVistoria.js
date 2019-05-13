@@ -72,14 +72,25 @@ function carrega_campos_relatorio(relatorio_id){
             // If you want to use the 'addTo' method in a loop, set the last parameter to false and call the 'render' method after the loop.
             $('#campos_relatorio').jqxTree('addTo', { label: 'Item',id:(treeItems.length + 1) }, selectedItem.element, true);
             
-            $('#campos_relatorio').jqxTree('render');
+            
         }
         else {
-        	 $('#campos_relatorio').jqxTree('addTo', { label: 'Item',id:(treeItems.length + 1),parentId:0 }, null, true);
+        	$.alert("Selecione um Grupo!");
              // update the tree.
-             $('#campos_relatorio').jqxTree('render');
+            
              
         }
+        $('#campos_relatorio').jqxTree('render');
+    });
+	$("#add_grupo_arvore").unbind('click');
+	$('#add_grupo_arvore').click(function (event) {
+		event.preventDefault();
+		$('#campos_relatorio').jqxTree('refresh');
+        var selectedItem = $('#campos_relatorio').jqxTree('getSelectedItem');
+        console.log(selectedItem);
+        var treeItems = $("#campos_relatorio").jqxTree('getItems');
+		$('#campos_relatorio').jqxTree('addTo', { label: 'Item',id:(treeItems.length + 1),parentid:0 });
+        $('#campos_relatorio').jqxTree('render');
     });
 	$("#Remove_item").unbind('click');
 	$('#Remove_item').click(function () {

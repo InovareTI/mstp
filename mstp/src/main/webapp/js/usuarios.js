@@ -184,7 +184,8 @@ function carrega_usuarios(){
 		});
 	function onSuccess18(data)
 	{
-		$('#jqxtabs_usuario').jqxTabs({height:800,theme: 'light'});
+		
+		$("#splitter2").jqxSplitter({ width: '100%', theme:'light', height: '90%', panels: [{ size: 350}] });
 		$("#div_tabela_usuario").html("<div id=\"toolbar_tabela_usuario\" role=\"toolbar\" class=\"btn-toolbar\">"+
         		
     			"<button type=\"button\" class=\"btn btn-info\" data-toggle=\"modal\" data-target=\"#modal_user_add\">Novo Usuário</button>"+
@@ -233,12 +234,168 @@ function carrega_usuarios(){
 	         }
 	     });
 	 });
+	 var timestamp = Date.now();
+	 
+	 $.getJSON('./UserMgmt?opt=37&_='+timestamp, function(data) {
+			var source =
+	        {
+	            datatype: "json",
+	            datafields: [
+	                { name: 'id' },
+	                { name: 'parentid' },
+	                { name: 'text' },
+	                { name: 'value' }
+	            ],
+	            id: 'id',
+	            localdata: data
+	        };
+			var dataAdapter = new $.jqx.dataAdapter(source);
+			 dataAdapter.dataBind();
+			 var records = dataAdapter.getRecordsHierarchy('id', 'parentid', 'items', [{ name: 'text', map: 'label'}]);
+	         $('#jqxTree_grupos_usuarios').jqxTree({  theme:'light',source: records, hasThreeStates: true, checkboxes: true,height: '100%', width: '100%'});
+	         $('#jqxTree_grupos_usuarios').jqxTree('expandAll');
+	         $("#jqxTree_grupos_usuarios").jqxTree('selectItem', $("#grupo1")[0]);
+	         carrega_grupo_usuario();
+	         $('#jqxTree_grupos_usuarios').on('select',function (event)
+	        		 {
+	        	       $('#jqxgrid_grupo_usuario').jqxGrid('destroy');
+	        	       $('#container_grupos_usuarios').html('<div id="jqxgrid_grupo_usuario"></div>')
+	        	 		carrega_grupo_usuario();
+	        		 });
+	         
+	         var contextMenu = $("#jqxMenu_tree_grupos_usuarios").jqxMenu({  theme:'light',width: '120px',  height: '56px', autoOpenPopup: false, mode: 'popup' });
+	         var clickedItem = null;
+	         var attachContextMenu = function () {
+	             // open the context menu when the user presses the mouse right button.
+	             $("#jqxTree_grupos_usuarios li").on('mousedown', function (event) {
+	                 var target = $(event.target).parents('li:first')[0];
+	                 var rightClick = isRightClick(event);
+	                 if (rightClick && target != null) {
+	                     $("#jqxTree_grupos_usuarios").jqxTree('selectItem', target);
+	                     var scrollTop = $(window).scrollTop();
+	                     var scrollLeft = $(window).scrollLeft();
+	                     contextMenu.jqxMenu('open', parseInt(event.clientX) + 5 + scrollLeft, parseInt(event.clientY) + 5 + scrollTop);
+	                     return false;
+	                 }
+	             });
+	         }
+	         attachContextMenu();
+	         $("#jqxMenu_tree_grupos_usuarios").on('itemclick', function (event) {
+	             var item = $.trim($(event.args).text());
+	             switch (item) {
+	                 case "Renomear":
+	                     var selectedItem = $('#jqxMenu_tree_grupos_usuarios').jqxTree('selectedItem');
+	                     if (selectedItem != null) {
+	                    	 $('#modal_atualiza_no_rollout').modal('show');
+	                         attachContextMenu();
+	                     }
+	                     break;
+	                 case "Remove Item":
+	                     var selectedItem = $('#jqxTree_grupos_usuarios').jqxTree('selectedItem');
+	                     if (selectedItem != null) {
+	                         $('#jqxTree_grupos_usuarios').jqxTree('removeItem', selectedItem.element);
+	                         attachContextMenu();
+	                     }
+	                     break;
+	             }
+	         });
+	         $(document).on('contextmenu', function (e) {
+	             if ($(e.target).parents('.jqx-tree').length > 0) {
+	                 return false;
+	             }
+	             return true;
+	         });
+	         function isRightClick(event) {
+	             var rightclick;
+	             if (!event) var event = window.event;
+	             if (event.which) rightclick = (event.which == 3);
+	             else if (event.button) rightclick = (event.button == 2);
+	             return rightclick;
+	         }
+		});
+	 $('#btn_grupo_time').jqxButton({ height: '25px', width: '100px'});
+	 $('#btn_grupo_time').click(function () {
+         var selectedItem = $('#jqxTree_grupos_usuarios').jqxTree('selectedItem');
+         if (selectedItem != null) {
+             $('#jqxTree_grupos_usuarios').jqxTree('addAfter', { label: 'Grupo' }, selectedItem.element, false);
+             
+             $('#jqxTree_grupos_usuarios').jqxTree('render');
+         }
+     });
+	 
+	 
 	}
 
 }
+function carrega_grupo_usuario(){
+	var item = $('#jqxTree_grupos_usuarios').jqxTree('getSelectedItem');
+	 var grupoid;
+	 if (item != null) {
+		 grupoid=item.value;
+		 
+		 if(grupoid==""){
+			 return;
+		 }
+	 }else{
+		 grupoid="grupo1";
+	 }
+	 
+	 var timestamp =Date.now();
+		$.ajax({
+			  type: "POST",
+			  data: {"opt":"38",
+				  "_": timestamp,
+				  "grupoid":grupoid
+				},		  
+			  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+			  url: "./UserMgmt",
+			  cache: false,
+			  dataType: "text",
+			 success: atualiza_grid_grupo_usuario
+			});	
+		 function atualiza_grid_grupo_usuario(data){
+			 dataaux=JSON.parse(data);
+				
+			 var source =
+		     {
+					 datatype: "json",
+			         datafields: [
+			        	 { name: 'id' , type: 'int'},
+			        	 { name: 'Empresa' , type: 'int'},
+			        	 { name: 'usuario', type: 'string' },
+			             { name: 'funcionario_nome', type: 'string' },
+			             { name: 'lider' , type: 'string'}
+			             
+			         ],
+		         localdata: dataaux,
+		         id: 'id',
+		     };
+			 var dataAdapter = new $.jqx.dataAdapter(source);
+			 $("#jqxgrid_grupo_usuario").jqxGrid(
+		             {
+		                 width: 500,
+		                 height: 650,
+		                 source: dataAdapter,
+		                 columnsresize: true,
+			             filterable: true,
+			             autoshowfiltericon: true,
+		                 rowsheight: 50,
+		                 pageable: true,
+		                 altrows: true,
+		                 selectionmode: 'checkbox',
+		                 columns: [
+		                       { text: 'Funcionário', datafield: 'funcionario_nome',cellsalign: "center",width: 400,filtertype: 'textbox'},
+		                       { text: 'Líder', datafield: 'lider',cellsalign: "center", width: 100,filtertype: 'checkedlist' }
+		                       
+		                   ]
+		             });
+		 }
+	 
+}
+
 function reset_senha(){
 	var $table = $('#tabela_usuario');
-	 var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
+	var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
          return row.user;
      });
 	 console.log(ids);

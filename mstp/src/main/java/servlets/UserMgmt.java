@@ -293,7 +293,11 @@ public class UserMgmt extends HttpServlet {
 							//System.out.println(rs.getString("data_dia"));
 							HH=calcula_hh(entrada,saida,feriado,conn,p,param1);
 						}else if(!entrada.equals("") && saida.equals("")) {
-							HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,param1);
+							if(p.getEmpresa().getEmpresa_id()==1) {
+								HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,param1);
+							}else if(p.getEmpresa().getEmpresa_id()==5){
+								HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,param1);
+							}
 						}
 							}}}
 						}
@@ -309,7 +313,7 @@ public class UserMgmt extends HttpServlet {
 							dados_tabela=dados_tabela + "\"OK\""+"\n";
 						}
 						
-						dados_tabela=dados_tabela + ",\""+HH[0]+":"+HH[1]+"\""+"\n";
+						dados_tabela=dados_tabela + ",\""+HH[0]+": "+converte_hora_format(HH[1])+"\""+"\n";
 						dados_tabela=dados_tabela + "],"+"\n";
 						encontrado="s";
 					}
@@ -2172,7 +2176,11 @@ public class UserMgmt extends HttpServlet {
 							//System.out.println(rs.getString("data_dia"));
 							HH=calcula_hh(entrada,saida,feriado,conn,p,aux_usuario);
 						}else if(!entrada.equals("") && saida.equals("")) {
-							HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,aux_usuario);
+							if(p.getEmpresa().getEmpresa_id()==1) {
+								HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,aux_usuario);
+							}else if(p.getEmpresa().getEmpresa_id()==5){
+								HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,aux_usuario);
+							}
 						}
 							}}
 						}
@@ -2181,7 +2189,7 @@ public class UserMgmt extends HttpServlet {
 						dados_tabela=dados_tabela + "\""+distancia+"\""+"\n";
 						
 						
-						dados_tabela=dados_tabela + ",\""+HH[0]+":"+HH[1]+"\""+"\n";
+						dados_tabela=dados_tabela + ",\""+HH[0]+": "+converte_hora_format(HH[1])+"\""+"\n";
 						dados_tabela=dados_tabela + "],"+"\n";
 						encontrado="s";
 					}
@@ -2401,6 +2409,80 @@ public class UserMgmt extends HttpServlet {
 		    c.fecharConexao();
 		    Timestamp time2 = new Timestamp(System.currentTimeMillis());
 			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+		}else if(opt.equals("37")) {
+			ConexaoMongo c = new ConexaoMongo();
+			Document arvore = new Document();
+			dados_tabela="[";
+			List<Bson> filtro_list_aux = new ArrayList<Bson>();
+			//List<Document> lista_itens = new ArrayList<Document>();
+			Bson filtrodoc;
+			filtrodoc=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+			filtro_list_aux.add(filtrodoc);
+			FindIterable<Document> findIterable = c.ConsultaCollectioncomFiltrosLista("grupos",filtro_list_aux);
+			MongoCursor<Document> resultado=findIterable.iterator();
+			if(resultado.hasNext()) {
+				while(resultado.hasNext()) {
+				arvore=resultado.next();
+				JSONObject sampleObject = new JSONObject(arvore);
+				//System.out.println("arvore:"+sampleObject.toString());
+				dados_tabela=dados_tabela+sampleObject.toString()+",";
+				}
+				dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+				dados_tabela=dados_tabela+"]";
+				//System.out.println("Arvore montada " + dados_tabela);
+				resp.setContentType("application/json");  
+	  		    resp.setCharacterEncoding("UTF-8"); 
+	  		    PrintWriter out = resp.getWriter();
+			    out.print(dados_tabela);
+			}
+			c.fecharConexao();
+			Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+		
+		}else if(opt.equals("38")) {
+			ConexaoMongo c = new ConexaoMongo();
+			Document usuario;
+			param1=req.getParameter("grupoid");
+			List<Bson> filtros = new ArrayList<>();
+			Bson filtro;
+			filtro = Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+			filtros.add(filtro);
+			filtro = Filters.eq("grupoid",param1);
+			filtros.add(filtro);
+			FindIterable<Document> findIterable = c.ConsultaCollectioncomFiltrosLista("grupos_usuarios", filtros);
+			MongoCursor<Document> resultado = findIterable.iterator();
+			if(resultado.hasNext()) {
+				dados_tabela="";
+				dados_tabela= dados_tabela+"[";
+				while(resultado.hasNext()) {
+					usuario=resultado.next();
+					dados_tabela=dados_tabela+"{";
+					dados_tabela=dados_tabela+"\"id\":"+usuario.getLong("id_relacionamento")+",";
+					dados_tabela=dados_tabela+"\"Empresa\":\""+usuario.getLong("Empresa")+"\",";
+					dados_tabela=dados_tabela+"\"usuario\":\""+usuario.getString("usuario")+"\",";
+					dados_tabela=dados_tabela+"\"funcionario_nome\":\""+usuario.getString("funcionario_nome")+"\",";
+					dados_tabela=dados_tabela+"\"lider\":\""+usuario.getString("lider")+"\"},";
+					
+				}
+				dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+				dados_tabela= dados_tabela+"]";
+				resp.setContentType("application/json");  
+	  		    resp.setCharacterEncoding("UTF-8"); 
+	  		    PrintWriter out = resp.getWriter();
+			    out.print(dados_tabela);
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			}else {
+				resp.setContentType("application/json");  
+	  		    resp.setCharacterEncoding("UTF-8"); 
+	  		    PrintWriter out = resp.getWriter();
+			    out.print("[]");
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			}
+			
+		}else if(opt.equals("39")) {
+			
 		}
 		}catch (SQLException e) {
 			
@@ -2424,6 +2506,52 @@ public class UserMgmt extends HttpServlet {
 			e.printStackTrace();
 		}
 	}
+	public String converte_hora_format(String hora) {
+		Double hora_double = Double.parseDouble(hora);
+		Integer hora_inteira;
+		String resultado="";
+		Double minutos_double;
+		Integer minutos_inteiro;
+		if(hora_double>0) {
+			hora_inteira = hora_double.intValue();
+			if(hora_inteira<10) {
+				resultado= "0"+hora_inteira+":";
+			}else {
+				resultado=hora_inteira+":";
+			}
+			minutos_double = hora_double - hora_inteira;
+			minutos_inteiro = (int) (minutos_double * 60);
+			if(minutos_inteiro<10) {
+				resultado= resultado+"0"+minutos_inteiro;
+			}else {
+				resultado= resultado+minutos_inteiro;
+			}
+		}else {
+			hora_double=hora_double*-1;
+			hora_inteira = hora_double.intValue();
+			if(hora_inteira<10) {
+				resultado= "-0"+hora_inteira+":";
+			}else {
+				resultado="-"+hora_inteira+":";
+			}
+			minutos_double = hora_double - hora_inteira;
+			minutos_inteiro = (int) (minutos_double * 60);
+			if(minutos_inteiro<10) {
+				resultado= resultado+"0"+minutos_inteiro;
+			}else {
+				resultado= resultado+minutos_inteiro;
+			}
+		}
+		
+		
+		
+		return resultado;
+	}
+	private Integer Int(Double hora) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	public void insere_regitro(Pessoa p,String usuario,String tipo_registro, Conexao conn,String lat,String lng,String timestam,String distancia,String datetime,String Localidade) {
 		String query,query2,insere;
 		Locale brasil = new Locale("pt", "BR");
@@ -2667,8 +2795,11 @@ public class UserMgmt extends HttpServlet {
 			if(hora_entrada.get(Calendar.DAY_OF_WEEK)!=1 && hora_entrada.get(Calendar.DAY_OF_WEEK)!=7) {
 				if(f.verifica_feriado(f2.format(hora_entrada.getTime()),p.getEstadoUsuario(usuarioPesquisado, c), c, p.getEmpresa().getEmpresa_id())) {
 
-					 
-					horas_extras=total_horas-1.2;
+					if(p.getEmpresa().getEmpresa_id()==1) {
+						horas_extras=total_horas-1.2;
+					}else if(p.getEmpresa().getEmpresa_id()==5){
+						horas_extras=total_horas-1.0;
+					}
 					horas_extras_noturnas=0.0;
 					if(total_hora_saida>22.0 && total_hora_saida<23.59) {
 						horas_extras_noturnas=total_hora_saida-22.0;
@@ -2702,7 +2833,11 @@ public class UserMgmt extends HttpServlet {
 				//msg="HE:" + String.valueOf(twoDForm.format(horas_extras)) + " | HEN:" + String.valueOf(twoDForm.format(horas_extras_noturnas));
 				}}else {
 				 
-					horas_extras=total_horas-1.2;
+					if(p.getEmpresa().getEmpresa_id()==1) {
+						horas_extras=total_horas-1.2;
+					}else if(p.getEmpresa().getEmpresa_id()==5){
+						horas_extras=total_horas-1.0;
+					}
 					horas_extras_noturnas=0.0;
 					if(total_hora_saida>22.0 && total_hora_saida<23.59) {
 						horas_extras_noturnas=total_hora_saida-22.0;
