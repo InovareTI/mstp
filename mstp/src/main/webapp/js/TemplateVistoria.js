@@ -6,8 +6,26 @@ function verifica_template_nome(){
 		document.getElementById('nome_template_novo').style.display = "none";
 	}
 }
-function edita_relatorio_info(){
-	$.alert("Em desenvolvimento");
+function edita_relatorio_info(relatorio_id){
+	$.ajax({
+		  type: "POST",
+		  data: {"opt":"7",
+			     "rel_id":relatorio_id},		  
+		    
+		  url: "./RelatoriosServlet",
+		  cache: false,
+		  dataType: "text",
+		  success: onSuccessupdaterel
+		});
+	function onSuccessupdaterel(data){
+		$("#modal_campos_vistoria").modal('show');
+		aux=JSON.parse(data);
+		document.getElementById('nome_relatorio').value=aux[0];
+		document.getElementById('desc_relatorio').value=aux[1];
+		document.getElementById('select_tipo_relatorio').value=aux[2];
+		document.getElementById('operacao_relatorio').value="atualizar";
+		document.getElementById('id_operacao_relatorio').value=relatorio_id;
+	}
 }
 function remover_relatorio(relatorio_id){
 	$.ajax({
@@ -130,7 +148,7 @@ function carrega_campos_relatorio(relatorio_id){
 		 item_tipo=$('#select_tipo_item_vistoria').find("option:selected").text();
          //var selectedItem = $('#campos_relatorio').jqxTree('selectedItem');
          var selectedItem = $('#campos_relatorio').jqxTree('getSelectedItem');
-         console.log(selectedItem);
+         //console.log(selectedItem);
          if (selectedItem != null) {
         	 if(selectedItem.parentId==''){
         		 $('#campos_relatorio').jqxTree('updateItem', { parentId: 0 }, selectedItem.element);
@@ -142,15 +160,16 @@ function carrega_campos_relatorio(relatorio_id){
          }
          $('#campos_relatorio').jqxTree('refresh');
          var item = $('#campos_relatorio').jqxTree('getSelectedItem');
-         
+         var tipo_item=$('#select_tipo_item_vistoria').val()
          $.ajax({
    		  type: "POST",
    		  data: {"opt":"3",
    			  "nome_item":item.label,
-   			  "desc_item":item.value,
+   			  "desc_item":document.getElementById('desc_item_vistoria').value,
    			  "id_item":item.id,
    			  "parent_id_item":item.parentId,
-   			  "relatorio_id_item":relatorio_id},		  
+   			  "relatorio_id_item":relatorio_id,
+   			  "tipo_item":tipo_item},		  
    		    
    		  url: "./RelatoriosServlet",
    		  cache: false,
@@ -199,7 +218,9 @@ function criar_relatorio(){
 		  data: {"opt":"1",
 			  "nome":document.getElementById('nome_relatorio').value,
 			  "desc":document.getElementById('desc_relatorio').value,
-			  "tipo":tipo_rel},		  
+			  "tipo":tipo_rel,
+			  "opercacao":document.getElementById('operacao_relatorio').value,
+			  "id_rel":document.getElementById('id_operacao_relatorio').value},		  
 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
 		  url: "./RelatoriosServlet",
 		  cache: false,
@@ -208,5 +229,8 @@ function criar_relatorio(){
 		});
 	function onSuccessCriaRelatório(data){
 		$.alert(data.toString())
+		document.getElementById('operacao_relatorio').value="";
+		document.getElementById('id_operacao_relatorio').value="";
+		tabela_relatorio();
 	}
 }

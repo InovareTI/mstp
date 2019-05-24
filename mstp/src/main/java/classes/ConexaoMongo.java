@@ -39,7 +39,8 @@ public class ConexaoMongo {
 	public ConexaoMongo() {
 		
 	
-	String host = "mongodb23525-inovareti.jelastic.saveincloud.net";
+	String host = "10.100.17.24:27017";
+	//String host = "localhost:27017";
 	String dbname = "mstpDB";
     String user = "mstpwebDB";
     String password = "Xmqxf9qdCXusVYsH";
@@ -47,9 +48,8 @@ public class ConexaoMongo {
 	
     //System.out.println("host: " + host + "\ndbname: " + dbname + "\nuser: " + user + "\npassword: " + password);
      //password = "";
+     //credential = MongoCredential.createPlainCredential("Admin", dbname,"");
      credential = MongoCredential.createCredential(user, dbname, password.toCharArray());
-    // credential = MongoCredential.createCredential(user, dbname, password.toCharArray());
-     mongoClient = new MongoClient(new ServerAddress(host), Arrays.asList(credential));
      MongoClientOptions.Builder optionsBuilder = MongoClientOptions.builder();
 
      optionsBuilder.connectTimeout(60000);
@@ -59,11 +59,13 @@ public class ConexaoMongo {
      optionsBuilder.serverSelectionTimeout(60000);
 
      MongoClientOptions options = optionsBuilder.build();
+     mongoClient = new MongoClient(new ServerAddress(host), Arrays.asList(credential),options);
+     
      //mongoClient = new MongoClient(new ServerAddress("mongodb://localhost:27017"), Arrays.asList(credential),options);
      //MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
 
      db = mongoClient.getDatabase(dbname);
-     System.out.println("conectado com sucesso");
+     //System.out.println("conectado com sucesso");
      
 	}
 	public boolean InserirSimpels(String Collection,Document document) {

@@ -90,7 +90,7 @@ public void run_login(HttpServletRequest req, HttpServletResponse resp) throws S
 	        
 	        
 	        //System.out.println("senha : "+retornaSenha + "fim da senha.");
-        	rs= con.Consulta("select * from usuarios where VALIDADO='Y' and ATIVO='Y' and HASH='"+retornaSenha+"' and (id_usuario='"+req.getParameter("user")+"' or email='"+req.getParameter("user")+"')");
+        	rs= con.ConsultaLogin("select * from usuarios where VALIDADO='Y' and ATIVO='Y' and HASH=? and (id_usuario=? or email=?)",retornaSenha,req.getParameter("user"));
         	
         	if (!rs.first()){
         		System.out.println(" consulta nula");

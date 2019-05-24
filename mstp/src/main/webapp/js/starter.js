@@ -122,7 +122,7 @@ $(document).ready(function () {
             load_site_markers();
             carrega_select_func_ponto();
             carrega_usuarios();
-            carrega_PO(0)
+            //carrega_PO(0)
             $('#modal_upload_rollout').on('show.bs.modal', function (event) {
             	var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
 	           	 var rolloutid;

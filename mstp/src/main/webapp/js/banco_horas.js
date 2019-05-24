@@ -319,6 +319,7 @@ function recalcular_HH_BH(){
 		geral.horas_sabado=aux[1].substr(aux[1].indexOf(":")+1,aux[1].length);
 		geral.horas_domingo=aux[2].substr(aux[2].indexOf(":")+1,aux[2].length);
 		geral.banco=aux[0].substr(aux[0].indexOf(":")+1,aux[0].length);
+		
 		$.alert({
 			title: 'MSTP WEB',
 		    content:data.toString(),
@@ -328,6 +329,7 @@ function recalcular_HH_BH(){
 		$('#btn_gerar_espelho').removeClass( "disabled" );
 		$('#btn_gerar_espelho').prop('disabled', false);
 		$('#btn_gerar_espelho').text('Gerar Espelho de ponto');
+		$('#resumo_espelho_func').html("Espelho de Ponto - Resumo de horas acumuladas => Banco:"+geral.banco+" | Sábado:"+geral.horas_sabado+" | Domingo:"+geral.horas_domingo);
 		
 	}
 	}

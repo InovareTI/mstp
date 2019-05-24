@@ -1227,8 +1227,10 @@ public class SiteMgmt extends HttpServlet {
 	    				filtro_site.append("site_id", filtros.get(i).toString());
 	    				filtro_site.append("Empresa", p.getEmpresa().getEmpresa_id());
 	    				filtro_site.append("site_operadora", param2);
-	    				update.append("site_latitude", lng);
-	    				update.append("site_longitude", lat);
+	    				if(Double.parseDouble(lat.replaceAll(",", ".")) < Double.parseDouble(lng.replaceAll(",", "."))) {
+	    					update.append("site_latitude", lng);
+	    					update.append("site_longitude", lat);
+	    				}
 	    				coordenadas=verfica_coordenadas(lng, lat);
 	    				update.append("GEO.geometry.coordinates", coordenadas);
 	    				comando.append("$set", update);

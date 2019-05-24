@@ -128,6 +128,9 @@ public class UserMgmt extends HttpServlet {
 		DateFormat f3 = DateFormat.getDateTimeInstance();
 		HttpSession session = req.getSession(true);
 		Pessoa p = (Pessoa) session.getAttribute("pessoa");
+		if(p==null || p.equals(null)) {
+			return;
+		}
 		Feriado feriado= new Feriado();
 		Conexao conn = (Conexao) session.getAttribute("conexao");
 		
@@ -147,6 +150,7 @@ public class UserMgmt extends HttpServlet {
 		try {
 			Semail email= new Semail();
 			if(opt.equals("1")){
+				if(p.getPerfil_funcoes().contains("Usuarios Manager")) {
 				param1=req.getParameter("func");
 				param2=req.getParameter("mes");
 				param3=req.getParameter("inicio");
@@ -296,7 +300,12 @@ public class UserMgmt extends HttpServlet {
 							if(p.getEmpresa().getEmpresa_id()==1) {
 								HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,param1);
 							}else if(p.getEmpresa().getEmpresa_id()==5){
-								HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,param1);
+								//HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,param1);
+								if(d.get(Calendar.DAY_OF_WEEK)==6) {
+									HH=calcula_hh(entrada,entrada.substring(0, 10)+" 16:00:00",feriado,conn,p,param1);
+								}else {
+									HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,param1);
+								}
 							}
 						}
 							}}}
@@ -369,7 +378,9 @@ public class UserMgmt extends HttpServlet {
 				}
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-			}else if(opt.equals("2")){
+				}
+				}else if(opt.equals("2")){
+				if(p.getPerfil_funcoes().contains("Usuarios Manager")) {
 				if(p.get_PessoaPerfil_nome().equals("tecnico")) {
 					query="select * from usuarios where id_usuario='"+p.get_PessoaUsuario()+"' and ativo='Y' and validado='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"'";
 				}else {
@@ -390,7 +401,9 @@ public class UserMgmt extends HttpServlet {
 				}
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime()))+" segundos");
-			}else if(opt.equals("3")){
+				}
+				}else if(opt.equals("3")){
+				if(p.getPerfil_funcoes().contains("Usuarios Manager")) {
 				param1=req.getParameter("users");
 				if(param1.indexOf(",")>0) {
 					String aux[];
@@ -414,7 +427,9 @@ public class UserMgmt extends HttpServlet {
 				}
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-			}else if(opt.equals("4")){
+				}
+				}else if(opt.equals("4")){
+				if(p.getPerfil_funcoes().contains("Usuarios Manager")) {
 				param1=req.getParameter("data");
 				System.out.println("Inserindo horas de "+p.get_PessoaUsuario()+" em "+f3.format(time));
 				//System.out.println(param1);
@@ -431,7 +446,9 @@ public class UserMgmt extends HttpServlet {
 				}
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-			}else if(opt.equals("5")){
+				}
+				}else if(opt.equals("5")){
+				
 				query="select * from horas_extras where id_usuario='"+p.get_PessoaUsuario()+"' and aprovada='Y' and compensada='N'";
 				System.out.println("Carregabdo extrato de horas "+p.get_PessoaUsuario()+" em "+f3.format(time));
 				rs=conn.Consulta(query);
@@ -682,6 +699,7 @@ public class UserMgmt extends HttpServlet {
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("10")){
+				if(p.getPerfil_funcoes().contains("Usuarios Manager")) {
 				param1=req.getParameter("usuario");
 				int contador=0;
 				if(p.get_PessoaPerfil_nome().equals("tecnico")) {
@@ -734,7 +752,9 @@ public class UserMgmt extends HttpServlet {
 				}
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-			}else if(opt.equals("11")){
+				}
+				}else if(opt.equals("11")){
+				if(p.getPerfil_funcoes().contains("Usuarios Manager")) {
 				param1=req.getParameter("entrada");
 				param2=req.getParameter("saida");
 				param3=req.getParameter("local");
@@ -764,8 +784,10 @@ public class UserMgmt extends HttpServlet {
 				}
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-			}else if(opt.equals("12")){
-				System.out.println("carregando ajustes de ponto para aprovação");
+				}
+				}else if(opt.equals("12")){
+				if(p.getPerfil_funcoes().contains("Usuarios Manager") || p.getPerfil_funcoes().contains("AjustePontoApprover")) {
+				//System.out.println("carregando ajustes de ponto para aprovação");
 				String caminho_foto="";
 				query="";
 				query="select * from ajuste_ponto where aprovada='N' and empresa="+p.getEmpresa().getEmpresa_id();
@@ -801,7 +823,8 @@ public class UserMgmt extends HttpServlet {
 				}
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");	
-			}else if(opt.equals("13")){
+				}
+				}else if(opt.equals("13")){
 				if(p.getPerfil_funcoes().contains("AjustePontoApprover")) {
 				param1=req.getParameter("id");
 				query="update ajuste_ponto set aprovada='R',dt_aprovada='"+f3.format(time)+"' where id_ajuste_ponto="+param1;
@@ -1822,7 +1845,7 @@ public class UserMgmt extends HttpServlet {
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("24")){
-				
+				if(p.getPerfil_funcoes().contains("Usuarios Manager")) {
 				System.out.println("Reset de Senha Iniciado por - "+p.get_PessoaUsuario());
 				
 				String retornaSenha="";
@@ -1870,7 +1893,8 @@ public class UserMgmt extends HttpServlet {
 				}
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-			}else if(opt.equals("25")){
+				}
+				}else if(opt.equals("25")){
 				System.out.println("Carregando Feriados");
 				query="select * from feriados where empresa="+p.getEmpresa().getEmpresa_id();
 				//System.out.println(query);
@@ -1893,7 +1917,7 @@ public class UserMgmt extends HttpServlet {
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("26")) {
-
+				if(p.getPerfil_funcoes().contains("Usuarios Manager")) {
     			//System.out.println("chegou aqui!");
 				String senhaprovisoria="";
     			param1=req.getParameter("nome");
@@ -1916,11 +1940,18 @@ public class UserMgmt extends HttpServlet {
 		        String cod_valida=hash.toString(16); 
 		        
     			String insere = "";
+    			rs=conn.Consulta("select * from usuarios where id_usuario='"+param2+"'");
+    			if(rs.next()) {
+    				resp.setContentType("application/html");  
+		    		resp.setCharacterEncoding("UTF-8"); 
+		    		PrintWriter out = resp.getWriter();
+		    		out.print("Usuário já criado. Operação abortada");
+    			}else {
     			insere="INSERT INTO usuarios (id_usuario,nome,validado,ativo,email,hash,CODIGO_VALIDACAO,perfil,empresa) VALUES ('"+param2+"','"+param1+"','N','Y','"+param3+"','"+retornaSenha+"','"+cod_valida+"','"+param5+"','"+p.getEmpresa().getEmpresa_id()+"')";
     			if(conn.Inserir_simples(insere)){
 		    		//////////System.out.println("Resposta Consulta 10 Enviada!");
     				email= new Semail();
-    				email.enviaEmailSimples(param3, "MSTP - Link de Ativação","Prezado "+param1+", \n Agradecemos seu registro em nosso sistema. \n Para ativar sua conta basta clicar no link abaixo:\n \n \n https://www.mstp.com.br/Reg_Servlet?validaCode="+cod_valida +"\n\n Seu usuário:"+param2+"\n \n Sua Senha provisoria é:"+senhaprovisoria +"\n \n Acesse o link abaixo em seu aparelho celular para baixar o MSTP Mobile (android): \n http://node21664-inovareti.jelastic.saveincloud.net/mstp_mobile/download/mstp_mobile_last_version.apk ou baixe na Google Play - https://play.google.com/store/apps/details?id=com.inovareti.mstp_mobile&hl=pt");
+    				email.enviaEmailSimples(param3, "MSTP - Link de Ativação","Prezado "+param1+", \n Agradecemos seu registro em nosso sistema. Sua conta foi criada por:"+p.get_PessoaUsuario()+" - "+p.get_PessoaName()+" \n Para ativar sua conta basta clicar no link abaixo:\n \n \n https://www.mstp.com.br/Reg_Servlet?validaCode="+cod_valida +"\n\n Seu usuário:"+param2+"\n \n Sua Senha provisoria é:"+senhaprovisoria +"\n \n Acesse o link abaixo em seu aparelho celular para baixar o MSTP Mobile (android): \n baixe na Google Play - https://play.google.com/store/apps/details?id=com.inovareti.mstp_mobile&hl=pt");
     	        	
     				///***
 		    		rs=conn.Consulta("Select id_usuario_sys from usuarios where empresa='"+p.getEmpresa().getEmpresa_id()+"' order by id_usuario_sys desc limit 1");
@@ -1931,12 +1962,15 @@ public class UserMgmt extends HttpServlet {
 		    		resp.setCharacterEncoding("UTF-8"); 
 		    		PrintWriter out = resp.getWriter();
 		    		out.print(last_id);
+    			
     			}else{
 	    			System.out.println("Consulta returns empty");
     			}
+    			}
     			Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-			}else if(opt.equals("27")){
+				}
+				}else if(opt.equals("27")){
 				param1=req.getParameter("id");
 				param2=req.getParameter("nome");
 				param3=req.getParameter("inicio");
@@ -2179,7 +2213,11 @@ public class UserMgmt extends HttpServlet {
 							if(p.getEmpresa().getEmpresa_id()==1) {
 								HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,aux_usuario);
 							}else if(p.getEmpresa().getEmpresa_id()==5){
-								HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,aux_usuario);
+								if(d.get(Calendar.DAY_OF_WEEK)==6) {
+									HH=calcula_hh(entrada,entrada.substring(0, 10)+" 16:00:00",feriado,conn,p,aux_usuario);
+								}else {
+									HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,aux_usuario);
+								}
 							}
 						}
 							}}
@@ -2310,6 +2348,7 @@ public class UserMgmt extends HttpServlet {
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}else if(opt.equals("33")) {
+			if(p.getPerfil_funcoes().contains("Usuarios Manager")) {
 			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Iniciando cadastro de nova justificativas." );
 			param1=req.getParameter("justificativa");
 			param2=req.getParameter("desc");
@@ -2330,7 +2369,8 @@ public class UserMgmt extends HttpServlet {
 			out.print("Cadastro executado com sucesso.");
 			Timestamp time2 = new Timestamp(System.currentTimeMillis());
 			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-		}else if(opt.equals("34")) {
+			}
+			}else if(opt.equals("34")) {
 			param1=req.getParameter("ajuste");
 			ServletOutputStream out = resp.getOutputStream();
 			query="";
@@ -2792,14 +2832,13 @@ public class UserMgmt extends HttpServlet {
 			double total_horas=total_hora_saida-total_hora_entrada;
 			double horas_extras=0.0;
 			double horas_extras_noturnas=0.0;
+			if(p.getEmpresa().getEmpresa_id()==1) {
 			if(hora_entrada.get(Calendar.DAY_OF_WEEK)!=1 && hora_entrada.get(Calendar.DAY_OF_WEEK)!=7) {
 				if(f.verifica_feriado(f2.format(hora_entrada.getTime()),p.getEstadoUsuario(usuarioPesquisado, c), c, p.getEmpresa().getEmpresa_id())) {
 
-					if(p.getEmpresa().getEmpresa_id()==1) {
+					
 						horas_extras=total_horas-1.2;
-					}else if(p.getEmpresa().getEmpresa_id()==5){
-						horas_extras=total_horas-1.0;
-					}
+					
 					horas_extras_noturnas=0.0;
 					if(total_hora_saida>22.0 && total_hora_saida<23.59) {
 						horas_extras_noturnas=total_hora_saida-22.0;
@@ -2833,11 +2872,9 @@ public class UserMgmt extends HttpServlet {
 				//msg="HE:" + String.valueOf(twoDForm.format(horas_extras)) + " | HEN:" + String.valueOf(twoDForm.format(horas_extras_noturnas));
 				}}else {
 				 
-					if(p.getEmpresa().getEmpresa_id()==1) {
+					
 						horas_extras=total_horas-1.2;
-					}else if(p.getEmpresa().getEmpresa_id()==5){
-						horas_extras=total_horas-1.0;
-					}
+					
 					horas_extras_noturnas=0.0;
 					if(total_hora_saida>22.0 && total_hora_saida<23.59) {
 						horas_extras_noturnas=total_hora_saida-22.0;
@@ -2855,6 +2892,75 @@ public class UserMgmt extends HttpServlet {
 				//msg="BH:" + String.valueOf(twoDForm.format(horas_extras+horas_extras_noturnas));
 				 }
 			
+			
+			}else if(p.getEmpresa().getEmpresa_id()==5) {
+				Double total_horas_dia=0.0;
+				if(hora_entrada.get(Calendar.DAY_OF_WEEK)==6) {
+					total_horas_dia=9.0;
+				}else {
+					total_horas_dia=10.0;
+				}
+				if(hora_entrada.get(Calendar.DAY_OF_WEEK)!=1 && hora_entrada.get(Calendar.DAY_OF_WEEK)!=7) {
+					if(f.verifica_feriado(f2.format(hora_entrada.getTime()),p.getEstadoUsuario(usuarioPesquisado, c), c, p.getEmpresa().getEmpresa_id())) {
+
+						
+							horas_extras=total_horas-1.0;
+						
+						horas_extras_noturnas=0.0;
+						if(total_hora_saida>22.0 && total_hora_saida<23.59) {
+							horas_extras_noturnas=total_hora_saida-22.0;
+							horas_extras=horas_extras-horas_extras_noturnas;
+						}
+					
+					retorno[0]="Hora Extra";
+					retorno[1]=String.valueOf(twoDForm.format(horas_extras));
+					retorno[2]=String.valueOf(twoDForm.format(horas_extras_noturnas));
+					
+						retorno[3]="Feriado";
+					
+					//msg="BH:" + String.valueOf(twoDForm.format(horas_extras+horas_extras_noturnas));
+					
+					}else {
+					if(total_horas>total_horas_dia) {
+						horas_extras=total_horas-total_horas_dia;
+						horas_extras_noturnas=0.0;
+						if(total_hora_saida>22.0 && total_hora_saida<23.59) {
+							horas_extras_noturnas=total_hora_saida-22.0;
+							horas_extras=horas_extras-horas_extras_noturnas;
+						}
+					}else {
+						horas_extras=total_horas-total_horas_dia;
+						horas_extras_noturnas=0.0;
+					}
+					retorno[0]="Banco";
+					retorno[1]=String.valueOf(twoDForm.format(horas_extras));
+					retorno[2]=String.valueOf(twoDForm.format(horas_extras_noturnas));
+					retorno[3]="";
+					//msg="HE:" + String.valueOf(twoDForm.format(horas_extras)) + " | HEN:" + String.valueOf(twoDForm.format(horas_extras_noturnas));
+					}}else {
+					 
+							horas_extras=total_horas-1.0;
+						
+						horas_extras_noturnas=0.0;
+						if(total_hora_saida>22.0 && total_hora_saida<23.59) {
+							horas_extras_noturnas=total_hora_saida-22.0;
+							horas_extras=horas_extras-horas_extras_noturnas;
+						}
+					
+					retorno[0]="Hora Extra";
+					retorno[1]=String.valueOf(twoDForm.format(horas_extras));
+					retorno[2]=String.valueOf(twoDForm.format(horas_extras_noturnas));
+					if(hora_entrada.get(Calendar.DAY_OF_WEEK)==7) {
+						retorno[3]="Sábado";
+					}else {
+						retorno[3]="Domingo";
+					}
+					//msg="BH:" + String.valueOf(twoDForm.format(horas_extras+horas_extras_noturnas));
+					 }
+				
+				
+				
+			}
 			return retorno;
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block

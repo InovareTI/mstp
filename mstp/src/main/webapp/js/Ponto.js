@@ -70,7 +70,7 @@ function corrigir_ponto(){
 	    type: 'red',
 	    buttons: {
 	    	Confirma: function () {
-	    		$.alert('Atenção: Esta Função será desabilitada em 31/03/2019.')
+	    		$.alert('Atenção: Esta Função será desabilitada em 01/06/2019.')
 	
 	if(geral.perfil.search("BancoHHApprover")>=0){
 		$.ajax({
@@ -199,6 +199,22 @@ function carrega_ponto_usuario(){
 	var func =  $('#select_func_folha_ponto').val();
 	var selection=$('#range_espelho').jqxDateTimeInput('getRange');
 	var dados_usuario={};
+	 var expediente_aux;
+	   var expediente_aux1;
+	   var expediente_aux2;
+		if(geral.empresa_id==1){
+			expediente_aux="<th>Horário:</th><td>08:30h às 18:30 de 2ª a 6ª </td><th>Intervalo:</th><td>1:12h de intervalo de 2ª a 6ª</td>";
+	      expediente_aux1="08:30 às 18:30 de 2ª a 6ª";
+	      expediente_aux2="1h:12m por dia";
+		}else if(geral.empresa_id==5){
+			expediente_aux="<th>Horário:</th><td>07:00h às 17:00 de 2ª a 6ª </td><th>Intervalo:</th><td>1:00h de intervalo de 2ª a 6ª</td>";
+	      expediente_aux1="07:00 às 17:00 de 2ª a 6ª";
+	      expediente_aux2="1h:00m por dia";
+		}else{
+			expediente_aux="não definido";
+	      expediente_aux1="não definido";
+	      expediente_aux2="não definido";
+		}
 	coleta_dados_usuario(function(output){
 		
 		dados_usuario=JSON.parse(output);
@@ -216,7 +232,7 @@ function carrega_ponto_usuario(){
 	        			"<div class=\"panel-body\"><table style=\"width:100%\">" +
 	        			"<tr><th>CTPS:</th><td colspan=\"3\">"+dados_usuario.ctps+"</td><th>Matrícula:</th><td>"+dados_usuario.matricula+"</td></tr>" +
 	        			"<tr><th>Cargo:</th><td>"+dados_usuario.cargo+"</td><th></th><td></td><th>Admissão:</th><td>"+dados_usuario.admissao+"</td></tr>" +
-	        			"<tr><th>Horário:</th><td>08:30h às 18:30 de 2ª a 6ª </td><th>Intervalo:</th><td>1:12h de intervalo de 2ª a 6ª</td><th>PIS:</th><td>"+dados_usuario.pis+"</td></tr>" +
+	        			"<tr>"+expediente_aux+"<th>PIS:</th><td>"+dados_usuario.pis+"</td></tr>" +
 	        			"</table>"+
 	        			"</div>"+
 	        			"</div>";
@@ -252,7 +268,7 @@ function carrega_ponto_usuario(){
 							[{text:dados_usuario.matricula+" - "+dados_usuario.nome,style: 'tableHeader2',colSpan: 6}, {}, {},{},{},{}],
 							[{text:'CTPS:',style: 'tableHeader2'},{text: dados_usuario.ctps}, {},{},{text:'Matrícula:',style: 'tableHeader2'},{text: dados_usuario.matricula}],
 							[{text:'Cargo:',style: 'tableHeader2'},{text: dados_usuario.cargo}, {},{},{text:'Admissão:',style: 'tableHeader2'},{text:dados_usuario.admissao}],
-							[{text:'Horário:',style: 'tableHeader2'},{text: '08:30 às 18:30 de 2ª a 6ª' }, {text:'Intervalo:',style: 'tableHeader2'},{text:'1h:12m por dia'},{text:'PIS:',style: 'tableHeader2'},{text:dados_usuario.pis}]
+							[{text:'Horário:',style: 'tableHeader2'},{text: expediente_aux1 }, {text:'Intervalo:',style: 'tableHeader2'},{text:expediente_aux2},{text:'PIS:',style: 'tableHeader2'},{text:dados_usuario.pis}]
 						]
 					},
 					layout: 'headerLineOnly'

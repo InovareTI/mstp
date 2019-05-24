@@ -376,7 +376,8 @@ function edita_campos_rollout(campos){
 		document.getElementById("desc_campo_rollout").value = info['nome_campo'];
 		document.getElementById("tipo_atributo_rollout").value=info['sub_tipo'];
 		document.getElementById("trigger_pagamento").checked=info['trigger'];
-		document.getElementById('percent_pagamento').value=info['percent']
+		document.getElementById('percent_pagamento').value=info['percent'];
+		document.getElementById("id_aux_campo").value=info['id_campo'];
 			mostra_div_lista(info['sub_tipo']);
 		
 		$('#Modal_campos_rollout').modal('show');
@@ -490,7 +491,8 @@ function add_campo_rollout(){
 	nome= document.getElementById("nome_campo_rollout").value;
 	desc= document.getElementById("desc_campo_rollout").value;
 	chk= document.getElementById("trigger_pagamento").checked;
-	percent=document.getElementById('percent_pagamento').value
+	percent=document.getElementById('percent_pagamento').value;
+	
 	if(tipoc=="Atributo"){
 		e= document.getElementById("tipo_atributo_rollout");
 		tipoa=e.options[e.selectedIndex].text;
@@ -506,7 +508,8 @@ function add_campo_rollout(){
 			"lista":lista,
 			"trigger":chk,
 			"percent":percent,
-			"rollout":rollout
+			"rollout":rollout,
+			"id_campo":document.getElementById("id_aux_campo").value
 			},		  
 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
 		  url: "./POControl_Servlet",
@@ -517,7 +520,7 @@ function add_campo_rollout(){
 	
 	function onSuccess14(data)
 	{
-		
+		document.getElementById("id_aux_campo").value="";
 		ordem_tabela();
 		carrega_gant();
 	}
@@ -812,20 +815,20 @@ function carrega_gant(){
 	                ready: function () {
 	                    
 	                    var localizationObject = {
-	                        filterstringcomparisonoperators: ['contem', 'não contem'],
+	                        filterstringcomparisonoperators: ['contem', 'não contem','vazio','não vazio'],
 	                        // filter numeric comparison operators.
-	                        filternumericcomparisonoperators: ['less than', 'greater than'],
+	                        filternumericcomparisonoperators: ['less than', 'greater than','Empty','not Empty'],
 	                        // filter date comparison operators.
-	                        filterdatecomparisonoperators: ['menor que', 'maior que','maior ou igual a','menor ou igual a','igual a'],
+	                        filterdatecomparisonoperators: ['menor que', 'maior que','maior ou igual a','menor ou igual a','igual a','vazio','não vazio'],
 	                        // filter bool comparison operators.
 	                        filterbooleancomparisonoperators: ['equal', 'not equal']
 	                    }
 	                    $("#jqxgrid").jqxGrid('localizestrings', localizationObject);
 	                },
 	                updatefilterconditions: function (type, defaultconditions) {
-	                    var stringcomparisonoperators = ['CONTAINS', 'DOES_NOT_CONTAIN'];
-	                    var numericcomparisonoperators = ['LESS_THAN', 'GREATER_THAN'];
-	                    var datecomparisonoperators = ['LESS_THAN', 'GREATER_THAN','GREATER_THAN_OR_EQUAL','LESS_THAN_OR_EQUAL','EQUAL'];
+	                    var stringcomparisonoperators = ['CONTAINS', 'DOES_NOT_CONTAIN','EMPTY','NOT_EMPTY'];
+	                    var numericcomparisonoperators = ['LESS_THAN', 'GREATER_THAN','EMPTY','NOT_EMPTY'];
+	                    var datecomparisonoperators = ['LESS_THAN', 'GREATER_THAN','GREATER_THAN_OR_EQUAL','LESS_THAN_OR_EQUAL','EQUAL','EMPTY','NOT_EMPTY'];
 	                    var booleancomparisonoperators = ['EQUAL', 'NOT_EQUAL'];
 	                    switch (type) {
 	                        case 'stringfilter':
@@ -848,6 +851,7 @@ function carrega_gant(){
 	                    save_button = $("<input type=\"button\" class=\"btn btn-primary\" style='float: left; margin-left: 5px' value=\"Salvar\" id='jqxButton_salvar'>");
 	                    drop_button=$("<div style='float: left;' id='dropDownButton_op_rollout'><div style='border: none;' id='jqxTree_bt_rollout'><ul><li><a style='float: left; margin-left: 5px;' href='#' onclick='SyncRollout();'>Atualizar</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_upload_rollout\">Importar</a></li><li><a style='float: left; margin-left: 5px;' href='#' onclick='downloadFunc()'>Exportar</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_rollout_history\">Histórico de Mudanças</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" onclick='SyncToMongoDB()' >Sync TO Mongo</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" onclick='atualiza_status()' >Atualiza Status</a></li></ul></div></div>");
 	                    addButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Nova Atividade</a>");
+	                    msgButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Nova Mensagem</a>");
 	                    batchButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Atualização em Lotes</a>");
 	                    cFilterButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Remover Filtros</a>");
 	                    deleteButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Remover Atividade</a>");
@@ -858,6 +862,7 @@ function carrega_gant(){
 	                    RolloutMapButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href=\"#\" >Mapa(Beta)</a>");
 	                    container.append(save_button);
 	                    container.append(addButton);
+	                    container.append(msgButton);
 	                    container.append(batchButton);
 	                    container.append(drop_button);
 	                    container.append(cFilterButton);
@@ -869,6 +874,7 @@ function carrega_gant(){
 	                    //container.append(syncMongoButton);
 	                    toolbar.append(container);
 	                    save_button.jqxButton({theme:'light'});
+	                    msgButton.jqxButton({theme:'light'});
 	                    batchButton.jqxButton({theme:'light'});
 	                    drop_button.jqxDropDownButton({ width: 150, height: 30,theme:'light'});
 	                    $('#dropDownButton_op_rollout').jqxDropDownButton('setContent', '<div style="position: relative; margin-left: 3px; margin-top: 5px;">Operações</div>'); 
@@ -911,7 +917,19 @@ function carrega_gant(){
 	                		
 	                    	
 	                    });
-	                    
+	                    msgButton.click(function (event) {
+	                    	$.ajax({
+		                   		  type: "POST",
+		                   		  data: {"opt":"16"
+		                   			
+		                   			},		  
+		                   		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+		                   		  url: "./POControl_Servlet",
+		                   		  cache: false,
+		                   		  dataType: "text"
+		                   		  
+		                   		});
+	                    });
 	                   
 	                    cFilterButton.click(function (event) {
 	                    	$("#jqxgrid").jqxGrid('clearfilters');

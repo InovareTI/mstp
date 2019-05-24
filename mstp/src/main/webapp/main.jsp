@@ -1305,6 +1305,7 @@ response.setDateHeader ("Expires", -1);
 		        		</div>
 		        			<div style="float: left;" id="range_espelho"></div>
 		        		<div style="float: right">
+		        			
 		        			<button id="btn_gerar_espelho" onclick="recalcular_HH_BH()" class="btn btn-primary">Gerar Espelho de ponto</button>
 		        			<button id="btn_corrigir_espelho" onclick="corrigir_ponto()" class="btn btn-danger">Corrigir Intervalos de Descanso</button>
 	        			</div>
@@ -1312,7 +1313,7 @@ response.setDateHeader ("Expires", -1);
         			</div>
         			<p></p>
         			<div id="div_tabela_usuario_ponto_folha_panel" class="panel panel-primary" style="width:90%;margin:0 auto;">
-        				<div class="panel-heading"><h3 class="panel-title">Espelho de Ponto</h3></div>
+        				<div class="panel-heading"><label id="resumo_espelho_func">Espelho de Ponto</label></div>
 	        			<div class="panel-body">
         				<div id="div_tabela_usuario_ponto_folha">
 					       <table id="tabela_usuario_folha_ponto" class="display" style="width:100%">
@@ -1734,6 +1735,7 @@ response.setDateHeader ("Expires", -1);
         <h4 class="modal-title label_janelas">Adicionar Novo Campo ao Rollout</h4>
       </div>
       <div class="modal-body">
+      <input type="hidden" value="" id="id_aux_campo"/>
       <table width=100%>
       		<tr><td style="padding: 10px"><label class="control-label label_janelas">Nome do Campo</label></td></tr>
 	        <tr><td style="padding: 10px"><input type="text" class="form-control" id="nome_campo_rollout"></td></tr>
@@ -1971,12 +1973,12 @@ response.setDateHeader ("Expires", -1);
     		 	<tr>
     		 		<td><label class="control-label" style="color:black">Tipo do Item</label></td>
     		 		<td><select id="select_tipo_item_vistoria" class="selectpicker" data-live-search="true" title="Escolha o Tipo do Item">
-		        			<option value="1">Texto</option>
-		        			<option value="1">Número</option>
-		        			<option value="1">Foto</option>
-		        			<option value="1">Seleção Unica</option>
-		        			<option value="1">Multiplas seleções</option>
-		        			<option value="1">Data</option>
+		        			<option value="Texto">Texto</option>
+		        			<option value="Numero">Número</option>
+		        			<option value="Foto">Foto</option>
+		        			<option value="oneSelect">Seleção Unica</option>
+		        			<option value="MultiSelect">Multiplas seleções</option>
+		        			<option value="Data">Data</option>
 		        			
 						</select>
 					</td>
@@ -1993,7 +1995,7 @@ response.setDateHeader ("Expires", -1);
      </div>
      </div>
       <div class="modal-footer" style="display:block;">
-        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="criar_relatorio()">Criar</button><button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
       </div>
     </div>
 
@@ -2011,6 +2013,8 @@ response.setDateHeader ("Expires", -1);
         <h4 class="modal-title" style="color:black">Criar novo Template de Vistoria</h4>
       </div>
       <div class="modal-body">
+      <input type="hidden" id="operacao_relatorio" value="">
+      <input type="hidden" id="id_operacao_relatorio" value="">
       <table>
       
       <tr><td><label class="control-label" style="color:black">1. Informe o Nome do Relatório</label></td><td><input id="nome_relatorio"type="text" class="form-control"></td></tr>

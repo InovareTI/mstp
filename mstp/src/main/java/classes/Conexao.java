@@ -36,8 +36,8 @@ public class Conexao
 		try	{
 			
 			 Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
-			//String databaseURL = "jdbc:mysql://node21665-inovareti.jelastic.saveincloud.net/mstpDB?user=mstpwebDB&password=Xmqxf9qdCXusVYsH";
-			String databaseURL = "jdbc:mysql://localhost/mstpDB?user=root&password=r2d2c3p0";
+			String databaseURL = "jdbc:mysql://10.100.20.30/mstpDB?user=mstpwebDB&password=YV89aRRuN2-vV7@";
+			//String databaseURL = "jdbc:mysql://127.0.0.1/mstpDB?user=root&password=r2d2c3p0";
 			connection = DriverManager.getConnection(databaseURL);
 			connection.setAutoCommit(false);
 			//this.connection=c;
@@ -286,7 +286,22 @@ public class Conexao
 		}
 	}
 	
-	
+	public ResultSet ConsultaLogin(String query,String param1, String param2){
+		PreparedStatement statement;
+		try {
+			statement = this.connection.prepareStatement(query);
+			statement.setString(1, param1);
+			statement.setString(2, param2);
+			statement.setString(3, param2);
+			return statement.executeQuery();
+		    //statement.getConnection().commit();
+		} catch (SQLException e) {
+			return null;
+			// TODO Auto-generated catch block
+			
+		}
+		 
+	}
 	
 	public ResultSet Consulta(String query){
 	    

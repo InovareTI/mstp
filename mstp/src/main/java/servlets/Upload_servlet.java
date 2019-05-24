@@ -446,7 +446,7 @@ public class Upload_servlet extends HttpServlet {
 		 try {
 			 Double f_lat=Double.parseDouble(lat.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
 			 Double f_lng=Double.parseDouble(lng.replace(",", ".").replaceAll("\n", "").replaceAll("\r", "").trim());
-			 return Arrays.asList(f_lat,f_lng);
+			 return Arrays.asList(f_lng,f_lat);
 		 }catch (NumberFormatException e) {
 				
 				

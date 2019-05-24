@@ -88,7 +88,19 @@ public class RelatoriosServlet extends HttpServlet {
 			param1=req.getParameter("nome");
 			param2=req.getParameter("desc");
 			param3=req.getParameter("tipo");
+			param4=req.getParameter("opercacao");
+			
 			query="";
+			if(param4.equals("atualizar")) {
+				param5=req.getParameter("id_rel");
+				if(conn.Alterar("update vistoria_report set relatorio_nome='"+param1+"',descricao='"+param2+"',tipo_relatorio='"+param3+"' where id="+param5+" and empresa="+p.getEmpresa().getEmpresa_id())) {
+					resp.setContentType("application/html");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print("Relatório atualizado com sucesso!");
+				}
+				
+			}else {
 			query="insert into vistoria_report (relatorio_nome,descricao,tipo_relatorio,dt_generated,generated_by,empresa,obs) values ('"+param1+"','"+param2+"','"+param3+"','"+time+"','"+p.get_PessoaUsuario()+"',"+p.getEmpresa().getEmpresa_id()+",'')";
 			if(conn.Inserir_simples(query)) {
 				resp.setContentType("application/html");  
@@ -101,9 +113,10 @@ public class RelatoriosServlet extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				out.print("Falha na Criação do Relatório!");
 			}
+			}
 		}else if(opt.equals("2")){
 			query="";
-			query="select * from vistoria_report where empresa="+p.getEmpresa().getEmpresa_id();
+			query="select * from vistoria_report where empresa="+p.getEmpresa().getEmpresa_id()+" and status_ativo='ATIVO'";
 			rs=conn.Consulta(query);
 			int contador=0;
 				if(rs.next()) {
@@ -114,7 +127,7 @@ public class RelatoriosServlet extends HttpServlet {
 					dados_tabela=dados_tabela+"\"data\":[";
 					while(rs.next()) {
 						contador=contador+1;
-						dados_tabela=dados_tabela+"[\"<a href='#' onclick='edita_relatorio_info()'><i class='far fa-edit fa-lg' style='color:gray;padding:3px;'></i></a><a href='#' data-toggle='modal' data-target='#modal_campos_vistoria2' onclick='carrega_campos_relatorio("+rs.getInt("id")+")'><i class='fas fa-cogs fa-lg' style='color:gray;padding:3px;'></i></a><a href='#' onclick='remover_relatorio("+rs.getInt("id")+")'><i class='far fa-trash-alt fa-lg' style='color:red;padding:3px;'></i></a>\",\""+rs.getString("relatorio_nome")+"\",\""+rs.getString("descricao")+"\",\""+rs.getString("tipo_relatorio")+"\",\""+rs.getString("generated_by")+"\",\""+rs.getString("dt_generated")+"\"],\n";
+						dados_tabela=dados_tabela+"[\"<a href='#' onclick='edita_relatorio_info("+rs.getInt("id")+")'><i class='far fa-edit fa-lg' style='color:gray;padding:3px;'></i></a><a href='#' data-toggle='modal' data-target='#modal_campos_vistoria2' onclick='carrega_campos_relatorio("+rs.getInt("id")+")'><i class='fas fa-cogs fa-lg' style='color:gray;padding:3px;'></i></a><a href='#' onclick='remover_relatorio("+rs.getInt("id")+")'><i class='far fa-trash-alt fa-lg' style='color:red;padding:3px;'></i></a>\",\""+rs.getString("relatorio_nome")+"\",\""+rs.getString("descricao")+"\",\""+rs.getString("tipo_relatorio")+"\",\""+rs.getString("generated_by")+"\",\""+rs.getString("dt_generated")+"\"],\n";
 					}
 					dados_tabela=dados_tabela.replace("replace1", Integer.toString(contador));
 					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
@@ -130,21 +143,66 @@ public class RelatoriosServlet extends HttpServlet {
 				param3=req.getParameter("id_item");
 				param4=req.getParameter("parent_id_item");
 				param5=req.getParameter("relatorio_id_item");
-				query="";
-				if(param4.equals("")) {
-					param4="0";
-				}
-				query="insert into vistoria_campos (field_name,tree_id,parent_id,empresa,relatorio_id) values ('"+param1+"',"+param3+","+param4+","+p.getEmpresa().getEmpresa_id()+","+param5+")";
-				if(conn.Inserir_simples(query)) {
+				param6=req.getParameter("tipo_item");
+				String tipo="";
+				query="select field_id from vistoria_campos where tree_id="+param3+" and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5;
+				rs=conn.Consulta(query);
+				if(rs.next()) {
+					query="select campo_id from vistoria_dados where campo_id="+rs.getInt(1)+" and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5;
+					rs2=conn.Consulta(query);
+					if(rs2.next()) {
+						resp.setContentType("application/text");  
+						resp.setCharacterEncoding("UTF-8"); 
+						PrintWriter out = resp.getWriter();
+						out.print("Atençao, item não pode ser modificado pois já existem relatório e dados coletados para esse campo.");
+					}else {
+						if(param4.equals("0")) {
+							tipo="Grupo";
+						}else {
+						query="select * from vistoria_campos where tree_id="+param3+" and tree_id=parent_id and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5;
+						rs=conn.Consulta(query);
+						if(rs.next()) {
+							tipo="SubGrupo";
+						}else {
+							tipo="item";
+						}
+						conn.Update_simples("update vistoria_campos set field_type='SubGrupo' where tree_id="+param4+" and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5);
+						}
+						conn.Alterar("update vistoria_campos set field_type='"+tipo+"',field_name='"+param1+"',tipo='"+param6+"',field_desc='"+param2+"' where tree_id="+param3+" and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5);
+					}
 					resp.setContentType("application/text");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
 					out.print("Item Salvo com Sucesso!");
+				}else {
+				if(param4.equals("0")) {
+					tipo="Grupo";
+				}else {
+				query="select * from vistoria_campos where tree_id="+param3+" and tree_id=parent_id and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5;
+				rs=conn.Consulta(query);
+				if(rs.next()) {
+					tipo="SubGrupo";
+				}else {
+					tipo="item";
+				}
+				conn.Update_simples("update vistoria_campos set field_type='SubGrupo' where tree_id="+param4+" and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5);
+				}
+				query="";
+				if(param4.equals("")) {
+					param4="0";
+				}
+				query="insert into vistoria_campos (field_name,tree_id,parent_id,empresa,relatorio_id,tipo,field_desc,field_type) values ('"+param1+"',"+param3+","+param4+","+p.getEmpresa().getEmpresa_id()+","+param5+",'"+param6+"','"+param2+"','"+tipo+"')";
+				if(conn.Inserir_simples(query)) {
+					resp.setContentType("application/text");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print("Item Inserido com Sucesso!");
+				}
 				}
 			}else if(opt.equals("4")){
 				query="";
 				param1=req.getParameter("rel_id");
-				query="select * from vistoria_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param1;
+				query="select * from vistoria_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param1+" and field_status<>'CANCELADO'";
 				rs=conn.Consulta(query);
 				if(rs.next()) {
 					
@@ -156,7 +214,7 @@ public class RelatoriosServlet extends HttpServlet {
 					}
 					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
 					dados_tabela=dados_tabela+"]";
-					System.out.println(dados_tabela);
+					//System.out.println(dados_tabela);
 					resp.setContentType("application/json");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
@@ -181,10 +239,10 @@ public class RelatoriosServlet extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print("Remoção nao permitida, pois existem campos ativos");
 				}else {
-					query="delete from vistoria_campos where relatorio_id="+param1;
-					conn.Excluir(query);
-					query="delete from vistoria_report where id="+param1;
-					conn.Excluir(query);
+					query="update vistoria_campos set field_status='CANCELADO' where relatorio_id="+param1+ "and empresa="+p.getEmpresa().getEmpresa_id();
+					conn.Alterar(query);
+					query="update vistoria_report set status_ativo='CANCELADO' where id="+param1;
+					conn.Alterar(query);
 					resp.setContentType("application/Text");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
@@ -198,7 +256,7 @@ public class RelatoriosServlet extends HttpServlet {
 				query="select * from vistoria_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param1+" and tree_id="+param2+" and parent_id="+param3;
 				rs=conn.Consulta(query);
 				if(rs.next()) {
-					query=" select * from vistoria_dados where empresa="+p.getEmpresa().getEmpresa_id()+" and campo_id="+param2+" and parent_id="+param3+" and relatorio_id="+param1+" and relatorio_gerado='Y'";
+					query=" select * from vistoria_dados where empresa="+p.getEmpresa().getEmpresa_id()+" and campo_id="+param2+"  and relatorio_id="+param1+" and relatorio_gerado='Y'";
 					rs2=conn.Consulta(query);
 					if(rs2.next()) {
 						resp.setContentType("application/Text");  
@@ -206,13 +264,22 @@ public class RelatoriosServlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print("Remoção de Campo nao permita, pois existem vistoria em andamento sem documento gerado");
 					}else {
-						query="delete from vistoria_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param1+" and tree_id="+param2+" and parent_id="+param3;
-						conn.Excluir(query);
+						query="update vistoria_campos set field_status='CANCELADO' where empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param1+" and tree_id="+param2+" and parent_id="+param3;
+						conn.Alterar(query);
 						resp.setContentType("application/Text");  
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print("Campo Removido com sucesso");
 					}
+				}
+			}else if(opt.equals("7")){
+				param1=req.getParameter("rel_id");
+				rs=conn.Consulta("select * from vistoria_report where id="+param1+" and empresa="+p.getEmpresa().getEmpresa_id());
+				if(rs.next()) {
+					resp.setContentType("application/Text");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print("[\""+rs.getString("relatorio_nome")+"\",\""+rs.getString("descricao")+"\",\""+rs.getString("tipo_relatorio")+"\"]");
 				}
 			}
 		}catch (SQLException e) {
