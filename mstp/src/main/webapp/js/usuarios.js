@@ -192,6 +192,7 @@ function carrega_usuarios(){
     			"<button id=\"desabilitar_usuario\" type=\"button\" class=\"btn btn-danger\">Desabilitar Usuário</button>"+
     			"<button id=\"btn_reset_senha\" type=\"button\" class=\"btn btn-danger\" onclick=\"reset_senha()\">Redefinir Senha</button>"+
     			"<button id=\"btn_ferias\" type=\"button\" class=\"btn btn-info\" onclick=\"iniciar_ferias()\">Agendar Férias de Funcionário</button>"+
+    			"<button id=\"btn_tipo_usu\" type=\"button\" class=\"btn btn-info\" onclick=\"definiTipoUsuario()\">Alterar Tipo Usuário</button>"+
     			"<div class=\"btn-group\" role=\"group\">"+
     		    "<button id=\"btnGroupDrop2\" type=\"button\" class=\"btn btn-secondary aria-haspopup=\"true\" dropdown-toggle\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">"+
     		     "Importar"+
@@ -454,6 +455,74 @@ function reset_senha(){
 	    }
 	});
 }
+
+function definiTipoUsuario(){
+	var $table = $('#tabela_usuario');
+	var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
+         return row.user;
+     });
+	 console.log(ids);
+	$.confirm({
+	    title: 'Definir Tipo de Usuário - '+ids.length+' usuários selecionados',
+	    content: '' +
+	    '<form action="" class="formName">' +
+	    '<div class="form-group">' +
+	    '<label>Escolha o Tipo de Usuário</label><br><br>' +
+	    '<input type="radio"  class="radio_tipo_usuario" name="radio_tipo_usuario" id="radio_lider" value="Lider"><label for="radio_lider">Líder</label><br>' +
+	    '<input type="radio"  class="radio_tipo_usuario" name="radio_tipo_usuario" id="radio_terceiro" value="Terceiro"><label for="radio_terceiro">Terceiro</label><br>' +
+	    '<input type="radio"  class="radio_tipo_usuario" name="radio_tipo_usuario" id="radio_equipe" value="Equipe"><label for="radio_equipe">Equipe</label><br>' +
+	    '</div>' +
+	    '</form>',
+	    columnClass:'col-md-6 col-md-offset-3',
+	    buttons: {
+	        formSubmit: {
+	            text: 'Definir Tipo',
+	            btnClass: 'btn-blue',
+	            action: function () {
+	                
+	                var name=$("input[type='radio'][name='radio_tipo_usuario']:checked").val();
+	               
+	                if(!name){
+	                    $.alert('Escolha o tipo de usuário');
+	                    return false;
+	                }else{
+	                	$.ajax({
+	      	      		  type: "POST",
+	      	      		  data: {"opt":"41",
+	      	      			  "tipo":name,
+	      	      			  "usuarios":ids.toString()},		  
+	      	      		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+	      	      		  url: "./UserMgmt",
+	      	      		  cache: false,
+	      	      		  dataType: "text",
+	      	      		  success: onSuccessdifini_tipo
+	      	      		});
+	      	            function onSuccessdifini_tipo(data){
+	      	            	$.alert(data.toString());
+	      	            	$table.bootstrapTable('uncheckAll');
+	      	            	carrega_usuarios()
+	      	            }
+	                }
+	                
+	            }
+	        },
+	        cancel: function () {
+	            //close
+	        },
+	    },
+	    onContentReady: function () {
+	        // bind to events
+	        var jc = this;
+	        this.$content.find('form').on('submit', function (e) {
+	            // if the user submits the form by pressing enter in the field.
+	            e.preventDefault();
+	            
+	            jc.$$formSubmit.trigger('click'); // reference the button and click it
+	        });
+	    }
+	});
+}
+
 function iniciar_ferias(){
 	var $table = $('#tabela_usuario');
 	 var ids = $.map($table.bootstrapTable('getSelections'), function (row) {

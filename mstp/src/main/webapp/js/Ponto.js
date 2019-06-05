@@ -12,6 +12,7 @@ function visualiza_foto_justificativa(id_ajuste){
         src: './UserMgmt?opt=34&ajuste='+id_ajuste,
       }]);
 }
+
 function carrega_kpi(){
 	
 		$('#tabela_kpi_ponto').DataTable({
@@ -202,19 +203,23 @@ function carrega_ponto_usuario(){
 	 var expediente_aux;
 	   var expediente_aux1;
 	   var expediente_aux2;
+	   var banco_info="";
 		if(geral.empresa_id==1){
 			expediente_aux="<th>Horário:</th><td>08:30h às 18:30 de 2ª a 6ª </td><th>Intervalo:</th><td>1:12h de intervalo de 2ª a 6ª</td>";
 	      expediente_aux1="08:30 às 18:30 de 2ª a 6ª";
 	      expediente_aux2="1h:12m por dia";
+	      banco_info="Bando de Horas do Mes:"+geral.banco+" |";
 		}else if(geral.empresa_id==5){
 			expediente_aux="<th>Horário:</th><td>07:00h às 17:00 de 2ª a 6ª </td><th>Intervalo:</th><td>1:00h de intervalo de 2ª a 6ª</td>";
 	      expediente_aux1="07:00 às 17:00 de 2ª a 6ª";
 	      expediente_aux2="1h:00m por dia";
+	      banco_info="";
 		}else{
 			expediente_aux="não definido";
 	      expediente_aux1="não definido";
 	      expediente_aux2="não definido";
 		}
+		
 	coleta_dados_usuario(function(output){
 		
 		dados_usuario=JSON.parse(output);
@@ -237,7 +242,7 @@ function carrega_ponto_usuario(){
 	        			"</div>"+
 	        			"</div>";
 	part2="<div><p><br><br><table style=\"width:100%\">" +
-			"<tr><td>OBS: Bando de Horas do Mes:"+geral.banco+" | Horas Extras (50%):"+geral.horas_sabado + " | Horas Extras (100%):"+geral.horas_domingo+"</td><td></td></tr>"+
+			"<tr><td>OBS: "+banco_info+" Horas Extras (50%):"+geral.horas_sabado + " | Horas Extras (100%):"+geral.horas_domingo+"</td><td></td></tr>"+
 			"<tr><td>&nbsp</td><td>&nbsp</td><td>&nbsp</td</tr>"+
 			"<tr><td>____________________________________________________</td><td></td><td>____________________________________________________</td</tr>"+
 			"<tr><td>Ass. do Empregador</td><td></td><td>Empregado - "+dados_usuario.nome+"</td></tr>"+
@@ -330,7 +335,7 @@ function carrega_ponto_usuario(){
 	            {
 	                extend: 'pdfHtml5',
 	                title:'Folha de Ponto - período '+ mes_aux+'/2019',
-	                messageBottom:'\nObservações: \n Bando de Horas do Mes:'+geral.banco+' | Horas Extras (50%):'+geral.horas_sabado + ' | Horas Extras (100%):'+geral.horas_domingo,
+	                messageBottom:'\nObservações: \n '+banco_info+' Horas Extras (50%):'+geral.horas_sabado + ' | Horas Extras (100%):'+geral.horas_domingo,
 	                exportOptions: {
 	                    columns: [ 0, 1, 2, 3, 4, 5, 6 ]
 	                },
@@ -387,7 +392,7 @@ function carrega_ponto_usuario(){
 		            {
 		                extend: 'pdfHtml5',
 		                title:'Folha de Ponto - período '+ mes_aux+'/2019',
-		                messageBottom:'\nObservações: \n Bando de Horas do Mes:'+geral.banco+' | Horas Extras (50%):'+geral.horas_sabado + ' | Horas Extras (100%):'+geral.horas_domingo,
+		                messageBottom:'\nObservações: \n '+banco_info+' Horas Extras (50%):'+geral.horas_sabado + ' | Horas Extras (100%):'+geral.horas_domingo,
 		                exportOptions: {
 		                    columns: [ 0, 1, 2, 3, 4, 5, 6 ]
 		                },
@@ -459,7 +464,24 @@ function carrega_ponto_analise_usuario(){
 	        "processing": true,
 	        "order": [],
 	        "ajax": "./UserMgmt?opt=30&func="+func+"&inicio="+moment(selection.from).format('L')+"&fim="+moment(selection.to).format('L'),
-	        "lengthMenu": [ 15, 30]
+	        "columns": [
+	            { data: 'data' },
+	            { data: 'nome' },
+	            { data: 'usuario' },
+	            { data: 'lider' },
+	            { data: 'entrada' },
+	            { data: 'ini_inter' },
+	            { data: 'fim_inter' },
+	            { data: 'saida' },
+	            { data: 'local' },
+	            { data: 'status' },
+	            { data: 'fotos' },
+	            { data: 'horaextra' }
+	        ],
+	        "lengthMenu": [ 10, 30],
+	        "rowGroup": {
+	            dataSrc: 'lider'
+	        }
 	        
 	    });
 		}else{
@@ -501,6 +523,23 @@ function carrega_ponto_analise_usuario(){
 	
 	
 }
+function exibe_fotos_registro(usuario,dia){
+	//alert(usuario);
+	//alert(dia);
+ $.getJSON('./UserMgmt?opt=39&usuario='+usuario+'&dia='+dia, function(data) {	
+		// console.log(data);
+	 
+	 var options = {
+			    // optionName: 'option value'
+			    // for example:
+			    index: 0 // this option means you will start at first image
+			};
+	 var viewer = new PhotoViewer(data, options);
+	 });
+	
+
+	
+}
 function carrega_select_func_ponto(){
 	$.ajax({
 		  type: "POST",
@@ -517,10 +556,12 @@ function carrega_select_func_ponto(){
 		$("#select_func_faltas").html(data);
 		$("#select_func_diaria").html(data);
 		$("#select_autor_historico_filtro").html(data);
+		$("#func_mensagem").html(data);
 		$('#select_func_folha_ponto').selectpicker('refresh');
 		$('#select_func_folha_ponto_analise').selectpicker('refresh');
 		$('#select_func_faltas').selectpicker('refresh');
 		$("#select_func_diaria").selectpicker('refresh');
 		$("#select_autor_historico_filtro").selectpicker('refresh');
+		$("#func_mensagem").selectpicker('refresh');
 	}
 }

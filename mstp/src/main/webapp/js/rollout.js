@@ -710,6 +710,34 @@ function carrega_gant(){
 			 }
              return true;
          }
+		 var d = new Date();
+		 //alert(moment(d).format("L"));
+		 var cellclassInicioReal = function(row, columnfield, value) {
+			 //console.log(row);
+			 //console.log(columnfield);
+			 var coluna=columnfield.substr(columnfield.indexOf("_")+1);
+			 //console.log(coluna);
+			 var data = $('#jqxgrid').jqxGrid('getrowdata', row);
+			 //console.log(data);
+			  if (value == "") {
+			    return 'nada';
+			  } else if (moment(value).format("L") == moment(d).format("L") && data["edate_"+coluna]=="") {
+			    return 'yellow';
+			  } else if(moment(value).format("L") < moment(d).format("L") && data["edate_"+coluna]==""){
+				  return 'red';
+			  }else if (moment(value).format("L") == moment(d).format("L") && data["edate_"+coluna]!="") {
+				    return 'green';
+			  }else{
+				   return 'nada';
+			  }
+			};
+			var cellclassFimReal = function(row, columnfield, value) {
+				if (value == "") {
+				    return 'nada';
+				  } else if (moment(value).format("L") == moment(d).format("L")) {
+				    return 'green';
+				  } 
+				};
 		 var siteMarcadoIntegrado = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
              if (sites_aux.indexOf(value)>0) {
                  return '<span style="margin: 4px; margin-top:8px; float: ' + columnproperties.cellsalign + '; color: #008000;">' + value + '</span>';
@@ -727,11 +755,14 @@ function carrega_gant(){
 			if(texto_a=="Inicio Real"){
 				
 				data['campos2'][i].validation=validaDataActual;
+				data['campos2'][i].cellclassname=cellclassInicioReal;
 			}
 			if(texto_a=="Fim Real"){
 				
 				data['campos2'][i].validation=validaDataActual;
+				data['campos2'][i].cellclassname=cellclassFimReal;
 			}
+			
 			
 		}
 		var PeopleSource =
@@ -918,17 +949,8 @@ function carrega_gant(){
 	                    	
 	                    });
 	                    msgButton.click(function (event) {
-	                    	$.ajax({
-		                   		  type: "POST",
-		                   		  data: {"opt":"16"
-		                   			
-		                   			},		  
-		                   		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
-		                   		  url: "./POControl_Servlet",
-		                   		  cache: false,
-		                   		  dataType: "text"
-		                   		  
-		                   		});
+	                    	$('#Modal_EnviaMengagem').modal('show');
+	                    	
 	                    });
 	                   
 	                    cFilterButton.click(function (event) {
@@ -1025,6 +1047,28 @@ function carrega_gant(){
 	 
 	 
 	}
+function envia_mensagem_rollout(){
+	var usuarios=$("#func_mensagem").selectpicker('val');
+	var mensagem=document.getElementById("mensagem_input").value;
+	
+	if(!mensagem){
+		$.alert("Sem Mensagem para enviar");
+		return;
+	}
+	if(!usuarios){
+		$.alert("Destinatário não selecionados");
+		return;
+	}
+	$.ajax({
+ 		  type: "POST",
+ 		  data: {"opt":"16","usuario":usuarios.toString(),"mensagem":mensagem},		  
+ 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+ 		  url: "./POControl_Servlet",
+ 		  cache: false,
+ 		  dataType: "text"
+ 		  
+ 		});
+}
 function SyncToMongoDB() {
 	if(geral.usuario.includes('masteradmin')){
 	$.ajax({

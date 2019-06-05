@@ -59,7 +59,7 @@ public class Rel_auto extends HttpServlet {
 	}
 	
 	public void iniciar_servico_relatorio() {
-		System.out.println("GIS - Serviço de relatório iniciado...");
+		System.out.println("MSTP - Serviço de relatório iniciado...");
 	    scheduler = Executors.newSingleThreadScheduledExecutor();
 	    scheduler.scheduleAtFixedRate(new enviar_relatorio(),0, 1, TimeUnit.HOURS);
 	    
@@ -142,7 +142,7 @@ public class Rel_auto extends HttpServlet {
 							dados=dados+"</table>"+"\n" + "</div>"+"\n"+"</div></html>"+"\n";
 							//System.out.println(dados);
 							//email.enviaEmailSimples("fabio.albuquerque@inovare-ti.com", "G I S - relatório automatico","Prezado, \n Email automatico de relatório.\n"+ dados);
-							email.enviaEmailHtml("fabio.albuquerque@inovare-ti.com", "G I S - relatório automático", dados);
+							email.enviaEmailHtml("fabio.albuquerque@inovare-ti.com", "MSTP - relatório automático", dados);
 						}
 					}
 				}

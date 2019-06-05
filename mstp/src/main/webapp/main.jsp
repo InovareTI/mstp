@@ -60,7 +60,8 @@ response.setDateHeader ("Expires", -1);
 
 	<script src="js/DataTable/pdfmake.min.js" type="text/javascript"></script>
 	<script src="js/DataTable/vfs_fonts.js" type="text/javascript"></script>
-	
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/rowgroup/1.1.0/css/rowGroup.dataTables.min.css" />
+	<script src="https://cdn.datatables.net/rowgroup/1.1.0/js/dataTables.rowGroup.min.js" type="text/javascript"></script>
 	<script src="js/modernizr.custom.js"></script>
 	<script src="js/plugins/canvas-to-blob.min.js" type="text/javascript"></script>
 	<script src="js/fileinput.js" type="text/javascript"></script>
@@ -161,14 +162,41 @@ response.setDateHeader ("Expires", -1);
 	<script type="text/javascript" src="js/scheduler.js"></script>
 	<script type="text/javascript" src="js/importacoes.js"></script>
 	<script type="text/javascript" src="js/pivot.js"></script>
+	
 	<script src='https://api.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.js'></script>
      <link href='https://api.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.css' rel='stylesheet' />
 
 	<link rel="manifest" href="/manifest.json" />
-	
+	<link rel="manifest" href="/manifest.json" />
+<script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
+<script>
+  var OneSignal = window.OneSignal || [];
+  OneSignal.push(function() {
+    OneSignal.init({
+      appId: "ae9ad50e-520d-436a-b0b0-23aaddedee7b",
+      notifyButton: {
+        enable: true,
+      },
+    });
+  });
+</script>
 	
     
 	<style>
+	.green {
+  color: black !important;
+  background-color: #b6ff00 !important;
+}
+
+.yellow {
+  color: black !important;
+  background-color: yellow !important;
+}
+
+.red {
+  color: black !important;
+  background-color: #e83636 !important;
+}
 	.card {
     	/* Add shadows to create the "card" effect */
     		box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
@@ -1378,13 +1406,14 @@ response.setDateHeader ("Expires", -1);
 					                <th>Data</th>
 					                <th>Nome</th>
 					                <th>Usuários</th>
+					                <th>Líder</th>
 					                <th>Entrada</th>
 					                <th>Início Intervalo</th>
 					                <th>Fim Intervalo</th>
 					                <th>Saída</th>
 					                <th>Local</th>
 					                <th>Status</th>
-					                <th>Ajustar</th>
+					                <th>Fotos</th>
 					                <th>Horas Extras</th>
 					            </tr>
 					        </thead>
@@ -1393,13 +1422,14 @@ response.setDateHeader ("Expires", -1);
 					                <th>Data</th>
 					                <th>Nome</th>
 					                <th>Usuários</th>
+					                <th>Líder</th>
 					                <th>Entrada</th>
 					                <th>Início Intervalo</th>
 					                <th>Fim Intervalo</th>
 					                <th>Saída</th>
 					                <th>Local</th>
 					                <th>Status</th>
-					                <th>Ajustar</th>
+					                <th>Fotos</th>
 					                <th>Horas Extras</th>
 					            </tr>
 					        </tfoot>
@@ -2152,6 +2182,37 @@ response.setDateHeader ("Expires", -1);
 
   </div>
 </div> 
+
+<div id="Modal_EnviaMengagem" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title" style="color:black">Enviar Mensagem ao Usuário</h4>
+      </div>
+      <div class="modal-body" style="background-image: linear-gradient(red, yellow);">
+      <table >
+      		<tr>
+      		<td style="padding: 10px"><select class="selectpicker" data-actions-box="true" multiple data-selected-text-format="count > 2" data-live-search="true" title="Escolha o Funcionário"  id="func_mensagem" ></select></td>
+	        
+	        </tr>
+      	</table>
+			<hr>
+        <label class="control-label"> Escreva sua Mensagem Abaixo</label>
+		<input id="mensagem_input" class="form-control" value="" type="text" rows="5" style="color:black;width:400px; height:50px;font-size: 14px" >	
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="envia_mensagem_rollout()">Enviar</button>
+      </div>
+    </div>
+
+  </div>
+</div> 
+
+
 <div id="modal_ajuste_ponto" class="modal fade subconpo" role="dialog">
   <div class="modal-dialog">
 

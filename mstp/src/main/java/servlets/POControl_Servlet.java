@@ -668,59 +668,24 @@ public class POControl_Servlet extends HttpServlet {
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}
 					}else if(opt.equals("16")){
-						//param1=req.getParameter("mensagem");
-						param1="teste fora do app";
-						//param2=req.getParameter("grupo");
-						//param3=req.getParameter("user_target");
-						 try {
-							   String jsonResponse;
-							  // System.out.println("controle1");
-							   URL url = new URL("https://onesignal.com/api/v1/notifications");
-							   HttpURLConnection con = (HttpURLConnection)url.openConnection();
-							   con.setUseCaches(false);
-							   con.setDoOutput(true);
-							   con.setDoInput(true);
-							  // System.out.println("controle2");
-							   con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-							   con.setRequestProperty("Authorization", "Basic ZTFhZmE3YTItMDczNC00OWM3LTk0ZTgtMzUzYjg5OTY1ZGFj");
-							   con.setRequestMethod("POST");
-							  // System.out.println("controle3");
-							   String strJsonBody = "{"
-							                      +   "\"app_id\": \"ae9ad50e-520d-436a-b0b0-23aaddedee7b\","
-							                      +   "\"filters\": [{\"field\": \"tag\", \"key\": \"User\", \"relation\": \"=\", \"value\": \""+p.get_PessoaUsuario()+"\"}],"
-							                      +   "\"included_segments\": [\"All\"],"
-							                      +   "\"data\": {\"foo\": \"bar\"},"
-							                      +   "\"contents\": {\"en\": \""+param1+"\"}"
-							                      + "}";
-							         
-							   
-							   //System.out.println("strJsonBody:\n" + strJsonBody);
-
-							   byte[] sendBytes = strJsonBody.getBytes("UTF-8");
-							   con.setFixedLengthStreamingMode(sendBytes.length);
-							  // System.out.println("controle4");
-							   OutputStream outputStream = con.getOutputStream();
-							   outputStream.write(sendBytes);
-
-							   int httpResponse = con.getResponseCode();
-							  // System.out.println("httpResponse: " + httpResponse);
-
-							   if (  httpResponse >= HttpURLConnection.HTTP_OK
-							      && httpResponse < HttpURLConnection.HTTP_BAD_REQUEST) {
-							      Scanner scanner = new Scanner(con.getInputStream(), "UTF-8");
-							      jsonResponse = scanner.useDelimiter("\\A").hasNext() ? scanner.next() : "";
-							      scanner.close();
-							   }
-							   else {
-							      Scanner scanner = new Scanner(con.getErrorStream(), "UTF-8");
-							      jsonResponse = scanner.useDelimiter("\\A").hasNext() ? scanner.next() : "";
-							      scanner.close();
-							   }
-							   //System.out.println("jsonResponse:\n" + jsonResponse);
-							   
-							} catch(Throwable t) {
-							   t.printStackTrace();
-							}
+						System.out.println(p.get_PessoaUsuario()+" pode enviar mensagem:"+p.getPerfil_funcoes().contains("MessageSender"));
+						//System.out.println(p.getPerfil_funcoes());
+						if(p.getPerfil_funcoes().contains("MessageSender")) {
+						param1=req.getParameter("mensagem");
+						param2=req.getParameter("usuario");
+						System.out.println("Envio de Mensagem:"+param1);
+						System.out.println("Envio de Mensagem:"+param2);
+						param1="De: "+p.get_PessoaName()+"\n\n"+param1;
+						param1=param1+"\n\nData Hora de Envio:"+f2.format(time);
+						 if(param2.indexOf(",")>0) {
+							 String[]user_aux=param2.split(",");
+							 for(int i=0;i<user_aux.length;i++) {
+								 enviaMensagemPorUsuario(user_aux[i],param1);
+							 }
+						 }else {
+							 enviaMensagemPorUsuario(param2,param1);
+						 }
+						}
 						 Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 							
@@ -791,6 +756,7 @@ public class POControl_Servlet extends HttpServlet {
 							dados_tabela=dados_tabela +" <th data-field=\"user_name\" data-filter-control=\"select\">Nome</th>"+"\n";
 							dados_tabela=dados_tabela +" <th data-field=\"user_email\">Email</th>"+"\n";
 							dados_tabela=dados_tabela +" <th style data-field=\"user_profile\">Perfil</th>"+"\n";
+							dados_tabela=dados_tabela +" <th style data-field=\"user_tipo\">Tipo</th>"+"\n";
 							dados_tabela=dados_tabela +" <th style data-field=\"user_valid\">Validado</th>"+"\n";
 							dados_tabela=dados_tabela +" <th style data-field=\"user_lastlogin\">Ultimo Acesso</th>"+"\n";
 							dados_tabela=dados_tabela +"</tr>"+"\n";
@@ -804,6 +770,7 @@ public class POControl_Servlet extends HttpServlet {
 								dados_tabela=dados_tabela + " <td>"+rs.getString("nome")+"</td>"+"\n";
 								dados_tabela=dados_tabela + " <td>"+rs.getString("email")+"</td>"+"\n";
 								dados_tabela=dados_tabela + " <td>"+rs.getString("perfil")+"</td>"+"\n";
+								dados_tabela=dados_tabela + " <td>"+rs.getString("tipo")+"</td>"+"\n";
 								dados_tabela=dados_tabela + " <td>"+rs.getString("validado")+"</td>"+"\n";
 								dados_tabela=dados_tabela + " <td>"+rs.getString("ultimo_acesso")+"</td>"+"\n";
 								dados_tabela=dados_tabela + "</tr>"+"\n";
@@ -1527,5 +1494,55 @@ public class POControl_Servlet extends HttpServlet {
     		
 		
 		}
-    
+    public void enviaMensagemPorUsuario(String usuario,String mensagem) {
+    	try {
+			   String jsonResponse;
+			  // System.out.println("controle1");
+			   URL url = new URL("https://onesignal.com/api/v1/notifications");
+			   HttpURLConnection con = (HttpURLConnection)url.openConnection();
+			   con.setUseCaches(false);
+			   con.setDoOutput(true);
+			   con.setDoInput(true);
+			  // System.out.println("controle2");
+			   con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+			   con.setRequestProperty("Authorization", "Basic ZTFhZmE3YTItMDczNC00OWM3LTk0ZTgtMzUzYjg5OTY1ZGFj");
+			   con.setRequestMethod("POST");
+			  // System.out.println("controle3");
+			   String strJsonBody = "{"
+			                      +   "\"app_id\": \"ae9ad50e-520d-436a-b0b0-23aaddedee7b\","
+			                      +   "\"filters\": [{\"field\": \"tag\", \"key\": \"User\", \"relation\": \"=\", \"value\": \""+usuario+"\"}],"
+			                      +   "\"included_segments\": [\"All\"],"
+			                      +   "\"data\": {\"foo\": \"bar\"},"
+			                      +   "\"contents\": {\"en\": \""+mensagem+"\"}"
+			                      + "}";
+			         
+			   
+			   //System.out.println("strJsonBody:\n" + strJsonBody);
+
+			   byte[] sendBytes = strJsonBody.getBytes("UTF-8");
+			   con.setFixedLengthStreamingMode(sendBytes.length);
+			  // System.out.println("controle4");
+			   OutputStream outputStream = con.getOutputStream();
+			   outputStream.write(sendBytes);
+
+			   int httpResponse = con.getResponseCode();
+			  // System.out.println("httpResponse: " + httpResponse);
+
+			   if (  httpResponse >= HttpURLConnection.HTTP_OK
+			      && httpResponse < HttpURLConnection.HTTP_BAD_REQUEST) {
+			      Scanner scanner = new Scanner(con.getInputStream(), "UTF-8");
+			      jsonResponse = scanner.useDelimiter("\\A").hasNext() ? scanner.next() : "";
+			      scanner.close();
+			   }
+			   else {
+			      Scanner scanner = new Scanner(con.getErrorStream(), "UTF-8");
+			      jsonResponse = scanner.useDelimiter("\\A").hasNext() ? scanner.next() : "";
+			      scanner.close();
+			   }
+			   //System.out.println("jsonResponse:\n" + jsonResponse);
+			   
+			} catch(Throwable t) {
+			   t.printStackTrace();
+			}
+    }
 }

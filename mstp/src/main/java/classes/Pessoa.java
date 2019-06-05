@@ -212,16 +212,18 @@ public class Pessoa {
 		return perfil.get_perfil();
 	}
 	public String[] buscarPessoa(Conexao c, String u, Integer e) {
-		String[] dados= new String[2];
+		String[] dados= new String[3];
 		ResultSet rs;
 		rs=c.Consulta("select * from usuarios where id_usuario='"+u+"' and empresa='"+e+"' limit 1");
 		try {
 			if(rs.next()) {
 				dados[0]=rs.getString("nome");
 				dados[1]=rs.getString("id_usuario");
+				dados[2]=rs.getString("lider_usuario");
 			}else {
 				dados[0]="Usuário não encontrado";
 				dados[1]=u;
+				dados[2]="-";
 			}
 		} catch (SQLException e1) {
 			// TODO Auto-generated catch block

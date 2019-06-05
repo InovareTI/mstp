@@ -3,8 +3,10 @@ package servlets;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
-
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,6 +24,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 
@@ -226,8 +229,8 @@ public class RolloutServlet extends HttpServlet {
     						
     						campos_aux=campos_aux+"{ \"text\": \"Inicio Previsto\", \"columngroup\":\""+rs.getString("field_name")+"\" , \"datafield\":\"sdate_pre_"+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\", \"cellsformat\":\"dd/MM/yyyy\",\"width\":100},"+ "\n";
     						campos_aux=campos_aux+"{ \"text\": \"Fim Previsto\", \"columngroup\":\""+rs.getString("field_name")+"\" , \"datafield\":\"edate_pre_"+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\", \"cellsformat\":\"dd/MM/yyyy\",\"width\":100},"+ "\n";
-    						campos_aux=campos_aux+"{ \"text\": \"Inicio Real\", \"columngroup\":\""+rs.getString("field_name")+"\" , \"datafield\":\"sdate_"+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\", \"cellsformat\":\"dd/MM/yyyy\",\"width\":100,\"validation\":\"validaDataActual\"},"+ "\n";
-    						campos_aux=campos_aux+"{ \"text\": \"Fim Real\", \"columngroup\":\""+rs.getString("field_name")+"\" , \"datafield\":\"edate_"+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\", \"cellsformat\":\"dd/MM/yyyy\",\"width\":100,\"validation\":\"validaDataActual\"},"+ "\n";
+    						campos_aux=campos_aux+"{ \"text\": \"Inicio Real\", \"columngroup\":\""+rs.getString("field_name")+"\" , \"datafield\":\"sdate_"+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\", \"cellsformat\":\"dd/MM/yyyy\",\"width\":100,\"cellclassname\": \"cellclass\",\"validation\":\"validaDataActual\"},"+ "\n";
+    						campos_aux=campos_aux+"{ \"text\": \"Fim Real\", \"columngroup\":\""+rs.getString("field_name")+"\" , \"datafield\":\"edate_"+rs.getString("field_name")+"\",\"filtertype\": \"date\",\"columntype\": \"datetimeinput\", \"cellsformat\":\"dd/MM/yyyy\",\"width\":100,\"cellclassname\": \"cellclass\",\"validation\":\"validaDataActual\"},"+ "\n";
     						campos_aux=campos_aux+"{ \"text\": \"Anotacões\", \"columngroup\":\""+rs.getString("field_name")+"\", \"datafield\":\"udate_"+rs.getString("field_name")+"\",\"columntype\": \"textbox\",\"width\":100},"+ "\n";
     						campos_aux=campos_aux+"{ \"text\": \"Responsavel\", \"columngroup\":\""+rs.getString("field_name")+"\", \"datafield\":\"resp_"+rs.getString("field_name")+"\",\"columntype\": \"combobox\",\"width\":200},"+ "\n";
     						campos_aux=campos_aux+"{ \"text\": \"Duração(D)\", \"columngroup\":\""+rs.getString("field_name")+"\", \"datafield\":\"duracao_"+rs.getString("field_name")+"\",\"editable\":False,\"width\":100,\"cellsalign\": \"center\"},"+ "\n";
@@ -2754,6 +2757,9 @@ public class RolloutServlet extends HttpServlet {
                 String plano;
                 String cmp;
                 String[] elementNames;
+                String mensagem_resp="";
+                String mensagem_conteudo="";
+                String atualizacao_resp="";
                 time = new Timestamp(System.currentTimeMillis());
                 Calendar d =Calendar.getInstance();
                 //atualiza_sites_integrados(p);
@@ -2774,6 +2780,9 @@ public class RolloutServlet extends HttpServlet {
     			while(cont1<tamanho){
     				jObj2=campos.getJSONObject(cont1);
     				elementNames = JSONObject.getNames(jObj2);
+    				mensagem_resp="";
+    				atualizacao_resp="";
+    				mensagem_conteudo="";
     				//System.out.println(jObj2.getString("colum"));
     				//tamanho2=jObj2.length();
     				query="";
@@ -2795,7 +2804,7 @@ public class RolloutServlet extends HttpServlet {
 						update = new Document();
 				        update.append("$set", updates);
 				        historico.append("recid" , jObj2.getInt("id"));
-				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
 				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
 				        historico.append("TipoCampo" , "Milestone");
 				        historico.append("Milestone" , cmp);
@@ -2841,7 +2850,7 @@ public class RolloutServlet extends HttpServlet {
 						update = new Document();
 				        update.append("$set", updates);
 				        historico.append("recid" , jObj2.getInt("id"));
-				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
 				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
 				        historico.append("TipoCampo" , "Milestone");
 				        historico.append("Milestone" , cmp);
@@ -2886,7 +2895,7 @@ public class RolloutServlet extends HttpServlet {
     						updates.append("update_by", p.get_PessoaUsuario());
     						updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
     						historico.append("recid" , jObj2.getInt("id"));
-    				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+    				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
     				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
     				        historico.append("TipoCampo" , "Milestone");
     				        historico.append("Milestone" , cmp);
@@ -2940,7 +2949,7 @@ public class RolloutServlet extends HttpServlet {
     						updates.append("update_by", p.get_PessoaUsuario());
     						updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
     						historico.append("recid" , jObj2.getInt("id"));
-    				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+    				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
     				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
     				        historico.append("TipoCampo" , "Milestone");
     				        historico.append("Milestone" , cmp);
@@ -2997,7 +3006,7 @@ public class RolloutServlet extends HttpServlet {
     						update = new Document();
     				        update.append("$set", updates);
     				        historico.append("recid" , jObj2.getInt("id"));
-    				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+    				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
     				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
     				        historico.append("TipoCampo" , "Milestone");
     				        historico.append("Milestone" , cmp);
@@ -3034,7 +3043,7 @@ public class RolloutServlet extends HttpServlet {
     								updates.append("update_by", p.get_PessoaUsuario());
     								updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
     								historico.append("recid" , jObj2.getInt("id"));
-    		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+    		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
     		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
     		    				    historico.append("TipoCampo" , "Milestone");
     		    				    historico.append("Milestone" , cmp.substring(5,cmp.length()));
@@ -3043,7 +3052,9 @@ public class RolloutServlet extends HttpServlet {
     		    				    historico.append("Novo Valor" , jObj2.getString("value"));
     		    				    historico.append("update_by", p.get_PessoaUsuario());
     		    				    historico.append("update_time", d.getTime());
-    		    				   
+    		    				    atualizacao_resp="comunicar";
+    		    				    mensagem_resp=jObj2.getString("value");
+    		    				    mensagem_conteudo="Voce recebeu uma Tarefa :\n Site: "+r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id"))+"\nAtividade: "+cmp.substring(5, cmp.length());
     							}else {
     								d =Calendar.getInstance();
     								//query="update rollout set value_atbr_field='"+jObj2.getString("value")+"',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id() ;
@@ -3054,7 +3065,7 @@ public class RolloutServlet extends HttpServlet {
     								updates.append("update_by", p.get_PessoaUsuario());
     								updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
     								historico.append("recid" , jObj2.getInt("id"));
-    		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+    		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
     		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
     		    				    historico.append("TipoCampo" , "Atributo");
     		    				    historico.append("Milestone" , "");
@@ -3076,7 +3087,7 @@ public class RolloutServlet extends HttpServlet {
 								updates.append("update_by", p.get_PessoaUsuario());
 								updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
 								historico.append("recid" , jObj2.getInt("id"));
-		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
 		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
 		    				    historico.append("TipoCampo" , "Atributo");
 		    				    historico.append("Milestone" , "");
@@ -3095,7 +3106,7 @@ public class RolloutServlet extends HttpServlet {
 								updates.append("update_by", p.get_PessoaUsuario());
 								updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
 								historico.append("recid" , jObj2.getInt("id"));
-		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(conn,jObj2.getInt("id")));
+		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
 		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
 		    				    historico.append("TipoCampo" , "Atributo");
 		    				    historico.append("Milestone" , "");
@@ -3125,6 +3136,9 @@ public class RolloutServlet extends HttpServlet {
     					}
     				
     				cont1++;
+    				if(atualizacao_resp.equals("comunicar")) {
+    					enviaMensagemPorUsuario(p.get_PessoaName(),mensagem_resp,mensagem_conteudo,f2.format(time));
+    				}
     			}
     			//precisa usar o getnames para pegar os nomes dos campos que foram atualizados);
     			//Timestamp time = new Timestamp(System.currentTimeMillis());
@@ -4392,6 +4406,62 @@ public class RolloutServlet extends HttpServlet {
 		}
 		System.out.println("Sincronia de sites finalizado ");
 	}
+	
+	public void enviaMensagemPorUsuario(String usuario_src,String usuario_alvo,String mensagem,String dt_mensagem) {
+		
+		mensagem="De: "+usuario_src+"\n\n"+mensagem;
+		mensagem=mensagem+"\n\n Data Hora de Envio: "+dt_mensagem;
+    	try {
+			   String jsonResponse;
+			  // System.out.println("controle1");
+			   URL url = new URL("https://onesignal.com/api/v1/notifications");
+			   HttpURLConnection con = (HttpURLConnection)url.openConnection();
+			   con.setUseCaches(false);
+			   con.setDoOutput(true);
+			   con.setDoInput(true);
+			  // System.out.println("controle2");
+			   con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+			   con.setRequestProperty("Authorization", "Basic ZTFhZmE3YTItMDczNC00OWM3LTk0ZTgtMzUzYjg5OTY1ZGFj");
+			   con.setRequestMethod("POST");
+			  // System.out.println("controle3");
+			   String strJsonBody = "{"
+			                      +   "\"app_id\": \"ae9ad50e-520d-436a-b0b0-23aaddedee7b\","
+			                      +   "\"filters\": [{\"field\": \"tag\", \"key\": \"User\", \"relation\": \"=\", \"value\": \""+usuario_alvo+"\"}],"
+			                      +   "\"included_segments\": [\"All\"],"
+			                      +   "\"data\": {\"foo\": \"bar\"},"
+			                      +   "\"contents\": {\"en\": \""+mensagem+"\"}"
+			                      + "}";
+			         
+			   
+			   //System.out.println("strJsonBody:\n" + strJsonBody);
+
+			   byte[] sendBytes = strJsonBody.getBytes("UTF-8");
+			   con.setFixedLengthStreamingMode(sendBytes.length);
+			  // System.out.println("controle4");
+			   OutputStream outputStream = con.getOutputStream();
+			   outputStream.write(sendBytes);
+
+			   int httpResponse = con.getResponseCode();
+			  // System.out.println("httpResponse: " + httpResponse);
+
+			   if (  httpResponse >= HttpURLConnection.HTTP_OK
+			      && httpResponse < HttpURLConnection.HTTP_BAD_REQUEST) {
+			      Scanner scanner = new Scanner(con.getInputStream(), "UTF-8");
+			      jsonResponse = scanner.useDelimiter("\\A").hasNext() ? scanner.next() : "";
+			      scanner.close();
+			   }
+			   else {
+			      Scanner scanner = new Scanner(con.getErrorStream(), "UTF-8");
+			      jsonResponse = scanner.useDelimiter("\\A").hasNext() ? scanner.next() : "";
+			      scanner.close();
+			   }
+			   //System.out.println("jsonResponse:\n" + jsonResponse);
+			   
+			} catch(Throwable t) {
+			   t.printStackTrace();
+			}
+    }
+	
 	public void insere_linha_rollout(ConexaoMongo c,HttpServletRequest req, HttpServletResponse resp,Pessoa p) {
 		
 		

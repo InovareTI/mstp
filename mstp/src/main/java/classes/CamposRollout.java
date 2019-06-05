@@ -2,9 +2,17 @@ package classes;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Filters;
 
 
 
@@ -19,21 +27,22 @@ public class CamposRollout {
 		campo_data_tipo="";
 	}
 	
-	public String BuscaSitebyRecID(Conexao c,int recid) {
-		ResultSet rs;
+	public String BuscaSitebyRecID(ConexaoMongo c,int recid) {
 		
-		rs=c.Consulta("select value_atbr_field from rollout where recid="+recid+" and milestone='Site ID' limit 1");
-		try {
-			if(rs.next()) {
-				return rs.getString("value_atbr_field");
-			}else {
-				return "Site Nao encontrado";
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return "Erro na busca do Site";
+		Document resultado = new Document();
+		Bson filtro;
+		List<Bson> filtros = new ArrayList<>();
+		filtro=Filters.eq("recid",recid);
+		filtros.add(filtro);
+		FindIterable<Document> findIterable= c.ConsultaCollectioncomFiltrosLista("rollout", filtros);
+		MongoCursor<Document> busca= findIterable.iterator();
+		if(busca.hasNext()) {
+			resultado=busca.next();
+			return resultado.getString("Site ID");
+		}else {
+			return "Site Nao encontrado";
 		}
+		
 	}
 	
 	public String getCampo_nome() {

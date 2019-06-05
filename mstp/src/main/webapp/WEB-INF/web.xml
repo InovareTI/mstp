@@ -5,6 +5,15 @@
     <welcome-file>index.html</welcome-file>
   </welcome-file-list>
   <servlet>
+    <servlet-name>servlets.rolloutDTAtrasada</servlet-name>
+    <servlet-class>servlets.rolloutDTAtrasada</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>servlets.rolloutDTAtrasada</servlet-name>
+    <url-pattern>/rolloutDTAtrasada</url-pattern>
+  </servlet-mapping>
+  <servlet>
     <servlet-name>servlets.Lg_erp</servlet-name>
     <servlet-class>servlets.Lg_erp</servlet-class>
   </servlet>
