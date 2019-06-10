@@ -26,6 +26,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import classes.RolloutAtualizaDuracao;
 import classes.RolloutDataAtrasada;
+import classes.RolloutNaoIniciadas;
 
 /**
  * Servlet implementation class rolloutDTAtrasada
@@ -61,16 +62,24 @@ public class rolloutDTAtrasada extends HttpServlet {
 			JobDetail job2 = newJob(RolloutAtualizaDuracao.class)
 				    .withIdentity("jobRolloutDuracao", "group1")
 				    .build();
+			JobDetail job3 = newJob(RolloutNaoIniciadas.class)
+				    .withIdentity("jobRolloutNaoInicidas", "group1")
+				    .build();
 			CronTrigger trigger = newTrigger()
 				    .withIdentity("trigger1", "group1")
-				    .withSchedule(cronSchedule("0 0 7 ? * MON,TUE,WED,THU,FRI *"))
+				    .withSchedule(cronSchedule("0 0 8 ? * MON,TUE,WED,THU,FRI *"))
 				    .build();
 			CronTrigger trigger2 = newTrigger()
 				    .withIdentity("trigger2", "group1")
 				    .withSchedule(cronSchedule("0 0 1 1/1 * ? *"))
 				    .build();
+			CronTrigger trigger3 = newTrigger()
+				    .withIdentity("trigger3", "group1")
+				    .withSchedule(cronSchedule("0 20 8 ? * MON,TUE,WED,THU,FRI *"))
+				    .build();
 			sched.scheduleJob(job, trigger);
 			sched.scheduleJob(job2, trigger2);
+			sched.scheduleJob(job3, trigger3);
 			sched.start();
 			System.out.println("Scheduler MSTP INICIADO");
 			//Thread.sleep(60L * 1000L);

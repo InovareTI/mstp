@@ -761,14 +761,12 @@ public class UserMgmt extends HttpServlet {
 				param4=req.getParameter("motivo");
 				param5=req.getParameter("data_folga_compensacao");
 				param6=req.getParameter("select_folga_compensacao");
+				param7=req.getParameter("ini_inter");
+				param8=req.getParameter("fim_inter");
 				query="";
-				if(param6.equals("1")) {
-					query="insert into ajuste_ponto (dt_solicitado,dt_entrada,dt_saida,local,motivo,aprovada,usuario,other2,empresa) values ('"+f3.format(time)+"','','','','FOLGA','N','"+p.get_PessoaUsuario()+"','"+param5+"',"+p.getEmpresa().getEmpresa_id()+")";
-				}else if(param6.equals("2")) {
-					query="insert into ajuste_ponto (dt_solicitado,dt_entrada,dt_saida,local,motivo,aprovada,usuario,other2,empresa) values ('"+f3.format(time)+"','','','','Banco de Horas - Consumo de 8h','N','"+p.get_PessoaUsuario()+"','"+param5+"',"+p.getEmpresa().getEmpresa_id()+")";
-				}else {
-					query="insert into ajuste_ponto (dt_solicitado,dt_entrada,dt_saida,local,motivo,aprovada,usuario,empresa) values ('"+f3.format(time)+"','"+param1+"','"+param2+"','"+param3+"','"+param4+"','N','"+p.get_PessoaUsuario()+"',"+p.getEmpresa().getEmpresa_id()+")";
-				}
+				
+					query="insert into ajuste_ponto (dt_solicitado,dt_entrada,dt_saida,local,motivo,aprovada,usuario,empresa,dt_ini_inter,dt_fim_inter) values ('"+f3.format(time)+"','"+param1+"','"+param2+"','"+param3+"','"+param4+"','N','"+p.get_PessoaUsuario()+"',"+p.getEmpresa().getEmpresa_id()+",'"+param7+"','"+param8+"')";
+				
 				if(conn.Inserir_simples(query)) {
 					resp.setContentType("application/html");  
 					resp.setCharacterEncoding("UTF-8"); 
@@ -2086,10 +2084,7 @@ public class UserMgmt extends HttpServlet {
 				rs=conn.Consulta(query);
 				if(rs.next()) {
 					rs.beforeFirst();
-					dados_tabela="{\"draw\": 1,\n";
-					dados_tabela=dados_tabela+"\"recordsTotal\": replace1 ,\n";
-					dados_tabela=dados_tabela+"\"recordsFiltered\": 15 ,\n";
-					dados_tabela=dados_tabela+"\"data\":[\n";
+					dados_tabela="[{\"totalRecords\":\"replace2\"},\n";
 					//d.set(Calendar.MONTH, (Integer.parseInt(param2)-1));
 					//d.set(Calendar.DAY_OF_MONTH, 1);
 					d.setTime(dt_inicio);
@@ -2097,9 +2092,10 @@ public class UserMgmt extends HttpServlet {
 					while(d.before(fim)) {
 						//System.out.println("entrou no loop");
 						//System.out.println("data de pesquisa:"+f2.format(d.getTime()));
-						contador=contador+1;
+						
 						aux_usuario="";
 					while(rs.next()) {
+						contador=contador+1;
 						HH[0] = "Caculo Indisponivel";
 						HH[1]="0.0";
 						HH[2]="0.0";
@@ -2130,7 +2126,7 @@ public class UserMgmt extends HttpServlet {
 							if(rs.getString(2)!=null) {
 							aux_usuario=rs.getString(2);
 							aux_usuario_dados=p.buscarPessoa(conn, aux_usuario, p.getEmpresa().getEmpresa_id());
-							dados_tabela=dados_tabela+"{\"id\":\""+contador+"\",\"data\":\""+f2.format(d.getTime())+"\",\"nome\":\""+aux_usuario_dados[0]+"\",\"usuario\":\""+aux_usuario_dados[1]+"\",\"lider\":\""+aux_usuario_dados[2]+"\",\"entrada\":\"\",\"ini_inter\":\"\",\"fim_inter\":\"\",\"saida\":\"\",\"local\":\""+tipo_registro+"\",\"status\":\""+tipo_ajustar+"\",\"fotos\":\"-\",\"horaextra\":\"-\"},\n";
+							dados_tabela=dados_tabela+"{\"id\":\""+contador+"\",\"data\":\""+f2.format(d.getTime())+"\",\"nome\":\""+aux_usuario_dados[0]+"\",\"usuario\":\""+aux_usuario_dados[1]+"\",\"lider\":\""+aux_usuario_dados[2]+"\",\"entrada\":\"\",\"iniInter\":\"\",\"fimInter\":\"\",\"saida\":\"\",\"local\":\""+tipo_registro+"\",\"status\":\""+tipo_ajustar+"\",\"foto\":\"-\",\"horaExtra\":\"-\"},\n";
 							}
 						}else if(f2.format(d.getTime()).equals(rs.getString("data_dia"))) {
 							if(d.get(Calendar.DAY_OF_WEEK)==1) {
@@ -2152,19 +2148,19 @@ public class UserMgmt extends HttpServlet {
 						query="SELECT * FROM registros where usuario='"+aux_usuario+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Folga' order by datetime_servlet asc limit 1";
 						rs2=conn.Consulta(query);
 						if(rs2.next()) {
-							dados_tabela=dados_tabela + "\"entrada\":\"-:-\",\"ini_inter\":\"-:-\",\"fim_inter\":\"-:-\",\"saida\":\"-:-\",";
+							dados_tabela=dados_tabela + "\"entrada\":\"-:-\",\"iniInter\":\"-:-\",\"fimInter\":\"-:-\",\"saida\":\"-:-\",";
 							tipo_registro="Folga";
 						}else {
 							query="SELECT * FROM registros where usuario='"+aux_usuario+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Compensação' order by datetime_servlet asc limit 1";
 							rs2=conn.Consulta(query);
 							if(rs2.next()) {
-								dados_tabela=dados_tabela + "\"entrada\":\"-:-\",\"ini_inter\":\"-:-\",\"fim_inter\":\"-:-\",\"saida\":\"-:-\",";
+								dados_tabela=dados_tabela + "\"entrada\":\"-:-\",\"iniInter\":\"-:-\",\"fimInter\":\"-:-\",\"saida\":\"-:-\",";
 								tipo_registro="Compensação";
 							}else {
 								query="SELECT * FROM registros where usuario='"+aux_usuario+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Licença Médica' order by datetime_servlet asc limit 1";
 								rs2=conn.Consulta(query);
 								if(rs2.next()) {
-									dados_tabela=dados_tabela + "\"entrada\":\"-:-\",\"ini_inter\":\"-:-\",\"fim_inter\":\"-:-\",\"saida\":\"-:-\",";
+									dados_tabela=dados_tabela + "\"entrada\":\"-:-\",\"iniInter\":\"-:-\",\"fimInter\":\"-:-\",\"saida\":\"-:-\",";
 									tipo_registro="Licença Médica";
 								}else {	
 						query="SELECT * FROM registros where usuario='"+aux_usuario+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Entrada' order by datetime_servlet asc limit 1";
@@ -2186,27 +2182,27 @@ public class UserMgmt extends HttpServlet {
 						query="SELECT * FROM registros where usuario='"+aux_usuario+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Inicio_intervalo' order by datetime_servlet desc limit 1";
 						rs2=conn.Consulta(query);
 						if(rs2.next()) {
-							dados_tabela=dados_tabela + "\"ini_inter\":\""+rs2.getString("datetime_mobile").substring(rs2.getString("datetime_mobile").indexOf("/",3)+5)+"\",";
+							dados_tabela=dados_tabela + "\"iniInter\":\""+rs2.getString("datetime_mobile").substring(rs2.getString("datetime_mobile").indexOf("/",3)+5)+"\",";
 							local=rs2.getString("tipo_local_registro");
 							distancia=rs2.getInt("distancia");
 							if(local.equals("Site")) {
 								local=rs2.getString("site_operadora_registro")+"-"+rs2.getString("local_registro");
 							}
 						}else {
-							dados_tabela=dados_tabela + "\"ini_inter\":\"\",";
+							dados_tabela=dados_tabela + "\"iniInter\":\"\",";
 							tipo_registro="Anormal";
 						}
 						query="SELECT * FROM registros where usuario='"+aux_usuario+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Fim_intervalo' order by datetime_servlet desc limit 1";
 						rs2=conn.Consulta(query);
 						if(rs2.next()) {
-							dados_tabela=dados_tabela + "\"fim_inter\":\""+rs2.getString("datetime_mobile").substring(rs2.getString("datetime_mobile").indexOf("/",3)+5)+"\",";
+							dados_tabela=dados_tabela + "\"fimInter\":\""+rs2.getString("datetime_mobile").substring(rs2.getString("datetime_mobile").indexOf("/",3)+5)+"\",";
 							local=rs2.getString("tipo_local_registro");
 							distancia=rs2.getInt("distancia");
 							if(local.equals("Site")) {
 								local=rs2.getString("site_operadora_registro")+"-"+rs2.getString("local_registro");
 							}
 						}else {
-							dados_tabela=dados_tabela + "\"fim_inter\":\"\",";
+							dados_tabela=dados_tabela + "\"fimInter\":\"\",";
 							tipo_registro="Anormal";
 						}
 						query="SELECT * FROM registros where usuario='"+aux_usuario+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Saída' order by datetime_servlet desc limit 1";
@@ -2245,12 +2241,12 @@ public class UserMgmt extends HttpServlet {
 						dados_tabela=dados_tabela + "\"status\":\""+tipo_registro+"\",";
 						rs3=conn.Consulta("select * from registro_foto where empresa="+p.getEmpresa().getEmpresa_id()+" and usuario='"+aux_usuario+"' and data_dia='"+rs.getString("data_dia")+"'");
 						if(rs3.next()) {
-							dados_tabela=dados_tabela + "\"fotos\":\"<button  class='btn btn-success' onclick=exibe_fotos_registro('"+aux_usuario+"','"+rs.getString("data_dia")+"')>Fotos</button>\",";
+							dados_tabela=dados_tabela + "\"foto\":\"<button  class='btn btn-success' onclick=exibe_fotos_registro('"+aux_usuario+"','"+rs.getString("data_dia")+"')>Fotos</button>\",";
 						}else {
-							dados_tabela=dados_tabela + "\"fotos\":\"Sem Fotos\",";
+							dados_tabela=dados_tabela + "\"foto\":\"Sem Fotos\",";
 						}
 						
-						dados_tabela=dados_tabela + "\"horaextra\":\""+HH[0]+": "+converte_hora_format(HH[1])+"\"";
+						dados_tabela=dados_tabela + "\"horaExtra\":\""+HH[0]+": "+converte_hora_format(HH[1])+"\"";
 						dados_tabela=dados_tabela + "},"+"\n";
 						encontrado="s";
 					}
@@ -2274,7 +2270,7 @@ public class UserMgmt extends HttpServlet {
 								tipo_ajustar=" - ";
 								}
 							}
-						dados_tabela=dados_tabela+"{\"id\":\""+contador+"\",\"data\":\""+f2.format(d.getTime())+"\",\"nome\":\""+aux_usuario_dados[0]+"\",\"usuario\":\""+aux_usuario_dados[1]+"\",\"lider\":\""+aux_usuario_dados[2]+"\",\"entrada\":\"\",\"ini_inter\":\"\",\"fim_inter\":\"\",\"saida\":\"\",\"local\":\""+tipo_registro+"\",\"status\":\""+tipo_ajustar+"\",\"fotos\":\"-\",\"horaextra\":\"-\"},\n";
+						dados_tabela=dados_tabela+"{\"id\":\""+contador+"\",\"data\":\""+f2.format(d.getTime())+"\",\"nome\":\""+aux_usuario_dados[0]+"\",\"usuario\":\""+aux_usuario_dados[1]+"\",\"lider\":\""+aux_usuario_dados[2]+"\",\"entrada\":\"\",\"iniInter\":\"\",\"fimInter\":\"\",\"saida\":\"\",\"local\":\""+tipo_registro+"\",\"status\":\""+tipo_ajustar+"\",\"foto\":\"-\",\"horaExtra\":\"-\"},\n";
 						//dados_tabela=dados_tabela+"[\""+f2.format(d.getTime())+"\",\"\",\"\",\"\",\"\",\"\",\""+tipo_registro+"\",\""+tipo_ajustar+"\",\"-\"],\n";
 						
 					}
@@ -2284,9 +2280,9 @@ public class UserMgmt extends HttpServlet {
 					}
 					
 					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
-					dados_tabela=dados_tabela+"]}";
-					dados_tabela=dados_tabela.replace("replace1", Integer.toString(contador));
-					//dados_tabela=dados_tabela.replace("replace2", Integer.toString(contador));
+					dados_tabela=dados_tabela+"]";
+					//contador=contador-1;
+					dados_tabela=dados_tabela.replace("replace2", Integer.toString(contador));
 					
 					//System.out.println(dados_tabela);
 					resp.setContentType("application/json");  
@@ -2294,11 +2290,7 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
 				}else {
-					dados_tabela="{\"draw\": 1,\n";
-					dados_tabela=dados_tabela+"\"recordsTotal\": 0 ,\n";
-					dados_tabela=dados_tabela+"\"recordsFiltered\": 0 ,\n";
-					dados_tabela=dados_tabela+"\"data\":[]\n";
-					dados_tabela=dados_tabela+"}";
+					dados_tabela="[{\"totalRecords\":\"0\"}]";
 					resp.setContentType("application/json");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
@@ -2347,10 +2339,21 @@ public class UserMgmt extends HttpServlet {
 				//System.out.println(query);
 				rs=conn.Consulta(query);
 				ServletOutputStream out = resp.getOutputStream();
+				InputStream in=null;
 				if(rs.next()){
 					//System.out.println("Entrou no Blob");
 					Blob imageBlob = rs.getBlob(1);
-					InputStream in = imageBlob.getBinaryStream(1,(int)imageBlob.length());
+					if(imageBlob==null) {
+						query="select foto_perfil from usuarios where id_usuario='usuario_foto'";
+						rs2=conn.Consulta(query);
+						if(rs2.next()) {
+							imageBlob = rs2.getBlob(1);
+							 in = imageBlob.getBinaryStream(1,(int)imageBlob.length());
+						}
+						
+					}else {
+						 in = imageBlob.getBinaryStream(1,(int)imageBlob.length());
+					}
 			        int length = (int) imageBlob.length();
 
 			        int bufferSize = 1024;
@@ -2624,7 +2627,57 @@ public class UserMgmt extends HttpServlet {
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
-		}
+		}else if(opt.equals("42")){
+			if(p.getPerfil_funcoes().contains("Usuarios Manager")) {
+			
+				//query="select * from pontos where id_usuario='"+p.get_PessoaUsuario()+"' and ativo='Y' and validado='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"'";
+				query="select * from pontos where ativo='Y' and empresa="+p.getEmpresa().getEmpresa_id();
+			
+			rs=conn.Consulta(query);
+			if(rs.next()) {
+				dados_tabela="";
+				rs.beforeFirst();
+				dados_tabela=dados_tabela+"<option value=''></option>";
+				while(rs.next()) {
+					dados_tabela=dados_tabela+"<option value='"+rs.getString("nome_ponto")+"'>"+rs.getString("nome_ponto")+"</option>";
+				}
+				resp.setContentType("application/html");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				out.print(dados_tabela);
+			}
+			Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime()))+" segundos");
+			}
+		}else if(opt.equals("43")){
+			if(p.getPerfil_funcoes().contains("Usuarios Manager")) {
+				ConexaoMongo c = new ConexaoMongo();
+				Document justificativas;
+				
+				List<Bson> filtros = new ArrayList<>();
+				Bson filtro;
+				filtro = Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				filtros.add(filtro);
+				FindIterable<Document> findIterable = c.ConsultaCollectioncomFiltrosLista("Justificativas", filtros);
+				MongoCursor<Document> resultado = findIterable.iterator();
+				dados_tabela="";
+				if(resultado.hasNext()) {
+					dados_tabela=dados_tabela+"<option value=''></option>";
+				
+					while(resultado.hasNext()) {
+						justificativas=resultado.next();
+						dados_tabela=dados_tabela+"<option value='"+justificativas.getString("Justificativa")+"'>"+justificativas.getString("Descrição")+"</option>";
+					}
+				
+				resp.setContentType("application/html");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				out.print(dados_tabela);
+			}
+			Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime()))+" segundos");
+			}
+			}
 		}catch (SQLException e) {
 			
 			conn.fecharConexao();

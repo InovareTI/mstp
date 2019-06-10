@@ -1503,21 +1503,22 @@ public class POControl_Servlet extends HttpServlet {
 			   con.setUseCaches(false);
 			   con.setDoOutput(true);
 			   con.setDoInput(true);
-			  // System.out.println("controle2");
+			   System.out.println("Paramentros da função de envio de mensagem:");
+			   System.out.println(usuario);
+			   System.out.println(mensagem);
 			   con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
 			   con.setRequestProperty("Authorization", "Basic ZTFhZmE3YTItMDczNC00OWM3LTk0ZTgtMzUzYjg5OTY1ZGFj");
 			   con.setRequestMethod("POST");
 			  // System.out.println("controle3");
 			   String strJsonBody = "{"
 			                      +   "\"app_id\": \"ae9ad50e-520d-436a-b0b0-23aaddedee7b\","
-			                      +   "\"filters\": [{\"field\": \"tag\", \"key\": \"User\", \"relation\": \"=\", \"value\": \""+usuario+"\"}],"
-			                      +   "\"included_segments\": [\"All\"],"
+			                      +   "\"filters\": [{\"field\": \"tag\", \"key\": \"User\", \"relation\": \"=\", \"value\": \""+usuario+"\"},{\"operator\": \"OR\"},{\"field\": \"tag\", \"key\": \"User\", \"relation\": \"=\", \"value\": \""+usuario.toLowerCase()+"\"},{\"operator\": \"OR\"}, {\"field\": \"tag\", \"key\": \"User\", \"relation\": \"=\", \"value\": \""+usuario.toUpperCase()+"\"}],"
 			                      +   "\"data\": {\"foo\": \"bar\"},"
 			                      +   "\"contents\": {\"en\": \""+mensagem+"\"}"
 			                      + "}";
 			         
 			   
-			   //System.out.println("strJsonBody:\n" + strJsonBody);
+			   System.out.println("strJsonBody:\n" + strJsonBody);
 
 			   byte[] sendBytes = strJsonBody.getBytes("UTF-8");
 			   con.setFixedLengthStreamingMode(sendBytes.length);
@@ -1526,7 +1527,7 @@ public class POControl_Servlet extends HttpServlet {
 			   outputStream.write(sendBytes);
 
 			   int httpResponse = con.getResponseCode();
-			  // System.out.println("httpResponse: " + httpResponse);
+			   System.out.println("httpResponse: " + httpResponse);
 
 			   if (  httpResponse >= HttpURLConnection.HTTP_OK
 			      && httpResponse < HttpURLConnection.HTTP_BAD_REQUEST) {
@@ -1539,7 +1540,7 @@ public class POControl_Servlet extends HttpServlet {
 			      jsonResponse = scanner.useDelimiter("\\A").hasNext() ? scanner.next() : "";
 			      scanner.close();
 			   }
-			   //System.out.println("jsonResponse:\n" + jsonResponse);
+			   System.out.println("jsonResponse:\n" + jsonResponse);
 			   
 			} catch(Throwable t) {
 			   t.printStackTrace();

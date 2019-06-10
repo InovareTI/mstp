@@ -18,13 +18,13 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 
-public class RolloutDataAtrasada implements Job{
+public class RolloutNaoIniciadas implements Job{
 	public void execute(JobExecutionContext context) {
 	    ConexaoMongo mongo = new ConexaoMongo();
-	    System.out.println("INICIANDO alertas de TAREFAS ATRASADAS DO ROLLOUT");
+	    System.out.println("INICIANDO alertas de TAREFAS NAO INICIADAS DO ROLLOUT");
 	    Calendar calendar = Calendar.getInstance();
 	    Timestamp time = new Timestamp(System.currentTimeMillis());
-	    calendar.add(Calendar.DAY_OF_MONTH, -3);
+	    
 	    Document site = new Document();
 	    Integer contador= 0;
 	    String resp="";
@@ -51,13 +51,12 @@ public class RolloutDataAtrasada implements Job{
 	    		if(milestone.get("edate_"+milestone.getString("Milestone")) != null) {
 	    			if(milestone.get("edate_"+milestone.getString("Milestone")).toString().equals("")) {
 				    	if(milestone.get("sdate_"+milestone.getString("Milestone")) != null){
-				    		if(!milestone.get("sdate_"+milestone.getString("Milestone")).toString().equals("")){
-					    		if(milestone.getDate("sdate_"+milestone.getString("Milestone")).before(calendar.getTime())) {
-					    			if(milestone.get("resp_"+milestone.getString("Milestone"))!=null) {
+				    		if(milestone.get("sdate_"+milestone.getString("Milestone")).toString().equals("")){
+					    		if(milestone.get("resp_"+milestone.getString("Milestone"))!=null) {
 					    				if(!milestone.getString("resp_"+milestone.getString("Milestone")).equals("")) {
-					    					System.out.println(site.get("Site ID")+"-"+milestone.getString("Milestone")+"-"+milestone.get("resp_"+milestone.getString("Milestone")));
+					    					//System.out.println(site.get("Site ID")+"-"+milestone.getString("Milestone")+"-"+milestone.get("resp_"+milestone.getString("Milestone")));
 					    					resp="De: MSTP - Monitoramento Rollout";
-					    					mensagem="Tarefa atrada:\nSite ID: "+site.get("Site ID")+"\n"+"Atividade: "+milestone.getString("Milestone");
+					    					mensagem="Tarefa Não Iniciada:\nSite ID: "+site.get("Site ID")+"\n"+"Atividade: "+milestone.getString("Milestone");
 					    					contador=contador+1;
 					    					mensagem=resp+"\n\n"+mensagem;
 					    					mensagem=mensagem+"\n\n Data Hora de Envio: "+time;
@@ -112,7 +111,7 @@ public class RolloutDataAtrasada implements Job{
 					    				}
 					    			}
 					    		}
-				    		}
+				    		
 				    	}
 	    			}
 	    		}
@@ -121,7 +120,7 @@ public class RolloutDataAtrasada implements Job{
 	    }
 	    
 	  
-	    System.out.println("Finalizando alertas de TAREFAS ATRASADAS DO ROLLOUT - Encontrou "+contador+" tarefas atrasadas!");
+	    System.out.println("Finalizando alertas de TAREFAS Nao INICIADAS DO ROLLOUT - Encontrou "+contador+" tarefas atrasadas!");
 	    mongo.fecharConexao();
 	    }catch(Exception e){
 	    	System.out.println(e.getMessage());

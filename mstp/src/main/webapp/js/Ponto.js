@@ -118,25 +118,72 @@ function corrigir_ponto(){
 	}
 }
 function prepara_ajuste_ponto(dia){
-	//alert("chegou no ajuste de ponto para "+dia);
-    $('#ponto_entrada').data("DateTimePicker").minDate(dia+' 00:00:00');
-    $('#ponto_entrada').data("DateTimePicker").maxDate(dia+' 23:59:59');
-    $('#ponto_saida').data("DateTimePicker").maxDate(dia+' 23:59:59');
-    $('#ponto_saida').data("DateTimePicker").minDate(dia+' 00:00:00');
+	alert("chegou no ajuste de ponto para "+dia);
+	$('#ponto_inicio_intervalox').datetimepicker({locale: 'pt-br'});
+	$('#ponto_fim_intervalox').datetimepicker({locale: 'pt-br'});
+	$('#ponto_entradax').datetimepicker({locale: 'pt-br'});
+	$('#ponto_saidax').datetimepicker({locale: 'pt-br'});
+    $('#ponto_entradax').data("DateTimePicker").minDate(dia+' 00:00:00');
+    $('#ponto_entradax').data("DateTimePicker").maxDate(dia+' 23:59:59');
+    $('#ponto_saidax').data("DateTimePicker").minDate(dia+' 00:00:00');
+    $('#ponto_saidax').data("DateTimePicker").maxDate(dia+' 23:59:59');
+    
+    $('#ponto_inicio_intervalox').data("DateTimePicker").minDate(dia+' 00:00:00');
+    $('#ponto_inicio_intervalox').data("DateTimePicker").maxDate(dia+' 23:59:59');
+    $('#ponto_fim_intervalox').data("DateTimePicker").maxDate(dia+' 23:59:59');
+    $('#ponto_fim_intervalox').data("DateTimePicker").minDate(dia+' 00:00:00');
     document.getElementById("aux_ajuste_ponto_dia").value=dia;
+    $.ajax({
+		  type: "POST",
+		  data: {"opt":"42"
+			  },		  
+		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+		  url: "./UserMgmt",
+		  cache: false,
+		  dataType: "text",
+		  success: Successselectponto
+		});
+  function Successselectponto(data){
+  	$('#select_ajuste_ponto').html(data)
+  	$('#select_ajuste_ponto').selectpicker('refresh');
+  }
+  $.ajax({
+	  type: "POST",
+	  data: {"opt":"43"
+		  },		  
+	  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+	  url: "./UserMgmt",
+	  cache: false,
+	  dataType: "text",
+	  success: Successselectponto_motivo
+	});
+function Successselectponto_motivo(data){
+	$('#select_ajuste_ponto_razao').html(data)
+	$('#select_ajuste_ponto_razao').selectpicker('refresh');
+}
 }
 function fecha_tela_ajuste_ponto(){
 	
-    $('#ponto_saida').data("DateTimePicker").minDate(false);
-    $('#ponto_saida').data("DateTimePicker").maxDate(false);
-    $('#ponto_entrada').data("DateTimePicker").minDate(false);
-    $('#ponto_entrada').data("DateTimePicker").maxDate(false);
-    $('#ponto_entrada').data("DateTimePicker").clear();
-    $('#ponto_saida').data("DateTimePicker").clear();
+    $('#ponto_saidax').data("DateTimePicker").minDate(false);
+    $('#ponto_saidax').data("DateTimePicker").maxDate(false);
+    $('#ponto_entradax').data("DateTimePicker").minDate(false);
+    $('#ponto_entradax').data("DateTimePicker").maxDate(false);
+    $('#ponto_entradax').data("DateTimePicker").clear();
+    $('#ponto_saidax').data("DateTimePicker").clear();
+    
+    $('#ponto_fim_intervalox').data("DateTimePicker").minDate(false);
+    $('#ponto_fim_intervalox').data("DateTimePicker").maxDate(false);
+    $('#ponto_inicio_intervalox').data("DateTimePicker").minDate(false);
+    $('#ponto_inicio_intervalox').data("DateTimePicker").maxDate(false);
+    $('#ponto_inicio_intervalox').data("DateTimePicker").clear();
+    $('#ponto_fim_intervalox').data("DateTimePicker").clear();
+    
 }
 function solicita_ajuste_ponto(){
-	var entrada = $('#ponto_entrada').data("DateTimePicker").viewDate().format('L LTS');
-	var saida = $('#ponto_saida	').data("DateTimePicker").viewDate().format('L LTS');
+	var entrada = $('#ponto_entradax').data("DateTimePicker").viewDate().format('L LTS');
+	var saida = $('#ponto_saidax').data("DateTimePicker").viewDate().format('L LTS');
+	var iniinter = $('#ponto_inicio_intervalox').data("DateTimePicker").viewDate().format('L LTS');
+	var fiminter = $('#ponto_fim_intervalox').data("DateTimePicker").viewDate().format('L LTS');
 	var local = $('#select_ajuste_ponto').val();
 	var motivo = document.getElementById("ajuste_ponto_motivo").value;
 	var dia_folga_compesacao=document.getElementById("aux_ajuste_ponto_dia").value;
@@ -147,7 +194,9 @@ function solicita_ajuste_ponto(){
 			  "entrada":entrada,
 			  "saida":saida,
 			  "local":local,
-			  "motivo":motivo,
+			  "ini_inter":iniinter,
+			  "fim_inter":fiminter,
+			  "motivo":select_folga_compensacao,
 			  "data_folga_compensacao":dia_folga_compesacao,
 			  "select_folga_compensacao":select_folga_compensacao},		  
 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
@@ -421,6 +470,9 @@ function carrega_ponto_usuario(){
 function carrega_ponto_analise_usuario(){
 	
 	
+	$('#btn_gerar_espelho_analise').addClass( "disabled" );
+	$('#btn_gerar_espelho_analise').text('Aguarde a Finalização...');
+	$('#btn_gerar_espelho_analise').prop('disabled', true);
 	var func =  $('#select_func_folha_ponto_analise').val();
 	var selection=$('#range_espelho_analise').jqxDateTimeInput('getRange');
 	
@@ -433,95 +485,96 @@ function carrega_ponto_analise_usuario(){
 		func="TODOS";
 		
 	}
-		if ( ! $.fn.DataTable.isDataTable( '#tabela_usuario_folha_ponto_analise' ) ) {
+	
+		var timestamp =Date.now();
+		
+		
+		$.ajax({
+			  type: "POST",
+			  data: {"opt":"30",
+				  "_": timestamp,
+				  "func":func,
+				  "inicio":moment(selection.from).format('L'),
+				  "fim":moment(selection.to).format('L')
+				},		  
+			  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+			  url: "./UserMgmt",
+			  cache: false,
+			  dataType: "text",
+			 success: atualiza_analise_de_ponto
+			});
+		function atualiza_analise_de_ponto(data){
 			
-		$('#tabela_usuario_folha_ponto_analise').DataTable( {
-			dom: 'Bfrtip',
-	        buttons: [
-	        	{
-	                extend: 'print',
-	                text: 'Imprimir',
-	                
-	                
-	                customize: function ( win ) {
-	                	
-	                    $(win.document.body)
-	                        .css( 'font-size', '7pt' );
-	                    $(win.document.body).find( 'h1' )
-                        .css( 'font-size', '10pt' );    
-	 
-	                    $(win.document.body).find( 'table' )
-	                        .addClass( 'compact' )
-	                        .css( 'font-size', 'inherit' );
-	                }
-	            },
-	            {
-	        		extend: 'excelHtml5'
-	        	}
-	            
-	            
-	        ],
-	        "processing": true,
-	        "order": [],
-	        "ajax": "./UserMgmt?opt=30&func="+func+"&inicio="+moment(selection.from).format('L')+"&fim="+moment(selection.to).format('L'),
-	        "columns": [
-	            { data: 'data' },
-	            { data: 'nome' },
-	            { data: 'usuario' },
-	            { data: 'lider' },
-	            { data: 'entrada' },
-	            { data: 'ini_inter' },
-	            { data: 'fim_inter' },
-	            { data: 'saida' },
-	            { data: 'local' },
-	            { data: 'status' },
-	            { data: 'fotos' },
-	            { data: 'horaextra' }
-	        ],
-	        "lengthMenu": [ 10, 30],
-	        "rowGroup": {
-	            dataSrc: 'lider'
-	        }
-	        
-	    });
-		}else{
-			var table = $('#tabela_usuario_folha_ponto_analise').DataTable();
-			table.destroy();
-			$('#tabela_usuario_folha_ponto_analise').DataTable( {
-				dom: 'Bfrtip',
-		        buttons: [
-		        	{
-		                extend: 'print',
-		                text: 'Imprimir',
-		                
-		                customize: function ( win ) {
-		                	console.log(win.document.body);
-		                	//ddconsole.log(win.document);
-		                    $(win.document.body)
-		                        .css( 'font-size', '7pt' );
-		                    $(win.document.body).find( 'h1' )
-	                        .css( 'font-size', '10pt' );    
-		 
-		                    $(win.document.body).find( 'table' )
-		                        .addClass( 'compact' )
-		                        .css( 'font-size', 'inherit' );
-		                }
-		            },
-		            {
-		        		extend: 'excelHtml5'
-		        	}
-		            
-		            
-		        ],
-		        "processing": true,
-		        "order": [],
-		        "ajax": "./UserMgmt?opt=30&func="+func+"&inicio="+moment(selection.from).format('L')+"&fim="+moment(selection.to).format('L'),
-		        "lengthMenu": [ 15, 30]
-		        
-		    });
-		}
-	
-	
+			dataaux=JSON.parse(data);
+			
+			 var source =
+		     {
+					 datatype: "json",
+			         datafields: [
+			        	 { name: 'id' , type: 'string'},
+			        	 { name: 'data', type: 'string' },
+			             { name: 'nome', type: 'string' },
+			             { name: 'usuario' , type: 'string'},
+			             { name: 'lider', type: 'string' },
+			             { name: 'entrada', type: 'string' },
+			             { name: 'iniInter', type: 'string' },
+			             { name: 'fimInter', type: 'string' },
+			             { name: 'saida', type: 'string' },
+			             { name: 'local', type: 'string' },
+			             { name: 'status', type: 'string' },
+			             { name: 'foto', type: 'string' },
+			             { name: 'horaExtra', type: 'string' }
+			             
+			         ],
+		         localdata: dataaux,
+		         id: 'id',
+		     };
+			 var dataAdapter = new $.jqx.dataAdapter(source);
+			 
+			 
+		     var renderer = function (row, column, value) {
+		         return '<span style="margin-left: 4px; margin-top: 9px; float: left;">' + value + '</span>';
+		     }
+		     $("#div_tabela_usuario_ponto_folha_analise").jqxGrid(
+		             {
+		                 width: 1400,
+		                 height: 650,
+		                 source: dataAdapter,
+		                 groupable: true,
+		                 columnsresize: true,
+			             filterable: true,
+			             autoshowfiltericon: true,
+			             theme:'light',
+			             pageable: true,
+			             rowsheight: 45,
+			             pagesize: 20,
+		                 columns: [
+		                       { text: 'Data',datafield: 'data', width: 100 },
+		                       { text: 'Nome', datafield: 'nome', width: 150,filtertype: 'checkedlist' },
+		                       { text: 'Usuario', datafield: 'usuario', width: 100,filtertype: 'checkedlist' },
+		                       { text: 'Lider', datafield: 'lider', width: 150,filtertype: 'checkedlist' },
+		                       { text: 'Entrada', datafield: 'entrada', width: 100,filtertype: 'checkedlist' },
+		                       { text: 'Início Intervalo', datafield: 'iniInter', width: 100,filtertype: 'checkedlist' },
+		                       { text: 'Fim Intervalo', datafield: 'fimInter', width: 100,filtertype: 'checkedlist' },
+		                       { text: 'Saída', datafield: 'saida', width: 100,filtertype: 'checkedlist' },
+		                       { text: 'Local', datafield: 'local', width: 100,filtertype: 'checkedlist' },
+		                       { text: 'Status', datafield: 'status', width: 100,filtertype: 'checkedlist' },
+		                       { text: 'Fotos', datafield: 'foto', width: 100 ,cellsrenderer: renderer},
+		                       { text: 'Hora Extra', datafield: 'horaExtra', width: 150,filtertype: 'checkedlist' }
+		                       
+		                       
+		                   ],
+		                 groups: ['lider']
+		             });
+		     var localizationobj = {};
+		     localizationobj.groupsheaderstring = "Arraste a(s) coluna(s) desejada(s) e solte aqui para agrupar a tabela abaixo";
+		     $("#div_tabela_usuario_ponto_folha_analise").jqxGrid('localizestrings', localizationobj);
+		     $('#btn_gerar_espelho_analise').removeClass( "disabled" );
+			 $('#btn_gerar_espelho_analise').text('Listar Pontos Registrados');
+			 $('#btn_gerar_espelho_analise').prop('disabled', false);
+	}
+		
+		
 }
 function exibe_fotos_registro(usuario,dia){
 	//alert(usuario);

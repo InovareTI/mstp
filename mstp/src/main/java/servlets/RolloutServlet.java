@@ -2240,7 +2240,7 @@ public class RolloutServlet extends HttpServlet {
     			if(!resultado.hasNext()) {
     				dados_tabela=dados_tabela+"{\"totalRecords\":\"0\"},\n";
     			}else {
-    				dados_tabela=dados_tabela+"{\"totalRecords\":\""+totallinhas+"\",";
+    				dados_tabela=dados_tabela+"{\"totalRecords\":\""+totallinhas+"\",\n";
     			while(resultado.hasNext()) {
     				linha=resultado.next();
     				List<Document> milestones=(List<Document>) linha.get("Milestone");
@@ -4287,6 +4287,38 @@ public class RolloutServlet extends HttpServlet {
 			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}
+				}else if(opt.equals("32")) {
+					query="";
+					dados_tabela="";
+					int contador=0;
+					dados_tabela="[{\"totalRecords\":\"replace2\"},";
+					query="select distinct id_vistoria,relatorio_id,recid,milestone,SiteID,status_vistoria,owner,executor_checklist from vistoria_dados where empresa="+p.getEmpresa().getEmpresa_id();
+					rs=conn.Consulta(query);
+					if(rs.next()) {
+						rs.beforeFirst();
+						while(rs.next()) {
+							rs2=conn.Consulta("select * from vistoria_report where id="+rs.getInt("relatorio_id"));
+							if(rs2.next()) {
+								contador=contador+1;
+								dados_tabela=dados_tabela+"{\"id\":\""+rs.getInt("id_vistoria")+"\",\"checkListNome\":\""+rs2.getString("relatorio_nome")+"\",\"siteID\":\""+rs.getString("SiteID")+"\",\"statusCheckList\":\""+rs.getString("status_vistoria")+"\",\"owner\":\""+rs.getString("owner")+"\",\"executorCheklist\":\""+rs.getString("executor_checklist")+"\"},\n";
+							}
+						}
+						dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+						dados_tabela=dados_tabela+"]";
+						//contador=contador-1;
+						dados_tabela=dados_tabela.replace("replace2", Integer.toString(contador));
+						//System.out.println(dados_tabela);
+						resp.setContentType("application/html");  
+			  		    resp.setCharacterEncoding("UTF-8"); 
+			  		    PrintWriter out = resp.getWriter();
+					    out.print(dados_tabela);
+					}else {
+						dados_tabela="[{\"totalRecords\":\"0\"}]";
+						resp.setContentType("application/html");  
+			  		    resp.setCharacterEncoding("UTF-8"); 
+			  		    PrintWriter out = resp.getWriter();
+					    out.print(dados_tabela);
+					}
 				}
 		}catch (SQLException e) {
 			
@@ -4411,6 +4443,7 @@ public class RolloutServlet extends HttpServlet {
 		
 		mensagem="De: "+usuario_src+"\n\n"+mensagem;
 		mensagem=mensagem+"\n\n Data Hora de Envio: "+dt_mensagem;
+		System.out.println(mensagem);
     	try {
 			   String jsonResponse;
 			  // System.out.println("controle1");
@@ -4426,8 +4459,7 @@ public class RolloutServlet extends HttpServlet {
 			  // System.out.println("controle3");
 			   String strJsonBody = "{"
 			                      +   "\"app_id\": \"ae9ad50e-520d-436a-b0b0-23aaddedee7b\","
-			                      +   "\"filters\": [{\"field\": \"tag\", \"key\": \"User\", \"relation\": \"=\", \"value\": \""+usuario_alvo+"\"}],"
-			                      +   "\"included_segments\": [\"All\"],"
+			                      +   "\"filters\": [{\"field\": \"tag\", \"key\": \"User\", \"relation\": \"=\", \"value\": \""+usuario_alvo+"\"},{\"operator\": \"OR\"},{\"field\": \"tag\", \"key\": \"User\", \"relation\": \"=\", \"value\": \""+usuario_alvo.toLowerCase()+"\"},{\"operator\": \"OR\"}, {\"field\": \"tag\", \"key\": \"User\", \"relation\": \"=\", \"value\": \""+usuario_alvo.toUpperCase()+"\"}],"
 			                      +   "\"data\": {\"foo\": \"bar\"},"
 			                      +   "\"contents\": {\"en\": \""+mensagem+"\"}"
 			                      + "}";

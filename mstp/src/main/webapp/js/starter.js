@@ -420,6 +420,10 @@ function menu(opt){
 	}else if(opt=="rollout" && geral.perfil.search("RolloutView")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
+	}else if(opt=="checklist_review" && geral.perfil.search("RolloutManager")>=0){
+		$(".janelas").hide();
+		document.getElementById(opt).style.display = "block";
+		carrega_checklist();
 	}else if(opt=="PO" && geral.perfil.search("POManager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";

@@ -17,7 +17,7 @@ response.setDateHeader ("Expires", -1);
 		<meta name="keywords" content="MSTP INOVARE, INOVARE TI, Servico, telecom" />
 		<meta name="Inovare TI" content="MSTP - Managed Services Telecom Platform" />
 		
-		
+		<link rel="stylesheet" type="text/css" href="css/w3_cards.css" />
 		
 		<link rel="shortcut icon" href="./favicon.ico">
 		
@@ -46,6 +46,7 @@ response.setDateHeader ("Expires", -1);
 	<link rel="stylesheet" type="text/css" href="css/customizacoes35.css" />
 	<link rel="stylesheet" type="text/css" href="css/icons.css" />
 	<link rel="stylesheet" type="text/css" href="css/component.css" />
+	
 	<link href="js/plugins/photoviewer/photoviewer.css" rel="stylesheet">
 	
 	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.css">
@@ -114,6 +115,7 @@ response.setDateHeader ("Expires", -1);
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.sort.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.selection.js"></script> 
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.columnsresize.js"></script> 
+    <script type="text/javascript" src="js/jqwidgets/jqxgrid.grouping.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxdata.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxdate.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxribbon.js"></script>
@@ -162,7 +164,7 @@ response.setDateHeader ("Expires", -1);
 	<script type="text/javascript" src="js/scheduler.js"></script>
 	<script type="text/javascript" src="js/importacoes.js"></script>
 	<script type="text/javascript" src="js/pivot.js"></script>
-	
+	<script type="text/javascript" src="js/checklist.js"></script>
 	<script src='https://api.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.js'></script>
      <link href='https://api.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.css' rel='stylesheet' />
 
@@ -174,6 +176,7 @@ response.setDateHeader ("Expires", -1);
   OneSignal.push(function() {
     OneSignal.init({
       appId: "ae9ad50e-520d-436a-b0b0-23aaddedee7b",
+      autoResubscribe: true,
       notifyButton: {
         enable: true,
       },
@@ -859,6 +862,21 @@ response.setDateHeader ("Expires", -1);
     							</div>
 					 		</div>
         		</div><!-- /rollout -->
+        		<div class="janelas" id="checklist_review" style="display:none;margin:0 auto;">
+        		
+        			<div id="div_checklist_dashboard" class="panel panel-default" style="width:90%;margin:0 auto;">
+        				<div class="panel-heading">Filtrar & Buscar Faltas</div>
+	        			<div class="panel-body">
+	        				<label>Colocar resumor de numeors</label>
+	        			</div>
+	        		</div>
+        			<div id="div_checklist_tabela" class="panel panel-primary" style="width:90%;margin:0 auto;">
+        				<div class="panel-heading">Tabela de Faltas</div>
+	        			<div class="panel-body">
+	        			 <div id="gridChecklist"></div>
+	        			</div>
+	        		</div>
+        		</div>
         		<div class="janelas" id="faltas_relatorio" style="display:none;margin:0 auto;"	>
         		<div id="div_filtro_relatorio_FALTAS" class="panel panel-default" style="width:90%;margin:0 auto;">
         				<div class="panel-heading">Filtrar & Buscar Faltas</div>
@@ -1400,40 +1418,7 @@ response.setDateHeader ("Expires", -1);
         				<div class="panel-heading"><h3 class="panel-title">Registros de Pontos</h3></div>
 	        			<div class="panel-body">
         				<div id="div_tabela_usuario_ponto_folha_analise">
-					       <table id="tabela_usuario_folha_ponto_analise" class="display" style="width:100%">
-					        <thead>
-					            <tr>
-					                <th>Data</th>
-					                <th>Nome</th>
-					                <th>Usuários</th>
-					                <th>Líder</th>
-					                <th>Entrada</th>
-					                <th>Início Intervalo</th>
-					                <th>Fim Intervalo</th>
-					                <th>Saída</th>
-					                <th>Local</th>
-					                <th>Status</th>
-					                <th>Fotos</th>
-					                <th>Horas Extras</th>
-					            </tr>
-					        </thead>
-					        <tfoot>
-					            <tr>
-					                <th>Data</th>
-					                <th>Nome</th>
-					                <th>Usuários</th>
-					                <th>Líder</th>
-					                <th>Entrada</th>
-					                <th>Início Intervalo</th>
-					                <th>Fim Intervalo</th>
-					                <th>Saída</th>
-					                <th>Local</th>
-					                <th>Status</th>
-					                <th>Fotos</th>
-					                <th>Horas Extras</th>
-					            </tr>
-					        </tfoot>
-					    </table>
+					       
         				
         				</div>
         				</div>
@@ -2214,7 +2199,7 @@ response.setDateHeader ("Expires", -1);
 
 
 <div id="modal_ajuste_ponto" class="modal fade subconpo" role="dialog">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
 
     <!-- Modal content-->
     
@@ -2232,22 +2217,42 @@ response.setDateHeader ("Expires", -1);
       			<td style="padding: 5px"><label class="control-label label_janelas">Local</label></td>
       		</tr>
       		<tr>
-      			<td style="padding: 5px"><div class='input-group date' id='ponto_entrada'>
+      			<td style="padding: 5px"><div class='input-group date' id='ponto_entradax'>
                     <input type='text' class="form-control" />
                     <span class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
                     </span>
                 </div></td>
-      			<td style="padding: 5px"><div class='input-group date' id='ponto_saida'>
+      			<td style="padding: 5px"><div class='input-group date' id='ponto_saidax'>
                     <input type='text' class="form-control" />
                     <span class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
                     </span>
                 </div></td>
       			<td style="padding: 5px"><select id="select_ajuste_ponto" class="selectpicker" data-live-search="true" title="Escolha o Local">
-		        			<option value="1">Spazio</option>
-		        			<option value="2">Site</option>
+		        			
 		        			</select>
+		        </td>
+      		</tr>
+      		<tr>
+      			<td style="padding: 5px"><label class="control-label label_janelas">Inicio Intervalo</label></td>
+      			<td style="padding: 5px"><label class="control-label label_janelas">Fim Intervalo</label></td>
+      			<td style="padding: 5px"><label class="control-label label_janelas"></label></td>
+      		</tr>
+      		<tr>
+      			<td style="padding: 5px"><div class='input-group date' id='ponto_inicio_intervalox'>
+                    <input type='text' class="form-control" />
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div></td>
+      			<td style="padding: 5px"><div class='input-group date' id='ponto_fim_intervalox'>
+                    <input type='text' class="form-control" />
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div></td>
+      			<td style="padding: 5px">
 		        </td>
       		</tr>
       		<tr><td colspan=3 class="control-label label_janelas">Comentários</td></tr>
