@@ -67,6 +67,13 @@ $(document).ready(function () {
 		        response = data.response, reader = data.reader;
 				console.log(response);
 		});
+            $("#excelExport").jqxButton({disabled: true});
+           
+           
+            $("#excelExport").click(function () {
+            	exportar_analise_ponto();         
+            });
+           
             $("#input_usuario1_arq").fileinput({
             	language: "pt-BR",
 			    uploadUrl: "./UserMgmt?opt=17", // server upload action

@@ -470,6 +470,7 @@ function carrega_ponto_usuario(){
 function carrega_ponto_analise_usuario(){
 	
 	
+	$("#excelExport").jqxButton({disabled: true});
 	$('#btn_gerar_espelho_analise').addClass( "disabled" );
 	$('#btn_gerar_espelho_analise').text('Aguarde a Finalização...');
 	$('#btn_gerar_espelho_analise').prop('disabled', true);
@@ -538,7 +539,7 @@ function carrega_ponto_analise_usuario(){
 		     $("#div_tabela_usuario_ponto_folha_analise").jqxGrid(
 		             {
 		                 width: 1400,
-		                 height: 650,
+		                 height: 550,
 		                 source: dataAdapter,
 		                 groupable: true,
 		                 columnsresize: true,
@@ -551,13 +552,13 @@ function carrega_ponto_analise_usuario(){
 		                 columns: [
 		                       { text: 'Data',datafield: 'data', width: 100 },
 		                       { text: 'Nome', datafield: 'nome', width: 150,filtertype: 'checkedlist' },
-		                       { text: 'Usuario', datafield: 'usuario', width: 100,filtertype: 'checkedlist' },
-		                       { text: 'Lider', datafield: 'lider', width: 150,filtertype: 'checkedlist' },
+		                       { text: 'Usuario', datafield: 'usuario', width: 200,filtertype: 'checkedlist' },
+		                       { text: 'Lider', datafield: 'lider', width: 200,filtertype: 'checkedlist' },
 		                       { text: 'Entrada', datafield: 'entrada', width: 100,filtertype: 'checkedlist' },
 		                       { text: 'Início Intervalo', datafield: 'iniInter', width: 100,filtertype: 'checkedlist' },
 		                       { text: 'Fim Intervalo', datafield: 'fimInter', width: 100,filtertype: 'checkedlist' },
 		                       { text: 'Saída', datafield: 'saida', width: 100,filtertype: 'checkedlist' },
-		                       { text: 'Local', datafield: 'local', width: 100,filtertype: 'checkedlist' },
+		                       { text: 'Local', datafield: 'local', width: 150,filtertype: 'checkedlist' },
 		                       { text: 'Status', datafield: 'status', width: 100,filtertype: 'checkedlist' },
 		                       { text: 'Fotos', datafield: 'foto', width: 100 ,cellsrenderer: renderer},
 		                       { text: 'Hora Extra', datafield: 'horaExtra', width: 150,filtertype: 'checkedlist' }
@@ -572,9 +573,51 @@ function carrega_ponto_analise_usuario(){
 		     $('#btn_gerar_espelho_analise').removeClass( "disabled" );
 			 $('#btn_gerar_espelho_analise').text('Listar Pontos Registrados');
 			 $('#btn_gerar_espelho_analise').prop('disabled', false);
+			 
+			 $("#excelExport").jqxButton({disabled: false});
 	}
 		
 		
+}
+function exportar_analise_ponto(){
+	$("#excelExport").jqxButton({disabled: true});
+	var func =  $('#select_func_folha_ponto_analise').val();
+	var selection=$('#range_espelho_analise').jqxDateTimeInput('getRange');
+	if(func==''){
+		func="TODOS";
+		
+	}
+	var timestamp =Date.now();
+	$.ajax({
+        url: './UserMgmt?opt=44&func='+func+'&inicio='+moment(selection.from).format('L')+'&fim='+moment(selection.to).format('L'),
+        method: 'GET',
+        
+        xhrFields: {
+            responseType: 'blob'
+        },
+        success: function (data) {
+            var a = document.createElement('a');
+            var url = window.URL.createObjectURL(data);
+            a.href = url;
+            a.download = 'AnalisePontoControle.xlsx';
+            a.click();
+            window.URL.revokeObjectURL(url);
+            $("#excelExport").jqxButton({disabled: false});
+        }
+    });
+	//$.ajax({
+	//	  type: "POST",
+	//	  data: {"opt":"44",
+	//		  "func":func,
+	//		  "inicio":moment(selection.from).format('L'),
+	//		  "fim":moment(selection.to).format('L')},		  
+	//	  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+	//	  url: "./UserMgmt",
+	//	  cache: false,
+	//	  dataType: "text",
+		  
+	//	});
+	
 }
 function exibe_fotos_registro(usuario,dia){
 	//alert(usuario);

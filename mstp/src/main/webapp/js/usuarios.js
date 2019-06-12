@@ -626,7 +626,7 @@ function exportar_usuarios(){
 		  url: "./UserMgmt",
 		  cache: false,
 		  dataType: "text",
-		  success: onSuccessExportUser
+		 
 		});
 }
 function emDesenvolvimento(){

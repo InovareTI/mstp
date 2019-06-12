@@ -143,7 +143,6 @@ public class UserMgmt extends HttpServlet {
 		param7="";
 		param8="";
 		last_id=0;
-		
 		opt=req.getParameter("opt");
 		//System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações de Usuários do MSTP Web - "+f3.format(time)+" opt:"+opt);
 		//System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Usuários opt - "+ opt );
@@ -154,10 +153,16 @@ public class UserMgmt extends HttpServlet {
 				param1=req.getParameter("func");
 				param2=req.getParameter("mes");
 				param3=req.getParameter("inicio");
+				ConexaoMongo c = new ConexaoMongo();
 				param4=req.getParameter("fim");
 				SimpleDateFormat format = new SimpleDateFormat(padrao_data_br); 
 				Calendar inicio= Calendar.getInstance();
 				Calendar fim= Calendar.getInstance();
+				Calendar inicio_autorizacao= Calendar.getInstance();
+				FindIterable<Document> findIterable;
+				MongoCursor<Document> resultado;
+				ResultSet rs4;
+				inicio_autorizacao.set(2019, 5, 1);
 				Date dt_inicio=format.parse(param3);
 				Date dt_fim=format.parse(param4);
 				inicio.setTime(dt_inicio);
@@ -194,7 +199,7 @@ public class UserMgmt extends HttpServlet {
 						//System.out.println("data de pesquisa:"+f2.format(d.getTime()));
 						contador=contador+1;
 					while(rs.next()) {
-						HH[0] = "Caculo Indisponivel";
+						HH[0] = "Sem Horas-Extras";
 						HH[1]="0.0";
 						HH[2]="0.0";
 						HH[3]="0.0";
@@ -292,22 +297,80 @@ public class UserMgmt extends HttpServlet {
 							tipo_registro="Anormal";
 							saida="";
 						}
-						if(!entrada.equals("") && !saida.equals("")) {
-							//System.out.println(entrada);
-							//System.out.println(rs.getString("data_dia"));
-							HH=calcula_hh(entrada,saida,feriado,conn,p,param1);
-						}else if(!entrada.equals("") && saida.equals("")) {
-							if(p.getEmpresa().getEmpresa_id()==1) {
-								HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,param1);
-							}else if(p.getEmpresa().getEmpresa_id()==5){
-								//HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,param1);
-								if(d.get(Calendar.DAY_OF_WEEK)==6) {
-									HH=calcula_hh(entrada,entrada.substring(0, 10)+" 16:00:00",feriado,conn,p,param1);
+						
+						
+						if(d.after(inicio_autorizacao)) {
+							rs4=conn.Consulta("select * from expediente where empresa="+p.getEmpresa().getEmpresa_id()+" and dia_expediente="+d.get(Calendar.DAY_OF_WEEK));
+							if(rs4.next()) {
+								if(rs4.getString("autoriza_previa_he").equals("true")) {
+									Bson filtro;
+									List<Bson> filtros= new ArrayList<>();
+									filtro=Filters.eq("usuario_solicitante",p.get_PessoaUsuario());
+									filtros.add(filtro);
+									filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+									filtros.add(filtro);
+									filtro=Filters.eq("data_dia_he",f2.format(d.getTime()));
+									filtros.add(filtro);
+									filtro=Filters.eq("status_autorizacao","APROVADO");
+									filtros.add(filtro);
+									findIterable=c.ConsultaCollectioncomFiltrosLista("Autoriza_HE", filtros);
+									resultado=findIterable.iterator();
+									if(resultado.hasNext()) {
+										if(!entrada.equals("") && !saida.equals("")) {
+											//System.out.println(entrada);
+											//System.out.println(rs.getString("data_dia"));
+											HH=calcula_hh(entrada,saida,feriado,conn,p,param1);
+										}else if(!entrada.equals("") && saida.equals("")) {
+											if(p.getEmpresa().getEmpresa_id()==1) {
+												HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,param1);
+											}else if(p.getEmpresa().getEmpresa_id()==5){
+												//HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,param1);
+												if(d.get(Calendar.DAY_OF_WEEK)==6) {
+													HH=calcula_hh(entrada,entrada.substring(0, 10)+" 16:00:00",feriado,conn,p,param1);
+												}else {
+													HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,param1);
+												}
+											}
+										}
+									}
 								}else {
-									HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,param1);
+									if(!entrada.equals("") && !saida.equals("")) {
+										//System.out.println(entrada);
+										//System.out.println(rs.getString("data_dia"));
+										HH=calcula_hh(entrada,saida,feriado,conn,p,param1);
+									}else if(!entrada.equals("") && saida.equals("")) {
+										if(p.getEmpresa().getEmpresa_id()==1) {
+											HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,param1);
+										}else if(p.getEmpresa().getEmpresa_id()==5){
+											//HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,param1);
+											if(d.get(Calendar.DAY_OF_WEEK)==6) {
+												HH=calcula_hh(entrada,entrada.substring(0, 10)+" 16:00:00",feriado,conn,p,param1);
+											}else {
+												HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,param1);
+											}
+										}
+									}
+								}
+							}
+						}else {
+							if(!entrada.equals("") && !saida.equals("")) {
+								//System.out.println(entrada);
+								//System.out.println(rs.getString("data_dia"));
+								HH=calcula_hh(entrada,saida,feriado,conn,p,param1);
+							}else if(!entrada.equals("") && saida.equals("")) {
+								if(p.getEmpresa().getEmpresa_id()==1) {
+									HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,param1);
+								}else if(p.getEmpresa().getEmpresa_id()==5){
+									//HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,param1);
+									if(d.get(Calendar.DAY_OF_WEEK)==6) {
+										HH=calcula_hh(entrada,entrada.substring(0, 10)+" 16:00:00",feriado,conn,p,param1);
+									}else {
+										HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,param1);
+									}
 								}
 							}
 						}
+						
 							}}}
 						}
 						dados_tabela=dados_tabela + "\""+local+"\","+"\n";
@@ -920,6 +983,7 @@ public class UserMgmt extends HttpServlet {
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("16")){
+				
 				int colIndex = 0;
 				int rowIndex = 0;
 				XSSFWorkbook workbook = new XSSFWorkbook();
@@ -1117,7 +1181,7 @@ public class UserMgmt extends HttpServlet {
 				param7=req.getParameter("inicio");
 				param8=req.getParameter("fim");
 				SimpleDateFormat format = new SimpleDateFormat(padrao_data_br); 
-				
+				String calculaHH="N";
 				Date dt_inicio=format.parse(param7);
 				Date dt_fim=format.parse(param8);
 				
@@ -1130,6 +1194,12 @@ public class UserMgmt extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				Calendar data_HH=Calendar.getInstance();
 				Calendar data_HH2=Calendar.getInstance();
+				ConexaoMongo c= new ConexaoMongo();
+				Calendar inicio_autorizacao= Calendar.getInstance();
+				FindIterable<Document> findIterable;
+				MongoCursor<Document> resultado;
+				ResultSet rs4;
+				inicio_autorizacao.set(2019, 5, 1);
 				data_HH.setTime(dt_inicio);
 				data_HH2.setTime(dt_fim);
 				String []HH_aux=new String[4];
@@ -1138,6 +1208,11 @@ public class UserMgmt extends HttpServlet {
 				numberFormat.applyPattern("#0.00");
 				System.out.println("iniciando recalculo de horas para " + param2 + " no mes " + param1 );
 				while(data_HH.before(data_HH2)) {
+					HH_aux[0] = "Caculo Indisponivel";
+					HH_aux[1]="0.0";
+					HH_aux[2]="0.0";
+					HH_aux[3]="0.0";
+					calculaHH="N";
 					param3="";
 					param4="";
 					param5=f2.format(data_HH.getTime());
@@ -1158,6 +1233,33 @@ public class UserMgmt extends HttpServlet {
 					}else {
 						param4="";
 					}
+					
+					if(data_HH.after(inicio_autorizacao)) {
+						rs4=conn.Consulta("select * from expediente where empresa="+p.getEmpresa().getEmpresa_id()+" and dia_expediente="+d.get(Calendar.DAY_OF_WEEK));
+						if(rs4.next()) {
+							if(rs4.getString("autoriza_previa_he").equals("true")) {
+								Bson filtro;
+								List<Bson> filtros= new ArrayList<>();
+								filtro=Filters.eq("usuario_solicitante",p.get_PessoaUsuario());
+								filtros.add(filtro);
+								filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+								filtros.add(filtro);
+								filtro=Filters.eq("data_dia_he",f2.format(data_HH.getTime()));
+								filtros.add(filtro);
+								filtro=Filters.eq("status_autorizacao","APROVADO");
+								filtros.add(filtro);
+								findIterable=c.ConsultaCollectioncomFiltrosLista("Autoriza_HE", filtros);
+								resultado=findIterable.iterator();
+								if(resultado.hasNext()) {
+									calculaHH="S";
+								}
+							}
+						}
+					}else {
+						calculaHH="S";
+					}
+					
+					if(calculaHH.equals("S")) {
 					if(!param3.equals("") && !param4.equals("")) {
 						HH_aux=calcula_hh(param3,param4,feriado,conn,p,param2);
 						
@@ -1189,6 +1291,7 @@ public class UserMgmt extends HttpServlet {
 						}else {
 							total_horas_acumuladas=total_horas_acumuladas+Double.parseDouble(HH_aux[1]);
 						}
+					}
 					}
 					data_HH.add(Calendar.DAY_OF_MONTH, 1);
 				}
@@ -2036,12 +2139,16 @@ public class UserMgmt extends HttpServlet {
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("30")) {
-
+				ConexaoMongo c = new ConexaoMongo();
+				FindIterable<Document> findIterable;
+				MongoCursor<Document> resultado;
 				param1=req.getParameter("func");
-				ResultSet rs3;
+				ResultSet rs3,rs4;
 				param3=req.getParameter("inicio");
 				param4=req.getParameter("fim");
 				SimpleDateFormat format = new SimpleDateFormat(padrao_data_br); 
+				Calendar inicio_autorizacao= Calendar.getInstance();
+				inicio_autorizacao.set(2019, 5, 1);
 				Calendar inicio= Calendar.getInstance();
 				Calendar fim= Calendar.getInstance();
 				Date dt_inicio=format.parse(param3);
@@ -2096,7 +2203,7 @@ public class UserMgmt extends HttpServlet {
 						aux_usuario="";
 					while(rs.next()) {
 						contador=contador+1;
-						HH[0] = "Caculo Indisponivel";
+						HH[0] = "Sem Horas Extras";
 						HH[1]="0.0";
 						HH[2]="0.0";
 						HH[3]="0.0";
@@ -2220,18 +2327,71 @@ public class UserMgmt extends HttpServlet {
 							tipo_registro="Anormal";
 							saida="";
 						}
-						if(!entrada.equals("") && !saida.equals("")) {
-							//System.out.println(entrada);
-							//System.out.println(rs.getString("data_dia"));
-							HH=calcula_hh(entrada,saida,feriado,conn,p,aux_usuario);
-						}else if(!entrada.equals("") && saida.equals("")) {
-							if(p.getEmpresa().getEmpresa_id()==1) {
-								HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,aux_usuario);
-							}else if(p.getEmpresa().getEmpresa_id()==5){
-								if(d.get(Calendar.DAY_OF_WEEK)==6) {
-									HH=calcula_hh(entrada,entrada.substring(0, 10)+" 16:00:00",feriado,conn,p,aux_usuario);
-								}else {
-									HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,aux_usuario);
+						if(d.after(inicio_autorizacao)) {
+						rs4=conn.Consulta("select * from expediente where empresa="+p.getEmpresa().getEmpresa_id()+" and dia_expediente="+d.get(Calendar.DAY_OF_WEEK));
+						if(rs4.next()) {
+							if(rs4.getString("autoriza_previa_he").equals("true")) {
+								Bson filtro;
+								List<Bson> filtros= new ArrayList<>();
+								filtro=Filters.eq("usuario_solicitante",p.get_PessoaUsuario());
+								filtros.add(filtro);
+								filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+								filtros.add(filtro);
+								filtro=Filters.eq("data_dia_he",f2.format(d.getTime()));
+								filtros.add(filtro);
+								filtro=Filters.eq("status_autorizacao","APROVADO");
+								filtros.add(filtro);
+								findIterable=c.ConsultaCollectioncomFiltrosLista("Autoriza_HE", filtros);
+								resultado=findIterable.iterator();
+								if(resultado.hasNext()) {
+									if(!entrada.equals("") && !saida.equals("")) {
+										//System.out.println(entrada);
+										//System.out.println(rs.getString("data_dia"));
+										HH=calcula_hh(entrada,saida,feriado,conn,p,aux_usuario);
+									}else if(!entrada.equals("") && saida.equals("")) {
+										if(p.getEmpresa().getEmpresa_id()==1) {
+											HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,aux_usuario);
+										}else if(p.getEmpresa().getEmpresa_id()==5){
+											if(d.get(Calendar.DAY_OF_WEEK)==6) {
+												HH=calcula_hh(entrada,entrada.substring(0, 10)+" 16:00:00",feriado,conn,p,aux_usuario);
+											}else {
+												HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,aux_usuario);
+											}
+										}
+									}
+								}
+							}else {
+								if(!entrada.equals("") && !saida.equals("")) {
+									//System.out.println(entrada);
+									//System.out.println(rs.getString("data_dia"));
+									HH=calcula_hh(entrada,saida,feriado,conn,p,aux_usuario);
+								}else if(!entrada.equals("") && saida.equals("")) {
+									if(p.getEmpresa().getEmpresa_id()==1) {
+										HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,aux_usuario);
+									}else if(p.getEmpresa().getEmpresa_id()==5){
+										if(d.get(Calendar.DAY_OF_WEEK)==6) {
+											HH=calcula_hh(entrada,entrada.substring(0, 10)+" 16:00:00",feriado,conn,p,aux_usuario);
+										}else {
+											HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,aux_usuario);
+										}
+									}
+								}
+							}
+						}
+						}else {
+							if(!entrada.equals("") && !saida.equals("")) {
+								//System.out.println(entrada);
+								//System.out.println(rs.getString("data_dia"));
+								HH=calcula_hh(entrada,saida,feriado,conn,p,aux_usuario);
+							}else if(!entrada.equals("") && saida.equals("")) {
+								if(p.getEmpresa().getEmpresa_id()==1) {
+									HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,aux_usuario);
+								}else if(p.getEmpresa().getEmpresa_id()==5){
+									if(d.get(Calendar.DAY_OF_WEEK)==6) {
+										HH=calcula_hh(entrada,entrada.substring(0, 10)+" 16:00:00",feriado,conn,p,aux_usuario);
+									}else {
+										HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,aux_usuario);
+									}
 								}
 							}
 						}
@@ -2296,6 +2456,7 @@ public class UserMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
 				}
+				c.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("31")) {
@@ -2551,7 +2712,7 @@ public class UserMgmt extends HttpServlet {
 		}else if(opt.equals("39")) {
 			param1=req.getParameter("usuario");
 			param2=req.getParameter("dia");
-			System.out.println("select * from registro_foto where empresa="+p.getEmpresa().getEmpresa_id()+" and usuario='"+param1+"' and data_dia='"+param2+"' order by idregistro_foto asc");
+			//System.out.println("select * from registro_foto where empresa="+p.getEmpresa().getEmpresa_id()+" and usuario='"+param1+"' and data_dia='"+param2+"' order by idregistro_foto asc");
 			rs=conn.Consulta("select * from registro_foto where empresa="+p.getEmpresa().getEmpresa_id()+" and usuario='"+param1+"' and data_dia='"+param2+"' order by idregistro_foto asc");
 			if(rs.next()) {
 				rs.beforeFirst();
@@ -2677,7 +2838,555 @@ public class UserMgmt extends HttpServlet {
 			Timestamp time2 = new Timestamp(System.currentTimeMillis());
 			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime()))+" segundos");
 			}
+			}else if(opt.equals("44")) {
+				
+				ConexaoMongo c = new ConexaoMongo();
+				FindIterable<Document> findIterable;
+				MongoCursor<Document> resultado;
+				int colIndex = 0;
+				int rowIndex = 0;
+				XSSFWorkbook workbook = new XSSFWorkbook();
+				XSSFSheet sheet = workbook.createSheet("Análise de Ponto");
+				Row row;
+	            Cell cell;
+				param1=req.getParameter("func");
+				ResultSet rs3,rs4;
+				param3=req.getParameter("inicio");
+				param4=req.getParameter("fim");
+				SimpleDateFormat format = new SimpleDateFormat(padrao_data_br); 
+				Calendar inicio_autorizacao= Calendar.getInstance();
+				inicio_autorizacao.set(2019, 5, 1);
+				Calendar inicio= Calendar.getInstance();
+				Calendar fim= Calendar.getInstance();
+				Date dt_inicio=format.parse(param3);
+				Date dt_fim=format.parse(param4);
+				inicio.setTime(dt_inicio);
+				fim.setTime(dt_fim);
+				System.out.println("inicio:"+f2.format(inicio.getTime())+" fim: "+f2.format(fim.getTime()));
+				String local;
+				Integer distancia=0;
+				String encontrado="n";
+				String tipo_registro="Normal";
+				String tipo_ajustar=" - ";
+				String entrada="00:00:00";
+				String saida="00:00:00";
+				String [] HH = new String[4];
+				int contador=0;
+				local="Sem Localização";
+				HH[0] = "Caculo Indisponivel";
+				HH[1]="0.0";
+				HH[2]="0.0";
+				HH[3]="0.0";
+				String aux_usuario;
+				String query2="";
+				String[] aux_usuario_dados=new String[3];
+				if(param1.equals("TODOS")) {
+					//select distinct registros.data_dia,t_aux.id_usuario from (select distinct id_usuario,empresa from usuarios where empresa='5' and ATIVO='Y') as t_aux left join registros on t_aux.empresa='5' and registros.usuario=t_aux.id_usuario and str_to_date(registros.datetime_servlet,'%Y-%m-%d') >= str_to_date('18/04/2019','%d/%m/%Y') and str_to_date(registros.datetime_servlet,'%Y-%m-%d') <= str_to_date('18/04/2019','%d/%m/%Y') order by datetime_servlet,usuario asc
+					query="select distinct registros.data_dia,t_aux.id_usuario from (select distinct id_usuario,empresa from usuarios where empresa='"+p.getEmpresa().getEmpresa_id()+"' and ATIVO='Y' and exibe_ponto_analise='Y') as t_aux left join registros on t_aux.empresa='"+p.getEmpresa().getEmpresa_id()+"' and registros.usuario=t_aux.id_usuario and str_to_date(registros.datetime_servlet,'%Y-%m-%d') >= str_to_date('"+f2.format(inicio.getTime())+"','%d/%m/%Y') and str_to_date(registros.datetime_servlet,'%Y-%m-%d') <= str_to_date('"+f2.format(fim.getTime())+"','%d/%m/%Y') order by datetime_servlet,usuario asc" ;
+					//query="select distinct data_dia,usuario from registros where usuario in (select distinct id_usuario from usuarios where empresa='"+p.getEmpresa().getEmpresa_id()+"' and ATIVO='Y') and str_to_date(datetime_servlet,'%Y-%m-%d') >= str_to_date('"+f2.format(inicio.getTime())+"','%d/%m/%Y') and str_to_date(datetime_servlet,'%Y-%m-%d') <= str_to_date('"+f2.format(fim.getTime())+"','%d/%m/%Y') order by datetime_servlet asc" ;
+					
+					query2="select distinct id_usuario from usuarios where empresa='"+p.getEmpresa().getEmpresa_id()+"' and ATIVO='Y' and exibe_ponto_analise='Y' and id_usuario not in (select distinct usuario from registros where str_to_date(datetime_servlet,'%Y-%m-%d') >= str_to_date('"+f2.format(inicio.getTime())+"','%d/%m/%Y') and str_to_date(datetime_servlet,'%Y-%m-%d') <= str_to_date('"+f2.format(fim.getTime())+"','%d/%m/%Y') order by datetime_servlet asc)";
+					//rs3=conn.Consulta("select id_usuario,nome,matricula from usuarios where validado='Y and ativo='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
+				}else {
+					aux_usuario=param1;
+					query="select distinct data_dia,usuario from registros where usuario='"+param1+"' and str_to_date(datetime_servlet,'%Y-%m-%d') >= str_to_date('"+f2.format(inicio.getTime())+"','%d/%m/%Y') and str_to_date(datetime_servlet,'%Y-%m-%d') <= str_to_date('"+f2.format(fim.getTime())+"','%d/%m/%Y') order by datetime_servlet asc" ;
+					aux_usuario_dados=p.buscarPessoa(conn, aux_usuario, p.getEmpresa().getEmpresa_id());
+				}
+				
+				row = sheet.createRow((short) rowIndex);
+           	    cell = row.createCell((short) colIndex);
+                cell.setCellValue("Data");
+                colIndex=colIndex+1;
+                cell = row.createCell((short) colIndex);
+                cell.setCellValue("Nome");
+                colIndex=colIndex+1;
+                cell = row.createCell((short) colIndex);
+                cell.setCellValue("Usuário");
+                colIndex=colIndex+1;
+                cell = row.createCell((short) colIndex);
+                cell.setCellValue("Líder");
+                colIndex=colIndex+1;
+                cell = row.createCell((short) colIndex);
+                cell.setCellValue("Entrada");
+                colIndex=colIndex+1;
+                cell = row.createCell((short) colIndex);
+                cell.setCellValue("Início Intervalo");
+                colIndex=colIndex+1;
+                cell = row.createCell((short) colIndex);
+                cell.setCellValue("Fim Intervalo");
+                colIndex=colIndex+1;
+                cell = row.createCell((short) colIndex);
+                cell.setCellValue("Saída");
+                colIndex=colIndex+1;
+                cell = row.createCell((short) colIndex);
+                cell.setCellValue("Local");
+                colIndex=colIndex+1;
+                cell = row.createCell((short) colIndex);
+                cell.setCellValue("Status");
+                colIndex=colIndex+1;
+                cell = row.createCell((short) colIndex);
+                cell.setCellValue("Fotos");
+                colIndex=colIndex+1;
+                cell = row.createCell((short) colIndex);
+                cell.setCellValue("Hora Extra");
+                colIndex=colIndex+1;
+                
+				rs=conn.Consulta(query);
+				if(rs.next()) {
+					rs.beforeFirst();
+					dados_tabela="[{\"totalRecords\":\"replace2\"},\n";
+					//d.set(Calendar.MONTH, (Integer.parseInt(param2)-1));
+					//d.set(Calendar.DAY_OF_MONTH, 1);
+					d.setTime(dt_inicio);
+					fim.add(Calendar.DAY_OF_MONTH, 1);
+					while(d.before(fim)) {
+						
+						aux_usuario="";
+					while(rs.next()) {
+						contador=contador+1;
+						
+						HH[0] = "Sem Horas Extras";
+						HH[1]="0.0";
+						HH[2]="0.0";
+						HH[3]="0.0";
+						if(aux_usuario.equals("")) {
+							aux_usuario=rs.getString(2);
+							aux_usuario_dados=p.buscarPessoa(conn, aux_usuario, p.getEmpresa().getEmpresa_id());
+						}else if(aux_usuario.equals(rs.getString(2))) {
+							
+						}else {
+							aux_usuario=rs.getString(2);
+							aux_usuario_dados=p.buscarPessoa(conn, aux_usuario, p.getEmpresa().getEmpresa_id());
+						}
+						if(rs.getString("data_dia")==null) {
+							if(d.get(Calendar.DAY_OF_WEEK)==1) {
+								tipo_registro="Domingo";
+								tipo_ajustar=" - ";
+							}else if(d.get(Calendar.DAY_OF_WEEK)==7) {
+								tipo_registro="Sábado";
+								tipo_ajustar=" - ";
+							}else if(feriado.verifica_feriado(f2.format(d.getTime()),p.getEstadoUsuario(aux_usuario,conn), conn, p.getEmpresa().getEmpresa_id())) {
+								tipo_registro="Feriado";
+								tipo_ajustar=" - ";
+							}else {
+								tipo_registro="Sem Marcação";
+								tipo_ajustar=" - ";
+							}
+							if(rs.getString(2)!=null) {
+							aux_usuario=rs.getString(2);
+							aux_usuario_dados=p.buscarPessoa(conn, aux_usuario, p.getEmpresa().getEmpresa_id());
+							dados_tabela=dados_tabela+"{\"id\":\""+contador+"\",\"data\":\""+f2.format(d.getTime())+"\",\"nome\":\""+aux_usuario_dados[0]+"\",\"usuario\":\""+aux_usuario_dados[1]+"\",\"lider\":\""+aux_usuario_dados[2]+"\",\"entrada\":\"\",\"iniInter\":\"\",\"fimInter\":\"\",\"saida\":\"\",\"local\":\""+tipo_registro+"\",\"status\":\""+tipo_ajustar+"\",\"foto\":\"-\",\"horaExtra\":\"-\"},\n";
+							rowIndex=rowIndex+1;
+							row = sheet.createRow((short) rowIndex);
+							colIndex=0;
+							cell = row.createCell((short) colIndex);
+			                cell.setCellValue(f2.format(d.getTime()));
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue(aux_usuario_dados[0]);
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue(aux_usuario_dados[1]);
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue(aux_usuario_dados[2]);
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("");
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("");
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("");
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("");
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue(tipo_registro);
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue(tipo_ajustar);
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("");
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("");
+			                colIndex=colIndex+1;
+			                
+							}
+						}else if(f2.format(d.getTime()).equals(rs.getString("data_dia"))) {
+							if(d.get(Calendar.DAY_OF_WEEK)==1) {
+								tipo_registro="Domingo";
+								tipo_ajustar=" - ";
+							}else if(d.get(Calendar.DAY_OF_WEEK)==7) {
+								tipo_registro="Sábado";
+								tipo_ajustar=" - ";
+							}else if(feriado.verifica_feriado(f2.format(d.getTime()),p.getEstadoUsuario(aux_usuario, conn),conn, p.getEmpresa().getEmpresa_id())) {
+								tipo_registro="Feriado";
+								tipo_ajustar=" - ";
+							}else {
+								tipo_registro="Normal";
+								tipo_ajustar=" - ";
+							}
+						rowIndex=rowIndex+1;
+						row = sheet.createRow((short) rowIndex);
+						colIndex=0;
+						dados_tabela=dados_tabela + "{\"id\":\""+contador+"\",";
+						dados_tabela=dados_tabela + "\"data\":\""+rs.getString("data_dia")+"\",\"nome\":\""+aux_usuario_dados[0]+"\",\"usuario\":\""+aux_usuario_dados[1]+"\",\"lider\":\""+aux_usuario_dados[2]+"\",";
+						cell = row.createCell((short) colIndex);
+		                cell.setCellValue(f2.format(d.getTime()));
+		                colIndex=colIndex+1;
+		                cell = row.createCell((short) colIndex);
+		                cell.setCellValue(aux_usuario_dados[0]);
+		                colIndex=colIndex+1;
+		                cell = row.createCell((short) colIndex);
+		                cell.setCellValue(aux_usuario_dados[1]);
+		                colIndex=colIndex+1;
+		                cell = row.createCell((short) colIndex);
+		                cell.setCellValue(aux_usuario_dados[2]);
+		                colIndex=colIndex+1;
+						query="SELECT * FROM registros where usuario='"+aux_usuario+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Folga' order by datetime_servlet asc limit 1";
+						rs2=conn.Consulta(query);
+						if(rs2.next()) {
+							dados_tabela=dados_tabela + "\"entrada\":\"-:-\",\"iniInter\":\"-:-\",\"fimInter\":\"-:-\",\"saida\":\"-:-\",";
+							tipo_registro="Folga";
+							cell = row.createCell((short) colIndex);
+			                cell.setCellValue("");
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("");
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("");
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("");
+			                colIndex=colIndex+1;
+						}else {
+							query="SELECT * FROM registros where usuario='"+aux_usuario+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Compensação' order by datetime_servlet asc limit 1";
+							rs2=conn.Consulta(query);
+							if(rs2.next()) {
+								dados_tabela=dados_tabela + "\"entrada\":\"-:-\",\"iniInter\":\"-:-\",\"fimInter\":\"-:-\",\"saida\":\"-:-\",";
+								tipo_registro="Compensação";
+								cell = row.createCell((short) colIndex);
+				                cell.setCellValue("");
+				                colIndex=colIndex+1;
+				                cell = row.createCell((short) colIndex);
+				                cell.setCellValue("");
+				                colIndex=colIndex+1;
+				                cell = row.createCell((short) colIndex);
+				                cell.setCellValue("");
+				                colIndex=colIndex+1;
+				                cell = row.createCell((short) colIndex);
+				                cell.setCellValue("");
+				                colIndex=colIndex+1;
+							}else {
+								query="SELECT * FROM registros where usuario='"+aux_usuario+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Licença Médica' order by datetime_servlet asc limit 1";
+								rs2=conn.Consulta(query);
+								if(rs2.next()) {
+									dados_tabela=dados_tabela + "\"entrada\":\"-:-\",\"iniInter\":\"-:-\",\"fimInter\":\"-:-\",\"saida\":\"-:-\",";
+									tipo_registro="Licença Médica";
+									cell = row.createCell((short) colIndex);
+					                cell.setCellValue("");
+					                colIndex=colIndex+1;
+					                cell = row.createCell((short) colIndex);
+					                cell.setCellValue("");
+					                colIndex=colIndex+1;
+					                cell = row.createCell((short) colIndex);
+					                cell.setCellValue("");
+					                colIndex=colIndex+1;
+					                cell = row.createCell((short) colIndex);
+					                cell.setCellValue("");
+					                colIndex=colIndex+1;
+								}else {	
+						query="SELECT * FROM registros where usuario='"+aux_usuario+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Entrada' order by datetime_servlet asc limit 1";
+						rs2=conn.Consulta(query);
+						if(rs2.next()) {
+							dados_tabela=dados_tabela + "\"entrada\":\""+rs2.getString("datetime_mobile").substring(rs2.getString("datetime_mobile").indexOf("/",3)+5)+"\",";
+							cell = row.createCell((short) colIndex);
+			                cell.setCellValue(rs2.getString("datetime_mobile").substring(rs2.getString("datetime_mobile").indexOf("/",3)+5));
+			                colIndex=colIndex+1;
+							distancia=rs2.getInt("distancia");
+							entrada=rs2.getString("datetime_servlet");
+							local=rs2.getString("tipo_local_registro");
+							if(local.equals("Site")) {
+								local=rs2.getString("site_operadora_registro")+"-"+rs2.getString("local_registro");
+							}
+						}else {
+							dados_tabela=dados_tabela + "\"entrada\":\"\",";
+							cell = row.createCell((short) colIndex);
+			                cell.setCellValue("");
+			                colIndex=colIndex+1;
+							tipo_registro="Anormal";
+							distancia=0;
+							entrada="";
+						}
+						query="SELECT * FROM registros where usuario='"+aux_usuario+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Inicio_intervalo' order by datetime_servlet desc limit 1";
+						rs2=conn.Consulta(query);
+						if(rs2.next()) {
+							dados_tabela=dados_tabela + "\"iniInter\":\""+rs2.getString("datetime_mobile").substring(rs2.getString("datetime_mobile").indexOf("/",3)+5)+"\",";
+							cell = row.createCell((short) colIndex);
+			                cell.setCellValue(rs2.getString("datetime_mobile").substring(rs2.getString("datetime_mobile").indexOf("/",3)+5));
+			                colIndex=colIndex+1;
+							local=rs2.getString("tipo_local_registro");
+							distancia=rs2.getInt("distancia");
+							if(local.equals("Site")) {
+								local=rs2.getString("site_operadora_registro")+"-"+rs2.getString("local_registro");
+							}
+						}else {
+							dados_tabela=dados_tabela + "\"iniInter\":\"\",";
+							cell = row.createCell((short) colIndex);
+			                cell.setCellValue("");
+			                colIndex=colIndex+1;
+							tipo_registro="Anormal";
+						}
+						query="SELECT * FROM registros where usuario='"+aux_usuario+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Fim_intervalo' order by datetime_servlet desc limit 1";
+						rs2=conn.Consulta(query);
+						if(rs2.next()) {
+							dados_tabela=dados_tabela + "\"fimInter\":\""+rs2.getString("datetime_mobile").substring(rs2.getString("datetime_mobile").indexOf("/",3)+5)+"\",";
+							cell = row.createCell((short) colIndex);
+			                cell.setCellValue(rs2.getString("datetime_mobile").substring(rs2.getString("datetime_mobile").indexOf("/",3)+5));
+			                colIndex=colIndex+1;
+							local=rs2.getString("tipo_local_registro");
+							distancia=rs2.getInt("distancia");
+							if(local.equals("Site")) {
+								local=rs2.getString("site_operadora_registro")+"-"+rs2.getString("local_registro");
+							}
+						}else {
+							dados_tabela=dados_tabela + "\"fimInter\":\"\",";
+							cell = row.createCell((short) colIndex);
+			                cell.setCellValue("");
+			                colIndex=colIndex+1;
+							tipo_registro="Anormal";
+						}
+						query="SELECT * FROM registros where usuario='"+aux_usuario+"' and data_dia='"+rs.getString("data_dia")+"' and tipo_registro='Saída' order by datetime_servlet desc limit 1";
+						rs2=conn.Consulta(query);
+						if(rs2.next()) {
+							dados_tabela=dados_tabela + "\"saida\":\""+rs2.getString("datetime_mobile").substring(rs2.getString("datetime_mobile").indexOf("/",3)+5)+"\",";
+							cell = row.createCell((short) colIndex);
+			                cell.setCellValue(rs2.getString("datetime_mobile").substring(rs2.getString("datetime_mobile").indexOf("/",3)+5));
+			                colIndex=colIndex+1;
+							saida=rs2.getString("datetime_servlet");
+							distancia=rs2.getInt("distancia");
+							local=rs2.getString("tipo_local_registro");
+							if(local.equals("Site")) {
+								local=rs2.getString("site_operadora_registro")+"-"+rs2.getString("local_registro");
+							}
+						}else {
+							dados_tabela=dados_tabela + "\"saida\":\"\",";
+							cell = row.createCell((short) colIndex);
+			                cell.setCellValue("");
+			                colIndex=colIndex+1;
+							tipo_registro="Anormal";
+							saida="";
+						}
+						if(d.after(inicio_autorizacao)) {
+						rs4=conn.Consulta("select * from expediente where empresa="+p.getEmpresa().getEmpresa_id()+" and dia_expediente="+d.get(Calendar.DAY_OF_WEEK));
+						if(rs4.next()) {
+							if(rs4.getString("autoriza_previa_he").equals("true")) {
+								Bson filtro;
+								List<Bson> filtros= new ArrayList<>();
+								filtro=Filters.eq("usuario_solicitante",p.get_PessoaUsuario());
+								filtros.add(filtro);
+								filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+								filtros.add(filtro);
+								filtro=Filters.eq("data_dia_he",f2.format(d.getTime()));
+								filtros.add(filtro);
+								filtro=Filters.eq("status_autorizacao","APROVADO");
+								filtros.add(filtro);
+								findIterable=c.ConsultaCollectioncomFiltrosLista("Autoriza_HE", filtros);
+								resultado=findIterable.iterator();
+								if(resultado.hasNext()) {
+									if(!entrada.equals("") && !saida.equals("")) {
+										//System.out.println(entrada);
+										//System.out.println(rs.getString("data_dia"));
+										HH=calcula_hh(entrada,saida,feriado,conn,p,aux_usuario);
+									}else if(!entrada.equals("") && saida.equals("")) {
+										if(p.getEmpresa().getEmpresa_id()==1) {
+											HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,aux_usuario);
+										}else if(p.getEmpresa().getEmpresa_id()==5){
+											if(d.get(Calendar.DAY_OF_WEEK)==6) {
+												HH=calcula_hh(entrada,entrada.substring(0, 10)+" 16:00:00",feriado,conn,p,aux_usuario);
+											}else {
+												HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,aux_usuario);
+											}
+										}
+									}
+								}
+							}else {
+								if(!entrada.equals("") && !saida.equals("")) {
+									//System.out.println(entrada);
+									//System.out.println(rs.getString("data_dia"));
+									HH=calcula_hh(entrada,saida,feriado,conn,p,aux_usuario);
+								}else if(!entrada.equals("") && saida.equals("")) {
+									if(p.getEmpresa().getEmpresa_id()==1) {
+										HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,aux_usuario);
+									}else if(p.getEmpresa().getEmpresa_id()==5){
+										if(d.get(Calendar.DAY_OF_WEEK)==6) {
+											HH=calcula_hh(entrada,entrada.substring(0, 10)+" 16:00:00",feriado,conn,p,aux_usuario);
+										}else {
+											HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,aux_usuario);
+										}
+									}
+								}
+							}
+						}
+						}else {
+							if(!entrada.equals("") && !saida.equals("")) {
+								//System.out.println(entrada);
+								//System.out.println(rs.getString("data_dia"));
+								HH=calcula_hh(entrada,saida,feriado,conn,p,aux_usuario);
+							}else if(!entrada.equals("") && saida.equals("")) {
+								if(p.getEmpresa().getEmpresa_id()==1) {
+									HH=calcula_hh(entrada,entrada.substring(0, 10)+" 18:30:00",feriado,conn,p,aux_usuario);
+								}else if(p.getEmpresa().getEmpresa_id()==5){
+									if(d.get(Calendar.DAY_OF_WEEK)==6) {
+										HH=calcula_hh(entrada,entrada.substring(0, 10)+" 16:00:00",feriado,conn,p,aux_usuario);
+									}else {
+										HH=calcula_hh(entrada,entrada.substring(0, 10)+" 17:00:00",feriado,conn,p,aux_usuario);
+									}
+								}
+							}
+						}
+							}}
+						}
+						dados_tabela=dados_tabela + "\"local\":\""+local+"\",";
+						cell = row.createCell((short) colIndex);
+		                cell.setCellValue(local);
+		                colIndex=colIndex+1;
+						dados_tabela=dados_tabela + "\"status\":\""+tipo_registro+"\",";
+						cell = row.createCell((short) colIndex);
+		                cell.setCellValue(tipo_registro);
+		                colIndex=colIndex+1;
+						rs3=conn.Consulta("select * from registro_foto where empresa="+p.getEmpresa().getEmpresa_id()+" and usuario='"+aux_usuario+"' and data_dia='"+rs.getString("data_dia")+"'");
+						if(rs3.next()) {
+							dados_tabela=dados_tabela + "\"foto\":\"<button  class='btn btn-success' onclick=exibe_fotos_registro('"+aux_usuario+"','"+rs.getString("data_dia")+"')>Fotos</button>\",";
+							cell = row.createCell((short) colIndex);
+			                cell.setCellValue("Sim");
+			                colIndex=colIndex+1;
+						}else {
+							dados_tabela=dados_tabela + "\"foto\":\"Sem Fotos\",";
+							cell = row.createCell((short) colIndex);
+			                cell.setCellValue("Não");
+			                colIndex=colIndex+1;
+						}
+						
+						dados_tabela=dados_tabela + "\"horaExtra\":\""+HH[0]+": "+converte_hora_format(HH[1])+"\"";
+						cell = row.createCell((short) colIndex);
+		                cell.setCellValue(HH[0]+": "+converte_hora_format(HH[1]));
+		                colIndex=colIndex+1;
+						dados_tabela=dados_tabela + "},"+"\n";
+						encontrado="s";
+					}
+						
+					}//while do rs
+					
+					if(encontrado.equals("n")) {
+						if(d.get(Calendar.DAY_OF_WEEK)==1) {
+							tipo_registro="Domingo";
+							tipo_ajustar=" - ";
+							}else if(d.get(Calendar.DAY_OF_WEEK)==7) {
+								tipo_registro="Sábado";
+								tipo_ajustar=" - ";
+							}else if(feriado.verifica_feriado(f2.format(d.getTime()),p.getEstadoUsuario(aux_usuario, conn), conn, p.getEmpresa().getEmpresa_id())) {
+								tipo_registro="Feriado";
+								tipo_ajustar=" - ";
+							}else {
+								tipo_registro="Falta";
+								if(p.get_PessoaUsuario().equals(param1)) {
+								tipo_ajustar="<button class='btn btn-link' style='height:25px' data-toggle='modal' data-target='#modal_ajuste_ponto' data-dia='"+f2.format(d.getTime())+"'>Ajustar</button>";
+								}else {
+								tipo_ajustar=" - ";
+								}
+							}
+						dados_tabela=dados_tabela+"{\"id\":\""+contador+"\",\"data\":\""+f2.format(d.getTime())+"\",\"nome\":\""+aux_usuario_dados[0]+"\",\"usuario\":\""+aux_usuario_dados[1]+"\",\"lider\":\""+aux_usuario_dados[2]+"\",\"entrada\":\"\",\"iniInter\":\"\",\"fimInter\":\"\",\"saida\":\"\",\"local\":\""+tipo_registro+"\",\"status\":\""+tipo_ajustar+"\",\"foto\":\"-\",\"horaExtra\":\"-\"},\n";
+						//dados_tabela=dados_tabela+"[\""+f2.format(d.getTime())+"\",\"\",\"\",\"\",\"\",\"\",\""+tipo_registro+"\",\""+tipo_ajustar+"\",\"-\"],\n";
+						rowIndex=rowIndex+1;
+						row = sheet.createRow((short) rowIndex);
+						colIndex=0;
+						cell = row.createCell((short) colIndex);
+		                cell.setCellValue(f2.format(d.getTime()));
+		                colIndex=colIndex+1;
+		                cell = row.createCell((short) colIndex);
+		                cell.setCellValue(aux_usuario_dados[0]);
+		                colIndex=colIndex+1;
+		                cell = row.createCell((short) colIndex);
+		                cell.setCellValue(aux_usuario_dados[1]);
+		                colIndex=colIndex+1;
+		                cell = row.createCell((short) colIndex);
+		                cell.setCellValue(aux_usuario_dados[2]);
+		                colIndex=colIndex+1;
+		                cell = row.createCell((short) colIndex);
+		                cell.setCellValue("");
+		                colIndex=colIndex+1;
+		                cell = row.createCell((short) colIndex);
+		                cell.setCellValue("");
+		                colIndex=colIndex+1;
+		                cell = row.createCell((short) colIndex);
+		                cell.setCellValue("");
+		                colIndex=colIndex+1;
+		                cell = row.createCell((short) colIndex);
+		                cell.setCellValue("");
+		                colIndex=colIndex+1;
+		                cell = row.createCell((short) colIndex);
+		                cell.setCellValue(tipo_registro);
+		                colIndex=colIndex+1;
+		                cell = row.createCell((short) colIndex);
+		                cell.setCellValue(tipo_ajustar);
+		                colIndex=colIndex+1;
+		                cell = row.createCell((short) colIndex);
+		                cell.setCellValue("");
+		                colIndex=colIndex+1;
+		                cell = row.createCell((short) colIndex);
+		                cell.setCellValue("");
+		                colIndex=colIndex+1;
+		                rowIndex=rowIndex+1;
+					}
+					encontrado="n";
+					rs.beforeFirst();
+					d.add(Calendar.DAY_OF_MONTH, 1);
+					}
+					
+					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+					dados_tabela=dados_tabela+"]";
+					//contador=contador-1;
+					dados_tabela=dados_tabela.replace("replace2", Integer.toString(contador));
+					
+					//System.out.println(dados_tabela);
+					resp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+	                 resp.setHeader("Content-Disposition", "attachment; filename=usuarios_mstp.xlsx");
+	                 workbook.write(resp.getOutputStream());
+	                 workbook.close();
+				}else {
+					resp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+	                 resp.setHeader("Content-Disposition", "attachment; filename=AnalisePontoControle.xlsx");
+	                 workbook.write(resp.getOutputStream());
+	                 workbook.close();
+				}
+				c.fecharConexao();
+				dados_tabela="";
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}
+			dados_tabela="";
+			query="";
+			rs=null;
+			//rs.close();
+			rs2=null;
+			//rs2.close();
+			param1="";
+			param2="";
+			param3="";
+			param4="";
+			param5="";
+			param6="";
+			param7="";
+			param8="";
+			last_id=0;
+			opt="";
 		}catch (SQLException e) {
 			
 			conn.fecharConexao();

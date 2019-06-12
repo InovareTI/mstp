@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.sql.Blob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -4319,7 +4321,132 @@ public class RolloutServlet extends HttpServlet {
 			  		    PrintWriter out = resp.getWriter();
 					    out.print(dados_tabela);
 					}
+				}else if(opt.equals("33")) {
+					param1=req.getParameter("idvistoria");
+					query="";
+					String estilos="";
+					String btn_aprovar="";
+					String btn_rejeitar="";
+					dados_tabela="";
+					query="select * from vistoria_dados where id_vistoria="+param1+" and empresa="+p.getEmpresa().getEmpresa_id();
+					rs=conn.Consulta(query);
+					if(rs.next()) {
+						rs.beforeFirst();
+						//dados_tabela=dados_tabela+"<div>\n";
+						while(rs.next()) {
+							if(rs.getString("campo_tipo").equals("Foto")) {
+								if(rs.getString("status_vistoria").equals("EM_APROVACAO")) {
+									estilos="panel-warning";
+									btn_aprovar="";
+									btn_rejeitar="";
+									if(rs.getString("owner").equals(p.get_PessoaUsuario())){
+										btn_aprovar="";
+										btn_rejeitar="";
+									}else {
+										btn_aprovar="disabled";
+										btn_rejeitar="disabled";
+									}
+								}else if(rs.getString("status_vistoria").equals("APROVADO")) {
+									estilos="panel-success";
+									btn_aprovar="disabled";
+									btn_rejeitar="disabled";
+									if(rs.getString("owner").equals(p.get_PessoaUsuario())){
+										btn_aprovar="disabled";
+										btn_rejeitar="";
+									}else {
+										btn_aprovar="disabled";
+										btn_rejeitar="disabled";
+									}
+								}else if(rs.getString("status_vistoria").equals("REJEITADO")) {
+									estilos="panel-danger";
+									btn_aprovar="disabled";
+									btn_rejeitar="disabled";
+									if(rs.getString("owner").equals(p.get_PessoaUsuario())){
+										btn_aprovar="disabled";
+									}else {
+										btn_aprovar="disabled";
+										btn_rejeitar="disabled";
+									}
+								}else {
+									estilos="panel-default";
+									btn_aprovar="disabled";
+									btn_rejeitar="disabled";
+								}
+								
+								
+								dados_tabela=dados_tabela+"<div class=\"panel "+estilos+"\">\n" + 
+										"  <div class=\"panel-heading\">\n" + 
+										"    <h3 class=\"panel-title\">"+rs.getString("campo")+"</h3>\n" + 
+										"  </div>\n" + 
+										"  <div class=\"panel-body\">\n" + 
+										"  <img src=\"./RolloutServlet?opt=34&id_vistoria="+rs.getInt("id_vistoria")+"&id="+rs.getInt("id")+"\" height=\"150\" width=\"160\" id=\"f_"+rs.getInt("id")+"\" onclick=\"visualiza_foto("+rs.getInt("id_vistoria")+","+rs.getInt("id")+",'"+rs.getString("campo")+"')\">\n" +
+										"   <p><button class=\"w3-button w3-green\" onclick=\"aprova_item("+rs.getInt("id")+","+rs.getInt("id_vistoria")+")\" "+btn_aprovar+">Aprovar</button><button class=\"w3-button w3-red\" "+btn_rejeitar+">Rejeitar</button></p>\n" +
+										"  </div>\n" + 
+										"</div>";
+								/*dados_tabela=dados_tabela+"<div>" + 
+										"  <h3>"+rs.getString("campo")+"</h3></div>\n" + 
+										"  <div><img src=\"./RolloutServlet?opt=34&id_vistoria="+rs.getInt("id_vistoria")+"&id="+rs.getInt("id")+"\" style=\"width:40%\">\n" + 
+										
+										"    <p><button class=\"w3-button w3-green\">Aprovar</button><button class=\"w3-button w3-red\">Rejeitar</button></p>\n" + 
+										
+										"</div>\n";	*/
+							}
+						}
+						//dados_tabela=dados_tabela+"</div>";
+						//System.out.println(dados_tabela);
+						resp.setContentType("application/html");  
+			  		    resp.setCharacterEncoding("UTF-8"); 
+			  		    PrintWriter out = resp.getWriter();
+					    out.print(dados_tabela);
+					}
+				}else if(opt.equals("34")) {
+					System.out.println("Buscando fotos de checklist");
+					param1=req.getParameter("id");
+					param2=req.getParameter("id_vistoria");
+					query="select campo_valor_foto from vistoria_dados where id_vistoria="+param2+" and id="+param1+" and empresa="+p.getEmpresa().getEmpresa_id();
+					//System.out.println(query);
+					rs=conn.Consulta(query);
+					ServletOutputStream out = resp.getOutputStream();
+					InputStream in=null;
+					if(rs.next()){
+						//System.out.println("Entrou no Blob");
+						Blob imageBlob = rs.getBlob(1);
+						in = imageBlob.getBinaryStream(1,(int)imageBlob.length());
+						
+				        int length = (int) imageBlob.length();
+
+				        int bufferSize = 1024;
+				        byte[] buffer = new byte[bufferSize];
+
+				        while ((length = in.read(buffer)) != -1) {
+				            //System.out.println("writing " + length + " bytes");
+				            out.write(buffer, 0, length);
+				        }
+
+				        
+					    //System.out.println(dados_tabela);
+				        resp.setContentType("image/png");  
+				    	//resp.setCharacterEncoding("UTF-8"); 
+				    	in.close();
+				        out.flush();
+				    	//out.print(dados_tabela);
 				}
+					Timestamp time2 = new Timestamp(System.currentTimeMillis());
+					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			}else if(opt.equals("35")) {
+				param1=req.getParameter("idvistoria");
+				param2=req.getParameter("id");
+				//System.out.println("update vistoria_dados set status_vistoria='APROVADO' where id_vistoria="+param1+" and id="+param2+" and empresa="+p.getEmpresa().getEmpresa_id());
+				conn.Alterar("update vistoria_dados set status_vistoria='APROVADO',dt_updated='"+time+"',update_by='"+p.get_PessoaUsuario()+"' where id_vistoria="+param1+" and id="+param2+" and empresa="+p.getEmpresa().getEmpresa_id());
+				resp.setContentType("application/json");  
+		  		resp.setCharacterEncoding("UTF-8"); 
+		  		PrintWriter out = resp.getWriter();
+				out.print("");
+				
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			
+			}
 		}catch (SQLException e) {
 			
 			c.fecharConexao();

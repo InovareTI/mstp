@@ -48,7 +48,7 @@ response.setDateHeader ("Expires", -1);
 	<link rel="stylesheet" type="text/css" href="css/component.css" />
 	
 	<link href="js/plugins/photoviewer/photoviewer.css" rel="stylesheet">
-	
+	<link href="js/viewerjs/viewer.css" rel="stylesheet">
 	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.css">
 	<script src="js/jquery-3.2.1.min.js" type="text/javascript"></script>
 	<script src="js/jquery-confirm.min.js" type="text/javascript"></script>
@@ -110,13 +110,15 @@ response.setDateHeader ("Expires", -1);
      <script type="text/javascript" src="js/jqwidgets/jqxtreegrid.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxtreemap.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxtree.js"></script>
-   
+    <script type="text/javascript" src="js/jqwidgets/jqxdata.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxmenu.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.sort.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.selection.js"></script> 
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.columnsresize.js"></script> 
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.grouping.js"></script>
-    <script type="text/javascript" src="js/jqwidgets/jqxdata.js"></script>
+    <script type="text/javascript" src="js/jqwidgets/jqxdata.export.js"></script>
+    <script type="text/javascript" src="js/jqwidgets/jqxgrid.export.js"></script>
+   
     <script type="text/javascript" src="js/jqwidgets/jqxdate.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxribbon.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxlayout.js"></script>
@@ -147,6 +149,8 @@ response.setDateHeader ("Expires", -1);
     <link rel="stylesheet" type="text/css" href="js/dhtmlx/pivot.css" />
     <script type="text/javascript" src="js/dhtmlx/pivot.js"></script>
     <script src="js/plugins/photoviewer/photoviewer.js"></script>
+    <script src="js/viewerjs/viewer.js"></script>
+    <script src="js/viewerjs/jquery-viewer.js"></script>
 	<script type="text/javascript" src="js/starter.js"></script>
 	<script type="text/javascript" src="js/portal.js"></script>
 	<script type="text/javascript" src="js/rollout.js"></script>
@@ -873,7 +877,12 @@ response.setDateHeader ("Expires", -1);
         			<div id="div_checklist_tabela" class="panel panel-primary" style="width:90%;margin:0 auto;">
         				<div class="panel-heading">Tabela de Faltas</div>
 	        			<div class="panel-body">
-	        			 <div id="gridChecklist"></div>
+	        			<div id='jqxWidget'>
+		        			<div id="splitter_checklist" >
+							 			 	<div class="splitter-panel" id="container_gridChecklist"><div id="gridChecklist"></div></div>
+		        						 	<div class="splitter-panel" id="container_dados_div_review"><div id="dados_div_review" style="overflow: scroll;"></div></div>
+		        			</div>
+	        			 </div>
 	        			</div>
 	        		</div>
         		</div>
@@ -1417,6 +1426,11 @@ response.setDateHeader ("Expires", -1);
         			<div id="div_tabela_usuario_ponto_folha_panel_analise" class="panel panel-primary" style="width:90%;margin:0 auto;">
         				<div class="panel-heading"><h3 class="panel-title">Registros de Pontos</h3></div>
 	        			<div class="panel-body">
+	        			 <div style='margin-left: 10px; float: left;'>
+			                
+			                <input type="button" value="Download XLS" id='excelExport' />
+			                <br>
+            			</div>
         				<div id="div_tabela_usuario_ponto_folha_analise">
 					       
         				
