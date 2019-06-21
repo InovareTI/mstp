@@ -89,6 +89,6 @@ function add_customer(){
 	function onSuccess9(data)
 	{
 	atualiza_select_cliente();	
-	alert("Código interno do Cliente: " + data);
+	$.alert("Código interno do Cliente: " + data);
 	}
 	}

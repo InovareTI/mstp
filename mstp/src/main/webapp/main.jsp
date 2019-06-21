@@ -368,7 +368,7 @@ response.setDateHeader ("Expires", -1);
 								<a class="icon icon-male" href="#" onclick="menu('clientes')">Clientes</a>
 								
 							</li>
-							<li class="icon icon-arrow-left"><a class="icon icon-shop" href="#">Projetos</a></li>
+							<li class="icon icon-arrow-left"><a class="icon icon-shop" href="#" onclick="menu('projetos')">Projetos</a></li>
 							<li><a class="icon icon-paperplane" href="#" onclick="menu('rollout')">Rollout</a></li>
 							<li><a class="icon icon-world" href="#" onclick="menu('mapa_Operacional')">Mapa Operacional</a></li>
 							 <li class="icon icon-arrow-left">
@@ -704,6 +704,12 @@ response.setDateHeader ("Expires", -1);
 	        		<div class="janelas" id="PO" style="display:none;width:100%;height:100%;"	>
 	        	
         			<div id="div_tabela_po"><button class="btn btn-lg btn-warning"><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span> Carregando...</button></div>
+        	
+       
+	        		</div>
+	        		<div class="janelas" id="ItemPO" style="display:none;width:100%;height:100%;"	>
+	        	
+        			<div id="div_tabela_Itempo"><button class="btn btn-lg btn-warning"><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span> Carregando...</button></div>
         	
        
 	        		</div>
@@ -1511,6 +1517,11 @@ response.setDateHeader ("Expires", -1);
         			</div>
 	        			
         		</div><!-- /tabela_Sites -->
+        		<div class="janelas" id="projetos" style="display:none">
+        		
+        			 <div id="div_tabela_projetos"></div>
+        		
+        		</div>
         		<div class="janelas" id="usuarios" style="display:none">
         			<div id='jqxtabs_usuario'>
 						<ul style='margin-left: 20px;'>
@@ -2166,7 +2177,7 @@ response.setDateHeader ("Expires", -1);
       <div class="modal-body">
       <table >
       		<tr>
-      		<td style="padding: 10px"><select class="form-control" required id="cliente_carrega_po" onchange="carrega_select_projeto(this)"><option>Cliente...</option></select></td>
+      		<td style="padding: 10px"><select class="form-control" required id="cliente_carrega_po" onchange="carrega_select_projeto(this.value)"><option>Cliente...</option></select></td>
 	        <td style="padding: 10px"><select class="form-control" required id="projeto_carrega_po"><option>Projeto...</option></select></td>
 	        </tr>
       	</table>
@@ -2211,6 +2222,96 @@ response.setDateHeader ("Expires", -1);
   </div>
 </div> 
 
+<div id="modal_project_add" class="modal fade subconpo" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title" style="color:black">Adicionar Novo Projeto</h4>
+      </div>
+      <div class="modal-body">
+      	<div class="form-group">
+      	<table >
+      		<tr><td style="padding: 10px"><label class="control-label" style="color:black">Selecione a Conta</label>
+	        <select class="form-control" required id="projeto_nome_cliente"><option>Cliente1</option><option>Cliente2</option></select></td><td style="padding: 10px"><label class="control-label">Selecione o Produto</label>
+	        <select class="form-control" id="projeto_produto"><option>Wireless</option><option>Transmissao</option><option>Microwave</option></select></td><td style="padding: 10px"><label class="control-label">Estado</label>
+	        <select class="form-control" id="projeto_estado"><option>RJ</option><option>SP</option></select></td></tr>
+      	</table>
+			<hr>
+	       <br>
+			<table >
+	      		<tr><td style="padding: 10px"><label class="control-label" style="color:black">Orçamento do Projeto</label></td>
+		        <td style="padding: 10px"><label class="control-label" style="color:black">PM do projeto - Cliente</label></td>
+		        <td style="padding: 10px"><label class="control-label" style="color:black">Email PM - Cliente</label></td></tr>
+		        <tr><td style="padding: 10px"><input type="text" style="color:black" class="form-control" id="projeto_orcamento"></td>
+		        <td style="padding: 10px"><input type="text" style="color:black" class="form-control" id="projeto_pm_cliente"></td>
+		        <td style="padding: 10px"><input type="text" style="color:black" class="form-control" id="projeto_mail_cliente"></td></tr>
+      		</table>
+			<br>
+			<hr>
+			<br>
+			<table >
+	      		<tr><td style="padding: 10px"><label class="control-label" style="color:black">Nome do Projeto</label></td>
+		        <td style="padding: 10px"><label class="control-label" style="color:black">Código do Projeto</label></td>
+		        
+		        <tr><td style="padding: 10px"><input type="text" style="color:black" class="form-control" id="projeto_nome"></td>
+		        <td style="padding: 10px"><input type="text" style="color:black" class="form-control" id="projeto_codigo_cliente"></td>
+		        </tr>
+      		</table>
+			<br>
+			<hr>
+			<table ><tr><td style="padding: 10px"><label class="control-label" style="color:black" >Inicio do Projeto</label></td><td style="padding: 10px"><label style="color:black" class="control-label">Encerramento Previsto</label></td></tr>
+			<tr><td style="padding: 10px">
+							<div class='input-group date' id='datetimepicker6'>
+								                    <input type='text' class="form-control" id="projeto_inicio_dt"/>
+								                    
+								                    <span class="input-group-addon">
+								                        <span class="glyphicon glyphicon-calendar"></span>
+								                    </span>
+						    </div>
+						 </td>
+						 <td style="padding: 10px">
+								            <div class='input-group date' id='datetimepicker7'>
+                <input type='text' class="form-control" id="projeto_fim_dt"/>
+                <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                </span>
+            </div></td></tr></table>
+								        
+								        <script type="text/javascript">
+								            $(function () {
+								                $('#datetimepicker6').datetimepicker({useCurrent: true});
+								                $('#datetimepicker7').datetimepicker({
+								                    useCurrent: false, //Important! See issue #1075
+								                    //timePicker:false,
+								                    calendarWeeks:true,
+								                    showTodayButton:true
+								                    //disabledHours:true
+								                });
+								                $("#datetimepicker6").on("dp.change", function (e) {
+								                    $('#datetimepicker7').data("DateTimePicker").minDate(e.date);
+								                });
+								                $("#datetimepicker7").on("dp.change", function (e) {
+								                    $('#datetimepicker6').data("DateTimePicker").maxDate(e.date);
+								                });
+								            });
+								        </script>
+				   
+   			 
+			<br>
+			<hr>
+		</div>
+      </div>
+      <div class="modal-footer">
+        <button id="add_project_btn" type="button" class="btn btn-info" onclick="add_project()">Adicionar Projeto</button><button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div> 
 
 <div id="modal_ajuste_ponto" class="modal fade subconpo" role="dialog">
   <div class="modal-dialog modal-lg">

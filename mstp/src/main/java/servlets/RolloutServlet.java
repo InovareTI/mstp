@@ -4446,9 +4446,23 @@ public class RolloutServlet extends HttpServlet {
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			
-			}
-		}catch (SQLException e) {
+			}else if(opt.equals("36")) {
+				param1=req.getParameter("idvistoria");
+				param2=req.getParameter("id");
+				//System.out.println("update vistoria_dados set status_vistoria='APROVADO' where id_vistoria="+param1+" and id="+param2+" and empresa="+p.getEmpresa().getEmpresa_id());
+				conn.Alterar("update vistoria_dados set status_vistoria='REJEITADO',dt_updated='"+time+"',update_by='"+p.get_PessoaUsuario()+"' where id_vistoria="+param1+" and id="+param2+" and empresa="+p.getEmpresa().getEmpresa_id());
+				resp.setContentType("application/json");  
+		  		resp.setCharacterEncoding("UTF-8"); 
+		  		PrintWriter out = resp.getWriter();
+				out.print("");
+				
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			
+			}
+			
+		}catch (SQLException e) {
+			conn.fecharConexao();
 			c.fecharConexao();
 			
 			System.out.println("ERROR: MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" - servlet de Rollout opt - "+ opt );
@@ -4456,10 +4470,12 @@ public class RolloutServlet extends HttpServlet {
 			e.printStackTrace();
 		}catch (JSONException e) {
 			c.fecharConexao();
+			conn.fecharConexao();
 			System.out.println("ERROR: MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" - servlet de Rollout opt - "+ opt );
 			e.printStackTrace();
 		} catch (FileUploadException e) {
 			c.fecharConexao();
+			conn.fecharConexao();
 			System.out.println("ERROR: MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" - servlet de Rollout opt - "+ opt );
 			// TODO Auto-generated catch block
 			e.printStackTrace();

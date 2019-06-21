@@ -17,6 +17,25 @@ function aprova_item(id,id_vistoria){
 		carrega_dados_checklist(id_vistoria);
 	}
 }
+function rejeita_item(id,id_vistoria){
+	var timestamp =Date.now();
+	$.ajax({
+		  type: "POST",
+		  data: {"opt":"36",
+			  "_": timestamp,
+			  "idvistoria":id_vistoria,
+			  "id":id
+			},		  
+		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+		  url: "./RolloutServlet",
+		  cache: false,
+		  dataType: "text",
+		 success: item_rejeitado
+		});
+	function item_rejeitado(data){
+		carrega_dados_checklist(id_vistoria);
+	}
+}
 function visualiza_foto(idvistoria,id,titulo){
 	
 		

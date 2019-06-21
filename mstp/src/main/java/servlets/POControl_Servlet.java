@@ -1,6 +1,9 @@
 package servlets;
 
+import java.awt.Rectangle;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.math.BigInteger;
@@ -9,18 +12,25 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Blob;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.NumberFormat;
-
-
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
@@ -29,7 +39,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.pdfbox.text.PDFTextStripperByArea;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.bson.Document;
 import org.json.JSONArray;
@@ -40,6 +60,8 @@ import classes.Conexao;
 import classes.ConexaoMongo;
 import classes.Pessoa;
 import classes.Semail;
+
+
 
 /**
  * Servlet implementation class POControl_Servlet
@@ -124,8 +146,8 @@ public class POControl_Servlet extends HttpServlet {
 		Locale.setDefault(locale_ptBR);
 		HttpSession session = req.getSession(true);
 		Pessoa p = (Pessoa) session.getAttribute("pessoa");
-		Conexao conn = (Conexao) session.getAttribute("conexao");
-		ConexaoMongo c = new ConexaoMongo();
+		Conexao mysql = (Conexao) session.getAttribute("conexao");
+		ConexaoMongo mongo = new ConexaoMongo();
 		double money; 
 		NumberFormat number_formatter = NumberFormat.getCurrencyInstance();
 		String moneyString;
@@ -138,13 +160,10 @@ public class POControl_Servlet extends HttpServlet {
 		try {
 		if(opt.equals("1")){
 			query="";
-			p.set_PessoaPerfil_campos("po_table");
-			query="Select "+p.get_PessoaPerfil_campos()+" from po_table order by po_id desc";
-			//System.out.println(query);
-			rs=conn.Consulta(query);
 			dados_tabela="<table id=\"tabela_de_po\"  data-use-row-attr-func=\"true\" data-reorderable-rows=\"true\" data-toggle=\"table\"  data-filter-control=\"true\" data-click-to-select=\"true\" data-pagination=\"true\"  data-search=\"true\" data-advanced-search=\"true\">" +"\n";
 			dados_tabela=dados_tabela + "<thead>"+"\n";
 			dados_tabela=dados_tabela +"<tr>"+"\n";
+			dados_tabela=dados_tabela +" <th data-field=\"po_mstp_id\">MSTP ID</th>"+"\n";
 			dados_tabela=dados_tabela +" <th data-checkbox=\"true\"></th>"+"\n";
 			dados_tabela=dados_tabela +" <th data-field=\"po\" data-filter-control=\"select\">PO</th>"+"\n";
 			dados_tabela=dados_tabela +" <th data-field=\"po1\" data-filter-control=\"select\">Emissão</th>"+"\n";
@@ -157,22 +176,32 @@ public class POControl_Servlet extends HttpServlet {
 			dados_tabela=dados_tabela +"</tr>"+"\n";	
 			dados_tabela=dados_tabela +"</thead>"+"\n";
 			dados_tabela=dados_tabela +"<tbody>"+"\n";
+			if(p.getPerfil_funcoes().contains("POManager")) {
+			p.set_PessoaPerfil_campos("po_table");
+			query="Select "+p.get_PessoaPerfil_campos()+" from po_table where empresa="+p.getEmpresa().getEmpresa_id()+" and PO_ATIVA='Y' order by po_id desc";
+			//System.out.println(query);
+			rs=mysql.Consulta(query);
+			//System.out.println("Consulta Realizada");
+			
 				if(rs.next()){
 					rs.beforeFirst();
+					//System.out.println("Entrou no RS");
 					if(p.get_PessoaPerfil_nome().equals("Financeiro")){
 						while(rs.next()){
+							//System.out.println("Entrou no while");
 							money = Double.parseDouble(rs.getString("total_po"));
 							moneyString = number_formatter.format(money);
 							dados_tabela=dados_tabela + "<tr data-index=\""+rs.getRow()+"\">"+"\n";
+							dados_tabela=dados_tabela + " <td>"+rs.getString("po_id")+"</a></td>"+"\n";
 							dados_tabela=dados_tabela + " <td></td>"+"\n";
-							dados_tabela=dados_tabela + " <td>"+rs.getString("po_number")+"</td>"+"\n";
+							dados_tabela=dados_tabela + " <td><a href='#' onclick=MostraItemPO("+rs.getString("po_number")+")>"+rs.getString("po_number")+"</a></td>"+"\n";
 							dados_tabela=dados_tabela + " <td>"+rs.getString("dt_emitida")+"</td>"+"\n";
 							dados_tabela=dados_tabela + " <td>"+rs.getString("validada")+"</td>"+"\n";
 							dados_tabela=dados_tabela + " <td>"+rs.getDate("dt_validada")+"</td>"+"\n";
 							dados_tabela=dados_tabela + " <td>"+rs.getString("empresa_emissora")+"</td>"+"\n";
-							dados_tabela=dados_tabela + " <td>"+rs.getDate("dt_registrada")+"</td>"+"\n";
+							dados_tabela=dados_tabela + " <td>"+f2.format(rs.getDate("dt_registrada"))+"</td>"+"\n";
 							dados_tabela=dados_tabela + " <td>"+moneyString+"</td>"+"\n";
-							dados_tabela=dados_tabela + " <td>em construçao</td>"+"\n";
+							dados_tabela=dados_tabela + " <td><a href='#' onclick=downloadPO("+rs.getInt("id_po_file")+")>PDF</a></td>"+"\n";
 							dados_tabela=dados_tabela + "</tr>"+"\n";
 						}
 					}else{
@@ -186,13 +215,14 @@ public class POControl_Servlet extends HttpServlet {
 							dados_tabela=dados_tabela + " <td>"+rs.getString("empresa_emissora")+"</td>"+"\n";
 							dados_tabela=dados_tabela + " <td>"+rs.getString("dt_registrada")+"</td>"+"\n";
 							dados_tabela=dados_tabela + " <td> - </td>"+"\n";
-							dados_tabela=dados_tabela + " <td>em construçao</td>"+"\n";
+							dados_tabela=dados_tabela + " <td><a href='#' onclick=downloadPO("+rs.getInt("id_po_file")+")>PDF</a></td>"+"\n";
 							dados_tabela=dados_tabela + "</tr>"+"\n";
 						}
 					}
 					
 					//System.out.println("Resposta Consulta 3 Enviada!");
 				}
+			}
 				dados_tabela=dados_tabela + "</tbody>";
 				dados_tabela=dados_tabela + "</table>";
 				//System.out.println(dados_tabela);
@@ -200,6 +230,7 @@ public class POControl_Servlet extends HttpServlet {
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print(dados_tabela);
+				out.close();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("2")){
@@ -213,37 +244,36 @@ public class POControl_Servlet extends HttpServlet {
 					String[] po=param1.split(",");
 					for(int i=0;i<po.length;i++){
 						//System.out.println("delete from po_table where po_number="+po[i]);
-						conn.Excluir("delete from po_table where po_number='"+po[i]+"'");
-						conn.Excluir("delete from po_item_table where po_number='"+po[i]+"'");
+						mysql.Alterar("update po_table set PO_ATIVA='N',DT_PO_DESATIVADA='"+time+"',RESP_PO_DEATIVADA='"+p.get_PessoaUsuario()+"' where po_id="+po[i]);
+						mysql.Excluir("delete from po_item_table where po_number='"+po[i]+"'");
 					}
 				}else{
 					//System.out.println("delete from po_table where po_number="+param1);
-					conn.Excluir("delete from po_table where po_number='"+param1+"'");
-					conn.Excluir("delete from po_item_table where po_number='"+param1+"'");
+					mysql.Excluir("update po_table set PO_ATIVA='N',DT_PO_DESATIVADA='"+time+"',RESP_PO_DEATIVADA='"+p.get_PessoaUsuario()+"' where po_id="+param1);
+					mysql.Excluir("delete from po_item_table where po_number='"+param1+"'");
 				}
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("3")){
+				param1=req.getParameter("po");
+				rs=mysql.Consulta("Select po_item_table.* from po_item_table,po_table where po_table.po_number='"+param1+"' and po_table.PO_ATIVA='Y' and po_table.po_number=po_item_table.po_number and po_item_table.empresa="+p.getEmpresa().getEmpresa_id()+" order by po_item_id");
+				dados_tabela="<table id=\"tabela_de_item_po\" data-toolbar=\"#toolbar_tabela_item\" data-use-row-attr-func=\"true\" data-reorderable-rows=\"true\" data-show-refresh=\"true\" data-toggle=\"table\"  data-filter-control=\"true\" data-click-to-select=\"true\" data-pagination=\"true\" data-search=\"true\">" +"\n";
+				dados_tabela=dados_tabela + "<thead>"+"\n";
+				dados_tabela=dados_tabela +"<tr>"+"\n";
+				dados_tabela=dados_tabela +" <th data-checkbox=\"true\"></th>"+"\n";
+				dados_tabela=dados_tabela +" <th data-field=\"item\" data-filter-control=\"select\">PO</th>"+"\n";
+				dados_tabela=dados_tabela +" <th data-field=\"item1\" data-filter-control=\"select\">Item</th>"+"\n";
+				dados_tabela=dados_tabela +" <th data-field=\"item2\">Cliente Cod Item</th>"+"\n";
+				dados_tabela=dados_tabela +" <th style data-field=\"item3\">Item Desc</th>"+"\n";
+				dados_tabela=dados_tabela +" <th style data-field=\"item4\">Quantidade</th>"+"\n";
+				dados_tabela=dados_tabela +" <th style data-field=\"item5\">Decrição Detalhada</th>"+"\n";
+				dados_tabela=dados_tabela +" <th style data-field=\"item6\">Site</th>"+"\n";
+				dados_tabela=dados_tabela +" <th style data-field=\"item7\" data-filter-control=\"select\">Valor</th>"+"\n";
 				
-				rs=conn.Consulta("Select po_item_table.* from po_item_table,po_table where  po_table.validada='Y' and po_table.po_number=po_item_table.po_number order by po_item_id");
+				dados_tabela=dados_tabela +"</tr>"+"\n";
+				dados_tabela=dados_tabela +"</thead>"+"\n";
+				dados_tabela=dados_tabela +"<tbody>"+"\n";
 				if(rs.next()){
-					
-					dados_tabela="<table id=\"tabela_de_item_po\" data-toolbar=\"#toolbar_tabela_item\" data-use-row-attr-func=\"true\" data-reorderable-rows=\"true\" data-show-refresh=\"true\" data-toggle=\"table\"  data-filter-control=\"true\" data-click-to-select=\"true\" data-pagination=\"true\" data-search=\"true\">" +"\n";
-					dados_tabela=dados_tabela + "<thead>"+"\n";
-					dados_tabela=dados_tabela +"<tr>"+"\n";
-					dados_tabela=dados_tabela +" <th data-checkbox=\"true\"></th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"item\" data-filter-control=\"select\">PO</th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"item1\" data-filter-control=\"select\">Item</th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"item2\">Cliente Cod Item</th>"+"\n";
-					dados_tabela=dados_tabela +" <th style data-field=\"item3\">Item Desc</th>"+"\n";
-					dados_tabela=dados_tabela +" <th style data-field=\"item4\">Quantidade</th>"+"\n";
-					dados_tabela=dados_tabela +" <th style data-field=\"item5\">Decrição Detalhada</th>"+"\n";
-					dados_tabela=dados_tabela +" <th style data-field=\"item6\">Site</th>"+"\n";
-					dados_tabela=dados_tabela +" <th style data-field=\"item7\" data-filter-control=\"select\">Valor</th>"+"\n";
-					
-					dados_tabela=dados_tabela +"</tr>"+"\n";
-					dados_tabela=dados_tabela +"</thead>"+"\n";
-					dados_tabela=dados_tabela +"<tbody>"+"\n";
 					rs.beforeFirst();
 					if(p.get_PessoaPerfil_nome().contains("Financeiro")){
 						while(rs.next()){
@@ -257,7 +287,7 @@ public class POControl_Servlet extends HttpServlet {
 							dados_tabela=dados_tabela + " <td>"+rs.getString(5)+"</td>"+"\n";
 							dados_tabela=dados_tabela + " <td>"+rs.getString(6)+"</td>"+"\n";
 							dados_tabela=dados_tabela + " <td>"+rs.getString(12)+"</td>"+"\n";
-							dados_tabela=dados_tabela + " <td><input type='text' id='"+rs.getInt(1)+"' value='"+rs.getString("po_item_site")+"'></td>"+"\n";
+							dados_tabela=dados_tabela + " <td><input type='text' style='color:black' id='item_po_site_"+rs.getInt(1)+"' value='"+rs.getString("po_item_site")+"'></td>"+"\n";
 							dados_tabela=dados_tabela + " <td>"+moneyString+"</td>"+"\n";
 							dados_tabela=dados_tabela + "</tr>"+"\n";
 						}
@@ -276,17 +306,17 @@ public class POControl_Servlet extends HttpServlet {
 							dados_tabela=dados_tabela + "</tr>"+"\n";
 						}
 					}
-					dados_tabela=dados_tabela + "</tbody>";
-					dados_tabela=dados_tabela + "</table>";
-					//System.out.println(dados_tabela);
-					resp.setContentType("application/html");  
-					resp.setCharacterEncoding("UTF-8"); 
-					PrintWriter out = resp.getWriter();
-					out.print(dados_tabela);
+					
 					//System.out.println("Resposta Consulta 3 Enviada!");
-				}else{
-					//System.out.println("Consulta returns empty");
 				}
+				dados_tabela=dados_tabela + "</tbody>";
+				dados_tabela=dados_tabela + "</table>";
+				//System.out.println(dados_tabela);
+				resp.setContentType("application/html");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				out.print(dados_tabela);
+				out.close();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				
@@ -294,7 +324,7 @@ public class POControl_Servlet extends HttpServlet {
 				//System.out.println("Validando PO's");
 				 time = new Timestamp(System.currentTimeMillis());
 				param1=req.getParameter("po");
-				//System.out.println(param1);
+				System.out.println(param1);
 				if(param1.indexOf("'")>0){
 					param1.replace("'","");
 				}
@@ -302,18 +332,18 @@ public class POControl_Servlet extends HttpServlet {
 					String[] po=param1.split(",");
 					for(int i=0;i<po.length;i++){
 						
-						conn.Alterar("update po_table set validada='Y',dt_validada='"+time+"' where po_number='"+po[i]+"'");
+						mysql.Alterar("update po_table set validada='Y',dt_validada='"+time+"' where po_number='"+po[i]+"'");
 					}
 				}else{
 					
-					conn.Alterar("update po_table set validada='Y',dt_validada='"+time+"' where po_number='"+param1+"'");
+					mysql.Alterar("update po_table set validada='Y',dt_validada='"+time+"' where po_number='"+param1+"'");
 				}
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("5")){
 				
                 //System.out.println("Carregando PO de Subcon");
-				rs=conn.Consulta("Select * from po_table_subcon order by po_id desc");
+				rs=mysql.Consulta("Select * from po_table_subcon order by po_id desc");
 	    		
 					if(rs.next()){
 						
@@ -357,6 +387,7 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
+						out.close();
 						//System.out.println("Resposta Consulta 3 Enviada!");
 					}else{
 						//System.out.println("Consulta returns empty");
@@ -366,27 +397,25 @@ public class POControl_Servlet extends HttpServlet {
 				}else if(opt.equals("6")){
 					
 	                //System.out.println("Carregando tabela de Projetos");
-					rs=conn.Consulta("Select * from project_table order by project_id desc");
-		    		
+					rs=mysql.Consulta("Select * from project_table where empresa="+p.getEmpresa().getEmpresa_id()+" order by project_id desc");
+					dados_tabela="<table id=\"tabela_de_projeto\" data-show-refresh=\"true\" data-toggle=\"table\"  data-filter-control=\"true\" data-click-to-select=\"true\" data-pagination=\"true\" data-toolbar=\"#toolbar_projetos\" data-search=\"true\" data-use-row-attr-func=\"true\" data-reorderable-rows=\"true\">" +"\n";
+					dados_tabela=dados_tabela + "<thead>"+"\n";
+					dados_tabela=dados_tabela +"<tr>"+"\n";
+					dados_tabela=dados_tabela +" <th data-checkbox=\"true\"></th>"+"\n";
+					dados_tabela=dados_tabela +" <th data-field=\"prj\" data-filter-control=\"select\">Projeto Id</th>"+"\n";
+					dados_tabela=dados_tabela +" <th data-field=\"prj1\" data-filter-control=\"select\">Nome</th>"+"\n";
+					dados_tabela=dados_tabela +" <th data-field=\"prj2\">Projeto Status</th>"+"\n";
+					dados_tabela=dados_tabela +" <th style data-field=\"prj3\">Conta</th>"+"\n";
+					dados_tabela=dados_tabela +" <th style data-field=\"prj4\">Código Projeto - Cliente</th>"+"\n";
+					dados_tabela=dados_tabela +" <th style data-field=\"prj5\" data-filter-control=\"select\">Nome Projeto - CLiente</th>"+"\n";
+					dados_tabela=dados_tabela +" <th style data-field=\"prj6\">Inicio</th>"+"\n";
+					dados_tabela=dados_tabela +" <th style data-field=\"prj7\">Fim</th>"+"\n";
+					dados_tabela=dados_tabela +" <th style data-field=\"prj8\">Orçamento</th>"+"\n";
+					dados_tabela=dados_tabela +" <th style data-field=\"prj9\">PO's Recebida</th>"+"\n";
+					dados_tabela=dados_tabela +"</tr>"+"\n";
+					dados_tabela=dados_tabela +"</thead>"+"\n";
+					dados_tabela=dados_tabela +"<tbody>"+"\n";
 						if(rs.next()){
-							
-							dados_tabela="<table id=\"tabela_de_projeto\" data-show-refresh=\"true\" data-toggle=\"table\"  data-filter-control=\"true\" data-click-to-select=\"true\" data-pagination=\"true\" data-toolbar=\"#toolbar_projetos\" data-search=\"true\" data-use-row-attr-func=\"true\" data-reorderable-rows=\"true\">" +"\n";
-							dados_tabela=dados_tabela + "<thead>"+"\n";
-							dados_tabela=dados_tabela +"<tr>"+"\n";
-							dados_tabela=dados_tabela +" <th data-checkbox=\"true\"></th>"+"\n";
-							dados_tabela=dados_tabela +" <th data-field=\"prj\" data-filter-control=\"select\">Projeto Id</th>"+"\n";
-							dados_tabela=dados_tabela +" <th data-field=\"prj1\" data-filter-control=\"select\">Nome</th>"+"\n";
-							dados_tabela=dados_tabela +" <th data-field=\"prj2\">Projeto Status</th>"+"\n";
-							dados_tabela=dados_tabela +" <th style data-field=\"prj3\">Conta</th>"+"\n";
-							dados_tabela=dados_tabela +" <th style data-field=\"prj4\">Código Projeto - Cliente</th>"+"\n";
-							dados_tabela=dados_tabela +" <th style data-field=\"prj5\" data-filter-control=\"select\">Nome Projeto - CLiente</th>"+"\n";
-							dados_tabela=dados_tabela +" <th style data-field=\"prj6\">Inicio</th>"+"\n";
-							dados_tabela=dados_tabela +" <th style data-field=\"prj7\">Fim</th>"+"\n";
-							dados_tabela=dados_tabela +" <th style data-field=\"prj8\">Orçamento</th>"+"\n";
-							dados_tabela=dados_tabela +" <th style data-field=\"prj9\">PO's Recebida</th>"+"\n";
-							dados_tabela=dados_tabela +"</tr>"+"\n";
-							dados_tabela=dados_tabela +"</thead>"+"\n";
-							dados_tabela=dados_tabela +"<tbody>"+"\n";
 							rs.beforeFirst();
 							while(rs.next()){
 								dados_tabela=dados_tabela + "<tr data-index=\""+rs.getRow()+"\">"+"\n";
@@ -403,17 +432,17 @@ public class POControl_Servlet extends HttpServlet {
 								dados_tabela=dados_tabela + " <td>"+rs.getString(14)+"</td>"+"\n";
 								dados_tabela=dados_tabela + "</tr>"+"\n";
 							}
-							dados_tabela=dados_tabela + "</tbody>";
-							dados_tabela=dados_tabela + "</table>";
-							//System.out.println(dados_tabela);
-							resp.setContentType("application/html");  
-							resp.setCharacterEncoding("UTF-8"); 
-							PrintWriter out = resp.getWriter();
-							out.print(dados_tabela);
+							
 							//System.out.println("Resposta Consulta 3 Enviada!");
-						}else{
-							//System.out.println("Consulta returns empty");
 						}
+						dados_tabela=dados_tabela + "</tbody>";
+						dados_tabela=dados_tabela + "</table>";
+						//System.out.println(dados_tabela);
+						resp.setContentType("application/html");  
+						resp.setCharacterEncoding("UTF-8"); 
+						PrintWriter out = resp.getWriter();
+						out.print(dados_tabela);
+						out.close();
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("7")){
@@ -432,11 +461,11 @@ public class POControl_Servlet extends HttpServlet {
 		    			
 		    			insere="";
 		    			
-		    			insere="INSERT INTO project_table (project_name,project_pm,project_begin_date,project_end_date,project_creator,project_created_date,project_status,project_customer_budget,project_customer_code,project_customer_name,project_customer_pm,customer_id,customer_name) "
-		    					                + "VALUES ('"+param1+"','"+param5+"','"+param8.substring(0, 10)+"','"+param9.substring(0, 10)+"','"+session.getAttribute("user")+"','"+time+"','Enviado','"+param7+"','"+param3+"','"+param1+"','"+param5+"','"+param2+"','"+param2+"')";
-		    			if(conn.Inserir_simples(insere)){
+		    			insere="INSERT INTO project_table (project_name,project_pm,project_begin_date,project_end_date,project_creator,project_created_date,project_status,project_customer_budget,project_customer_code,project_customer_name,project_customer_pm,customer_id,customer_name,empresa) "
+		    					                + "VALUES ('"+param1+"','"+param5+"','"+param8.substring(0, 10)+"','"+param9.substring(0, 10)+"','"+session.getAttribute("user")+"','"+time+"','Enviado','"+param7+"','"+param3+"','"+param1+"','"+param5+"','"+param2+"','"+param2+"',"+p.getEmpresa().getEmpresa_id()+")";
+		    			if(mysql.Inserir_simples(insere)){
 				    		System.out.println("Projeto Cadastrado");
-				    		rs=conn.Consulta("Select project_id from project_table order by project_id desc limit 1");
+				    		rs=mysql.Consulta("Select project_id from project_table order by project_id desc limit 1");
 				    		if(rs.next()){
 				    			last_id=rs.getInt(1);
 				    		}
@@ -452,23 +481,21 @@ public class POControl_Servlet extends HttpServlet {
 						}else if(opt.equals("8")){
 							
 			                System.out.println("Carregando tabela de Clientes");
-							rs=conn.Consulta("Select * from customer_table order by customer_id desc");
-				    		
+							rs=mysql.Consulta("Select * from customer_table where empresa="+p.getEmpresa().getEmpresa_id()+" order by customer_id desc");
+							dados_tabela="<table id=\"tabela_de_clientes\" data-toggle=\"table\"  data-filter-control=\"true\"  data-pagination=\"true\" data-use-row-attr-func=\"true\" data-reorderable-rows=\"true\" data-toolbar=\"#toolbar_cliente\" data-search=\"true\">" +"\n";
+							dados_tabela=dados_tabela + "<thead>"+"\n";
+							dados_tabela=dados_tabela +"<tr>"+"\n";
+							dados_tabela=dados_tabela +" <th data-checkbox=\"true\"></th>"+"\n";
+							dados_tabela=dados_tabela +" <th data-field=\"prj\" data-filter-control=\"select\">Ciente Id</th>"+"\n";
+							dados_tabela=dados_tabela +" <th data-field=\"prj1\" data-filter-control=\"select\">Nome</th>"+"\n";
+							dados_tabela=dados_tabela +" <th data-field=\"prj2\">Nome Completo</th>"+"\n";
+							dados_tabela=dados_tabela +" <th data-field=\"prj3\">Estado</th>"+"\n";
+							dados_tabela=dados_tabela +" <th data-field=\"prj4\">CNPJ</th>"+"\n";
+							
+							dados_tabela=dados_tabela +"</tr>"+"\n";
+							dados_tabela=dados_tabela +"</thead>"+"\n";
+							dados_tabela=dados_tabela +"<tbody>"+"\n";
 								if(rs.next()){
-									
-									dados_tabela="<table id=\"tabela_de_clientes\" data-toggle=\"table\"  data-filter-control=\"true\"  data-pagination=\"true\" data-use-row-attr-func=\"true\" data-reorderable-rows=\"true\" data-toolbar=\"#toolbar_cliente\" data-search=\"true\">" +"\n";
-									dados_tabela=dados_tabela + "<thead>"+"\n";
-									dados_tabela=dados_tabela +"<tr>"+"\n";
-									dados_tabela=dados_tabela +" <th data-checkbox=\"true\"></th>"+"\n";
-									dados_tabela=dados_tabela +" <th data-field=\"prj\" data-filter-control=\"select\">Ciente Id</th>"+"\n";
-									dados_tabela=dados_tabela +" <th data-field=\"prj1\" data-filter-control=\"select\">Nome</th>"+"\n";
-									dados_tabela=dados_tabela +" <th data-field=\"prj2\">Nome Completo</th>"+"\n";
-									dados_tabela=dados_tabela +" <th data-field=\"prj3\">Estado</th>"+"\n";
-									dados_tabela=dados_tabela +" <th data-field=\"prj4\">CNPJ</th>"+"\n";
-									
-									dados_tabela=dados_tabela +"</tr>"+"\n";
-									dados_tabela=dados_tabela +"</thead>"+"\n";
-									dados_tabela=dados_tabela +"<tbody>"+"\n";
 									rs.beforeFirst();
 									while(rs.next()){
 										dados_tabela=dados_tabela + "<tr data-index=\""+rs.getRow()+"\">"+"\n";
@@ -481,17 +508,17 @@ public class POControl_Servlet extends HttpServlet {
 										
 										dados_tabela=dados_tabela + "</tr>"+"\n";
 									}
-									dados_tabela=dados_tabela + "</tbody>";
-									dados_tabela=dados_tabela + "</table>";
-									//System.out.println(dados_tabela);
-									resp.setContentType("application/html");  
-									resp.setCharacterEncoding("UTF-8"); 
-									PrintWriter out = resp.getWriter();
-									out.print(dados_tabela);
+									
 									//System.out.println("Resposta Consulta 3 Enviada!");
-								}else{
-									//System.out.println("Consulta returns empty");
 								}
+								dados_tabela=dados_tabela + "</tbody>";
+								dados_tabela=dados_tabela + "</table>";
+								//System.out.println(dados_tabela);
+								resp.setContentType("application/html");  
+								resp.setCharacterEncoding("UTF-8"); 
+								PrintWriter out = resp.getWriter();
+								out.print(dados_tabela);
+								out.close();
 								Timestamp time2 = new Timestamp(System.currentTimeMillis());
 								System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("9")){
@@ -507,11 +534,11 @@ public class POControl_Servlet extends HttpServlet {
 			    			
 			    			insere="";
 			    			
-			    			insere="INSERT INTO customer_table (customer_name,customer_fullname,customer_cnpj,customer_adress,customer_ie,customer_owner_creator,customer_created_date) "
-			    					                + "VALUES ('"+param2+"','"+param1+"','"+param3+"','"+param5+"','"+param4+"','"+p.get_PessoaUsuario()+"','"+time+"')";
-			    			if(conn.Inserir_simples(insere)){
+			    			insere="INSERT INTO customer_table (customer_name,customer_fullname,customer_cnpj,customer_adress,customer_ie,customer_owner_creator,customer_created_date,empresa) "
+			    					                + "VALUES ('"+param2+"','"+param1+"','"+param3+"','"+param5+"','"+param4+"','"+p.get_PessoaUsuario()+"','"+time+"',"+p.getEmpresa().getEmpresa_id()+")";
+			    			if(mysql.Inserir_simples(insere)){
 					    		System.out.println("Cliente Cadastrado");
-					    		rs=conn.Consulta("Select customer_id from customer_table order by customer_id desc limit 1");
+					    		rs=mysql.Consulta("Select customer_id from customer_table order by customer_id desc limit 1");
 					    		if(rs.next()){
 					    			last_id=rs.getInt(1);
 					    		}
@@ -521,12 +548,13 @@ public class POControl_Servlet extends HttpServlet {
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print(last_id);
+							out.close();
 							Timestamp time2 = new Timestamp(System.currentTimeMillis());
 							System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 							
 						}else if(opt.equals("10")){
 						param1=req.getParameter("cliente");	
-						rs= conn.Consulta("select * from project_table where customer_id='"+param1+"'");
+						rs= mysql.Consulta("select * from project_table where customer_id='"+param1+"' and empresa="+p.getEmpresa().getEmpresa_id());
 		    			dados_tabela="";
 		    			if(rs.next()){
 		    				rs.beforeFirst();
@@ -547,7 +575,7 @@ public class POControl_Servlet extends HttpServlet {
 							
 						}else if(opt.equals("11")){
 							
-							rs= conn.Consulta("select * from customer_table");
+							rs= mysql.Consulta("select * from customer_table where empresa="+p.getEmpresa().getEmpresa_id());
 		    			dados_tabela="";
 		    			if(rs.next()){
 		    				rs.beforeFirst();
@@ -563,13 +591,288 @@ public class POControl_Servlet extends HttpServlet {
 			    		resp.setCharacterEncoding("UTF-8"); 
 			    		PrintWriter out = resp.getWriter();
 			    		out.print(dados_tabela);
+			    		out.close();
 			    		Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 							
 						}else if(opt.equals("12")){
-							System.out.println("função migrada para o rollout servlet opt 12");
+							try {
+							String cliente="";
+							String projeto="";
+							
+							ServletContext context = req.getSession().getServletContext();
+							InputStream inputStream=null;
+							if (ServletFileUpload.isMultipartContent(req)) {
+								List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
+								//System.out.println("Multipart size: " + multiparts.size());
+								Iterator<FileItem> iter = multiparts.iterator();
+								
+								while (iter.hasNext()) {
+									FileItem item = iter.next();
+									
+									if (item.isFormField()) {
+										if(item.getFieldName().equals("cliente")){
+											cliente=item.getString();
+										}else if(item.getFieldName().equals("projeto")){
+											projeto=item.getString();
+										}
+								    }
+									}
+								
+								iter = multiparts.iterator();
+								
+								while (iter.hasNext()) {
+									FileItem item = iter.next();
+									
+									if (item.isFormField()) {
+										
+								    } else {
+								       // processUploadedFile(item);
+								    	 inputStream = item.getInputStream();
+								    	 String sql = "Insert into po_table_file (dt_upload,arquivo,nome_arquivo,tipo,tamanho,carregada_por,id_cliente,id_projeto,empresa) values ('"+time+"' , ? ,'"+item.getName()+"','"+item.getContentType()+"','"+item.getSize()+"','"+p.get_PessoaUsuario()+"','"+cliente+"','"+projeto+"',"+p.getEmpresa().getEmpresa_id()+")";
+									     PreparedStatement statement;
+										 statement = mysql.getConnection().prepareStatement(sql);
+										 statement.setBlob(1, inputStream);
+										 int row = statement.executeUpdate();
+									     statement.getConnection().commit();
+									     if (row>0) {
+									        	rs=mysql.Consulta("select file_po_id from po_table_file where empresa="+p.getEmpresa().getEmpresa_id() +" and carregada_por='"+p.get_PessoaUsuario()+"' order by file_po_id desc limit 1");
+									        	int id_arquivo=0;
+									        	if(rs.next()) {
+									        		id_arquivo=rs.getInt(1);
+									        	}
+									        	statement.close();
+									        	
+									        	if(p.getEmpresa().getEmpresa_id()==8) {
+									        		 System.out.println("controle 1");
+									        		 //ByteArrayInputStream initialStream = new ByteArrayInputStream(new byte[] { 0, 1, 2 });
+									        	     
+									        	//byte[] targetArray = IOUtils.toByteArray(item.getInputStream());
+									        	System.out.println("controle 1-1");
+									    		PDDocument document = PDDocument.load(new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream())));
+									    		
+									    		System.out.println("controle 1-2");
+									    		 System.out.println("controle 2");
+									    		 if (!document.isEncrypted()) {
+									    			 System.out.println("controle 3");
+									    			 String po_number="";
+									    			 Integer po_numberNumero=0;
+									    			 String valor="";
+									    			 String dt_issuePO="";
+									    			 Double valordouble=0.0;
+									    			 PDFTextStripper tStripper = new PDFTextStripper();
+									                 System.out.println("controle 4");
+									                 
+									                 System.out.println("controle 5");
+									             
+									                 String po_number_string="";
+									                 String site = "";
+									                 
+									                 System.out.println("iniciando pesquisa por area");
+									                 PDFTextStripperByArea stripper = new PDFTextStripperByArea();
+									                 stripper.setSortByPosition(true);
+									                 PDPage docPage = document.getPage(0);
+									                 Rectangle itemcod ;
+									                 Rectangle PO ;
+									                 Rectangle siteid ;
+									                 Rectangle valorpo ;
+									                 Rectangle POdt ;
+									                 Rectangle itemlinha ;
+									                 Rectangle itemarea;
+									                 Rectangle quantidade ;
+									                 Rectangle preco;
+									                 POdt= new Rectangle(168, 96, 65, 12);
+									                 PO= new Rectangle(167, 85, 110, 12);
+									                 valorpo= new Rectangle(428, 172, 83, 12);
+									                 siteid=new Rectangle(164, 503, 144, 12);
+									                 stripper.addRegion("PO", PO);
+									                 stripper.addRegion("POdt", POdt);
+									                 stripper.addRegion("valorpo", valorpo);
+									                 stripper.addRegion("siteid", siteid);
+									                 stripper.extractRegions(docPage);
+									                 po_number = stripper.getTextForRegion("PO").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+									                 po_number_string="string";
+							                    	 if(StringUtils.isNumeric(po_number)) {
+							                    		 po_number_string="numero";
+							                    		 po_numberNumero=Integer.parseInt(po_number);
+							                    	 }else {
+							                    		 po_number_string="string";
+							                    	 }
+									                 dt_issuePO = stripper.getTextForRegion("POdt").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+									                 if(dt_issuePO.length()==9) {
+								                    		if(dt_issuePO.substring(2, 5).equals("May")) {
+								                    		dt_issuePO=dt_issuePO.substring(0, 2)+"-05-"+dt_issuePO.substring(5, dt_issuePO.length());
+								                    		}else if(dt_issuePO.substring(2, 5).equals("Jun")) {
+									                    		dt_issuePO=dt_issuePO.substring(0, 2)+"-06-"+dt_issuePO.substring(5, dt_issuePO.length());
+									                    	}else if(dt_issuePO.substring(2, 5).equals("Jul")) {
+									                    		dt_issuePO=dt_issuePO.substring(0, 2)+"-07-"+dt_issuePO.substring(5, dt_issuePO.length());
+									                    	}else if(dt_issuePO.substring(2, 5).equals("Aug")) {
+									                    		dt_issuePO=dt_issuePO.substring(0, 2)+"-08-"+dt_issuePO.substring(5, dt_issuePO.length());
+									                    	}else if(dt_issuePO.substring(2, 5).equals("Sep")) {
+									                    		dt_issuePO=dt_issuePO.substring(0, 2)+"-09-"+dt_issuePO.substring(5, dt_issuePO.length());
+									                    	}else if(dt_issuePO.substring(2, 5).equals("Oct")) {
+									                    		dt_issuePO=dt_issuePO.substring(0, 2)+"-10-"+dt_issuePO.substring(5, dt_issuePO.length());
+									                    	}else if(dt_issuePO.substring(2, 5).equals("Nov")) {
+									                    		dt_issuePO=dt_issuePO.substring(0, 2)+"-11-"+dt_issuePO.substring(5, dt_issuePO.length());
+									                    	}else if(dt_issuePO.substring(2, 5).equals("Dec")) {
+									                    		dt_issuePO=dt_issuePO.substring(0, 2)+"-12-"+dt_issuePO.substring(5, dt_issuePO.length());
+									                    	}else if(dt_issuePO.substring(2, 5).equals("Jan")) {
+									                    		dt_issuePO=dt_issuePO.substring(0, 2)+"-01-"+dt_issuePO.substring(5, dt_issuePO.length());
+									                    	}else if(dt_issuePO.substring(2, 5).equals("Feb")) {
+									                    		dt_issuePO=dt_issuePO.substring(0, 2)+"-02-"+dt_issuePO.substring(5, dt_issuePO.length());
+									                    	}else if(dt_issuePO.substring(2, 5).equals("Mar")) {
+									                    		dt_issuePO=dt_issuePO.substring(0, 2)+"-03-"+dt_issuePO.substring(5, dt_issuePO.length());
+									                    	}else if(dt_issuePO.substring(2, 5).equals("Apr")) {
+									                    		dt_issuePO=dt_issuePO.substring(0, 2)+"-04-"+dt_issuePO.substring(5, dt_issuePO.length());
+									                    	}
+								                    	}
+									                 DateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+							             			 Date d1=format.parse(dt_issuePO);
+							             			 dt_issuePO=f2.format(d1);
+							             			 System.out.println(dt_issuePO);
+									                 valor= stripper.getTextForRegion("valorpo").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+									                 valor=valor.substring(0,valor.indexOf("BRL")).trim();
+							                    	 //System.out.println(valor);
+							                    	 valor=valor.replace(".", "");
+							                    	 valor=valor.replace(",", ".");
+							                    	 //System.out.println(valor);
+							                    	 valordouble=Double.parseDouble(valor);
+							                    	 System.out.println(valordouble);
+									                 site= stripper.getTextForRegion("siteid").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+									                 site=site.substring(site.indexOf("SITE")+4,site.length()).trim();
+									                 site=site.substring(0,site.indexOf(" "));
+									                 int limite=458;
+									                 int limite2=460;
+									                 
+									                 System.out.println("pegou a pagina");
+									                 String item_cod;
+									                 String item_linha;
+									                 String itemString;
+									                 String quantidadeStr;
+									                 String precoStr;
+									                 String insere_item="";
+									                 System.out.println("definiu as variaveis");
+									                 Statement stmt = mysql.getConnection().createStatement();
+									                 mysql.getConnection().setAutoCommit(false);
+									                 while(limite < 812) {
+									                	 stripper = new PDFTextStripperByArea();
+									                	 stripper.setSortByPosition(true);
+									                	 
+									                	 itemlinha= new Rectangle(98, limite, 47, 12);
+									                	 itemcod= new Rectangle(149, limite, 60, 12);
+									                	 itemarea= new Rectangle(242, limite, 128, 12);
+									                	 quantidade= new Rectangle(152, limite2+12, 50, 12);
+									                	 preco= new Rectangle(262, limite2+12, 50, 12);
+									                	 System.out.println("retangulos criados");
+									                	 
+									                	 stripper.addRegion("linhaItem", itemlinha);
+									                	 stripper.addRegion("codigoItem", itemcod);
+									                	 stripper.addRegion("Item", itemarea);
+									                	 stripper.addRegion("Quantidade", quantidade);
+									                	 stripper.addRegion("Preco", preco);
+									                	 //System.out.println("regioes adicionadas");
+									                	 
+									                	 stripper.extractRegions(docPage);
+									                	 //System.out.println("extract regions ok");
+									                	
+									                	 item_linha= stripper.getTextForRegion("linhaItem").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+									                	 item_cod= stripper.getTextForRegion("codigoItem").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+									                	 itemString= stripper.getTextForRegion("Item").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+									                	 quantidadeStr= stripper.getTextForRegion("Quantidade").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+									                	 precoStr= stripper.getTextForRegion("Preco").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+									                	 //System.out.println("Linha numero:"+Integer.parseInt(item_linha.trim().toString()));
+									                	 if(StringUtils.isNumeric(item_linha)) {
+									                		 if(Integer.parseInt(item_linha.trim().toString())>0) {
+									                			 //System.out.println("Linha:"+item_linha);
+									                			 insere_item="insert into po_item_table(po_number,po_item_cod,po_item_name,po_item_desc,empresa,po_item_qtd,po_item_valor,po_item_site) values('"+po_numberNumero+"','"+item_cod+"','"+itemString+"','"+itemString+"',"+p.getEmpresa().getEmpresa_id()+","+quantidadeStr+",'"+precoStr.replace(".", "").replaceAll(",", ".")+"','"+site+"')";
+									                			 stmt.addBatch(insere_item);
+										                 	}
+									                	 }
+									                	 
+									                	 
+									                	 limite=limite+12;
+									                	 limite2=limite2+12;
+									                 }
+									                 
+									                 
+									                  
+									                 
+									                 if(po_number_string.equals("numero")) {
+									                	 query="insert into po_table (po_number,empresa,arquivo_id,id_po_file,dt_emitida,total_po,dt_registrada,empresa_emissora,validada,PO_ATIVA) values ('"+po_numberNumero+"',"+p.getEmpresa().getEmpresa_id()+","+id_arquivo+","+id_arquivo+",'"+dt_issuePO+"','"+valordouble+"','"+time+"','"+cliente+"','Sem Validação','Y')";
+									                 }else {
+									                	 query="insert into po_table (po_number,empresa,arquivo_id,id_po_file,dt_emitida,total_po,dt_registrada,empresa_emissora,validada,PO_ATIVA) values ('"+po_number+"',"+p.getEmpresa().getEmpresa_id()+","+id_arquivo+","+id_arquivo+",'"+dt_issuePO+"','"+valordouble+"','"+time+"','"+cliente+"','Sem Validação','Y')";
+									                 }
+									                 rs=mysql.Consulta("select * from po_table where po_number='"+po_numberNumero+"' or po_number='"+po_number+"'");
+									                 if(rs.next()) {
+									                	 System.out.println("INSERÇÃO DE PO ABORTADA. MOTIVO: PO DUPLICADA");
+									                 }else {
+									                	 mysql.Inserir_simples(query);
+									                	 stmt.executeBatch();
+									                	 mysql.getConnection().commit();
+									                	 stmt.close();
+									                 }
+									    		 }
+									    		 document.close();
+									     	}
+									     }
+									     resp.setContentType("application/json"); 
+								        	JSONObject jsonObject = new JSONObject(); 
+								        	jsonObject.put("Sucesso", "Sucesso"); 
+								        	PrintWriter pw = resp.getWriter();
+								        	pw.print(jsonObject); 
+								        	pw.close();
+								    }
+								}
+							}
+							}catch(Exception erro) {
+								System.out.println(erro.getCause());
+								System.out.println(erro.getMessage());
+							}
 						}else if(opt.equals("13")){
-							System.out.println("Função Migrada para servlet de rollout opt 13");
+							
+							System.out.println("buscando PO");
+							param1=req.getParameter("id_arquivo");
+							query="select arquivo from po_table_file where file_po_id="+param1;
+							//System.out.println(query);
+							rs=mysql.Consulta(query);
+							ServletOutputStream out = resp.getOutputStream();
+							InputStream in=null;
+							if(rs.next()){
+								//System.out.println("Entrou no Blob");
+								Blob arquivo = rs.getBlob(1);
+								if(arquivo==null) {
+									
+									
+								}else {
+									 in = arquivo.getBinaryStream(1,(int)arquivo.length());
+								}
+						        int tamanho = in.available();
+
+						        int bufferSize = 1024;
+						        byte[] buffer = new byte[bufferSize];
+						        resp.setContentType("application/pdf");  
+						        resp.setHeader("Pragma", "no-cache");
+					            resp.setHeader("Cache-control", "private");
+					            resp.setContentLength(tamanho);
+					            resp.setHeader("Content-Disposition", "attachment; filename=\"APP - User Guide.pdf\"");
+						        while ((tamanho = in.read(buffer)) != -1) {
+						            //System.out.println("writing " + length + " bytes");
+						            out.write(buffer, 0, tamanho);
+						        }
+
+						        
+							    //System.out.println(dados_tabela);
+						       
+					            //resp.setContentLength(pdf.length);
+						    	in.close();
+						        out.flush();
+						    	//out.print(dados_tabela);
+						}
+							Timestamp time2 = new Timestamp(System.currentTimeMillis());
+							System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+					
+							
+							
 						}else if(opt.equals("14")){
 						if(p.getPerfil_funcoes().contains("RolloutManager")) {
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" Inserção/Editando de Campos no rollout.");
@@ -591,7 +894,7 @@ public class POControl_Servlet extends HttpServlet {
 		    			
 		    			insere="";
 		    			//System.out.println("select * from rollout_campos where field_id="+param9+" and empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param8+"'");
-		    			rs=conn.Consulta("select * from rollout_campos where field_id="+param9+" and empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param8+"'");
+		    			rs=mysql.Consulta("select * from rollout_campos where field_id="+param9+" and empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param8+"'");
 		    			if(param2.equals("Milestone")){
 		    				param4="Milestone";
 		    			}
@@ -604,13 +907,13 @@ public class POControl_Servlet extends HttpServlet {
 		    				filtro .append("rolloutId", param8);
 		    				rename.append(rs.getString("field_name"), param1);
 		    				rename_comand.append("$rename", rename);
-		    				c.AtualizaMuitos("rollout", filtro, rename_comand);
-		    				conn.Alterar("update rollout_campos set field_name='"+param1+"',field_type='"+param2+"',tipo='"+param4+"',Atributo_parametro='"+param5+"',trigger_pagamento="+param6+",percent_pagamento='"+param7+"' where field_id="+rs.getInt(1));
+		    				mongo.AtualizaMuitos("rollout", filtro, rename_comand);
+		    				mysql.Alterar("update rollout_campos set field_name='"+param1+"',field_type='"+param2+"',tipo='"+param4+"',Atributo_parametro='"+param5+"',trigger_pagamento="+param6+",percent_pagamento='"+param7+"' where field_id="+rs.getInt(1));
 		    				last_id=rs.getInt(1);
 		    				
 		    				retorno="Campo editado com Sucesso. ID do campo: "+last_id;
 		    			}else{
-		    			rs=conn.Consulta("select ordenacao from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param8+"' order by ordenacao desc limit 1");	
+		    			rs=mysql.Consulta("select ordenacao from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param8+"' order by ordenacao desc limit 1");	
 		    			if(rs.next()) {
 		    				ordem=rs.getInt(1);
 		    				ordem=ordem+1;
@@ -622,9 +925,9 @@ public class POControl_Servlet extends HttpServlet {
 					                + "VALUES ('"+param1+"','"+param2+"','"+session.getAttribute("user")+"','"+time+"','"+session.getAttribute("user")+"','ATIVO','"+param4+"','"+param5+"',"+param6+",'"+param7+"',"+p.getEmpresa().getEmpresa_id()+",1,"+rolloutid+",'"+param8+"')";
 		    			}
 		    			
-		    			if(conn.Inserir_simples(insere)){
+		    			if(mysql.Inserir_simples(insere)){
 				    		//System.out.println("CAMPO Cadastrado");
-				    		rs=conn.Consulta("Select field_id from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param8+"' order by field_id desc limit 1");
+				    		rs=mysql.Consulta("Select field_id from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param8+"' order by field_id desc limit 1");
 				    		if(rs.next()){
 				    			last_id=rs.getInt(1);
 				    			retorno="Campo inserido com Sucesso. ID do campo: "+last_id;
@@ -637,6 +940,7 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(retorno);
+						out.close();
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 							}
@@ -655,15 +959,16 @@ public class POControl_Servlet extends HttpServlet {
 		    			//System.out.println(jObj.get("ordem"));
 		    			while(i<tamanho){
 		    				query="update rollout_campos set ordenacao="+campos.getJSONObject(i).getInt("posicao")+" where field_id="+campos.getJSONObject(i).getInt("campoid")+" and empresa="+p.getEmpresa().getEmpresa_id() +" and rollout_nome='"+param2+"'";
-		    				conn.Alterar(query);
+		    				mysql.Alterar(query);
 		    				//query="update rollout set ordenacao="+campos.getJSONObject(i).getInt("posicao")+" where milestone='"+campos.getJSONObject(i).getString("campo_nome")+"' and empresa="+p.getEmpresa().getEmpresa_id();
-		    				//conn.Alterar(query);
+		    				//mysql.Alterar(query);
 		    				i++;
 		    			}
 						resp.setContentType("application/html");  
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print("Ordem de campos atualizada!");
+						out.close();
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}
@@ -707,36 +1012,37 @@ public class POControl_Servlet extends HttpServlet {
 							String[] campos=param1.split(",");
 							for(int i=0;i<campos.length;i++){
 								//System.out.println("delete from po_table where po_number="+po[i]);
-								rs=conn.Consulta("Select field_name from rollout_campos where field_id="+campos[i]+" and empresa="+p.getEmpresa().getEmpresa_id());
+								rs=mysql.Consulta("Select field_name from rollout_campos where field_id="+campos[i]+" and empresa="+p.getEmpresa().getEmpresa_id());
 								if(rs.next()) {
 									update=new Document();
 									update.append(rs.getString("field_name"), "");
 									comando_update.append("$unset", update);
-									c.AtualizaMuitos("rollout", condicao, comando_update);
+									mongo.AtualizaMuitos("rollout", condicao, comando_update);
 								}
-								conn.Excluir("delete from rollout_campos where field_id="+campos[i]+" and empresa="+p.getEmpresa().getEmpresa_id());
+								mysql.Excluir("delete from rollout_campos where field_id="+campos[i]+" and empresa="+p.getEmpresa().getEmpresa_id());
 								
 								
 								if(rs.next()){
-								conn.Excluir("delete from rollout where milestone='"+rs.getString(1)+"' and empresa="+p.getEmpresa().getEmpresa_id());
+								mysql.Excluir("delete from rollout where milestone='"+rs.getString(1)+"' and empresa="+p.getEmpresa().getEmpresa_id());
 								}
 							}
 						}else{
 							//System.out.println("delete from po_table where po_number="+param1);
-							rs=conn.Consulta("Select field_name from rollout_campos where field_id="+param1+" and empresa="+p.getEmpresa().getEmpresa_id());
-							conn.Excluir("delete from rollout_campos where field_id="+param1+" and empresa="+p.getEmpresa().getEmpresa_id());
+							rs=mysql.Consulta("Select field_name from rollout_campos where field_id="+param1+" and empresa="+p.getEmpresa().getEmpresa_id());
+							mysql.Excluir("delete from rollout_campos where field_id="+param1+" and empresa="+p.getEmpresa().getEmpresa_id());
 							if(rs.next()){
-							conn.Excluir("delete from rollout where milestone='"+rs.getString(1)+"' and empresa="+p.getEmpresa().getEmpresa_id());
+							mysql.Excluir("delete from rollout where milestone='"+rs.getString(1)+"' and empresa="+p.getEmpresa().getEmpresa_id());
 							update=new Document();
 							update.append(rs.getString("field_name"), "");
 							comando_update.append("$unset", update);
-							c.AtualizaMuitos("rollout", condicao, comando_update);
+							mongo.AtualizaMuitos("rollout", condicao, comando_update);
 							}
 						}
 						resp.setContentType("application/html");  
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print("Campos Removidos");
+						out.close();
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("18")){
@@ -745,7 +1051,7 @@ public class POControl_Servlet extends HttpServlet {
 						}else {
 							query="Select usuarios.* from usuarios where  usuarios.ativo='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"'";
 						}
-						rs=conn.Consulta(query);
+						rs=mysql.Consulta(query);
 						if(rs.next()){
 							
 							dados_tabela="<table id=\"tabela_usuario\" data-use-row-attr-func=\"true\" data-toolbar=\"#toolbar_tabela_usuario\" data-reorderable-rows=\"true\" data-show-refresh=\"true\" data-toggle=\"table\"  data-filter-control=\"true\" data-click-to-select=\"true\" data-pagination=\"true\" data-page-size=\"10\" data-search=\"true\">" +"\n";
@@ -782,7 +1088,7 @@ public class POControl_Servlet extends HttpServlet {
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
-							
+							out.close();
 						}
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
@@ -807,12 +1113,12 @@ public class POControl_Servlet extends HttpServlet {
 			    		        BigInteger hash = new BigInteger(1,md.digest() );     
 			    		        String retornaSenha = hash.toString(16);
 			    		        
-			    		        rs= conn.Consulta("select * from usuarios where VALIDADO='Y' and ATIVO='Y' and HASH='"+retornaSenha+"' and (id_usuario='"+session.getAttribute("user")+"' or email='"+session.getAttribute("user")+"')");
+			    		        rs= mysql.Consulta("select * from usuarios where VALIDADO='Y' and ATIVO='Y' and HASH='"+retornaSenha+"' and (id_usuario='"+session.getAttribute("user")+"' or email='"+session.getAttribute("user")+"')");
 			    		        if(rs.next()){
 			    		        	md.update( param2.getBytes());     
 				    		        hash = new BigInteger(1,md.digest() );     
 				    		        senhaprovisoria = hash.toString(16);
-			    		        	if(conn.Alterar("update usuarios set HASH='"+senhaprovisoria+"' where id_usuario='"+rs.getString("id_usuario")+"'")) {
+			    		        	if(mysql.Alterar("update usuarios set HASH='"+senhaprovisoria+"' where id_usuario='"+rs.getString("id_usuario")+"'")) {
 			    		        		mensagem_retorno="Troca de senha realizada com sucesso!";
 			    		        	}
 			    		        	
@@ -832,13 +1138,14 @@ public class POControl_Servlet extends HttpServlet {
 				    		resp.setCharacterEncoding("UTF-8"); 
 				    		PrintWriter out = resp.getWriter();
 				    		out.print(mensagem_retorno);
+				    		out.close();
 				    		Timestamp time2 = new Timestamp(System.currentTimeMillis());
 							System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		    		}else if(opt.equals("21")){
 		    			String charts="";
 		    			System.out.println("Carregando Portal...");
 		    			query="select user_portal from portal_user where id_usuario='"+session.getAttribute("user")+"'";
-		    			rs=conn.Consulta(query);
+		    			rs=mysql.Consulta(query);
 		    			if(rs.next()){
 		    				
 		    				charts=rs.getString(1);
@@ -851,6 +1158,7 @@ public class POControl_Servlet extends HttpServlet {
 				    	resp.setCharacterEncoding("UTF-8"); 
 				    	PrintWriter out = resp.getWriter();
 				    	out.print(charts);
+				    	out.close();
 				    	Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		    		}else if(opt.equals("22")){
@@ -858,13 +1166,13 @@ public class POControl_Servlet extends HttpServlet {
 		    		//System.out.println("Salvando Portal...");
 		    			param1=req.getParameter("portal");
 		    			query="select user_portal from portal_user where id_usuario='"+session.getAttribute("user")+"'";
-		    			rs=conn.Consulta(query);
+		    			rs=mysql.Consulta(query);
 		    			if(rs.next()){
 		    				query="update portal_user set user_portal='"+param1+"' where id_usuario='"+session.getAttribute("user")+"'";
-			    			conn.Alterar(query);
+			    			mysql.Alterar(query);
 		    			}else{
 		    				query="insert into portal_user (id_usuario,user_portal) values('"+session.getAttribute("user")+"','"+param1+"')";
-		    				conn.Inserir_simples(query);
+		    				mysql.Inserir_simples(query);
 		    			}
 		    			Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
@@ -876,7 +1184,7 @@ public class POControl_Servlet extends HttpServlet {
 		    			//System.out.println("Buscando campos do rollout ...");
 		    			//param1=req.getParameter("portal");
 		    			query="select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param1+"' order by ordenacao";
-		    			rs=conn.Consulta(query);
+		    			rs=mysql.Consulta(query);
 		    			dados_tabela="<table id=\"table_row_fields\" data-toggle=\"table\" data-use-row-attr-func=\"true\" >" +"\n";
 		    			if(rs.next()){
 		    				rs.beforeFirst();
@@ -941,13 +1249,14 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
+						out.close();
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		    		}else if(opt.equals("24")){
 		    			System.out.println("funcao migrada para rollout servlet opt 24");
 		    		}else if(opt.equals("99")){
 		    			//System.out.println("saindo do Servlet");
-		    			conn.fecharConexao();
+		    			mysql.fecharConexao();
 		    			session.removeAttribute("user");
 		    			session.invalidate();
 		    			Timestamp time2 = new Timestamp(System.currentTimeMillis());
@@ -959,12 +1268,12 @@ public class POControl_Servlet extends HttpServlet {
 		    			if(param1.indexOf(",")>0){
 		    				String []linhas=param1.split(",");
 		    				for(int j=0;j<linhas.length;j++){
-		    					conn.Alterar("update rollout set linha_ativa='N',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+linhas[j]+" and empresa="+p.getEmpresa().getEmpresa_id());
+		    					mysql.Alterar("update rollout set linha_ativa='N',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+linhas[j]+" and empresa="+p.getEmpresa().getEmpresa_id());
 		    				}
 		    			
 		    			}else{
 		    				if(param1.length()>0){
-		    					conn.Alterar("update rollout set linha_ativa='N',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+param1+" and empresa="+p.getEmpresa().getEmpresa_id());
+		    					mysql.Alterar("update rollout set linha_ativa='N',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+param1+" and empresa="+p.getEmpresa().getEmpresa_id());
 
 		    				}
 		    			}
@@ -972,6 +1281,7 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print("OK");
+						out.close();
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		    		}else if(opt.equals("26")){
@@ -986,15 +1296,15 @@ public class POControl_Servlet extends HttpServlet {
 							String[] campos=param1.split(",");
 							for(int i=0;i<1;i++){
 								//System.out.println("delete from po_table where po_number="+po[i]);
-								rs=conn.Consulta("Select field_name,field_type,tipo,atributo_parametro,trigger_pagamento,percent_pagamento,field_id from rollout_campos where field_id="+campos[i]+" and empresa="+p.getEmpresa().getEmpresa_id());
-								//conn.Excluir("delete from rollout_campos where field_id="+campos[i]+" and empresa="+p.getEmpresa().getEmpresa_id());
+								rs=mysql.Consulta("Select field_name,field_type,tipo,atributo_parametro,trigger_pagamento,percent_pagamento,field_id from rollout_campos where field_id="+campos[i]+" and empresa="+p.getEmpresa().getEmpresa_id());
+								//mysql.Excluir("delete from rollout_campos where field_id="+campos[i]+" and empresa="+p.getEmpresa().getEmpresa_id());
 								if(rs.next()){
 									dados_tabela="{nome_campo:\""+rs.getString(1)+"\",tipo_Campo:\""+rs.getString(2)+"\",sub_tipo:\""+rs.getString(3)+"\",atributo:\""+rs.getString(4)+"\",\"trigger\":"+rs.getString(5)+",\"percent\":\""+rs.getString(6)+"\",\"id_campo\":"+rs.getInt("field_id")+"}";
 								}
 							}
 						}else{
 							//System.out.println("delete from po_table where po_number="+param1);
-							rs=conn.Consulta("Select field_name,field_type,tipo,atributo_parametro,trigger_pagamento,percent_pagamento,field_id from rollout_campos where field_id="+param1+" and empresa="+p.getEmpresa().getEmpresa_id());
+							rs=mysql.Consulta("Select field_name,field_type,tipo,atributo_parametro,trigger_pagamento,percent_pagamento,field_id from rollout_campos where field_id="+param1+" and empresa="+p.getEmpresa().getEmpresa_id());
 							
 							if(rs.next()){
 								dados_tabela="{\"nome_campo\":\""+rs.getString(1)+"\",\"tipo_Campo\":\""+rs.getString(2)+"\",\"sub_tipo\":\""+rs.getString(3)+"\",\"atributo\":\""+rs.getString(4)+"\",\"trigger\":"+rs.getString(5)+",\"percent\":\""+rs.getString(6)+"\",\"id_campo\":"+rs.getInt("field_id")+"}";
@@ -1005,6 +1315,7 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
+						out.close();
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("27")){
@@ -1013,7 +1324,7 @@ public class POControl_Servlet extends HttpServlet {
 						//System.out.println(param1);
 						dados_tabela="";
 						query="select * from ajuda_videos order by video_id desc";
-						rs=conn.Consulta(query);
+						rs=mysql.Consulta(query);
 						if(rs.next()){
 							rs.beforeFirst();
 							while(rs.next()){
@@ -1028,6 +1339,7 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
+						out.close();
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("28")){
@@ -1036,7 +1348,7 @@ public class POControl_Servlet extends HttpServlet {
 						//param1=req.getParameter("campos");
 						//System.out.println(param1);
 						query="select distinct recid from rollout order by recid desc limit 1";
-		    			rs=conn.Consulta(query);
+		    			rs=mysql.Consulta(query);
 		    			if(rs.next()){
 		    				linha_id=rs.getInt(1);
 		    			}else{
@@ -1045,7 +1357,7 @@ public class POControl_Servlet extends HttpServlet {
 		    			linha_id=linha_id+1;
 						dados_tabela="";
 						query="select po_item_site,po_number,id_projeto from po_item_table where sync_rollout_table='N' group by po_number,po_item_site";
-						rs=conn.Consulta(query);
+						rs=mysql.Consulta(query);
 						
 						if(rs.next()){
 							rs.beforeFirst();
@@ -1053,26 +1365,26 @@ public class POControl_Servlet extends HttpServlet {
 								while(rs.next()){
 									
 									query="insert into rollout (recid,siteID,milestone,value_atbr_field,tipo_campo) values("+linha_id+",'site"+linha_id+"','Site ID','"+rs.getString(1)+"','Atributo')";
-									conn.Inserir_simples(query);
+									mysql.Inserir_simples(query);
 									query="insert into rollout (recid,siteID,milestone,value_atbr_field,tipo_campo) values("+linha_id+",'site"+linha_id+"','PO','"+rs.getString(2)+"','Atributo')";
-									conn.Inserir_simples(query);
-									query="insert into rollout (recid,siteID,milestone,value_atbr_field,tipo_campo) values("+linha_id+",'site"+linha_id+"','Projeto','"+p.get_ProjetoNome(conn,rs.getString(3))+"','Atributo')";
-									conn.Inserir_simples(query);
+									mysql.Inserir_simples(query);
+									query="insert into rollout (recid,siteID,milestone,value_atbr_field,tipo_campo) values("+linha_id+",'site"+linha_id+"','Projeto','"+p.get_ProjetoNome(mysql,rs.getString(3))+"','Atributo')";
+									mysql.Inserir_simples(query);
 									query="update po_item_table set sync_rollout_table='Y',id_rollout='site"+linha_id+"' where po_item_site='"+rs.getString(1)+"' and po_number='"+rs.getString(2)+"'";
-									conn.Alterar(query);
+									mysql.Alterar(query);
 									linha_id=linha_id+1;
 								}
 							
 						}
 						query="select * from po_item_table where sync_faturamento_table='N'";
-						rs=conn.Consulta(query);
+						rs=mysql.Consulta(query);
 						if(rs.next()){
 							rs.beforeFirst();
 							while(rs.next()){
 								query="insert into faturamento (site_id,projeto,cliente,po,po_item,parcela_pagamento,status_faturamento,valor_item,id_rollout) values('"+rs.getString("po_item_site")+"','"+rs.getString("id_projeto")+"','"+rs.getString("id_cliente")+"','"+rs.getString("po_number")+"','"+rs.getString("po_item_desc")+"','1 de 1','Aguardando Execução','"+rs.getString("po_item_valor")+"','"+rs.getString("id_rollout")+"')";
-								conn.Inserir_simples(query);
+								mysql.Inserir_simples(query);
 								query="update po_item_table set sync_faturamento_table='Y' where po_item_site='"+rs.getString("po_item_site")+"' and po_number='"+rs.getString("po_number")+"' and po_item_desc='"+rs.getString("po_item_desc")+"'";
-								conn.Alterar(query);
+								mysql.Alterar(query);
 							}
 						}
 						//System.out.println(dados_tabela);
@@ -1080,6 +1392,7 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print("Dados Sincronizados!");
+						out.close();
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("29")){
@@ -1096,7 +1409,7 @@ public class POControl_Servlet extends HttpServlet {
 						}else if((!param1.equals("0")) && (param2.equals("0"))){
 							query="select * from faturamento where cliente='"+param1+"'";
 						}
-		    			rs=conn.Consulta(query);
+		    			rs=mysql.Consulta(query);
 		    			
 		    			dados_tabela="<table id=\"tabela_faturamento\" data-use-row-attr-func=\"true\" data-toolbar=\"#toolbar_tabela_faturamento\" data-reorderable-rows=\"true\" data-show-refresh=\"true\" data-toggle=\"table\"  data-filter-control=\"true\" data-click-to-select=\"true\" data-pagination=\"true\" data-search=\"true\">" +"\n";
 						dados_tabela=dados_tabela + "<thead>"+"\n";
@@ -1155,6 +1468,7 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
+						out.close();
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("30")){
@@ -1162,7 +1476,7 @@ public class POControl_Servlet extends HttpServlet {
 						//System.out.println("Carregando Milestones para o faturamento ....");
 						dados_tabela="";
 						query="select * from rollout_campos where field_type='Milestone'";
-		    			rs=conn.Consulta(query);
+		    			rs=mysql.Consulta(query);
 		    			if(rs.next()){
 		    				rs.beforeFirst();
 		    				dados_tabela="[";
@@ -1176,6 +1490,7 @@ public class POControl_Servlet extends HttpServlet {
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
+						out.close();
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("31")){
@@ -1199,7 +1514,7 @@ public class POControl_Servlet extends HttpServlet {
 		    			
 		    			while(i<fluxo.length()){
 		    				
-		    				rs=conn.Consulta("select * from faturamento where id_faturamento="+fluxo.getJSONObject(i).getInt("id"));
+		    				rs=mysql.Consulta("select * from faturamento where id_faturamento="+fluxo.getJSONObject(i).getInt("id"));
 		    				if(rs.next()){
 		    					j=0;
 		    					while(j<aux_id_qtd){
@@ -1208,7 +1523,7 @@ public class POControl_Servlet extends HttpServlet {
 			    					money=money*(Double.parseDouble(fluxo.getJSONObject(i).getString("percentual"))/100);
 		    						insere="update faturamento set parcela_pagamento='1 de "+aux_id_qtd+"',milestones_trigger='"+fluxo.getJSONObject(i).getString("milestone")+"',percent='"+fluxo.getJSONObject(i).getString("percentual")+"',valor_parcela='"+money+"' where id_faturamento="+fluxo.getJSONObject(i).getInt("id");
 			    					
-		    						if(conn.Alterar(insere)){
+		    						if(mysql.Alterar(insere)){
 		    							System.out.println("Atualizado com sucesso: item id:"+fluxo.getJSONObject(i).getInt("id"));
 		    						}
 		    						j++;
@@ -1218,7 +1533,7 @@ public class POControl_Servlet extends HttpServlet {
 		    					money=money*(Double.parseDouble(fluxo.getJSONObject(i).getString("percentual"))/100);
 		    					insere="insert into faturamento (site_id,projeto,cliente,po,po_item,parcela_pagamento,status_faturamento,valor_parcela,valor_item,id_rollout,milestones_trigger,percent,id_item_relacionado) values('"+rs.getString("site_id")+"','"+rs.getString("projeto")+"','"+rs.getString("cliente")+"','"+rs.getString("po")+"','"+rs.getString("po_item")+"','"+(j+1)+" de "+aux_id_qtd+"','Aguardando Execução','"+money+"','"+rs.getString("valor_item")+"','"+rs.getString("id_rollout")+"','"+fluxo.getJSONObject(i).getString("milestone")+"','"+fluxo.getJSONObject(i).getString("percentual")+"','"+fluxo.getJSONObject(i).getInt("id")+"')";
 		    					
-		    					if(conn.Inserir_simples(insere)){
+		    					if(mysql.Inserir_simples(insere)){
 		    						System.out.println("Inserido novos itens de pg com sucesso item id original:"+fluxo.getJSONObject(i).getInt("id"));
 		    					}
 		    					j++;
@@ -1233,13 +1548,13 @@ public class POControl_Servlet extends HttpServlet {
 					}else if(opt.equals("32")){
 						//System.out.println("Sincronizando tabela de faturamento...");
 						query="select * from faturamento where milestones_trigger<>'0' and status_faturamento='Aguardando Execução'";
-						rs=conn.Consulta(query);
+						rs=mysql.Consulta(query);
 						if(rs.next()){
 							rs.beforeFirst();
 							while(rs.next()){
 								query="select * from rollout where siteID='"+rs.getString("id_rollout")+"' and milestone='"+rs.getString("milestones_trigger")+"'";
 								System.out.println(query);
-								rs2=conn.Consulta(query);
+								rs2=mysql.Consulta(query);
 								if(rs2.next()){
 									rs2.beforeFirst();
 									while(rs2.next()){
@@ -1248,7 +1563,7 @@ public class POControl_Servlet extends HttpServlet {
 										}else{
 											
 											query="update faturamento set milestone_data_fim_real='"+rs2.getString("dt_fim")+"',status_faturamento='Liberado para Faturar' where id_rollout='"+rs.getString("id_rollout")+"'";
-											conn.Alterar(query);
+											mysql.Alterar(query);
 										}
 									}
 								}
@@ -1259,7 +1574,7 @@ public class POControl_Servlet extends HttpServlet {
 					}else if(opt.equals("33")){
 						query="";
 						query="select * from perfil_funcoes where usuario_id='"+p.get_PessoaUsuario()+"' and ativo='Y'";
-						rs=conn.Consulta(query);
+						rs=mysql.Consulta(query);
 						if(rs.next()) {
 							dados_tabela="{\n";
 							rs.beforeFirst();
@@ -1291,6 +1606,7 @@ public class POControl_Servlet extends HttpServlet {
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
+							out.close();
 						}else {
 							resp.setContentType("application/json");  
 							resp.setCharacterEncoding("UTF-8"); 
@@ -1304,37 +1620,37 @@ public class POControl_Servlet extends HttpServlet {
 						param2=req.getParameter("mensagem");
 						int id_message=0;
 						query="select id_message from updates_message order by id_message desc limit 1";
-						rs=conn.Consulta(query);
+						rs=mysql.Consulta(query);
 						if(rs.next()) {
 							id_message=rs.getInt(1)+1;
 						}
 						query="select id_usuario from usuarios where validado='Y' and ativo='Y'";
-						rs=conn.Consulta(query);
+						rs=mysql.Consulta(query);
 						if(rs.next()) {
 							rs.beforeFirst();
 							while(rs.next()) {
-								conn.Inserir_simples("insert into updates_message (id_message,usuario,titulo,message,messagem_lida,dt_message) values("+id_message+",'"+rs.getString(1)+"','"+param1+"','"+param2+"','N','"+time+"')");
+								mysql.Inserir_simples("insert into updates_message (id_message,usuario,titulo,message,messagem_lida,dt_message) values("+id_message+",'"+rs.getString(1)+"','"+param1+"','"+param2+"','N','"+time+"')");
 							}
 						}
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("35")){
 						query="update empresas set modulo='Módulo de controle Usuarios',assinado='Y',dt_termo_aceite='"+time+"',valor='R$326,00' where id_empresa="+p.getEmpresa().getEmpresa_id();
-						if(conn.Update_simples(query)) {
+						if(mysql.Update_simples(query)) {
 							
 						}
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("36")){
 						query="update empresas set modulo='Módulo de controle Usuarios',assinado='Cancelado',dt_termo_aceite='"+time+"',valor='R$326,00' where id_empresa="+p.getEmpresa().getEmpresa_id();
-						if(conn.Update_simples(query)) {
+						if(mysql.Update_simples(query)) {
 							
 						}
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("37")){
 						query="select * from modulo_mstp where empresa="+p.getEmpresa().getEmpresa_id();
-						rs=conn.Consulta(query);
+						rs=mysql.Consulta(query);
 						String Classe;
 						String color;
 							dados_tabela="<table id=\"tabela_modulo_mstp\" data-use-row-attr-func=\"true\" data-toggle=\"table\"  data-pagination=\"true\" data-search=\"true\">" +"\n";
@@ -1387,6 +1703,7 @@ public class POControl_Servlet extends HttpServlet {
 								resp.setCharacterEncoding("UTF-8"); 
 								PrintWriter out = resp.getWriter();
 								out.print(dados_tabela);
+								out.close();
 							}else {
 								
 								dados_tabela=dados_tabela + "</tbody>";
@@ -1395,6 +1712,7 @@ public class POControl_Servlet extends HttpServlet {
 								resp.setCharacterEncoding("UTF-8"); 
 								PrintWriter out = resp.getWriter();
 								out.print(dados_tabela);
+								out.close();
 							}
 							Timestamp time2 = new Timestamp(System.currentTimeMillis());
 							System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
@@ -1406,7 +1724,7 @@ public class POControl_Servlet extends HttpServlet {
 						}else {
 							query="select *,now() from arquivos_importados where arq_usuario='"+p.get_PessoaUsuario()+"' order by id_sys_arq desc";
 						}
-						rs=conn.Consulta(query);
+						rs=mysql.Consulta(query);
 						if(rs.next()) {
 							rs.beforeFirst();
 							
@@ -1435,20 +1753,23 @@ public class POControl_Servlet extends HttpServlet {
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print(dados_tabela);
+							out.close();
 						}
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("39")) {
-						if(conn.Alterar("update modulo_mstp set termo_aceite='Y',dt_termo_aceite='"+time+"' where empresa="+p.getEmpresa().getEmpresa_id())) {
+						if(mysql.Alterar("update modulo_mstp set termo_aceite='Y',dt_termo_aceite='"+time+"' where empresa="+p.getEmpresa().getEmpresa_id())) {
 							resp.setContentType("application/json");  
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print("Termo aceite com Sucesso");
+							out.close();
 						}else {
 							resp.setContentType("application/json");  
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print("Erro na aceitação do Termo");
+							out.close();
 						}
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
@@ -1458,7 +1779,7 @@ public class POControl_Servlet extends HttpServlet {
 						ServletOutputStream out = resp.getOutputStream();
 						query="";
 						query="select * from arquivos_importados where id_sys_arq="+param1;
-						rs=conn.Consulta(query);
+						rs=mysql.Consulta(query);
 						if(rs.next()) {
 							//System.out.println(" foto encontrada");
 							XSSFWorkbook workbook=new XSSFWorkbook(rs.getBlob("arq").getBinaryStream());
@@ -1475,10 +1796,10 @@ public class POControl_Servlet extends HttpServlet {
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}
-				
+		
 				} catch (SQLException e) {
 			
-				conn.fecharConexao();
+				mysql.fecharConexao();
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (JSONException e) {

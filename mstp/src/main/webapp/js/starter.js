@@ -81,13 +81,21 @@ $(document).ready(function () {
 			    allowedFileExtensions: ['xlsx'],
 			    maxFileCount: 5
 			});
+           
             $("#input_PO_file").fileinput({
-            	language: "pt-BR",
-			    uploadUrl: "./UserMgmt?opt=17", // server upload action
+			    uploadUrl: "./POControl_Servlet?opt=12", 
 			    uploadAsync: false,
-			    allowedFileExtensions: ['xlsx'],
-			    maxFileCount: 5
-			});
+			    allowedFileExtensions: ['pdf', 'xls', 'xlsx'],
+			    maxFileCount: 5,
+			    uploadExtraData:function (previewId, index) {
+			        var obj = {cliente:$("#cliente_carrega_po").val(),projeto:$("#projeto_carrega_po").val()};
+			        //obj[0]=$("#cliente_carrega_po").val();
+			        //obj[1]=$("#projeto_carrega_po").val()
+			        return obj;
+			    }
+			}).on('fileuploaded', function(event, data, previewId, index) {
+				carrega_PO(0);
+		});
             $("#input_usuario2_arq").fileinput({
             	language: "pt-BR",
 			    uploadUrl: "./UserMgmt?opt=21", // server upload action
@@ -125,11 +133,17 @@ $(document).ready(function () {
             	
             	carrega_gant();
             
-            //carrega_cliente_table();
+            carrega_cliente_table();
             load_site_markers();
             carrega_select_func_ponto();
             carrega_usuarios();
-            //carrega_PO(0)
+            
+            $('#PO_upload_Modal').on('show.bs.modal', function (event) {
+            	atualiza_select_cliente();
+            });
+            $('#modal_project_add').on('show.bs.modal', function (event) {
+            	atualiza_select_cliente();
+            });
             $('#modal_upload_rollout').on('show.bs.modal', function (event) {
             	var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
 	           	 var rolloutid;
@@ -411,7 +425,7 @@ function carrega_perfil(){
 	 });
 }
 function menu(opt){
-	 if(opt=="portal" || opt=="senha" || opt=="usuarios_ponto" || opt=="usuarios_banco_hh" || opt=="mstp_mobile_report_diario" || opt=="rel_ponto_kpi" || opt=="usuarios_ponto_analise"){
+	 if(opt=="ItemPO" || opt=="portal" || opt=="senha" || opt=="usuarios_ponto" || opt=="usuarios_banco_hh" || opt=="mstp_mobile_report_diario" || opt=="rel_ponto_kpi" || opt=="usuarios_ponto_analise"){
 		 $(".janelas").hide();
 	     document.getElementById(opt).style.display = "block";
 	}else if(opt=="importacoes"){
@@ -434,6 +448,7 @@ function menu(opt){
 	}else if(opt=="PO" && geral.perfil.search("POManager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
+		carrega_PO(0);
 	}
 	else if(opt=="campos_rollout" && geral.perfil.search("RolloutManager")>=0){
 		$(".janelas").hide();
@@ -485,6 +500,10 @@ function menu(opt){
 	}else if(opt=="aprovacoes" && geral.perfil.search("BancoHHApprover")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
+	}else if(opt=="projetos" && geral.perfil.search("ProjectManager")>=0){
+		$(".janelas").hide();
+		document.getElementById(opt).style.display = "block";
+		carrega_project_table();
 	}else if(opt=="mapa_Operacional" && geral.perfil.search("MapViewer")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
