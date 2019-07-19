@@ -13,38 +13,25 @@ $(document).ready(function () {
 			geral.perfil="";
 			geral.banco="0";
             carrega_perfil();
-            var initWidgets = function (tab) {
+           
+            carrega_portal();
+            var Meusdockings = function (tab) {
                 switch (tab) {
-                    case 0:
-                        
-                        break;
                     case 1:
-                    	 if(geral.perfil.search("RolloutManager")>=0){
-                			 
-                			 $("#from").jqxDateTimeInput({selectionMode: 'range'});
-                			 $("#from").on('change', function (event) {
-                                 //var selection = $("#jqxWidget").jqxDateTimeInput('getRange');
-                                 g1(1,'grafico_container1_rollout');
-                             });
-                			 g1(0,'grafico_container1_rollout');
-                			 
-                		 }
+                    	$('#docking_rollout').jqxDocking({  orientation: 'horizontal',width:1200, mode: 'docked',theme: 'material' });
+                    	carrega_portalRollout();
+                    	break;
+                    case 2:
+                    	$('#docking_PO').jqxDocking({  orientation: 'horizontal',width:1200, mode: 'docked',theme: 'material' });
                         break;
                 }
             }
-            $('#jqxtabs_usuario').jqxTabs({height:800,theme: 'light'});
-            $('#jqxtabs').jqxTabs({height:800,theme: 'light'});
-            $('#jqxtabs').on('selected', function (event) {
-            	//console.log(event);
-                if(event.args.item==1){
-                	g1(0,'grafico_container1_rollout');
-       			    g9(0,'grafico_container2_rollout');
-                }
-            });
+            $('#jqxtabs').jqxTabs({height:800,theme: 'light',initTabContent:Meusdockings});
+            
             $('#range_espelho').jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode: 'range'});
             $('#range_espelho_analise').jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode: 'range'});
-            carrega_portal();
-           
+            
+            $('#jqxtabs_usuario').jqxTabs({height:800,theme: 'light'});
            // carrega_tabela_site();
             carrega_tree_rollout();
             calcula_quantidade_hh_disponivel();
@@ -69,6 +56,12 @@ $(document).ready(function () {
 		});
             $("#excelExport").jqxButton({disabled: true});
            
+            $('#mainSplitter').jqxSplitter({ 
+            	width: 1200,
+            	height: 800,
+            	orientation: 'horizontal',
+            	panels: [{ size: 400 }, { size: 400 }] 
+            });
            
             $("#excelExport").click(function () {
             	exportar_analise_ponto();         
@@ -449,18 +442,24 @@ function menu(opt){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
 		carrega_PO(0);
-	}
-	else if(opt=="campos_rollout" && geral.perfil.search("RolloutManager")>=0){
+	}else if(opt=="campos_rollout" && geral.perfil.search("RolloutManager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
 	}else if(opt=="arvore_rollout_conf" && geral.perfil.search("RolloutManager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
 		carrega_tree_rollout_conf();
-	}
-	else if(opt=="rollout" && geral.perfil.search("RolloutManager")>=0){
+	}else if(opt=="rollout" && geral.perfil.search("RolloutManager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
+	}else if(opt=="permits" && geral.perfil.search("PermitsManager")>=0){
+		$(".janelas").hide();
+		document.getElementById(opt).style.display = "block";
+		carregaTabelaMasterPermits();
+	}else if(opt=="permitsCampos" && geral.perfil.search("PermitsManager")>=0){
+		$(".janelas").hide();
+		document.getElementById(opt).style.display = "block";
+		carrega_tabela_campos_permits();
 	}else if(opt=="pivot_design_div" && geral.perfil.search("RolloutManager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
@@ -500,6 +499,11 @@ function menu(opt){
 	}else if(opt=="aprovacoes" && geral.perfil.search("BancoHHApprover")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
+		
+	}else if(opt=="usuarios_extra_hh" && geral.perfil.search("BancoHHApprover")>=0){
+		$(".janelas").hide();
+		document.getElementById(opt).style.display = "block";
+		
 	}else if(opt=="projetos" && geral.perfil.search("ProjectManager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";

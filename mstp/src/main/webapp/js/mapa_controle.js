@@ -14,7 +14,7 @@ function load_site_markers(){
 	
 	$.getJSON('./SiteMgmt?opt=3', function(data) {
 		
-		//alert(data);
+		console.log(data);
 		var geojsonLayer = new L.GeoJSON(null, {
 		      onEachFeature: function (feature, layer) {
 		        if (feature.properties) {
@@ -34,7 +34,9 @@ function load_site_markers(){
 		mymap.addLayer(geojsonLayer);
 		geojsonLayer.clearLayers();
 		geojsonLayer.addData(data);
-		mymap.fitBounds(geojsonLayer.getBounds());
+		if(data.length>0){
+			mymap.fitBounds(geojsonLayer.getBounds());
+		}
 	});
 	}
 function load_site_markers_mapa_central_rollout(){

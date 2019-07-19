@@ -144,6 +144,8 @@ response.setDateHeader ("Expires", -1);
     <script type="text/javascript" src="js/jqwidgets/jqxpivot.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxpivotdesigner.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxpivotgrid.js"></script>
+    <script type="text/javascript" src="js/jqwidgets/jqxform.js"></script>
+    
     <script type="text/javascript" src="js/jqwidgets/globalization/globalize.js"></script>
     <script type="text/javascript" src="js/jqwidgets/localization.js"></script>
     <link rel="stylesheet" type="text/css" href="js/dhtmlx/pivot.css" />
@@ -162,6 +164,7 @@ response.setDateHeader ("Expires", -1);
 	<script type="text/javascript" src="js/mapa_controle.js"></script>
 	<script type="text/javascript" src="js/Site.js"></script>
 	<script type="text/javascript" src="js/banco_horas.js"></script>
+	<script type="text/javascript" src="js/permits.js"></script>
 	<script type="text/javascript" src="js/Relatorios.js"></script>
 	<script type="text/javascript" src="js/Ponto.js"></script>
 	<script type="text/javascript" src="js/TemplateVistoria.js"></script>
@@ -363,6 +366,7 @@ response.setDateHeader ("Expires", -1);
 								</div>
 							</li>
 							<li><a class="icon icon-display" href="#" onclick="menu('PO')">Gestão de PO's</a></li>
+							<li><a class="icon icon-display" href="#" onclick="menu('permits')">Aquisições(PERMITS)</a></li>
 							<li><a href="#" onclick="menu('aprovacoes');carrega_aprovacoes_hh();"><i class="fas fa-list-ul"></i>&nbsp;&nbsp;Aprovações</a></li>
 							<li class="icon icon-arrow-left">
 								<a class="icon icon-male" href="#" onclick="menu('clientes')">Clientes</a>
@@ -404,7 +408,7 @@ response.setDateHeader ("Expires", -1);
 									<h2 class="icon icon-settings">Configurações</h2>
 									<ul>
 										<li><a class="icon icon-key" href="#" onclick="menu('senha')">Senha</a></li>
-										
+										<li><a class="icon icon-user" href="#" onclick="menu('permitsCampos')">Aquisições&Permissões</a></li>
 										<li><a class="icon icon-user" href="#">Portal</a></li>
 										<li class="icon icon-arrow-left">
 											<a class="icon icon-note" href="#">Rollout</a>
@@ -439,6 +443,7 @@ response.setDateHeader ("Expires", -1);
 						<ul style='margin-left: 20px;'>
 				            <li>Usuários</li>
 				            <li>Rollout</li>
+				            <li>PO</li>
 	        			</ul>
 	        			<div>
 						<div id='jqxWidget' style="width:100%;margin: auto;float: left">
@@ -480,12 +485,12 @@ response.setDateHeader ("Expires", -1);
 							<div id='jqxWidget_rollout' style="width:100%;margin: auto;float: left">
 					        <div id="docking_rollout" style="width:1200px">
 					            <div style="overflow: hidden;width:400px">
-					                <div id="window0" style="height: 350px">
+					                <div id="window5" style="height: 350px">
 					                    <div><div id='from'></div></div>
 					                   
 					                    <div id='grafico_container1_rollout'><div class="loader"></div></div>
 					                </div>
-					                <div id="window1" style="height: 350px">
+					                <div id="window6" style="height: 350px">
 					                    <div><div id='from2'></div></div>
 					                   
 					                    <div id='grafico_container2_rollout'><div class="loader"></div></div>
@@ -493,7 +498,25 @@ response.setDateHeader ("Expires", -1);
 					            </div>
 					         </div>
 					         </div>
-						</div><!-- Fim Tab Rollout -->
+						</div><!-- Fim da Tab Rollout -->
+						<div>
+						<div id='jqxWidget_PO' style="width:100%;margin: auto;float: left">
+					        <div id="docking_PO" style="width:1200px">
+					            <div style="overflow: hidden;width:400px">
+					                <div id="window7" style="height: 350px">
+					                    <div>Empresas Emissoras de PO</div>
+					                   
+					                    <div id='grafico_container1_PO'><div class="loader"></div></div>
+					                </div>
+					                <div id="window8" style="height: 350px">
+					                    <div>Valor Acumulado Recebido por Mes</div>
+					                   
+					                    <div id='grafico_container2_PO'><div class="loader"></div></div>
+					                </div>
+					            </div>
+					         </div>
+					         </div>
+						</div><!-- Fim da Tab PO -->
 					   </div>
 					</div> <!-- /portal -->
 					<div class="janelas" id="mapa_Operacional" style="display:none;">
@@ -563,6 +586,9 @@ response.setDateHeader ("Expires", -1);
 	        				
 						</div><!-- /tabMapaOperacinal -->
 					</div><!-- /mapaOperacinal -->
+					<div class="janelas" id="permitsCampos" style="display:none;">
+						<div id="div_tabela_campos_permits"></div>
+					</div>
 					<div class="janelas" id="mapa_central" style="display:none;">
 					
             
@@ -655,6 +681,40 @@ response.setDateHeader ("Expires", -1);
 								    </div>
 		        				</div>
 	        		</div>
+					</div>
+					<div class="janelas" id="permits" style="display:none;width:100%;height:100%;">
+						<div class="panel panel-default" style="width:90%;margin:0 auto">
+	        				<div class="panel-heading">Gestão de Aquisições e Licenças</div>
+		        				<div class="panel-body">
+		        				 	<div id="mainSplitter">
+								            <div class="splitter-panel">
+								                <div id="gridMaster_permits"></div>
+								            </div>
+								            <div class="splitter-panel">
+								            	<div id='tabs_permits'>
+										            <ul>
+										                <li style="margin-left: 30px;">Cadastro</li>
+										                <li>Aquisição</li>
+										                <li>Licenciamento</li>
+										                <li>Financeiro</li>
+										                <li>Histórico</li>
+										            </ul>
+									            	<div>
+									            		<div id="divCamposCadastro"></div>
+									            		<div class="modal-footer">
+        														<button id="add_project_btn" type="button" class="btn btn-info" onclick="add_cadastroPermits()">Salvar Novo Cadastro</button>
+      													</div>
+									            	</div>
+									            	<div><div id="divCamposAquisicao"></div></div>
+									            	<div><div id="divCamposLicenciamento"></div></div>
+									            	<div><div id="divCamposFinanceiro"></div></div>
+									            	<div><div id="divCamposHistórico"></div></div>
+									            </div>
+								            
+								            </div>
+        							</div>
+		        				</div>
+	        			</div>
 					</div>
 					<div class="janelas" id="justificativas" style="display:none;width:100%;height:100%;">
 						<div class="panel panel-default" style="width:90%;margin:0 auto">
@@ -1024,6 +1084,7 @@ response.setDateHeader ("Expires", -1);
         		</table>
         		</div>
         		</div>
+        		
         		<div class="janelas" id="usuarios_banco_hh" style="display:none;margin:0 auto;"	>
         		
 	        		<div id="resumo_banco de Horas" class="panel panel-default" style="width:90%;margin:0 auto;">
@@ -1368,7 +1429,7 @@ response.setDateHeader ("Expires", -1);
 		        		<div style="float: right">
 		        			
 		        			<button id="btn_gerar_espelho" onclick="recalcular_HH_BH()" class="btn btn-primary">Gerar Espelho de ponto</button>
-		        			<button id="btn_corrigir_espelho" onclick="corrigir_ponto()" class="btn btn-danger">Corrigir Intervalos de Descanso</button>
+		        			<!--  <button id="btn_corrigir_espelho" onclick="corrigir_ponto()" class="btn btn-danger">Corrigir Intervalos de Descanso</button>-->
 	        			</div>
 	        			</div>
         			</div>
@@ -1764,6 +1825,36 @@ response.setDateHeader ("Expires", -1);
   </div>
 </div>
 
+<div id="modal_lanca_autorizacaoHeretro" class="modal fade subconpo" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title label_janelas">Autorização retro</h4>
+      </div>
+      <div class="modal-body">
+      	<div class="form-group">
+      	
+      	<p>
+			<div id="range_autRetro"></div>
+			<br>
+		<p>
+			
+	      
+		</div>
+      </div>
+      <div class="modal-footer">
+        <button id="add_autoretro_btn" type="button" class="btn btn-info">Gerar Autorizações Prévias</button><button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
 <div id="Modal_campos_rollout" class="modal fade" role="dialog">
   <div class="modal-dialog">
 
@@ -1795,7 +1886,44 @@ response.setDateHeader ("Expires", -1);
     </div>
 
   </div>
-</div>  
+</div>
+
+<div id="Modal_campos_permits" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title label_janelas">Adicionar Novo Campo ao Módulo de Aquisições e Licenças</h4>
+      </div>
+      <div class="modal-body">
+      <input type="hidden" value="" id="id_aux_campo_permit"/>
+      <table width=100%>
+      		<tr><td style="padding: 10px"><label class="control-label label_janelas">Nome do Campo</label></td></tr>
+	        <tr><td style="padding: 10px"><input type="text" class="form-control" id="nome_campo_permit"></td></tr>
+	        <tr><td style="padding: 10px"><label class="control-label label_janelas">Tipo do Campo</label></td></tr>
+	        <tr><td style="padding: 10px" class="label_janelas"><select class="form-control" id="tipo_campo_permit"><option>Texto</option><option>Data</option><option>Numero</option><option>Lista</option></select><br></td></tr>
+			<tr><td style="padding: 10px"><label class="control-label label_janelas">Grupo do Campo</label></td></tr>
+	        <tr><td style="padding: 10px" class="label_janelas"><select class="form-control" id="grupo_campo_permit"><option>Cadastro</option><option>Aquisição</option><option>Licenciamento</option><option>Financeito</option></select><br></td></tr>
+			<tr><td style="padding: 10px"><label class="control-label label_janelas">Descrição</label></td></tr>
+	        <tr><td style="padding: 10px"><input type="text" class="form-control" id="desc_campo_permit"></td></tr>     
+	        <tr><td style="padding: 10px">Exibir na Tabela Master<input type="checkbox" class="form-control" id="tabela_master_permit"></td></tr> 	
+      	</table>
+			<hr>
+			
+        
+      </div>
+      <div class="modal-footer">
+      	<button type="button" class="btn btn-default" data-dismiss="modal" onclick="add_campo_permit()">Adicionar</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div> 
+  
 <div id="modal_site_add" class="modal fade subconpo" role="dialog">
   <div class="modal-dialog">
 

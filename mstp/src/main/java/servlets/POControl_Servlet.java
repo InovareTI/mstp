@@ -19,7 +19,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.NumberFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
@@ -40,7 +39,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
@@ -56,9 +54,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import classes.ClienteEmpresa;
 import classes.Conexao;
 import classes.ConexaoMongo;
 import classes.Pessoa;
+import classes.ProjetoCliente;
 import classes.Semail;
 
 
@@ -177,7 +177,7 @@ public class POControl_Servlet extends HttpServlet {
 			dados_tabela=dados_tabela +"</thead>"+"\n";
 			dados_tabela=dados_tabela +"<tbody>"+"\n";
 			if(p.getPerfil_funcoes().contains("POManager")) {
-			p.set_PessoaPerfil_campos("po_table");
+			p.set_PessoaPerfil_campos(mysql,"po_table");
 			query="Select "+p.get_PessoaPerfil_campos()+" from po_table where empresa="+p.getEmpresa().getEmpresa_id()+" and PO_ATIVA='Y' order by po_id desc";
 			//System.out.println(query);
 			rs=mysql.Consulta(query);
@@ -185,7 +185,7 @@ public class POControl_Servlet extends HttpServlet {
 			
 				if(rs.next()){
 					rs.beforeFirst();
-					//System.out.println("Entrou no RS");
+					System.out.println("Entrou no RS");
 					if(p.get_PessoaPerfil_nome().equals("Financeiro")){
 						while(rs.next()){
 							//System.out.println("Entrou no while");
@@ -324,7 +324,7 @@ public class POControl_Servlet extends HttpServlet {
 				//System.out.println("Validando PO's");
 				 time = new Timestamp(System.currentTimeMillis());
 				param1=req.getParameter("po");
-				System.out.println(param1);
+				//System.out.println(param1);
 				if(param1.indexOf("'")>0){
 					param1.replace("'","");
 				}
@@ -447,7 +447,7 @@ public class POControl_Servlet extends HttpServlet {
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("7")){
 						
-		                System.out.println("Cadastrando Projeto...");
+		                //System.out.println("Cadastrando Projeto...");
 		                param1=req.getParameter("projeto");
 		    			param2=req.getParameter("cliente");
 		    			param3=req.getParameter("codigo");
@@ -464,7 +464,7 @@ public class POControl_Servlet extends HttpServlet {
 		    			insere="INSERT INTO project_table (project_name,project_pm,project_begin_date,project_end_date,project_creator,project_created_date,project_status,project_customer_budget,project_customer_code,project_customer_name,project_customer_pm,customer_id,customer_name,empresa) "
 		    					                + "VALUES ('"+param1+"','"+param5+"','"+param8.substring(0, 10)+"','"+param9.substring(0, 10)+"','"+session.getAttribute("user")+"','"+time+"','Enviado','"+param7+"','"+param3+"','"+param1+"','"+param5+"','"+param2+"','"+param2+"',"+p.getEmpresa().getEmpresa_id()+")";
 		    			if(mysql.Inserir_simples(insere)){
-				    		System.out.println("Projeto Cadastrado");
+				    		//System.out.println("Projeto Cadastrado");
 				    		rs=mysql.Consulta("Select project_id from project_table order by project_id desc limit 1");
 				    		if(rs.next()){
 				    			last_id=rs.getInt(1);
@@ -480,7 +480,7 @@ public class POControl_Servlet extends HttpServlet {
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("8")){
 							
-			                System.out.println("Carregando tabela de Clientes");
+			                //System.out.println("Carregando tabela de Clientes");
 							rs=mysql.Consulta("Select * from customer_table where empresa="+p.getEmpresa().getEmpresa_id()+" order by customer_id desc");
 							dados_tabela="<table id=\"tabela_de_clientes\" data-toggle=\"table\"  data-filter-control=\"true\"  data-pagination=\"true\" data-use-row-attr-func=\"true\" data-reorderable-rows=\"true\" data-toolbar=\"#toolbar_cliente\" data-search=\"true\">" +"\n";
 							dados_tabela=dados_tabela + "<thead>"+"\n";
@@ -522,7 +522,7 @@ public class POControl_Servlet extends HttpServlet {
 								Timestamp time2 = new Timestamp(System.currentTimeMillis());
 								System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("9")){
-							System.out.println("Cadastrando Cliente...");
+							//System.out.println("Cadastrando Cliente...");
 			                param1=req.getParameter("nomeCompleto");
 			    			param2=req.getParameter("nome");
 			    			param3=req.getParameter("cnpj");
@@ -537,7 +537,7 @@ public class POControl_Servlet extends HttpServlet {
 			    			insere="INSERT INTO customer_table (customer_name,customer_fullname,customer_cnpj,customer_adress,customer_ie,customer_owner_creator,customer_created_date,empresa) "
 			    					                + "VALUES ('"+param2+"','"+param1+"','"+param3+"','"+param5+"','"+param4+"','"+p.get_PessoaUsuario()+"','"+time+"',"+p.getEmpresa().getEmpresa_id()+")";
 			    			if(mysql.Inserir_simples(insere)){
-					    		System.out.println("Cliente Cadastrado");
+					    		//System.out.println("Cliente Cadastrado");
 					    		rs=mysql.Consulta("Select customer_id from customer_table order by customer_id desc limit 1");
 					    		if(rs.next()){
 					    			last_id=rs.getInt(1);
@@ -599,7 +599,8 @@ public class POControl_Servlet extends HttpServlet {
 							try {
 							String cliente="";
 							String projeto="";
-							
+							ClienteEmpresa clienteObj = new ClienteEmpresa();
+							ProjetoCliente projetoObj = new ProjetoCliente();
 							ServletContext context = req.getSession().getServletContext();
 							InputStream inputStream=null;
 							if (ServletFileUpload.isMultipartContent(req)) {
@@ -613,8 +614,12 @@ public class POControl_Servlet extends HttpServlet {
 									if (item.isFormField()) {
 										if(item.getFieldName().equals("cliente")){
 											cliente=item.getString();
+											clienteObj.setClienteEmpresaById(mysql, Integer.parseInt(cliente));
+												
+											
 										}else if(item.getFieldName().equals("projeto")){
 											projeto=item.getString();
+											projetoObj.setProjetoClienteById(mysql, Integer.parseInt(projeto));
 										}
 								    }
 									}
@@ -643,54 +648,68 @@ public class POControl_Servlet extends HttpServlet {
 									        	}
 									        	statement.close();
 									        	
-									        	if(p.getEmpresa().getEmpresa_id()==8) {
-									        		 System.out.println("controle 1");
+									        	if(p.getEmpresa().getEmpresa_id()==8 || p.getEmpresa().getEmpresa_id()==7 || p.getEmpresa().getEmpresa_id()==5 || p.getEmpresa().getEmpresa_id()==2) {
+									        		// System.out.println("controle 1");
 									        		 //ByteArrayInputStream initialStream = new ByteArrayInputStream(new byte[] { 0, 1, 2 });
 									        	     
 									        	//byte[] targetArray = IOUtils.toByteArray(item.getInputStream());
-									        	System.out.println("controle 1-1");
+									        	//System.out.println("controle 1");
 									    		PDDocument document = PDDocument.load(new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream())));
-									    		
-									    		System.out.println("controle 1-2");
-									    		 System.out.println("controle 2");
+									    		int paginas=document.getNumberOfPages();
+									    		String po_number="";
+								    			 Integer po_numberNumero=0;
+								    			 String valor="";
+								    			 String dt_issuePO="";
+								    			 Double valordouble=0.0;
+								    			
+								                 String po_number_string="";
+								                 String site = "";
+								                 Rectangle itemcod ;
+								                 Rectangle PO ;
+								                 Rectangle siteid ;
+								                 Rectangle valorpo ;
+								                 Rectangle POdt ;
+								                 Rectangle itemlinha ;
+								                 Rectangle itemarea;
+								                 Rectangle quantidade ;
+								                 Rectangle preco;
+									    		if(paginas>0) {
+									    			  Statement stmt = mysql.getConnection().createStatement();
+										              mysql.getConnection().setAutoCommit(false);
+									    			for(int indice=0;indice<paginas;indice++) {
+									    			PDPage docPage = (PDPage) document.getPage(indice);
+									    			
 									    		 if (!document.isEncrypted()) {
-									    			 System.out.println("controle 3");
-									    			 String po_number="";
-									    			 Integer po_numberNumero=0;
-									    			 String valor="";
-									    			 String dt_issuePO="";
-									    			 Double valordouble=0.0;
+									    			 System.out.println("Trabalhando pagina "+ (indice+1)+" de "+ paginas);
+									    			 PDFTextStripperByArea stripper = new PDFTextStripperByArea();
+									    			 if(indice==0) {
 									    			 PDFTextStripper tStripper = new PDFTextStripper();
-									                 System.out.println("controle 4");
-									                 
-									                 System.out.println("controle 5");
-									             
-									                 String po_number_string="";
-									                 String site = "";
-									                 
-									                 System.out.println("iniciando pesquisa por area");
-									                 PDFTextStripperByArea stripper = new PDFTextStripperByArea();
+									                 String pdfFileInText = tStripper.getText(document);
+									                 String lines[] = pdfFileInText.split("\\r?\\n");
+									                 for (String linha : lines) {
+									                     if(linha.contains("Total Value:")) {
+									                    	 valor=linha;
+									                    	 break;
+									                     }
+									                 }
+									    			
+									                
 									                 stripper.setSortByPosition(true);
-									                 PDPage docPage = document.getPage(0);
-									                 Rectangle itemcod ;
-									                 Rectangle PO ;
-									                 Rectangle siteid ;
-									                 Rectangle valorpo ;
-									                 Rectangle POdt ;
-									                 Rectangle itemlinha ;
-									                 Rectangle itemarea;
-									                 Rectangle quantidade ;
-									                 Rectangle preco;
+									                
 									                 POdt= new Rectangle(168, 96, 65, 12);
 									                 PO= new Rectangle(167, 85, 110, 12);
-									                 valorpo= new Rectangle(428, 172, 83, 12);
-									                 siteid=new Rectangle(164, 503, 144, 12);
+									                 //valorpo= new Rectangle(428, 172, 83, 12);
+									                 siteid=new Rectangle(167, 109, 120, 10);
+									                
 									                 stripper.addRegion("PO", PO);
 									                 stripper.addRegion("POdt", POdt);
-									                 stripper.addRegion("valorpo", valorpo);
+									                 //stripper.addRegion("valorpo", valorpo);
 									                 stripper.addRegion("siteid", siteid);
+									              
 									                 stripper.extractRegions(docPage);
+									                 //System.out.println("controle 4");
 									                 po_number = stripper.getTextForRegion("PO").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+									                 System.out.println(po_number);
 									                 po_number_string="string";
 							                    	 if(StringUtils.isNumeric(po_number)) {
 							                    		 po_number_string="numero";
@@ -699,6 +718,7 @@ public class POControl_Servlet extends HttpServlet {
 							                    		 po_number_string="string";
 							                    	 }
 									                 dt_issuePO = stripper.getTextForRegion("POdt").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+									                 System.out.println(dt_issuePO);
 									                 if(dt_issuePO.length()==9) {
 								                    		if(dt_issuePO.substring(2, 5).equals("May")) {
 								                    		dt_issuePO=dt_issuePO.substring(0, 2)+"-05-"+dt_issuePO.substring(5, dt_issuePO.length());
@@ -730,78 +750,153 @@ public class POControl_Servlet extends HttpServlet {
 							             			 Date d1=format.parse(dt_issuePO);
 							             			 dt_issuePO=f2.format(d1);
 							             			 System.out.println(dt_issuePO);
-									                 valor= stripper.getTextForRegion("valorpo").replaceAll("\\n", "").replaceAll("\\r", "").trim();
-									                 valor=valor.substring(0,valor.indexOf("BRL")).trim();
-							                    	 //System.out.println(valor);
+									                 //valor= stripper.getTextForRegion("valorpo").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+									                 valor=valor.substring(valor.indexOf("Total Value:")+13,valor.indexOf("BRL")).trim();
+							                    
 							                    	 valor=valor.replace(".", "");
 							                    	 valor=valor.replace(",", ".");
-							                    	 //System.out.println(valor);
+							                    
 							                    	 valordouble=Double.parseDouble(valor);
 							                    	 System.out.println(valordouble);
 									                 site= stripper.getTextForRegion("siteid").replaceAll("\\n", "").replaceAll("\\r", "").trim();
-									                 site=site.substring(site.indexOf("SITE")+4,site.length()).trim();
-									                 site=site.substring(0,site.indexOf(" "));
-									                 int limite=458;
-									                 int limite2=460;
+									                 System.out.println("Site sem parse: "+site);
+									                 site=site.trim().substring(0,site.indexOf(',')).trim();
+									                 //site=site.substring(0,site.indexOf(" "));
+									                 System.out.println("Site com parse: "+site);
+									    			 }
+									                 Rectangle line ;
+									                 Rectangle segunda ;
+									    			 
+									                 int limite=0;
 									                 
-									                 System.out.println("pegou a pagina");
+									                	 
+									                 
+									                 String auxLine;
+									                if(indice==0) {
+									                limite=110;
+									                 while(limite<812) {
+									                	 line= new Rectangle(35, limite, 55, 8);
+									                	 stripper.addRegion("linha", line);
+									                	 stripper.extractRegions(docPage);
+									                	 auxLine=stripper.getTextForRegion("linha");
+									                	 if(auxLine.trim().equals("Line Status")) {
+									                		 System.out.println("achou a linha");
+									                		 break;
+									                	 }else {
+									                		 limite=limite+8;
+									                		 stripper.removeRegion("linha");
+									                	 }
+									                 }
+									                }
+									                if(indice==0) {
+									                 limite=limite+36;
+									                }else {
+									                	limite=9;
+									                }
+									                 int segunda_linha=0;
+									                 
+									               
 									                 String item_cod;
 									                 String item_linha;
 									                 String itemString;
 									                 String quantidadeStr;
 									                 String precoStr;
 									                 String insere_item="";
-									                 System.out.println("definiu as variaveis");
-									                 Statement stmt = mysql.getConnection().createStatement();
-									                 mysql.getConnection().setAutoCommit(false);
+									                 String achoualgo="";
+									               
 									                 while(limite < 812) {
 									                	 stripper = new PDFTextStripperByArea();
 									                	 stripper.setSortByPosition(true);
 									                	 
 									                	 itemlinha= new Rectangle(98, limite, 47, 12);
-									                	 itemcod= new Rectangle(149, limite, 60, 12);
-									                	 itemarea= new Rectangle(242, limite, 128, 12);
-									                	 quantidade= new Rectangle(152, limite2+12, 50, 12);
-									                	 preco= new Rectangle(262, limite2+12, 50, 12);
-									                	 System.out.println("retangulos criados");
-									                	 
 									                	 stripper.addRegion("linhaItem", itemlinha);
-									                	 stripper.addRegion("codigoItem", itemcod);
-									                	 stripper.addRegion("Item", itemarea);
-									                	 stripper.addRegion("Quantidade", quantidade);
-									                	 stripper.addRegion("Preco", preco);
-									                	 //System.out.println("regioes adicionadas");
-									                	 
 									                	 stripper.extractRegions(docPage);
-									                	 //System.out.println("extract regions ok");
-									                	
 									                	 item_linha= stripper.getTextForRegion("linhaItem").replaceAll("\\n", "").replaceAll("\\r", "").trim();
-									                	 item_cod= stripper.getTextForRegion("codigoItem").replaceAll("\\n", "").replaceAll("\\r", "").trim();
-									                	 itemString= stripper.getTextForRegion("Item").replaceAll("\\n", "").replaceAll("\\r", "").trim();
-									                	 quantidadeStr= stripper.getTextForRegion("Quantidade").replaceAll("\\n", "").replaceAll("\\r", "").trim();
-									                	 precoStr= stripper.getTextForRegion("Preco").replaceAll("\\n", "").replaceAll("\\r", "").trim();
-									                	 //System.out.println("Linha numero:"+Integer.parseInt(item_linha.trim().toString()));
+									                	 if(item_linha.trim().length()>0) {
 									                	 if(StringUtils.isNumeric(item_linha)) {
 									                		 if(Integer.parseInt(item_linha.trim().toString())>0) {
-									                			 //System.out.println("Linha:"+item_linha);
+									                			 segunda_linha=limite+12;
+									                			 itemcod= new Rectangle(149, limite, 60, 12);
+											                	 itemarea= new Rectangle(242, limite, 128, 12);
+											                	 achoualgo="";
+											                	 while(achoualgo.trim().equals("") && segunda_linha<812) {
+											                		 segunda= new Rectangle(98, segunda_linha, 47, 12);
+											                		 stripper.addRegion("segunda", segunda);
+											                		 stripper.extractRegions(docPage);
+											                		 achoualgo=stripper.getTextForRegion("segunda").trim();
+											                		 //System.out.println("Achou:"+achoualgo);
+											                		 segunda_linha=segunda_linha+1;
+											                		 stripper.removeRegion("segunda");
+											                	 }
+											                	 segunda_linha=segunda_linha-1;
+											                	 quantidade= new Rectangle(152, segunda_linha, 50, 12);
+											                	 preco= new Rectangle(262, segunda_linha, 50, 12);
+									                			 stripper.addRegion("codigoItem", itemcod);
+											                	 stripper.addRegion("Item", itemarea);
+											                	 stripper.addRegion("Quantidade", quantidade);
+											                	 stripper.addRegion("Preco", preco);
+											                	 stripper.extractRegions(docPage);
+									                			 item_cod= stripper.getTextForRegion("codigoItem").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+											                	 itemString= stripper.getTextForRegion("Item").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+											                	 quantidadeStr= stripper.getTextForRegion("Quantidade").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+											                	 precoStr= stripper.getTextForRegion("Preco").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+									                			 if(quantidadeStr.trim().equals("") && precoStr.trim().equals("") && limite>=790) {
+									                				 docPage = (PDPage) document.getPage(indice+1);
+									                				 stripper = new PDFTextStripperByArea();
+												                	 stripper.setSortByPosition(true);
+												                	 
+												                	 segunda_linha=8;
+												                	 
+												                	 achoualgo="";
+												                	 while(achoualgo.trim().equals("") && segunda_linha<812) {
+												                		 segunda= new Rectangle(98, segunda_linha, 47, 12);
+												                		 stripper.addRegion("segunda", segunda);
+												                		 stripper.extractRegions(docPage);
+												                		 achoualgo=stripper.getTextForRegion("segunda").trim();
+												                		 //System.out.println("Achou:"+achoualgo);
+												                		 segunda_linha=segunda_linha+1;
+												                		 stripper.removeRegion("segunda");
+												                	 }
+												                	 segunda_linha=segunda_linha-1;
+												                	 quantidade= new Rectangle(152, segunda_linha, 50, 12);
+												                	 preco= new Rectangle(262, segunda_linha, 50, 12);
+										                			 stripper.addRegion("codigoItem", itemcod);
+												                	 stripper.addRegion("Item", itemarea);
+												                	 stripper.addRegion("Quantidade", quantidade);
+												                	 stripper.addRegion("Preco", preco);
+												                	 stripper.extractRegions(docPage);
+										                			 item_cod= stripper.getTextForRegion("codigoItem").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+												                	 itemString= stripper.getTextForRegion("Item").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+												                	 quantidadeStr= stripper.getTextForRegion("Quantidade").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+												                	 precoStr= stripper.getTextForRegion("Preco").replaceAll("\\n", "").replaceAll("\\r", "").trim();
+									                			 }
+									                			 docPage = (PDPage) document.getPage(indice);
+											                	 
+											                	 System.out.println("Linha:"+item_linha);
 									                			 insere_item="insert into po_item_table(po_number,po_item_cod,po_item_name,po_item_desc,empresa,po_item_qtd,po_item_valor,po_item_site) values('"+po_numberNumero+"','"+item_cod+"','"+itemString+"','"+itemString+"',"+p.getEmpresa().getEmpresa_id()+","+quantidadeStr+",'"+precoStr.replace(".", "").replaceAll(",", ".")+"','"+site+"')";
+									                			 System.out.println("query da tabela de itens:"+insere_item);
 									                			 stmt.addBatch(insere_item);
 										                 	}
 									                	 }
-									                	 
+									                 }
 									                	 
 									                	 limite=limite+12;
-									                	 limite2=limite2+12;
-									                 }
+									                	
+									                 }//fim do while
 									                 
 									                 
 									                  
 									                 
-									                 if(po_number_string.equals("numero")) {
-									                	 query="insert into po_table (po_number,empresa,arquivo_id,id_po_file,dt_emitida,total_po,dt_registrada,empresa_emissora,validada,PO_ATIVA) values ('"+po_numberNumero+"',"+p.getEmpresa().getEmpresa_id()+","+id_arquivo+","+id_arquivo+",'"+dt_issuePO+"','"+valordouble+"','"+time+"','"+cliente+"','Sem Validação','Y')";
+									                 
+									    		 }//fim document encrypted
+									    		 
+									     	}//for de paginas
+									    			if(po_number_string.equals("numero")) {
+									                	 query="insert into po_table (po_number,empresa,arquivo_id,id_po_file,dt_emitida,total_po,dt_registrada,empresa_emissora,validada,PO_ATIVA,registrada_por) values ('"+po_numberNumero+"',"+p.getEmpresa().getEmpresa_id()+","+id_arquivo+","+id_arquivo+",'"+dt_issuePO+"','"+valordouble+"','"+time+"','"+cliente+"','Sem Validação','Y','"+p.get_PessoaUsuario()+"')";
 									                 }else {
-									                	 query="insert into po_table (po_number,empresa,arquivo_id,id_po_file,dt_emitida,total_po,dt_registrada,empresa_emissora,validada,PO_ATIVA) values ('"+po_number+"',"+p.getEmpresa().getEmpresa_id()+","+id_arquivo+","+id_arquivo+",'"+dt_issuePO+"','"+valordouble+"','"+time+"','"+cliente+"','Sem Validação','Y')";
+									                	 query="insert into po_table (po_number,empresa,arquivo_id,id_po_file,dt_emitida,total_po,dt_registrada,empresa_emissora,validada,PO_ATIVA,registrada_por) values ('"+po_number+"',"+p.getEmpresa().getEmpresa_id()+","+id_arquivo+","+id_arquivo+",'"+dt_issuePO+"','"+valordouble+"','"+time+"','"+cliente+"','Sem Validação','Y','"+p.get_PessoaUsuario()+"')";
 									                 }
+									                 System.out.println("query da tabela de PO:"+query);
 									                 rs=mysql.Consulta("select * from po_table where po_number='"+po_numberNumero+"' or po_number='"+po_number+"'");
 									                 if(rs.next()) {
 									                	 System.out.println("INSERÇÃO DE PO ABORTADA. MOTIVO: PO DUPLICADA");
@@ -811,26 +906,40 @@ public class POControl_Servlet extends HttpServlet {
 									                	 mysql.getConnection().commit();
 									                	 stmt.close();
 									                 }
-									    		 }
-									    		 document.close();
-									     	}
-									     }
-									     resp.setContentType("application/json"); 
-								        	JSONObject jsonObject = new JSONObject(); 
-								        	jsonObject.put("Sucesso", "Sucesso"); 
-								        	PrintWriter pw = resp.getWriter();
-								        	pw.print(jsonObject); 
-								        	pw.close();
-								    }
-								}
+									                  resp.setContentType("application/json"); 
+											        	JSONObject jsonObject = new JSONObject(); 
+											        	jsonObject.put("Sucesso", "Sucesso"); 
+											        	PrintWriter pw = resp.getWriter();
+											        	pw.print(jsonObject); 
+											        	pw.close();
+									                 Semail email= new Semail();
+												     rs=mysql.Consulta("select distinct usuarios.nome,usuarios.email from usuarios,perfil_funcoes where perfil_funcoes.funcao_nome='POManager'  and perfil_funcoes.empresa_id="+p.getEmpresa().getEmpresa_id()+" and perfil_funcoes.usuario_id=usuarios.id_usuario");
+									    			 if(rs.next()) {
+									    				 rs.beforeFirst();
+									    				 while(rs.next()) {
+									    					 email.enviaEmailSimples(rs.getString("email"), "MSTP - Notificação de Inserção de PO","Prezado "+rs.getString("nome")+", \n \n Informamos que uma nova PO foi carregada no sistema MSTP. \n\nEmpresa Emissora:"+clienteObj.getNome()+". \nPO Número:"+po_numberNumero+" \nProjeto:"+projetoObj.getNome()+" \n\nMensagem Automática.Favor não responder!\n  Operação realizada em: "+time);
+									    				 }
+									    			 }
+									    		}//if numero de paginas maior q zero
+									    		document.close();
+									     
+									    
+						    				
+									        	}// if de empresas
+								    		}// if upload do arquivo ok
+									    
+									        
+								    }//fim do else se for arquivo ou form field
+									 
+								}//while de itens no req paramenter
 							}
 							}catch(Exception erro) {
 								System.out.println(erro.getCause());
-								System.out.println(erro.getMessage());
+								System.out.println(erro.getStackTrace());
 							}
 						}else if(opt.equals("13")){
 							
-							System.out.println("buscando PO");
+							//System.out.println("buscando PO");
 							param1=req.getParameter("id_arquivo");
 							query="select arquivo from po_table_file where file_po_id="+param1;
 							//System.out.println(query);
@@ -978,8 +1087,8 @@ public class POControl_Servlet extends HttpServlet {
 						if(p.getPerfil_funcoes().contains("MessageSender")) {
 						param1=req.getParameter("mensagem");
 						param2=req.getParameter("usuario");
-						System.out.println("Envio de Mensagem:"+param1);
-						System.out.println("Envio de Mensagem:"+param2);
+						//System.out.println("Envio de Mensagem:"+param1);
+						//System.out.println("Envio de Mensagem:"+param2);
 						param1="De: "+p.get_PessoaName()+"\n\n"+param1;
 						param1=param1+"\n\nData Hora de Envio:"+f2.format(time);
 						 if(param2.indexOf(",")>0) {
@@ -1143,7 +1252,7 @@ public class POControl_Servlet extends HttpServlet {
 							System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		    		}else if(opt.equals("21")){
 		    			String charts="";
-		    			System.out.println("Carregando Portal...");
+		    			//System.out.println("Carregando Portal...");
 		    			query="select user_portal from portal_user where id_usuario='"+session.getAttribute("user")+"'";
 		    			rs=mysql.Consulta(query);
 		    			if(rs.next()){
@@ -1310,7 +1419,7 @@ public class POControl_Servlet extends HttpServlet {
 								dados_tabela="{\"nome_campo\":\""+rs.getString(1)+"\",\"tipo_Campo\":\""+rs.getString(2)+"\",\"sub_tipo\":\""+rs.getString(3)+"\",\"atributo\":\""+rs.getString(4)+"\",\"trigger\":"+rs.getString(5)+",\"percent\":\""+rs.getString(6)+"\",\"id_campo\":"+rs.getInt("field_id")+"}";
 							}
 						}
-						System.out.println(dados_tabela);
+						//System.out.println(dados_tabela);
 						resp.setContentType("application/html");  
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
@@ -1553,7 +1662,7 @@ public class POControl_Servlet extends HttpServlet {
 							rs.beforeFirst();
 							while(rs.next()){
 								query="select * from rollout where siteID='"+rs.getString("id_rollout")+"' and milestone='"+rs.getString("milestones_trigger")+"'";
-								System.out.println(query);
+								//System.out.println(query);
 								rs2=mysql.Consulta(query);
 								if(rs2.next()){
 									rs2.beforeFirst();

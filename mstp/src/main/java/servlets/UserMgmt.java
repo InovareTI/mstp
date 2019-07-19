@@ -305,7 +305,7 @@ public class UserMgmt extends HttpServlet {
 								if(rs4.getString("autoriza_previa_he").equals("true")) {
 									Bson filtro;
 									List<Bson> filtros= new ArrayList<>();
-									filtro=Filters.eq("usuario_solicitante",p.get_PessoaUsuario());
+									filtro=Filters.eq("usuario_solicitante",param1);
 									filtros.add(filtro);
 									filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
 									filtros.add(filtro);
@@ -318,6 +318,7 @@ public class UserMgmt extends HttpServlet {
 									if(resultado.hasNext()) {
 										if(!entrada.equals("") && !saida.equals("")) {
 											//System.out.println(entrada);
+											//System.out.println(saida);
 											//System.out.println(rs.getString("data_dia"));
 											HH=calcula_hh(entrada,saida,feriado,conn,p,param1);
 										}else if(!entrada.equals("") && saida.equals("")) {
@@ -1226,7 +1227,7 @@ public class UserMgmt extends HttpServlet {
 					if(rs2.next()) {
 						param3=rs2.getString("datetime_servlet");
 					}
-					query="SELECT * FROM registros where usuario='"+param2+"' and data_dia='"+f2.format(data_HH.getTime())+"' and tipo_registro='Saída' order by datetime_servlet asc limit 1";
+					query="SELECT * FROM registros where usuario='"+param2+"' and data_dia='"+f2.format(data_HH.getTime())+"' and tipo_registro='Saída' order by datetime_servlet desc limit 1";
 					rs2=conn.Consulta(query);
 					if(rs2.next()) {
 						param4=rs2.getString("datetime_servlet");
@@ -1240,7 +1241,7 @@ public class UserMgmt extends HttpServlet {
 							if(rs4.getString("autoriza_previa_he").equals("true")) {
 								Bson filtro;
 								List<Bson> filtros= new ArrayList<>();
-								filtro=Filters.eq("usuario_solicitante",p.get_PessoaUsuario());
+								filtro=Filters.eq("usuario_solicitante",param2);
 								filtros.add(filtro);
 								filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
 								filtros.add(filtro);
@@ -1253,6 +1254,8 @@ public class UserMgmt extends HttpServlet {
 								if(resultado.hasNext()) {
 									calculaHH="S";
 								}
+							}else {
+								calculaHH="S";
 							}
 						}
 					}else {
@@ -1261,6 +1264,10 @@ public class UserMgmt extends HttpServlet {
 					
 					if(calculaHH.equals("S")) {
 					if(!param3.equals("") && !param4.equals("")) {
+						//System.out.println(param3);
+						//System.out.println(param4);
+						
+						//System.out.println(param2);
 						HH_aux=calcula_hh(param3,param4,feriado,conn,p,param2);
 						
 						if(Double.parseDouble(HH_aux[1])>0.0) {
@@ -1278,7 +1285,12 @@ public class UserMgmt extends HttpServlet {
 						if(p.getEmpresa().getEmpresa_id()==1) {
 						HH_aux=calcula_hh(param3,param3.substring(0, 10)+" 18:30:00",feriado,conn,p,param2);
 						}else if(p.getEmpresa().getEmpresa_id()==5){
-							HH_aux=calcula_hh(param3,param3.substring(0, 10)+" 17:00:00",feriado,conn,p,param2);
+							if(d.get(Calendar.DAY_OF_WEEK)==6) {
+								HH_aux=calcula_hh(param3,param3.substring(0, 10)+" 16:00:00",feriado,conn,p,param1);
+							}else {
+								HH_aux=calcula_hh(param3,param3.substring(0, 10)+" 17:00:00",feriado,conn,p,param1);
+							}
+							//HH_aux=calcula_hh(param3,param3.substring(0, 10)+" 17:00:00",feriado,conn,p,param2);
 						}else {
 							HH_aux=calcula_hh(param3,param3.substring(0, 10)+" 18:00:00",feriado,conn,p,param2);
 						}
@@ -1341,8 +1353,9 @@ public class UserMgmt extends HttpServlet {
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("19")){
-
-				param1=req.getParameter("func");
+				System.out.println("função desabilitada");
+				
+				/*param1=req.getParameter("func");
 				param2=req.getParameter("mes");
 				int aux_num;
 				String data_mobile;
@@ -1509,6 +1522,7 @@ public class UserMgmt extends HttpServlet {
 					out.print("Ponto Corrigido");
 					Timestamp time2 = new Timestamp(System.currentTimeMillis());
 					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+					*/
 			}else if(opt.equals("20")){
 				System.out.println("Caregando tabela de kpi de ponto");
 				double total_user=0;
@@ -3370,6 +3384,74 @@ public class UserMgmt extends HttpServlet {
 				dados_tabela="";
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			}else if(opt.equals("45")) {
+				param1 = req.getParameter("inicio");
+				param2 = req.getParameter("fim");
+				param3 = req.getParameter("duracao");
+				param4 = req.getParameter("usuario");
+				System.out.println(param4);
+				ConexaoMongo mongo= new ConexaoMongo();
+				Document autorizacao;
+					SimpleDateFormat format = new SimpleDateFormat(padrao_data_br); 
+					Calendar inicio= Calendar.getInstance();
+					Calendar fim= Calendar.getInstance();
+					Date dt_inicio=format.parse(param1);
+					Date dt_fim=format.parse(param2);
+					inicio.setTime(dt_inicio);
+					fim.setTime(dt_fim);
+					fim.add(Calendar.DAY_OF_MONTH, 1);
+					if(param4.indexOf(",")>0) {
+						String[]usuarios=param4.split(",");
+						for(int indice=0;indice<usuarios.length;indice++) {
+							inicio.setTime(dt_inicio);
+							
+							while(inicio.before(fim)) {
+								autorizacao=new Document();
+								autorizacao.append("cod_autorizacao", time.getTime());
+								autorizacao.append("usuario_solicitante", usuarios[indice]);
+								autorizacao.append("Empresa", p.getEmpresa().getEmpresa_id());
+								autorizacao.append("usuario_aprovador", p.get_PessoaUsuario());
+								autorizacao.append("status_autorizacao", "APROVADO");
+								autorizacao.append("data_dia_he", f2.format(inicio.getTime()));
+								autorizacao.append("dt_autorizacao", f3.format(time));
+								autorizacao.append("dt_solicitacao", f3.format(time));
+								autorizacao.append("local_hora_extra", "SISTEMA WEB");
+								autorizacao.append("motivo_hora_extra", "AJUSTE RETROATIVA");
+								autorizacao.append("dt_solicitacao_string", f3.format(time));
+								
+								mongo.InserirSimpels("Autoriza_HE", autorizacao);
+								inicio.add(Calendar.DAY_OF_MONTH, 1);
+							}
+						}
+					}else {
+						while(inicio.before(fim)) {
+							autorizacao=new Document();
+							autorizacao.append("cod_autorizacao", time.getTime());
+							autorizacao.append("usuario_solicitante", param4);
+							autorizacao.append("Empresa", p.getEmpresa().getEmpresa_id());
+							autorizacao.append("usuario_aprovador", p.get_PessoaUsuario());
+							autorizacao.append("status_autorizacao", "APROVADO");
+							autorizacao.append("data_dia_he", f2.format(inicio.getTime()));
+							autorizacao.append("dt_autorizacao", f3.format(time));
+							autorizacao.append("dt_solicitacao", f3.format(time));
+							autorizacao.append("local_hora_extra", "SISTEMA WEB");
+							autorizacao.append("motivo_hora_extra", "AJUSTE RETROATIVA");
+							autorizacao.append("dt_solicitacao_string", f3.format(time));
+							
+							mongo.InserirSimpels("Autoriza_HE", autorizacao);
+							inicio.add(Calendar.DAY_OF_MONTH, 1);
+						}
+					}
+					mongo.fecharConexao();
+					resp.setContentType("application/text");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print("Autorizações processadas com sucesso!");
+				
+				
+				
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}
 			dados_tabela="";
 			query="";
@@ -3698,10 +3780,7 @@ public class UserMgmt extends HttpServlet {
 			if(p.getEmpresa().getEmpresa_id()==1) {
 			if(hora_entrada.get(Calendar.DAY_OF_WEEK)!=1 && hora_entrada.get(Calendar.DAY_OF_WEEK)!=7) {
 				if(f.verifica_feriado(f2.format(hora_entrada.getTime()),p.getEstadoUsuario(usuarioPesquisado, c), c, p.getEmpresa().getEmpresa_id())) {
-
-					
-						horas_extras=total_horas-1.2;
-					
+					horas_extras=total_horas-1.2;
 					horas_extras_noturnas=0.0;
 					if(total_hora_saida>22.0 && total_hora_saida<23.59) {
 						horas_extras_noturnas=total_hora_saida-22.0;
@@ -3711,8 +3790,7 @@ public class UserMgmt extends HttpServlet {
 				retorno[0]="Hora Extra";
 				retorno[1]=String.valueOf(twoDForm.format(horas_extras));
 				retorno[2]=String.valueOf(twoDForm.format(horas_extras_noturnas));
-				
-					retorno[3]="Feriado";
+				retorno[3]="Feriado";
 				
 				//msg="BH:" + String.valueOf(twoDForm.format(horas_extras+horas_extras_noturnas));
 				
@@ -3735,9 +3813,7 @@ public class UserMgmt extends HttpServlet {
 				//msg="HE:" + String.valueOf(twoDForm.format(horas_extras)) + " | HEN:" + String.valueOf(twoDForm.format(horas_extras_noturnas));
 				}}else {
 				 
-					
-						horas_extras=total_horas-1.2;
-					
+					horas_extras=total_horas-1.2;
 					horas_extras_noturnas=0.0;
 					if(total_hora_saida>22.0 && total_hora_saida<23.59) {
 						horas_extras_noturnas=total_hora_saida-22.0;
@@ -3763,27 +3839,25 @@ public class UserMgmt extends HttpServlet {
 				}else {
 					total_horas_dia=10.0;
 				}
-				if(hora_entrada.get(Calendar.DAY_OF_WEEK)!=1 && hora_entrada.get(Calendar.DAY_OF_WEEK)!=7) {
+				
 					if(f.verifica_feriado(f2.format(hora_entrada.getTime()),p.getEstadoUsuario(usuarioPesquisado, c), c, p.getEmpresa().getEmpresa_id())) {
 
-						
-							horas_extras=total_horas-1.0;
-						
+						horas_extras=total_horas-1.0;
 						horas_extras_noturnas=0.0;
 						if(total_hora_saida>22.0 && total_hora_saida<23.59) {
 							horas_extras_noturnas=total_hora_saida-22.0;
 							horas_extras=horas_extras-horas_extras_noturnas;
 						}
 					
-					retorno[0]="Hora Extra";
-					retorno[1]=String.valueOf(twoDForm.format(horas_extras));
-					retorno[2]=String.valueOf(twoDForm.format(horas_extras_noturnas));
-					
+						retorno[0]="Hora Extra";
+						retorno[1]=String.valueOf(twoDForm.format(horas_extras));
+						retorno[2]=String.valueOf(twoDForm.format(horas_extras_noturnas));
 						retorno[3]="Feriado";
 					
 					//msg="BH:" + String.valueOf(twoDForm.format(horas_extras+horas_extras_noturnas));
 					
 					}else {
+						if(hora_entrada.get(Calendar.DAY_OF_WEEK)!=1 && hora_entrada.get(Calendar.DAY_OF_WEEK)!=7) {
 					if(total_horas>total_horas_dia) {
 						horas_extras=total_horas-total_horas_dia;
 						horas_extras_noturnas=0.0;
@@ -3800,7 +3874,20 @@ public class UserMgmt extends HttpServlet {
 					retorno[2]=String.valueOf(twoDForm.format(horas_extras_noturnas));
 					retorno[3]="Sábado";
 					//msg="HE:" + String.valueOf(twoDForm.format(horas_extras)) + " | HEN:" + String.valueOf(twoDForm.format(horas_extras_noturnas));
-					}}else {
+					}else if(hora_entrada.get(Calendar.DAY_OF_WEEK)==7) {
+						horas_extras=total_horas-1.0;
+						
+						horas_extras_noturnas=0.0;
+						if(total_hora_saida>22.0 && total_hora_saida<23.59) {
+							horas_extras_noturnas=total_hora_saida-22.0;
+							horas_extras=horas_extras-horas_extras_noturnas;
+						}
+					
+					retorno[0]="Hora Extra";
+					retorno[1]=String.valueOf(twoDForm.format(horas_extras));
+					retorno[2]=String.valueOf(twoDForm.format(horas_extras_noturnas));
+					retorno[3]="Sábado";
+					}else {
 					 
 							horas_extras=total_horas-1.0;
 						
@@ -3813,13 +3900,10 @@ public class UserMgmt extends HttpServlet {
 					retorno[0]="Hora Extra";
 					retorno[1]=String.valueOf(twoDForm.format(horas_extras));
 					retorno[2]=String.valueOf(twoDForm.format(horas_extras_noturnas));
-					if(hora_entrada.get(Calendar.DAY_OF_WEEK)==7) {
-						retorno[3]="Sábado";
-					}else {
-						retorno[3]="Domingo";
-					}
+					retorno[3]="Domingo";
+					
 					//msg="BH:" + String.valueOf(twoDForm.format(horas_extras+horas_extras_noturnas));
-					 }
+					}}
 				
 				
 				

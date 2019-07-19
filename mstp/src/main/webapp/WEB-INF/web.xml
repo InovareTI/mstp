@@ -5,6 +5,14 @@
     <welcome-file>index.html</welcome-file>
   </welcome-file-list>
   <servlet>
+    <servlet-name>servlets.PermitsServlet</servlet-name>
+    <servlet-class>servlets.PermitsServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>servlets.PermitsServlet</servlet-name>
+    <url-pattern>/PermitsServlet</url-pattern>
+  </servlet-mapping>
+  <servlet>
     <servlet-name>servlets.rolloutDTAtrasada</servlet-name>
     <servlet-class>servlets.rolloutDTAtrasada</servlet-class>
     <load-on-startup>1</load-on-startup>

@@ -384,25 +384,7 @@ function edita_campos_rollout(campos){
 		
 	}
 
-}
-function sync_rollout(){
-		
-		$.ajax({
-			  type: "POST",
-			  data: {"opt":"28"},		  
-			  //url: "http://localhost:8080/DashTM/D_Servlet",	  
-			  url: "./POControl_Servlet",
-			  cache: false,
-			  dataType: "text",
-			  success: onSuccess28
-			});
-		function onSuccess28(data)
-		{
-			//alert(data);
-		    carrega_gant();
-		}
-
-	}  
+} 
 
 function atualiza_status(){
 	if(geral.usuario.includes('masteradmin')){
@@ -1087,6 +1069,7 @@ function SyncToMongoDB() {
 	}
 }
 function SyncRollout(){
+	corrigerolloutspazio();
 	carrega_gant();
 }
 function downloadFunc(){

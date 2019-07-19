@@ -114,14 +114,14 @@ public class EspelhoDiaria implements Serializable{
 			return false;
 		return true;
 	}
-	public boolean SalvaEspelho(ConexaoMongo con) {
+	public boolean SalvaEspelho(ConexaoMongo mongo) {
 		
 		Document espelho = new Document();
 		espelho.append("semana", this.semana_espelho);
 		espelho.append("usuario", this.func_espelho);
 		espelho.append("Empresa", this.empresa);
 		espelho.append("saldo", this.saldo_espelho);
-		con.InserirSimpels("resumo_diarias", espelho);
+		mongo.InserirSimpels("resumo_diarias", espelho);
 		return true;
 	}
 }

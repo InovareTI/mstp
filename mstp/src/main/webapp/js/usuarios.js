@@ -205,7 +205,8 @@ function carrega_usuarios(){
     		    "</ul>"+
     		  "</div>"+
     			"<a href=\"javascript:window.location='UserMgmt?opt=16'\" class=\"btn btn-primary\">Exportar</button>"+
-    			"<a id=\"template_importar_usuario\" href=\"templates/template_usuarios_mstp.xlsx\" type=\"button\" class=\"btn btn-primary\">Template(importação)</a>"+
+    			"<a id=\"template_importar_usuario\" href=\"templates/template_usuarios_mstp.xlsx\" type=\"button\" class=\"btn btn-link btn-info\">Template(importação)</a>"+
+    			"<button type=\"button\" class=\"btn btn-info\" onclick=\"geraAutorizaHERetroativa()\">Autorização de HE retroativa</button>"+
     		    "</div>" + data);
 		$('#tabela_usuario').bootstrapTable();
 		var $table = $('#tabela_usuario'),
@@ -618,6 +619,64 @@ function iniciar_ferias(){
 	     });
 	     }); 
 }
+
+function geraAutorizaHERetroativa(){
+	var $table = $('#tabela_usuario');
+	 var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
+         return row.user;
+     });
+	 if(ids.length==0){
+		 
+		 $.alert('Selecione um Usuário');
+		 return;
+	 }
+	 var d;
+	 var i;
+	 var f;
+	 
+	 $('#modal_lanca_autorizacaoHeretro').modal('show');
+	
+	 $("#range_autRetro").jqxDateTimeInput({selectionMode: 'range'});
+	 var selection = $("#range_autRetro").jqxDateTimeInput('getRange');
+	  i = moment(selection.from).format('L');
+	  f = moment(selection.to).format('L');
+	  d = parseInt(moment.duration(moment(selection.to).diff(moment(selection.from))).asDays());
+	 $("#range_autRetro").on('change', function (event) {
+		  selection = $("#range_autRetro").jqxDateTimeInput('getRange');
+		  i = moment(selection.from).format('L');
+		  f = moment(selection.to).format('L');
+		  d = parseInt(moment.duration(moment(selection.to).diff(moment(selection.from))).asDays());
+	});
+	 $button = $('#add_autoretro_btn');
+	 $(function () {
+	     $button.click(function () {
+	    	
+	    	 $.ajax({
+     	      		  type: "POST",
+     	      		  data: {"opt":"45",
+     	      			  "inicio":i,
+     	      			  "fim":f,
+     	      			  "duracao":d,
+     	      			  "usuario":ids.toString()
+     	      			  },		  
+     	      		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+     	      		  url: "./UserMgmt",
+     	      		  cache: false,
+     	      		  dataType: "text",
+     	      		  success: onSuccesslancaautretro
+     	      		});
+     	            function onSuccesslancaautretro(data){
+     	            	$.alert(data.toString());
+     	            	$table.bootstrapTable('uncheckAll');
+     	            	$('#modal_lanca_autorizacaoHeretro').modal('hide');
+     	            }
+	    	 
+	     });
+	     }); 
+		
+	 $button.unbind( "click" );
+}
+
 function exportar_usuarios(){
 	$.ajax({
 		  type: "POST",

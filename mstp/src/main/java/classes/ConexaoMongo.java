@@ -20,6 +20,7 @@ import com.mongodb.MongoCredential;
 import com.mongodb.MongoWriteException;
 import com.mongodb.ServerAddress;
 import com.mongodb.async.SingleResultCallback;
+import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -80,7 +81,7 @@ public class ConexaoMongo {
 		
 		}catch(MongoWriteException e) {
 			System.out.println("Inserção NOK!");
-			e.getMessage();
+			System.out.println(e.getMessage());
 		}
 		return true;
 	}
@@ -159,6 +160,13 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 		ordenacao.append(CampoOrdem, ordem);
 		
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filters.eq("Empresa", empresa))).sort(ordenacao);
+		return findIterable;
+	}
+	public FindIterable<Document> ConsultaOrdenada2(String Collection,String CampoOrdem,int ordem,List<Bson>Filtros){
+		Document ordenacao=new Document();
+		ordenacao.append(CampoOrdem, ordem);
+		
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filtros)).sort(ordenacao);
 		return findIterable;
 	}
 	public FindIterable<Document> ConsultaOrdenadaFiltroListaLimit1(String Collection,String CampoOrdem,int ordem,List<Bson>filtros){
@@ -275,13 +283,37 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 	}
 	public List<String> ConsultaSimplesDistinct(String Collection,String campo,List<Bson>Filtros){
 		MongoCursor<String> c = db.getCollection(Collection).distinct(campo,String.class).filter(Filters.and(Filtros)).iterator();
-		List<String> valores= new ArrayList<String>();
+		List<String> valores= new ArrayList<>();
 		while(c.hasNext()) {
 			valores.add(c.next());
 		}
 		return valores;
 	}
-	
+	public List<String> ConsultaDistinctOrdenada(String Collection,String campo,List<Bson>Filtros,String CampoOrdem, int ordem){
+		Document order=new Document();
+		order.append(CampoOrdem, 1);
+		MongoCollection<Document> findIterable= (MongoCollection<Document>) db.getCollection(Collection).find().sort(order);
+		MongoCursor<String> c = findIterable.distinct(campo,String.class).filter(Filters.and(Filtros)).iterator();
+		List<String> valores= new ArrayList<>();
+		while(c.hasNext()) {
+			valores.add(c.next());
+		}
+		return valores;
+	}
+	public Document ConsultaSomaCampo(String Collection,List<Bson> filtro,String CampoSoma) {
+		AggregateIterable<Document> resultado=db.getCollection(Collection).aggregate(
+			Arrays.asList(
+		              Aggregates.match(Filters.and(filtro)),
+		              Aggregates.group(CampoSoma,Accumulators.sum("sum","$"+CampoSoma))
+		      )
+		);
+		MongoCursor<Document> resultado2=resultado.iterator();
+		if(resultado2.hasNext()) {
+			return resultado2.next();
+		}else {
+			return null;
+		}
+	}
 	public Long ConsultaCountComplexa(String Collection,List<Bson> filtro){
 		
 		Long resutado=db.getCollection(Collection).count(Filters.and(filtro));

@@ -239,11 +239,11 @@ public class Pessoa {
 	public String get_PessoaPerfil_campos(){
 		return perfil_campos;
 	}
-	public void set_PessoaPerfil_campos(String tabela){
-		Conexao c=new Conexao();
+	public void set_PessoaPerfil_campos( Conexao c,String tabela){
+		
 		perfil_campos="";
 		perfil_campos= perfil.get_campos_perfil(c, tabela);
-		c.fecharConexao();
+	
 	}
 	public String get_PessoaUltimo_login(){
 		return ultimo_login;

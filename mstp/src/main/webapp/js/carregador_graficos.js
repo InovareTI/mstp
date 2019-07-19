@@ -115,21 +115,14 @@ function g2(opcao,local) {
 			    	options.xAxis.categories = data[0]['data'];
 			    	
 			    	for(var d=0;d<data.length-1;d++){
-			    	options.series[d] = data[d+1];
+			    		options.series[d] = data[d+1];
 			    	}
-			    	//options.series[1] = data[2];
-			    	//options.series[2] = data[3];
-			    	//options.series[3] = data[4];
-			    	
-			    	
-			       
-			        var chart2 = new Highcharts.Chart(options);
+			    	var chart2 = new Highcharts.Chart(options);
 			    });
 
 			}
 function g3(opcao,local) {
-				
-				
+			 	
 			var options = {
 			        chart: {
 			            renderTo: local,
@@ -141,7 +134,7 @@ function g3(opcao,local) {
 			        title: {
 			            text: 'Empresas emissoras',
 			            style:{
-			            	fontSize: '10px'
+			            	fontSize: '14px'
 			            },
 			            x: -20 //center
 			        },

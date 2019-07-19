@@ -3,17 +3,19 @@ package servlets;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -22,8 +24,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import classes.Pessoa;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
+import com.mongodb.client.model.Filters;
+
 import classes.Conexao;
+import classes.ConexaoMongo;
+import classes.Pessoa;
 
 /**
  * Servlet implementation class Dashboard_Servlet
@@ -31,6 +39,9 @@ import classes.Conexao;
 @WebServlet("/Dashboard_Servlet")
 public class Dashboard_Servlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	private static final String padrao_data_br = "dd/MM/yyyy";
+	private static final String padrao_data_hora_br = "dd/MM/yyyy HH:mm:ss";
+	
        
     /**
      * @see HttpServlet#HttpServlet()
@@ -81,14 +92,15 @@ public class Dashboard_Servlet extends HttpServlet {
 		DateFormat f3 = DateFormat.getDateTimeInstance();
 		opt=req.getParameter("opt");
 		double money; 
+		 
 		NumberFormat number_formatter = NumberFormat.getCurrencyInstance();
 		String moneyString;
 		//System.out.println("Chegou no servlet de Dashboard");
 		try {
 			//System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações de Gráficos do MSTP Web - "+f3.format(time));
 			if(opt.equals("1")){
-				//System.out.println("Pie Chart starts...");
-    			rs=conn.Consulta("select empresa_emissora,count(po_number) from po_table  group by empresa_emissora");
+				System.out.println("Pie Chart starts...");
+    			rs=conn.Consulta("select empresa_emissora,count(po_number) from po_table where empresa="+p.getEmpresa().getEmpresa_id()+"  group by empresa_emissora");
     			tabela="["+"\n";
 	    		//System.out.println(tabela);
 	    		
@@ -108,7 +120,7 @@ public class Dashboard_Servlet extends HttpServlet {
 	    		}
 	    		tabela=tabela.substring(0,tabela.length()-2);
     			tabela=tabela+"\n"+"]";
-				 // System.out.println(tabela);
+				 System.out.println(tabela);
 	    		  resp.setContentType("application/json");  
 	    		  resp.setCharacterEncoding("UTF-8"); 
 	    		 // resp.getWriter().write(tabela); 
@@ -123,7 +135,7 @@ public class Dashboard_Servlet extends HttpServlet {
 				//param2=(req.getParameter("periodo"));
 				//System.out.println("Pie Chart starts...");
 			//System.out.println("SELECT * FROM opened_task_month_type where YEAR_TASK="+dtano);
-			rs=conn.Consulta("selECT distinct empresa_emissora from po_table");
+			rs=conn.Consulta("selECT distinct empresa_emissora from po_table where empresa="+p.getEmpresa().getEmpresa_id());
 			
 			tabela="[";
     		//System.out.println(tabela);
@@ -135,7 +147,7 @@ public class Dashboard_Servlet extends HttpServlet {
     			while(rs.next()){
     			tabela=tabela+"{\"name\":\""+rs.getString(1)+"\","+"\n";
     			//System.out.println("SELECT id_mes,atividade,quantidade FROM mes left join opened_task_month_type on id_mes=month and YEAR_TASK="+dtano+" and atividade='"+rs.getString(1)+"' order by id_mes");
-    			rs2=conn.Consulta("SELECT id_mes,mes,empresa_emissora,sum(total_po) FROM mes left join po_table on month(dt_emitida)=id_mes and empresa_emissora='"+rs.getString(1)+"' group by empresa_emissora,mes order by id_mes,empresa_emissora");
+    			rs2=conn.Consulta("SELECT id_mes,mes,empresa_emissora,sum(total_po) FROM mes left join po_table on month(str_to_date(dt_emitida,'%d/%m/%Y'))=id_mes and empresa_emissora='"+rs.getString(1)+"' group by empresa_emissora,mes order by id_mes,empresa_emissora");
     			tabela=tabela+" \"data\":[";
     			if(rs2.next()){
     				rs2.beforeFirst();
@@ -143,9 +155,9 @@ public class Dashboard_Servlet extends HttpServlet {
 	    			while(rs2.next() && g<13){
 	    				if(rs.getString(1).equals(rs2.getString(3))){
 	    					if(g==rs2.getInt(1)){
-	    						money = Double.parseDouble(rs2.getString(4));
+	    						money = rs2.getDouble(4);
 								moneyString = number_formatter.format(money);
-	    						tabela=tabela+rs2.getString(4)+",";
+	    						tabela=tabela+rs2.getDouble(4)+",";
 	    					}else{
 	    						tabela=tabela+"0.00,";
 	    					}
@@ -165,7 +177,7 @@ public class Dashboard_Servlet extends HttpServlet {
 				tabela=tabela+"{\"name\":\"SEM PO\","+"\n";
 				tabela=tabela+" \"data\":[0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00]}]";
 			}
-			 //System.out.println(tabela);
+			  System.out.println(tabela);
     		  resp.setContentType("application/json");  
     		  resp.setCharacterEncoding("UTF-8"); 
     		 // resp.getWriter().write(tabela); 
@@ -178,114 +190,81 @@ public class Dashboard_Servlet extends HttpServlet {
 		}else if(opt.equals("3")){
 			dtfrom=req.getParameter("dtfrom");
 			dtto=req.getParameter("dtto");
-			//System.out.println("data from:"+dtfrom);
-			//System.out.println("data to:"+dtto);
-			query="select t1.*,t2.total_done from (SELECT milestone,count(dt_inicio_bl) as total_plan FROM rollout "
-					+ "where str_to_date(dt_inicio_bl,'%d/%m/%Y') >= str_to_date('"+dtfrom+"','%d/%m/%Y') "
-					+ "and str_to_date(dt_inicio_bl,'%d/%m/%Y') <= str_to_date('"+dtto+"','%d/%m/%Y') and tipo_campo='Milestone' and linha_ativa='Y'  group by milestone) as t1 "
-					+ "left join (SELECT milestone,count(dt_fim_bl) as total_done FROM rollout where "
-					+ "str_to_date(dt_fim_bl,'%d/%m/%Y') >= str_to_date('"+dtfrom+"','%d/%m/%Y') "
-					+ "and str_to_date(dt_fim_bl,'%d/%m/%Y') <= str_to_date('"+dtto+"','%d/%m/%Y') and tipo_campo='Milestone' and linha_ativa='Y' group by milestone) as t2 "
-					+ "on t1.milestone=t2.milestone";
-			//System.out.println(query);
-			rs=conn.Consulta(query); 
-			//rs=null;
+			SimpleDateFormat format = new SimpleDateFormat(padrao_data_br);
+			Date i = format.parse(dtfrom);
+			Date f = format.parse(dtto);
+			ConexaoMongo mongo= new ConexaoMongo();
+			Bson filtro;
+			String milestone="";
+			if(p.getEmpresa().getEmpresa_id()==8) {
+				milestone="TSS";
+			}else if(p.getEmpresa().getEmpresa_id()==1) {
+				milestone="INSTALAÇÃO";
+			}else if(p.getEmpresa().getEmpresa_id()==5) {
+				milestone="INSTALAÇÃO";
+			}else {
+				milestone="Sem Milestone Definido";
+			}
+			List<Bson> filtros = new ArrayList<>();
+			filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+			filtros.add(filtro);
+			filtro=Filters.eq("Linha_ativa","Y");
+			filtros.add(filtro);
+			filtro=Filters.elemMatch("Milestone", Filters.gte("sdate_pre_"+milestone,i));
+			filtros.add(filtro);
+			filtro=Filters.elemMatch("Milestone", Filters.lte("sdate_pre_"+milestone,f));
+			filtros.add(filtro);
+			
+			Long totalInicioPrevisto= mongo.CountSimplesComFiltroInicioLimit("rollout", filtros);
 			tabela="[";
 			
-			tabela=tabela+"{\"name\":\"Type\","+"\n";
-			
-			tabela=tabela+" \"data\":[";
-			if(rs.next()){
-				
-				rs.beforeFirst();
-				while(rs.next()){
-					tabela=tabela+ "\""+rs.getString(1)+"\",";
-							
-				}
-				tabela=tabela.substring(0,tabela.length()-1);
-				tabela=tabela+"]},"+"\n";
-				rs.beforeFirst();
-				tabela=tabela+"{\"name\":\"Inicio Previsto\","+"\n";
-				tabela=tabela+" \"data\":[";
-				while(rs.next()){
-					
-					tabela=tabela+rs.getString(2)+",";
-				
-				}
-				tabela=tabela.substring(0,tabela.length()-1);
-				tabela=tabela+"]},"+"\n";
-				tabela=tabela+"{\"name\":\"Fim Previsto\","+"\n";
-				tabela=tabela+" \"data\":[";
-				rs.beforeFirst();
-				while(rs.next()){
-					if(rs.getString(3)==null){
-						tabela=tabela+"0,";
-					}else{
-					tabela=tabela+rs.getString(3)+",";
-					}
-				
-				}
-				tabela=tabela.substring(0,tabela.length()-1);
-				tabela=tabela+"]},"+"\n";
-				//inicio e fim plan
-				
-				
-				//tabela=tabela+"]";
-			}else{
-				tabela="[{\"name\":\"Type\","+
-					 "\"data\":[\"Sem Resultado\"]},"+
-				        "{\"name\":\"Inicio Previsto\","+
-				         "\"data\":[0]},"+
-				        "{\"name\":\"Fim Previsto\","+
-				         "\"data\":[0]},";
-				        
-			}
-			
-			query="select t1.*,t2.total_done from (SELECT milestone,count(dt_inicio) as total_plan FROM rollout "
-					+ "where str_to_date(dt_inicio,'%d/%m/%Y') >= str_to_date('"+dtfrom+"','%d/%m/%Y') "
-					+ "and str_to_date(dt_inicio,'%d/%m/%Y') <= str_to_date('"+dtto+"','%d/%m/%Y') and tipo_campo='Milestone' and linha_ativa='Y' group by milestone) as t1 "
-					+ "left join (SELECT milestone,count(dt_fim) as total_done FROM rollout where "
-					+ "str_to_date(dt_fim,'%d/%m/%Y') >= str_to_date('"+dtfrom+"','%d/%m/%Y') "
-					+ "and str_to_date(dt_fim,'%d/%m/%Y') <= str_to_date('"+dtto+"','%d/%m/%Y') and tipo_campo='Milestone' and linha_ativa='Y' group by milestone) as t2 "
-					+ "on t1.milestone=t2.milestone";
-			//System.out.println(query);
-			rs=conn.Consulta(query); 
-			if(rs.next()){
-				rs.beforeFirst();
+			tabela=tabela+"{\"name\":\"Type\",";
+			tabela=tabela+" \"data\":[\""+milestone+"\"]},"+"\n";
+			tabela=tabela+"{\"name\":\"Inicio Previsto\",";
+			tabela=tabela+" \"data\":["+totalInicioPrevisto+"]},"+"\n";
+			tabela=tabela+"{\"name\":\"Fim Previsto\",";
+			filtros = new ArrayList<>();
+			filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+			filtros.add(filtro);
+			filtro=Filters.eq("Linha_ativa","Y");
+			filtros.add(filtro);
+			filtro=Filters.elemMatch("Milestone", Filters.gte("edate_pre_"+milestone,i));
+			filtros.add(filtro);
+			filtro=Filters.elemMatch("Milestone", Filters.lte("edate_pre_"+milestone,f));
+			filtros.add(filtro);
+			Long totalFimPrevisto= mongo.CountSimplesComFiltroInicioLimit("rollout", filtros);
+			tabela=tabela+" \"data\":["+totalFimPrevisto+"]},";
+			filtros = new ArrayList<>();
+			filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+			filtros.add(filtro);
+			filtro=Filters.eq("Linha_ativa","Y");
+			filtros.add(filtro);
+			filtro=Filters.elemMatch("Milestone", Filters.gte("sdate_TSS",i));
+			filtros.add(filtro);
+			filtro=Filters.elemMatch("Milestone", Filters.lte("sdate_TSS",f));
+			filtros.add(filtro);
+			Long totalInicioReal= mongo.CountSimplesComFiltroInicioLimit("rollout", filtros);
 			tabela=tabela+"{\"name\":\"Inicio Real\","+"\n";
-			tabela=tabela+" \"data\":[";
-			while(rs.next()){
-				
-				tabela=tabela+rs.getString(2)+",";
-			
-			}
-			tabela=tabela.substring(0,tabela.length()-1);
-			tabela=tabela+"]},"+"\n";
+			tabela=tabela+" \"data\":["+totalInicioReal+"]},";
+			filtros = new ArrayList<>();
+			filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+			filtros.add(filtro);
+			filtro=Filters.eq("Linha_ativa","Y");
+			filtros.add(filtro);
+			filtro=Filters.elemMatch("Milestone", Filters.gte("edate_"+milestone,i));
+			filtros.add(filtro);
+			filtro=Filters.elemMatch("Milestone", Filters.lte("edate_"+milestone,f));
+			filtros.add(filtro);
+			Long totalFimReal= mongo.CountSimplesComFiltroInicioLimit("rollout", filtros);
 			tabela=tabela+"{\"name\":\"Fim Real\","+"\n";
-			tabela=tabela+" \"data\":[";
-			rs.beforeFirst();
-			while(rs.next()){
-				if(rs.getString(3)==null){
-					tabela=tabela+"0,";
-				}else{
-				tabela=tabela+rs.getString(3)+",";
-				}
+			tabela=tabela+" \"data\":["+totalFimReal+"]}]";
 			
-			}
-			tabela=tabela.substring(0,tabela.length()-1);
-			tabela=tabela+"]}]"+"\n";
-			}else{
-				tabela=tabela+
-					        "{\"name\":\"Inicio Real\","+
-					         "\"data\":[0]},"+
-					        "{\"name\":\"Fim Real\","+
-					         "\"data\":[0]}]";
-			}
-				//System.out.println(tabela);
+				System.out.println(tabela);
 				resp.setContentType("application/json");  
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(tabela);
+			    mongo.fecharConexao();
 			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}else if(opt.equals("4")){
@@ -377,6 +356,7 @@ public class Dashboard_Servlet extends HttpServlet {
 			    out.print(tabela);
 			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				
 		}else if(opt.equals("5")){
 			//System.out.println("carregando graficos de registros de usuario por semana");
 			if(p.get_PessoaPerfil_nome().equals("tecnico")) {
