@@ -3,6 +3,8 @@ package classes;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.bson.Document;
+
 public class Pessoa {
 
 	private String name;
@@ -251,6 +253,33 @@ public class Pessoa {
 	public void set_PessoaIdade(int i){
 		idade=i;
 	}
+	public Document getPessoaInfo(String param1, Conexao conn) {
+		String query;
+	ResultSet rs;
+	Document info  = new Document();
+	query="select * from usuarios where id_usuario='"+param1+"' and ativo='Y' and validado='Y' and empresa='"+getEmpresa().getEmpresa_id()+"'";
+	rs=conn.Consulta(query);
+	try {
+		if(rs.next()) {
+			
+			info.append("usuario", rs.getString("id_usuario"));
+			info.append("nome", rs.getString("nome"));
+			info.append("cargo", rs.getString("cargo"));
+			info.append("ctps", rs.getString("ctps"));
+			info.append("admissao", rs.getString("admissao"));
+			info.append("matricula", rs.getString("matricula"));
+			info.append("cpf", rs.getString("cpf"));
+			info.append("pis", rs.getString("pis"));
+			
+			
+			
+		}
+	} catch (SQLException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	return info;
+}
 	public int get_PessoaIdade(){
 		return idade;
 	}

@@ -1306,9 +1306,12 @@ public class RolloutServlet extends HttpServlet {
 						    	            				 changes.append(campos[colunacelula],"");
 						    	            			 }
 					    							 }else if(campo_tipo.getJSONArray(campos[colunacelula]).get(1).equals("Moeda")){
-					    								     cellValue=cellValue.replaceAll("R$", "").trim().replaceAll(".", "").replaceAll(",", ".");
+					    								 if(!cellValue.trim().equals("")) {
+					    								     cellValue=cellValue.replace("R$", "").trim().replace(".", "").replace(",", ".");
 					    									 changes.append(campos[colunacelula],Double.parseDouble(cellValue)); 
-					    								 
+					    								 }else {
+					    									 changes.append(campos[colunacelula],0.00); 
+					    								 }
 					    							 }else {
 					    								 if(campos[colunacelula].equals("Site ID") && cellValue.equals("")) {
 					    									 operacao="aborta";
@@ -1470,7 +1473,7 @@ public class RolloutServlet extends HttpServlet {
 						    	            			 }
 					    							 }else if(campo_tipo.getJSONArray(campos[colunacelula]).get(1).equals("Moeda")){
 					    								 if(linha_doc.get(campos[colunacelula])!=null) {
-					    									 cellValue=cellValue.replaceAll("R$", "").trim().replaceAll(".", "").replaceAll(",", ".");
+					    									 cellValue=cellValue.replace("R$", "").trim().replace(".", "").replace(",", ".");
 					    									 if(!linha_doc.get(campos[colunacelula]).equals(Double.parseDouble(cellValue))) {
 					    										 changes.append(campos[colunacelula],Double.parseDouble(cellValue)); 
 					    										 historico=new Document();

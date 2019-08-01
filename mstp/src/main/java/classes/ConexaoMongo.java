@@ -100,6 +100,13 @@ public boolean InserirMuitos(String Collection,List<Document> document_list) {
 		}
 		
 	}
+public FindIterable<Document> ConsultaOrdenadaFiltroLista(String Collection,String CampoOrdem,int ordem,List<Bson>filtros){
+	Document ordenacao=new Document();
+	ordenacao.append(CampoOrdem, ordem);
+	
+	FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(filtros)).sort(ordenacao);
+	return findIterable;
+}
 public void criar2dsphereindex(){
 	db.getCollection("sites").createIndex(Indexes.geo2dsphere("GEO.geometry"));
 	

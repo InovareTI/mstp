@@ -30,7 +30,10 @@ $(document).ready(function () {
             
             $('#range_espelho').jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode: 'range'});
             $('#range_espelho_analise').jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode: 'range'});
-            
+            $('#range_despesas').jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode: 'range'});
+            $('#range_despesas').on('valueChanged', function (event) {
+            	CarregaDespesas();
+            });
             $('#jqxtabs_usuario').jqxTabs({height:800,theme: 'light'});
            // carrega_tabela_site();
             carrega_tree_rollout();
@@ -431,6 +434,7 @@ function menu(opt){
 	}else if(opt=="equipe_diarias" && geral.perfil.search("DiariaManager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
+		CarregaDespesas();
 	}else if(opt=="rollout" && geral.perfil.search("RolloutView")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";

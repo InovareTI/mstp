@@ -1,3 +1,38 @@
+function baixarTodosEspelhos(){
+	$('#btn_gerartodos_espelho').addClass( "disabled" );
+	$('#btn_gerartodos_espelho').text('Aguarde a Finalização...');
+	$('#btn_gerartodos_espelho').prop('disabled', true);
+	$('#btn_gerar_espelho').addClass( "disabled" );
+	$('#btn_gerar_espelho').text('Aguarde a Finalização...');
+	$('#btn_gerar_espelho').prop('disabled', true);
+	var mes =  $('#select_mes_folha_ponto').val();
+	var mes_aux=$('#select_mes_folha_ponto').find("option:selected").text();
+	var selection=$('#range_espelho').jqxDateTimeInput('getRange');
+	$.ajax({
+        url: './UserMgmt?opt=46&mes='+mes_aux+'&inicio='+moment(selection.from).format('L')+'&fim='+moment(selection.to).format('L'),
+        method: 'GET',
+        data:{"opt":46},
+        xhrFields: {
+            responseType: 'blob'
+        },
+        success: function (data) {
+            var a = document.createElement('a');
+            var url = window.URL.createObjectURL(data);
+            a.href = url;
+            a.download = 'PontoUsuarios_'+geral.empresa_nome+'.zip';
+            a.click();
+            window.URL.revokeObjectURL(url);
+            $('#btn_gerartodos_espelho').removeClass( "disabled" );
+			$('#btn_gerartodos_espelho').text('Gerar todos os Espelhos de ponto do período informado');
+			$('#btn_gerartodos_espelho').prop('disabled', false);
+			$('#btn_gerar_espelho').removeClass( "disabled" );
+			$('#btn_gerar_espelho').text('Gerar Espelho de ponto');
+			$('#btn_gerar_espelho').prop('disabled', false);
+        }
+    });
+	
+}
+
 function atualiza_range_espelho(){
 	var mes =  $('#select_mes_folha_ponto').val();
 	mes=mes-1;

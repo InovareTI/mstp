@@ -172,6 +172,7 @@ response.setDateHeader ("Expires", -1);
 	<script type="text/javascript" src="js/importacoes.js"></script>
 	<script type="text/javascript" src="js/pivot.js"></script>
 	<script type="text/javascript" src="js/checklist.js"></script>
+	<script type="text/javascript" src="js/despesas.js"></script>
 	<script src='https://api.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.js'></script>
      <link href='https://api.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.css' rel='stylesheet' />
 
@@ -624,18 +625,19 @@ response.setDateHeader ("Expires", -1);
 						<div class="panel panel-primary" style="width:90%;margin:0 auto">
 		        				<div class="panel-heading">Espelho de Diárias</div>
 			        				<div class="panel-body">
-				        				<div>
-				        					<select id="select_func_diaria" class="selectpicker" data-live-search="true" title="Escolha o Funcionário" onchange="exibe_diarias(this.value)"></select>
-				        			  		<div style="float: right">
-				        			  			<button class="btn btn-primary">Novo Espelho de diária</button>
-				        			  		</div>
+				        				<div style="float: left;">
+				        					<select id="select_func_diaria" class="selectpicker" data-live-search="true" title="Escolha o Funcionário" onchange="CarregaDespesas()"></select>
+				        			  	</div>
+				        			  	<div style="float: left;" id="range_despesas"></div>
+				        			  	<div style="float: right">
+				        			  			<button class="btn btn-primary" onclick="relatorioDespesa()">Novo Espelho de diária</button>
 				        			  	</div>
 			        				</div>
 		        		</div>
-		        		<div class="panel panel-primary" style="width:90%;margin:0 auto">
-		        				<div class="panel-heading">Resumo de Diárias</div>
+		        		<div class="panel panel-primary" id="divcontentdespesa" style="width:90%;margin:0 auto">
+		        				<div class="panel-heading">Resumo de Despesas</div>
 			        				<div class="panel-body">
-			        					<div id="grid_resumo_diarias"></div>
+			        					<div id="grid_resumo_despesas"></div>
 			        				</div>
 		        		</div>
 					
@@ -1429,6 +1431,7 @@ response.setDateHeader ("Expires", -1);
 		        		<div style="float: right">
 		        			
 		        			<button id="btn_gerar_espelho" onclick="recalcular_HH_BH()" class="btn btn-primary">Gerar Espelho de ponto</button>
+		        			<button id="btn_gerartodos_espelho" onclick="baixarTodosEspelhos()" class="btn btn-danger">Gerar todos os Espelhos de ponto do período informado</button>
 		        			<!--  <button id="btn_corrigir_espelho" onclick="corrigir_ponto()" class="btn btn-danger">Corrigir Intervalos de Descanso</button>-->
 	        			</div>
 	        			</div>

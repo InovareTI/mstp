@@ -1,6 +1,8 @@
 	package servlets;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -25,8 +27,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
@@ -41,6 +47,13 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.mail.EmailException;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
@@ -58,8 +71,9 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 
-import classes.ConexaoMongo;
 import classes.Conexao;
+import classes.ConexaoMongo;
+import classes.EspelhoPonto;
 import classes.Feriado;
 import classes.Pessoa;
 import classes.Semail;
@@ -151,7 +165,6 @@ public class UserMgmt extends HttpServlet {
 			if(opt.equals("1")){
 				if(p.getPerfil_funcoes().contains("Usuarios Manager")) {
 				param1=req.getParameter("func");
-				param2=req.getParameter("mes");
 				param3=req.getParameter("inicio");
 				ConexaoMongo c = new ConexaoMongo();
 				param4=req.getParameter("fim");
@@ -1286,9 +1299,9 @@ public class UserMgmt extends HttpServlet {
 						HH_aux=calcula_hh(param3,param3.substring(0, 10)+" 18:30:00",feriado,conn,p,param2);
 						}else if(p.getEmpresa().getEmpresa_id()==5){
 							if(d.get(Calendar.DAY_OF_WEEK)==6) {
-								HH_aux=calcula_hh(param3,param3.substring(0, 10)+" 16:00:00",feriado,conn,p,param1);
+								HH_aux=calcula_hh(param3,param3.substring(0, 10)+" 16:00:00",feriado,conn,p,param2);
 							}else {
-								HH_aux=calcula_hh(param3,param3.substring(0, 10)+" 17:00:00",feriado,conn,p,param1);
+								HH_aux=calcula_hh(param3,param3.substring(0, 10)+" 17:00:00",feriado,conn,p,param2);
 							}
 							//HH_aux=calcula_hh(param3,param3.substring(0, 10)+" 17:00:00",feriado,conn,p,param2);
 						}else {
@@ -3452,6 +3465,85 @@ public class UserMgmt extends HttpServlet {
 				
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+			}else if(opt.equals("46")) {
+				EspelhoPonto espelho=new EspelhoPonto();
+				Document empresa=new Document();
+				Document usuario=new Document();
+				param1=req.getParameter("mes");
+				param3=req.getParameter("inicio");
+				param4=req.getParameter("fim");
+				resp.setHeader("Content-Disposition", "attachment;filename=PontoUsuarios_"+p.getEmpresa().getNome()+".zip");
+				resp.setContentType("application/zip");
+				resp.setHeader("Expires", "0");
+				resp.setHeader("Cache-Control", "must-revalidate, postcheck=0, pre-check=0");
+				resp.setHeader("Pragma", "public");
+				ServletOutputStream out = resp.getOutputStream();
+				ZipOutputStream zout = new ZipOutputStream(out);
+				rs=conn.Consulta("select * from usuarios where validado='Y' and ativo='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
+				ServletContext context = req.getSession().getServletContext();
+				String fullPath = context.getRealPath("/WEB-INF/PlayfairDisplay-Regular.ttf");
+				//String fullPath = context.getRealPath("/WEB-INF/PlayfairDisplay-Regular.ttf");
+				if(rs.next()) {
+					rs.beforeFirst();
+					empresa.append("NomeEmpresa", p.getEmpresa().getNome());
+					empresa.append("EnderecoEmpresa", p.getEmpresa().getEndereco());
+					empresa.append("BairroEmpresa", p.getEmpresa().getBairro());
+					empresa.append("CidadeEmpresa", p.getEmpresa().getCidade());
+					empresa.append("EstadoEmpresa", p.getEmpresa().getUf());
+					empresa.append("CnpjEmpresa", p.getEmpresa().getCnpj());
+					empresa.append("CnaeEmpresa", p.getEmpresa().getCnae());
+					
+					ByteArrayOutputStream pdf ;
+					//System.out.println(empresa.toJson());
+					while(rs.next()) {
+						usuario = new Document();
+						pdf =new ByteArrayOutputStream();
+						PDDocument document = new PDDocument();
+						usuario.append("usuarioId", rs.getString("id_usuario"));
+						usuario.append("usuarioNome", rs.getString("nome"));
+						usuario.append("CTPS", rs.getString("ctps"));
+						usuario.append("Cargo", rs.getString("cargo"));
+						usuario.append("matricula", rs.getString("matricula"));
+						usuario.append("adm", rs.getString("admissao"));
+						usuario.append("pis", rs.getString("pis"));
+						if(p.getEmpresa().getEmpresa_id()==1) {
+							usuario.append("intervalo", "1h:12m por dia");
+							usuario.append("horario", "08:30 as 18:30 de 2a a 6a");
+						}else if(p.getEmpresa().getEmpresa_id()==5) {
+							usuario.append("intervalo", "1h:00m por dia");
+							usuario.append("horario", "07:00 as 17:00 de 2a a 6a");
+						}else {
+							usuario.append("intervalo", "1h:00m por dia");
+							usuario.append("horario", "09:00 as 18:00 de 2a a 6a");
+						}
+						// Create a new blank page and add it to the document
+						//System.out.println(usuario.toJson());
+						PDPage page = new PDPage();
+						document.addPage( page );
+						
+						PDType0Font font2 = PDType0Font.load(document, new File(fullPath));
+						PDPageContentStream contentStream = new PDPageContentStream(document, page);
+						
+						espelho.TabelaCabecalho(rs.getString("nome"), page.getMediaBox().getHeight(), page.getMediaBox().getWidth(), document, page,param1,param3,param4,empresa,usuario).draw();
+						espelho.TabelaPontos(rs.getString("nome"),rs.getString("id_usuario"), page.getMediaBox().getHeight(), page.getMediaBox().getWidth(), document, page,param1,param3,param4,empresa,usuario,p,conn,font2);
+						contentStream.setFont( PDType1Font.TIMES_ROMAN, 10 );
+					
+						contentStream.close();
+						document.save(pdf);
+				        document.close();
+						
+				        ZipEntry zip = new ZipEntry(rs.getString("nome")+".pdf");
+				        zout.putNextEntry(zip);
+				        zout.write(pdf.toByteArray());
+				        zout.closeEntry();
+				    }
+			}
+				zout.flush();
+			    zout.close(); 
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+				
+				
 			}
 			dados_tabela="";
 			query="";
