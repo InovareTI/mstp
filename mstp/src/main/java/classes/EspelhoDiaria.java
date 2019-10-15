@@ -121,7 +121,7 @@ public class EspelhoDiaria implements Serializable{
 		espelho.append("usuario", this.func_espelho);
 		espelho.append("Empresa", this.empresa);
 		espelho.append("saldo", this.saldo_espelho);
-		mongo.InserirSimpels("resumo_diarias", espelho);
+		mongo.InserirSimples("resumo_diarias", espelho);
 		return true;
 	}
 }

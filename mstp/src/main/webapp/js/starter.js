@@ -30,12 +30,74 @@ $(document).ready(function () {
             
             $('#range_espelho').jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode: 'range'});
             $('#range_espelho_analise').jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode: 'range'});
+            $('#range_consulta_horas_banco').jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode: 'range'});
             $('#range_despesas').jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode: 'range'});
             $('#range_despesas').on('valueChanged', function (event) {
             	CarregaDespesas();
             });
+            $('#range_consulta_horas_banco').on('valueChanged', function (event) {
+            	carrega_extrato_he();
+            });
             $('#jqxtabs_usuario').jqxTabs({height:800,theme: 'light'});
            // carrega_tabela_site();
+            $("#TicketToolBar").jqxToolBar(
+            		{ 
+            		  width: "100%", 
+            		  height: 45, 
+            		  theme:'light',
+            		  tools: 'button button button | button button button | button button | button',
+            	     initTools: function (type, index, tool, menuToolIninitialization) {
+                     var icon = $("<div class='jqx-editor-toolbar-icon jqx-editor-toolbar-icon-light buttonIcon'></div>");
+                     switch (index) {
+                         case 0:
+                             icon.addClass("jqx-editor-toolbar-icon-bold jqx-editor-toolbar-icon-bold-light");
+                             icon.attr("title", "Bold");
+                             tool.append(icon);
+                             break;
+                         case 1:
+                             icon.addClass("jqx-editor-toolbar-icon-italic jqx-editor-toolbar-icon-italic-light");
+                             icon.attr("title", "Italic");
+                             tool.append(icon);
+                             break;
+                         case 2:
+                             icon.addClass("jqx-editor-toolbar-icon-underline jqx-editor-toolbar-icon-underline-light");
+                             icon.attr("title", "Underline");
+                             tool.append(icon);
+                             break;
+                         case 3:
+                             icon.addClass("jqx-editor-toolbar-icon-justifyleft jqx-editor-toolbar-icon-justifyleft-light");
+                             icon.attr("title", "Align Text Left");
+                             tool.append(icon);
+                             break;
+                         case 4:
+                             icon.addClass("jqx-editor-toolbar-icon-justifycenter jqx-editor-toolbar-icon-justifycenter-light");
+                             icon.attr("title", "Center");
+                             tool.append(icon);
+                             break;
+                         case 5:
+                             icon.addClass("jqx-editor-toolbar-icon-justifyright jqx-editor-toolbar-icon-justifyright-light");
+                             icon.attr("title", "Align Text Right");
+                             tool.append(icon);
+                             break;
+                         case 6:
+                             icon.addClass("jqx-editor-toolbar-icon-outdent jqx-editor-toolbar-icon-outdent-light");
+                             icon.attr("title", "Decrease Indent");
+                             tool.append(icon);
+                             break;
+                         case 7:
+                             icon.addClass("jqx-editor-toolbar-icon-indent jqx-editor-toolbar-icon-indent-light");
+                             icon.attr("title", "Increase Indent");
+                             tool.append(icon);
+                             break;
+                         case 8:
+                             icon.addClass("jqx-editor-toolbar-icon-insertimage jqx-editor-toolbar-icon-insertimage-light");
+                             icon.attr("title", "Insert Image");
+                             tool.append(icon);
+                             break;
+                     }
+                 }
+             });
+         
             carrega_tree_rollout();
             calcula_quantidade_hh_disponivel();
             $("#input_sites_arq").fileinput({
@@ -424,6 +486,10 @@ function menu(opt){
 	 if(opt=="ItemPO" || opt=="portal" || opt=="senha" || opt=="usuarios_ponto" || opt=="usuarios_banco_hh" || opt=="mstp_mobile_report_diario" || opt=="rel_ponto_kpi" || opt=="usuarios_ponto_analise"){
 		 $(".janelas").hide();
 	     document.getElementById(opt).style.display = "block";
+	}else if(opt=="ticketWindow"){
+		$(".janelas").hide();
+	     document.getElementById(opt).style.display = "block";
+	     ticketStarter();
 	}else if(opt=="importacoes"){
 		 $(".janelas").hide();
 	     document.getElementById(opt).style.display = "block";

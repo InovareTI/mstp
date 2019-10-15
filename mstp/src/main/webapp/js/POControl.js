@@ -17,6 +17,57 @@ function carrega_PO(opc){
 	function onSuccess1(data)
 	{
 		
+		if(geral.empresa_id==1){
+			
+			var POrecords=JSON.parse(data);
+			var source =
+		     {
+					 datatype: "json",
+			         datafields: [
+			        	 { name: 'id' , type: 'int'},
+			        	 { name: 'PO NUMBER', type: 'string' },
+			             { name: 'ITEM', type: 'string' },
+			             { name: 'VALOR UNITARIO' , type: 'string'},
+			             { name: 'QTDE', type: 'string' },
+			             { name: 'VALOR TOTAL', type: 'string' }
+			             
+			         ],
+		         localdata: POrecords,
+		         id: 'id',
+		     };
+			 var dataAdapter = new $.jqx.dataAdapter(source);
+			 
+			 $("#div_tabela_po").jqxGrid(
+		             {
+		            	 width: '100%',
+		            	 theme:'light',
+		                 source: dataAdapter,
+		                 showtoolbar: true,
+		                 columnsresize: true,
+			             filterable: true,
+			             autoshowfiltericon: true,
+		                 rowsheight: 55,
+		                 rendertoolbar: function (toolbar) {
+		                	 var me = this;
+			                 toolbar.empty();
+			                 container = $("<div style='overflow: hidden; position: relative; margin: 1px;'></div>");
+			                 addPO_button = $("<button type=\"button\" class=\"btn btn-info\" data-toggle=\"modal\" data-target=\"#PO_upload_Modal\">Carregar PO</button>");
+			                 rmPO_button = $("<button id=\"apagar_po\" type=\"button\" class=\"btn btn-danger\">Desabilitar PO</button>");
+			                 container.append(addPO_button);
+			                 container.append(rmPO_button);
+			                 toolbar.append(container);
+		                 },
+		                 columns: [
+		                       { text: 'PO', datafield: 'PO NUMBER',cellsalign: "center",width: 100,filtertype: 'textbox'},
+		                       { text: 'Item', datafield: 'ITEM',cellsalign: "center", width: 130,filtertype: 'checkedlist' },
+		                       { text: 'Valor Unti', datafield: 'VALOR UNITARIO', width: 100,cellsalign: "center",filtertype: 'checkedlist' },
+		                       { text: 'Quantidade', datafield: 'QTDE', width: 100,cellsalign: "center", filtertype: 'checkedlist' },
+		                       { text: 'Valor Total', datafield: 'VALOR TOTAL', width: 100,cellsalign: "center", filtertype: 'checkedlist' }
+		                       
+		                   ]
+		             });
+			
+		}else{
 		$("#div_tabela_po").html("<div id=\"toolbar_po_control\" role=\"toolbar\" class=\"btn-toolbar\">"+
         		
     			"<button type=\"button\" class=\"btn btn-info\" data-toggle=\"modal\" data-target=\"#PO_upload_Modal\">Carregar PO</button>"+
@@ -56,6 +107,7 @@ function carrega_PO(opc){
 	        });
 	    });
 	    //alert("atualizando PO's");
+		}
 	}
 	if(opc==1){
 		//alert("atualizando itens!");

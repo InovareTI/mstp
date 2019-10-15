@@ -16,10 +16,7 @@ response.setDateHeader ("Expires", -1);
 		<meta name="description" content="MSTP - Managed Services Telecom Platform" />
 		<meta name="keywords" content="MSTP INOVARE, INOVARE TI, Servico, telecom" />
 		<meta name="Inovare TI" content="MSTP - Managed Services Telecom Platform" />
-		
-		<link rel="stylesheet" type="text/css" href="css/w3_cards.css" />
-		
-		<link rel="shortcut icon" href="./favicon.ico">
+		<link type="text/css" rel="stylesheet" href="css/mfb/mfb.min.css"/>
 		
 		 <link rel="stylesheet" href="js/plugins/leaflet/leaflet.css" type="text/css"/>
 		 <script src="js/plugins/leaflet/leaflet.js"></script>
@@ -54,15 +51,16 @@ response.setDateHeader ("Expires", -1);
 	<script src="js/jquery-confirm.min.js" type="text/javascript"></script>
 	<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/DataTable/buttons.dataTables.min.css" />
+	
 	<script src="js/DataTable/dataTables.buttons.js" type="text/javascript"></script>
 	<script src="js/DataTable/jszip.min.js" type="text/javascript"></script>
 	<script src="js/DataTable/buttons.print.js" type="text/javascript"></script>
 	<script src="js/DataTable/buttons.html5.js" type="text/javascript"></script>
-
 	<script src="js/DataTable/pdfmake.min.js" type="text/javascript"></script>
 	<script src="js/DataTable/vfs_fonts.js" type="text/javascript"></script>
 	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/rowgroup/1.1.0/css/rowGroup.dataTables.min.css" />
 	<script src="https://cdn.datatables.net/rowgroup/1.1.0/js/dataTables.rowGroup.min.js" type="text/javascript"></script>
+	
 	<script src="js/modernizr.custom.js"></script>
 	<script src="js/plugins/canvas-to-blob.min.js" type="text/javascript"></script>
 	<script src="js/fileinput.js" type="text/javascript"></script>
@@ -118,7 +116,7 @@ response.setDateHeader ("Expires", -1);
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.grouping.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxdata.export.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.export.js"></script>
-   
+   <script type="text/javascript" src="js/mfb/mfb.min.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxdate.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxribbon.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxlayout.js"></script>
@@ -135,12 +133,15 @@ response.setDateHeader ("Expires", -1);
     <script type="text/javascript" src="js/jqwidgets/jqxpasswordinput.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxtooltip.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxwindow.js"></script>
+    <script type="text/javascript" src="js/jqwidgets/jqxtoolbar.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxdocking.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxexpander.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxscheduler.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxscheduler.api.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxinput.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxdragdrop.js"></script>
+    <script type="text/javascript" src="js/jqwidgets/jqxsortable.js"></script>
+    <script type="text/javascript" src="js/jqwidgets/jqxkanban.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxpivot.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxpivotdesigner.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxpivotgrid.js"></script>
@@ -173,11 +174,12 @@ response.setDateHeader ("Expires", -1);
 	<script type="text/javascript" src="js/pivot.js"></script>
 	<script type="text/javascript" src="js/checklist.js"></script>
 	<script type="text/javascript" src="js/despesas.js"></script>
+	<script type="text/javascript" src="js/Ticket.js"></script>
 	<script src='https://api.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.js'></script>
      <link href='https://api.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.css' rel='stylesheet' />
 
 	<link rel="manifest" href="/manifest.json" />
-	<link rel="manifest" href="/manifest.json" />
+	
 <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
 <script>
   var OneSignal = window.OneSignal || [];
@@ -194,6 +196,20 @@ response.setDateHeader ("Expires", -1);
 	
     
 	<style>
+	
+	
+	
+	.imgRollout {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1px;
+ 
+}
+
+.imgRollout:hover {
+  box-shadow: 0 0 2px 1px rgba(0, 140, 186, 0.5);
+}
+	
 	.green {
   color: black !important;
   background-color: #b6ff00 !important;
@@ -369,12 +385,9 @@ response.setDateHeader ("Expires", -1);
 							<li><a class="icon icon-display" href="#" onclick="menu('PO')">Gestão de PO's</a></li>
 							<li><a class="icon icon-display" href="#" onclick="menu('permits')">Aquisições(PERMITS)</a></li>
 							<li><a href="#" onclick="menu('aprovacoes');carrega_aprovacoes_hh();"><i class="fas fa-list-ul"></i>&nbsp;&nbsp;Aprovações</a></li>
-							<li class="icon icon-arrow-left">
-								<a class="icon icon-male" href="#" onclick="menu('clientes')">Clientes</a>
-								
-							</li>
-							<li class="icon icon-arrow-left"><a class="icon icon-shop" href="#" onclick="menu('projetos')">Projetos</a></li>
+							
 							<li><a class="icon icon-paperplane" href="#" onclick="menu('rollout')">Rollout</a></li>
+							<li><a class="icon icon-paperplane" href="#" onclick="menu('ticketWindow')">Tickets</a></li>
 							<li><a class="icon icon-world" href="#" onclick="menu('mapa_Operacional')">Mapa Operacional</a></li>
 							 <li class="icon icon-arrow-left">
 								<a class="icon icon-settings" href="#">Gestão de Custos</a>
@@ -411,6 +424,8 @@ response.setDateHeader ("Expires", -1);
 										<li><a class="icon icon-key" href="#" onclick="menu('senha')">Senha</a></li>
 										<li><a class="icon icon-user" href="#" onclick="menu('permitsCampos')">Aquisições&Permissões</a></li>
 										<li><a class="icon icon-user" href="#">Portal</a></li>
+										<li class="icon icon-arrow-left"><a class="icon icon-male" href="#" onclick="menu('clientes')">Clientes</a></li>
+										<li class="icon icon-arrow-left"><a class="icon icon-shop" href="#" onclick="menu('projetos')">Projetos</a></li>
 										<li class="icon icon-arrow-left">
 											<a class="icon icon-note" href="#">Rollout</a>
 											<div class="mp-level">
@@ -642,7 +657,41 @@ response.setDateHeader ("Expires", -1);
 		        		</div>
 					
 					</div>
+					
+					<div class="janelas" id="ticketWindow" style="display:none;width:100%;height:100%;background:lightgray;">
+								
+								 <div id="TicketToolBar"></div>
+								<div id="TicketKanban"></div> 
+								
+								<ul class="mfb-component--br mfb-slidein" data-mfb-toggle="hover" data-mfb-state="closed">
+								  <li class="mfb-component__wrap">
+								    <!-- the main menu button -->
+								    <a data-mfb-label="Operações" class="mfb-component__button--main">
+								      <!-- the main button icon visibile by default -->
+								      
+								      <i class="mfb-component__main-icon--resting"><i class="fas fa-plus"></i></i>
+								      <!-- the main button icon visibile when the user is hovering/interacting with the menu -->
+								      <i class="mfb-component__main-icon--active"><i class="fas fa-asterisk"></i></i>
+								    </a>
+								    <ul class="mfb-component__list">
+								      <!-- a child button, repeat as many times as needed -->
+								      <li>
+								        <a href="link.html" data-mfb-label="Novo Ticket" class="mfb-component__button--child">
+								          <i class="mfb-component__child-icon"><i class="fas fa-tasks"></i></i>
+								        </a>
+								      </li>
+								      <li>
+								        <a href="link.html" data-mfb-label="Novo Usuário" class="mfb-component__button--child">
+								          <i class="mfb-component__child-icon"><i class="fas fa-user-plus "></i></i>
+								        </a>
+								      </li>
+								    </ul>
+								  </li>
+								</ul>
+					</div>
+					
 					<div class="janelas" id="pivot_view_div" style="display:none;width:100%;height:100%;">
+					
 					<div class="panel panel-default" style="width:90%;margin:0 auto">
 	        				<div class="panel-heading">Pivots de rollout</div>
 		        				<div class="panel-body">
@@ -1095,13 +1144,17 @@ response.setDateHeader ("Expires", -1);
 		        				<div style="width:50%;float:left;"><h3 style="color:gray;float:left">Total Disponivel: &nbsp;&nbsp;&nbsp;&nbsp;</h3>
 		        					<h3 style="float:left"><a id="exibe_hh12" style="color:#1925f6" href="#" onclick="carrega_extrato_he()">0</a></h3>
 		        				</div>
-		        				<div style="width:50%;float:left"><h3 style="color:gray">Total Compensado:</h3></div>
+		        				<div style="width:50%;float:left"></div>
 		        				</div>
 	        		</div>
 	        		<div id="div_mostra_extrato_hh" style="display:none">
 	        		<div class="panel panel-default" style="width:90%;margin:0 auto;">
 	        			<div class="panel-heading">Extrato Horas<div style="float:right"><a style="color:gray" href="#" onclick="mostra_horas_manuais()">Voltar</a></div></div>
 		        			<div class="panel-body">
+		        			<select id="select_func_HH_extrato" class="selectpicker" data-live-search="true" title="Escolha o Funcionário" onchange="carrega_extrato_he()">
+		        			
+		        			</select>
+		        			<div style="float: left;" id="range_consulta_horas_banco"></div>
 		        				<div id="div_tabela_extrato_hh"></div>
 		        			</div>
 		        		</div>	
@@ -1127,6 +1180,7 @@ response.setDateHeader ("Expires", -1);
                 </div></td> <td style="padding:10px"><input id="horas_normais" type='text' class="form-control" readonly></td><td style="padding:10px"><input id="horas_noturnas" type='text' class="form-control" readonly></td><td style="padding:10px"><input type="text" class="form-control" value="" id="obs_hh"></td><td><button onclick="add_hours()" class="btn btn-primary">+</button></td>
                 </tr></table>
                 <div id="div_tabela_resumo_hh" style="display:none">
+                
                 	<table style="color:black" id="tabela_resumo_banco" data-toggle="table"  data-height="300">
                 	<thead style="color:black">
                 		<tr style="color:black">
@@ -2323,6 +2377,34 @@ response.setDateHeader ("Expires", -1);
 
   </div>
 </div> 
+
+
+
+<div id="Modal_DetalheEquipeRollout" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title" style="color:black">Detalhes da Equipe no Site</h4>
+      </div>
+      <div class="modal-body" >
+      <div id="fotos_registros"></div>
+      <div id="div_detalhe_usuario"></div>
+			
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal" >Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div> 
+
+
+
 
 <div id="Modal_EnviaMengagem" class="modal fade" role="dialog">
   <div class="modal-dialog">

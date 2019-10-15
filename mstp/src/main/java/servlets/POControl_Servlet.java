@@ -20,6 +20,8 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -48,11 +50,20 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.PDFTextStripperByArea;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Filters;
 
 import classes.ClienteEmpresa;
 import classes.Conexao;
@@ -185,7 +196,7 @@ public class POControl_Servlet extends HttpServlet {
 			
 				if(rs.next()){
 					rs.beforeFirst();
-					System.out.println("Entrou no RS");
+					//System.out.println("Entrou no RS");
 					if(p.get_PessoaPerfil_nome().equals("Financeiro")){
 						while(rs.next()){
 							//System.out.println("Entrou no while");
@@ -226,6 +237,32 @@ public class POControl_Servlet extends HttpServlet {
 				dados_tabela=dados_tabela + "</tbody>";
 				dados_tabela=dados_tabela + "</table>";
 				//System.out.println(dados_tabela);
+				
+			if(p.getEmpresa().getEmpresa_id()==1) {
+				dados_tabela="";
+				Bson filtro;
+				Document poItemLinha;
+				List<Bson> filtros= new ArrayList<>();
+				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				filtros.add(filtro);
+				FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("PO", filtros);
+				MongoCursor<Document> resultado =findIterable.iterator();
+				dados_tabela= dados_tabela+"[";
+				if(resultado.hasNext()){
+					while(resultado.hasNext()) {
+						poItemLinha=resultado.next();
+						dados_tabela=dados_tabela+"{";
+						dados_tabela=dados_tabela+"\"PO NUMBER\":\""+poItemLinha.getString("PO NO")+"\",";
+						dados_tabela=dados_tabela+"\"ITEM\":\""+poItemLinha.getString("Item Description")+"\",";
+						dados_tabela=dados_tabela+"\"VALOR UNITARIO\":\""+poItemLinha.getString("Unit Price")+"\",";
+						dados_tabela=dados_tabela+"\"QTDE\":\""+poItemLinha.getString("Requested Qty")+"\",";
+						dados_tabela=dados_tabela+"\"VALOR TOTAL\":\""+poItemLinha.getString("Line Amount")+"\"},";
+					}
+					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+				}
+				dados_tabela=dados_tabela+"]";
+			}
+				System.out.println(dados_tabela);
 				resp.setContentType("application/html");  
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
@@ -925,7 +962,79 @@ public class POControl_Servlet extends HttpServlet {
 									     
 									    
 						    				
-									        	}// if de empresas
+									        	}else if(p.getEmpresa().getEmpresa_id()==1 ) {// if de empresas
+									        		
+									        		    inputStream= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
+									        		    String po_numberNumero=item.getName();
+													    DataFormatter dataFormatter = new DataFormatter();
+													    int indexCell=0;
+											    		XSSFWorkbook wb = new XSSFWorkbook(inputStream);
+											    		//System.out.println("chegou aqui 2");
+											    		Sheet sheet1 = wb.getSheetAt(0);
+											    		Cell cell;
+											    		String cellValue;
+											    		Iterator<Row> rowIterator = sheet1.iterator();
+											    		Row row_aux = rowIterator.next();
+											    		//System.out.println("numero de colunas:"+row_aux.getLastCellNum());
+											    		String []campos = new String[row_aux.getLastCellNum()];
+											    		for(int i=0;i<row_aux.getLastCellNum();i++) {
+											    			cell = row_aux.getCell(i);
+										    				cellValue = dataFormatter.formatCellValue(cell);
+										    				cellValue=cellValue.replace("'","");
+										    				cellValue=cellValue.replace(".","");
+										    				cellValue=cellValue.replace("\"","");
+										    				cellValue=cellValue.replace("\\\"","_");
+										    				cellValue=cellValue.replace("\n","|");
+											    			campos[i]=cellValue;
+											    		}
+											    		System.out.println("chegou aqui 3");
+											    		Calendar d = Calendar.getInstance();
+											    		while(rowIterator.hasNext()) {
+											    			//System.out.println("chegou aqui 4");
+											    			row_aux = rowIterator.next();
+											    			Document linhaPO = new Document();
+											    			linhaPO.append("Empresa",p.getEmpresa().getEmpresa_id());
+											    			linhaPO.append("PO_ATIVA","Y");
+											    			linhaPO.append("PO_VALIDADA","N");
+											    			linhaPO.append("DT_CARREGADA",d.getTime());
+											    			linhaPO.append("USER_CARREGADA",p.get_PessoaUsuario());
+											    			for(int i=0;i<row_aux.getLastCellNum();i++) {
+											    				//System.out.println("indice do campo: "+i);
+											    				cell = row_aux.getCell(i);
+											    				cellValue = dataFormatter.formatCellValue(cell);
+											    				cellValue=cellValue.replace("'","");
+											    				cellValue=cellValue.replace(".","");
+											    				cellValue=cellValue.replace("\"","");
+											    				cellValue=cellValue.replace("\\\"","_");
+											    				cellValue=cellValue.replace("\n","|");
+											    				linhaPO.append(campos[i], cellValue);
+											    				//System.out.println(campos[i] +" - "+cellValue);
+											    			}
+											    			//System.out.println("chegou aqui 7");
+											    			//System.out.println(linhaPO.toJson());
+											    			//System.out.println("chegou aqui 8");
+											    			mongo.InserirSimples("PO", linhaPO);
+											    		}
+											    		mongo.fecharConexao();
+											    		
+											    		//
+											    		
+											    		wb.close();
+											    		resp.setContentType("application/json"); 
+											        	JSONObject jsonObject = new JSONObject(); 
+											        	jsonObject.put("Sucesso", "Sucesso"); 
+											        	PrintWriter pw = resp.getWriter();
+											        	pw.print(jsonObject); 
+											        	pw.close();
+											        	 Semail email= new Semail();
+													     rs=mysql.Consulta("select distinct usuarios.nome,usuarios.email from usuarios,perfil_funcoes where perfil_funcoes.funcao_nome='POManager'  and perfil_funcoes.empresa_id="+p.getEmpresa().getEmpresa_id()+" and perfil_funcoes.usuario_id=usuarios.id_usuario and usuarios.ativo='Y'");
+										    			 if(rs.next()) {
+										    				 rs.beforeFirst();
+										    				 while(rs.next()) {
+										    					 email.enviaEmailSimples(rs.getString("email"), "MSTP - Notificação de Inserção de PO","Prezado "+rs.getString("nome")+", \n \n Informamos que uma nova PO foi carregada no sistema MSTP. \n\nEmpresa Emissora:"+clienteObj.getNome()+". \nPO Número:"+po_numberNumero+" \nProjeto:"+projetoObj.getNome()+" \n\nMensagem Automática.Favor não responder!\n  Operação realizada em: "+time);
+										    				 }
+										    			 }
+									        	}
 								    		}// if upload do arquivo ok
 									    
 									        
@@ -1905,7 +2014,7 @@ public class POControl_Servlet extends HttpServlet {
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}
-		
+					
 				} catch (SQLException e) {
 			
 				mysql.fecharConexao();

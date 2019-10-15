@@ -1,3 +1,44 @@
+function exibe_detalheEquipe(usuario){
+	 $('#Modal_DetalheEquipeRollout').modal('show');
+	 $("#fotos_registros").html("");
+	 $("#div_detalhe_usuario").html("");
+	 $.ajax({
+		  type: "POST",
+		  data: {"opt":"47",
+			  "usuario":usuario },		  
+		  url: "./UserMgmt",
+		  cache: false,
+		  dataType: "text",
+		  success: exibe_foto_Equipe
+		});
+	 function exibe_foto_Equipe(data){
+		
+		 aux=JSON.parse(data);
+		 if(aux.fotos.length>0){
+			 for(var i=0;i<aux.fotos.length;i++){
+				 $("#fotos_registros").append("<img src='./UserMgmt?opt=40&foto="+aux.fotos[i]+"'>");
+			 }
+		 }else{
+			 $("#fotos_registros").append("<label>Sem Fotos de Registros!</label>");
+		 }
+		 $("#div_detalhe_usuario").append("<h3 style='color:black'>"+aux.nome+"</h3>");
+		 $("#div_detalhe_usuario").append("<table>" +
+		 		"<tr style='border-color: white';>" +
+		 		"<td style='border-color: white;background-color:#E7E6E5'>" +
+		 		"<label style='color:black'>Ultimo Login:</td><td><label style='color:black'>"+aux.ultimologin+"</label></td></tr>"+
+		 		"<tr style='border-color: white'>" +
+		 		"<td style='border-color: white;background-color:#E7E6E5'><label style='color:black'>Entrada:</label></td><td><label style='color:black'> "+aux.Entrada+"</label></td></tr>"+
+		 		"<tr style='border-color: white'>" +
+		 		"<td style='border-color: white;background-color:#E7E6E5'><label style='color:black'>Inicio Intervalo:</label></td><td><label style='color:black'>"+aux.Inicio_intervalo+"</label></td></tr>"+
+		 		"<tr style='border-color: white'>" +
+		 		"<td style='border-color: white;background-color:#E7E6E5'><label style='color:black'>Fim Intervalo:</label></td><td><label style='color:black'>"+aux.Fim_intervalo+"</label></td></tr>"+
+		 		"<tr style='border-color: white'>" +
+		 		"<td style='border-color: white;background-color:#E7E6E5'><label style='color:black'>Saída:</label></td><td><label style='color:black'>"+aux.Saída+"</label></td></tr></table>");
+		 
+		 
+	 }
+}
+
 function atualiza_dash_rollout(){
 	
 	filtros={"filtros":[]};
@@ -795,9 +836,18 @@ function carrega_gant(){
 		var dataadapter = new $.jqx.dataAdapter(source, {
 			
             formatData: function(data) {
+            	var checked ;
+            	if($("#jqxcheckbox_EquipesOnSite").length){
+            		checked = $("#jqxcheckbox_EquipesOnSite").jqxCheckBox('checked');
+            		data.equipesnosite=checked;
+            	}else{
+            		data.equipesnosite="false";
+            	}
+            	
             	data.opt=9;
             	data.rolloutid=rolloutid;
             	data._=timestamp;
+            	
 				//alert(JSON.stringify(data));
                 return data;
             },
@@ -824,6 +874,7 @@ function carrega_gant(){
 	                showtoolbar: true,
 	                filterable: true,
 	                pagesize: 40,
+	                rowsheight: 40,
 	                autoshowfiltericon: true,
 	                ready: function () {
 	                    
@@ -868,6 +919,7 @@ function carrega_gant(){
 	                    batchButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Atualização em Lotes</a>");
 	                    cFilterButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Remover Filtros</a>");
 	                    deleteButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Remover Atividade</a>");
+	                    checkEquipeOnSite = $("<div id='jqxcheckbox_EquipesOnSite' style='margin-top:10px'>Exibir Apenas Sites com Equipe</div>");
 	                    //syncButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Sync</a>");
 	                    //downloadButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Exportar</a>");
 	                    //uploadButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_upload_rollout\">Importar</a>");
@@ -884,13 +936,18 @@ function carrega_gant(){
 	                    //container.append(syncButton);
 	                    container.append(deleteButton);
 	                    container.append(RolloutMapButton);
+	                    container.append(checkEquipeOnSite);
 	                    //container.append(syncMongoButton);
 	                    toolbar.append(container);
 	                    save_button.jqxButton({theme:'light'});
 	                    msgButton.jqxButton({theme:'light'});
 	                    batchButton.jqxButton({theme:'light'});
+	                    checkEquipeOnSite.jqxCheckBox({theme:'light'});
 	                    drop_button.jqxDropDownButton({ width: 150, height: 30,theme:'light'});
 	                    $('#dropDownButton_op_rollout').jqxDropDownButton('setContent', '<div style="position: relative; margin-left: 3px; margin-top: 5px;">Operações</div>'); 
+	                    $("#jqxcheckbox_EquipesOnSite").on('change', function (event) {
+	                        carrega_gant();
+	                    });
 	                    $('#jqxTree_bt_rollout').on('select', function (event) {
 	                       
 	                        $("#dropDownButton_op_rollout").jqxDropDownButton('close'); 

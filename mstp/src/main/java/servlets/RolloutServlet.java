@@ -244,7 +244,9 @@ public class RolloutServlet extends HttpServlet {
     							
     							dados_tabela=dados_tabela+"{ \"name\": \""+rs.getString("field_name")+"\", \"type\": \"string\"},"+ "\n";
     							if(rs.getString("field_name").equals("Site ID")) {
-    								campos_aux=campos_aux+"{ \"text\": \""+rs.getString("field_name")+"\",\"datafield\":\""+rs.getString("field_name")+"\",\"cellsrenderer\": \"siteMarcadoIntegrado\",\"columntype\": \"textbox\",\"width\":80},"+ "\n";
+    								campos_aux=campos_aux+"{ \"text\": \""+rs.getString("field_name")+"\",\"datafield\":\""+rs.getString("field_name")+"\",\"cellsrenderer\": \"siteMarcadoIntegrado\",\"columntype\": \"textbox\",\"width\":80,\"editable\":False},"+ "\n";
+    							}else if(rs.getString("field_name").equals("Equipes no Site")) {
+    								campos_aux=campos_aux+"{ \"text\": \""+rs.getString("field_name")+"\",\"datafield\":\""+rs.getString("field_name")+"\",\"columntype\": \"combobox\",\"filtertype\": \"checkedlist\",\"width\":90,\"editable\":False},"+ "\n";
     							}else {
     								campos_aux=campos_aux+"{ \"text\": \""+rs.getString("field_name")+"\",\"datafield\":\""+rs.getString("field_name")+"\",\"columntype\": \"textbox\",\"width\":80},"+ "\n";
     							}
@@ -505,7 +507,7 @@ public class RolloutServlet extends HttpServlet {
 				Date aux_date;
 				JSONObject jObj = new JSONObject(param1);
 				JSONArray filtros = jObj.getJSONArray("filtros");
-				query="Select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param3+"' order by ordenacao";
+				query="Select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param3+"' and field_name<>'Equipes no Site' order by ordenacao";
 				XSSFWorkbook workbook = new XSSFWorkbook();
 				XSSFSheet sheet = workbook.createSheet("RolloutMSTP");
 				Row row;
@@ -563,6 +565,7 @@ public class RolloutServlet extends HttpServlet {
 	            	while(rs.next()) {
 	            		//System.out.println("Adicionando nome "+rs.getString("field_name"));
 	            		if(rs.getString("field_type").equals("Atributo")) {
+	            			if(!rs.getString("field_name").equals("Equipes no Site")) {
 	            			cell = row.createCell((short) colIndex);
 			                cell.setCellValue(rs.getString("field_name"));
 			                sheet.autoSizeColumn(colIndex);
@@ -570,8 +573,8 @@ public class RolloutServlet extends HttpServlet {
 			                cell = row2.createCell((short) colIndex);
 			                cell.setCellStyle(cellStyle);
 			                sheet.addMergedRegion(new CellRangeAddress(rowIndex,rowIndex+1,colIndex,colIndex));
-			               
 			                colIndex=colIndex+1;
+	            			}
 	            		}else if(rs.getString("field_type").equals("Milestone")) {
 	            			cell = row.createCell((short) colIndex);
 			                cell.setCellValue(rs.getString("field_name"));
@@ -872,7 +875,7 @@ public class RolloutServlet extends HttpServlet {
 	               //System.out.println(campo_tipo.toString());
 	               for(int j=0;j<campo_tipo.length();j++) {
 	            	    campos[campo_tipo.getJSONArray(campos_nome[j]).getInt(2)-1]=campos_nome[j];
-	            	   
+	            	    
 	               }
 	              
 	               Document milestone_doc= new Document();
@@ -890,7 +893,10 @@ public class RolloutServlet extends HttpServlet {
 	            	   cell.setCellStyle(cellStyle3);
 	            	   colIndex=colIndex+1;
 	            	   for(int indice_campos=0;indice_campos<campo_tipo.length();indice_campos++) {
-	            		   cell = row.createCell((short) colIndex);
+	            		   //System.out.println(campo_tipo.getJSONArray(campos[indice_campos]).get(3));
+	            		   if(!campo_tipo.getJSONArray(campos[indice_campos]).get(3).equals("Equipes no Site")) {
+	            			   cell = row.createCell((short) colIndex);
+	            			   
 	            		   //System.out.println("Lendo campo :"+campos[indice_campos]+" , tipo:"+ campo_tipo.getJSONArray(campos[indice_campos]).get(0)+"/"+campo_tipo.getJSONArray(campos[indice_campos]).get(1));
 	            		   if(campo_tipo.getJSONArray(campos[indice_campos]).get(0).equals("Atributo")){
 		            		   if(campo_tipo.getJSONArray(campos[indice_campos]).get(1).equals("Data")){
@@ -947,7 +953,7 @@ public class RolloutServlet extends HttpServlet {
 		            		   }else if(campo_tipo.getJSONArray(campos[indice_campos]).get(1).equals("Moeda")){
 		            			   if(Linha.get(campos[indice_campos])!=null) {
 		            				   if(!Linha.get(campos[indice_campos]).equals("")) {
-		            					   System.out.println(Linha.getInteger("recid"));
+		            					   //System.out.println(Linha.getInteger("recid"));
 				            			   cell.setCellValue(number_formatter.format(Linha.getDouble(campos[indice_campos])));
 				            			   cell.setCellStyle(cellStyle2);
 				            			   colIndex=colIndex+1;
@@ -962,21 +968,23 @@ public class RolloutServlet extends HttpServlet {
 			            			   colIndex=colIndex+1;
 		            			   }
 		            		   }else if(campo_tipo.getJSONArray(campos[indice_campos]).get(1).equals("Texto") || campo_tipo.getJSONArray(campos[indice_campos]).get(1).equals("Lista")) {
-		            			   if(Linha.get(campos[indice_campos])!=null) {
-		            				   if(!Linha.get(campos[indice_campos]).equals("")) {
-				            			   cell.setCellValue(Linha.getString(campos[indice_campos]));
-				            			   cell.setCellStyle(cellStyle2);
-				            			   colIndex=colIndex+1;
-		            				   }else {
+		            			   
+			            			   if(Linha.get(campos[indice_campos])!=null) {
+			            				   if(!Linha.get(campos[indice_campos]).equals("")) {
+					            			   cell.setCellValue(Linha.getString(campos[indice_campos]));
+					            			   cell.setCellStyle(cellStyle2);
+					            			   colIndex=colIndex+1;
+			            				   }else {
+				            				   cell.setCellValue("");
+					            			   cell.setCellStyle(cellStyle2);
+					            			   colIndex=colIndex+1;
+				            			   }
+			            			   }else {
 			            				   cell.setCellValue("");
 				            			   cell.setCellStyle(cellStyle2);
 				            			   colIndex=colIndex+1;
 			            			   }
-		            			   }else {
-		            				   cell.setCellValue("");
-			            			   cell.setCellStyle(cellStyle2);
-			            			   colIndex=colIndex+1;
-		            			   }
+		            			   
 		            		   }
 	            		   }else {
 	            			for(int f=0;f<milestones_list.size();f++){
@@ -1105,6 +1113,8 @@ public class RolloutServlet extends HttpServlet {
             				}
             				colIndex=colIndex+1;
 	            		   }//fim da leitura tipo milestone
+	            	    }//Equipes no Site
+	            	    	
 	            	   }//fim do for de campos
 	            	   
 	               }//fim do while do mongodb
@@ -1834,7 +1844,7 @@ public class RolloutServlet extends HttpServlet {
 					    			changes.append("update_by", p.get_PessoaUsuario());
 					    			changes.append("update_time",time);
 					    			
-					    			c.InserirSimpels("rollout", changes);
+					    			c.InserirSimples("rollout", changes);
     							}else if(operacao.equals("update")){
     								filtros.append("recid",recid);
         							filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
@@ -1962,7 +1972,28 @@ public class RolloutServlet extends HttpServlet {
 				param1=req.getParameter("pagesize");
 				param2=req.getParameter("pagenum");
 				param3=req.getParameter("rolloutid");
+				param4=req.getParameter("equipesnosite");
 				//System.out.println("MSTP WEB - "+f3.format(time)+" "+ p.get_PessoaUsuario()+" carregando rolloutID "+ param3);
+				
+				Calendar hoje = Calendar.getInstance();
+    			
+    			hoje.set(Calendar.HOUR_OF_DAY,00);
+    			hoje.set(Calendar.MINUTE,01);
+    			
+				Bson Filtro;
+    			List<Bson> filtroLista = new ArrayList<>();
+    			Filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+    			filtroLista.add(Filtro);
+    			System.out.println("dia da pesquisa:"+f2.format(hoje.getTime()));
+    			Filtro=Filters.eq("data_dia_string",f2.format(hoje.getTime()));
+    			filtroLista.add(Filtro);
+    			//List<Document> aux=c.consultaaggregationmultiplo("Registros", filtroLista,"local_registro","Usuario");
+    			FindIterable<Document> findIterable2 = c.ConsultaCollectioncomFiltrosLista("Registros", filtroLista);
+    			//FindIterable<Document> findIterable2=r.getUsuariosSite(p);
+				
+				
+				
+				
 				JSONObject campo_tipo=r.getCampos().getCampos_tipo(conn, p,param3);
 				Iterator<String>campos_nomes=campo_tipo.keys();
 				Long totallinhas;
@@ -2279,11 +2310,40 @@ public class RolloutServlet extends HttpServlet {
 				FindIterable<Document> findIterable;
 				
 				if(filterscount>0) {
+					if(param4.equals("true")) {
+						Bson filtro_aux;
+	    				List<Bson> lista_filtro_aux = new ArrayList<>();
+	    				filtro_aux=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+	    				lista_filtro_aux.add(filtro_aux);
+	    				filtro_aux=Filters.eq("data_dia_string",f2.format(hoje.getTime()));
+	    				lista_filtro_aux.add(Filtro);
+	    				filtro_aux=Filters.eq("tipo_local_registro","Site");
+	    				lista_filtro_aux.add(filtro_aux);
+	    				List<String> sitesdia=c.ConsultaSimplesDistinct("Registros", "local_registro", lista_filtro_aux);
+	    				filtro=Filters.in("Site ID", sitesdia);
+	    				filtro_list.add(filtro);
+					}
 					System.out.println("Executando consulta com filtros");
 					totallinhas=c.CountSimplesComFiltroInicioLimit("rollout",filtro_list);
 					findIterable = c.ConsultaSimplesComFiltroInicioLimit("rollout",filtro_list,pagina_linhas*pagina,pagina_linhas);
 				}else {
+					
 					filtro_list = new ArrayList<Bson>();
+					if(param4.equals("true")) {
+						//System.out.println("opcao marcada");
+						Bson filtro_aux;
+	    				List<Bson> lista_filtro_aux = new ArrayList<>();
+	    				filtro_aux=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+	    				lista_filtro_aux.add(filtro_aux);
+	    				filtro_aux=Filters.eq("data_dia_string",f2.format(hoje.getTime()));
+	    				lista_filtro_aux.add(Filtro);
+	    				filtro_aux=Filters.eq("tipo_local_registro","Site");
+	    				lista_filtro_aux.add(filtro_aux);
+	    				List<String> sitesdia=c.ConsultaSimplesDistinct("Registros", "local_registro", lista_filtro_aux);
+	    				//System.out.println("tamnho: "+sitesdia.size());
+	    				filtro=Filters.in("Site ID", sitesdia);
+	    				filtro_list.add(filtro);
+					}
 					filtro=Filters.eq("Linha_ativa", "Y");
 					filtro_list.add(filtro);
 					filtro=Filters.eq("Empresa", p.getEmpresa().getEmpresa_id());
@@ -2303,12 +2363,14 @@ public class RolloutServlet extends HttpServlet {
     			String nome_campo_aux="";
     			String chaves="";
     			
+    			
     			if(!resultado.hasNext()) {
     				dados_tabela=dados_tabela+"{\"totalRecords\":\"0\"},\n";
     			}else {
     				dados_tabela=dados_tabela+"{\"totalRecords\":\""+totallinhas+"\",\n";
     			while(resultado.hasNext()) {
     				linha=resultado.next();
+    				
     				List<Document> milestones=(List<Document>) linha.get("Milestone");
     				//String site_aux=linha.getString("Site ID");
     				dados_tabela=dados_tabela+chaves+"\"id\":"+linha.get("recid")+",";
@@ -2335,12 +2397,31 @@ public class RolloutServlet extends HttpServlet {
 		    						dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\"\",";
 		    					}
 		    				}else if(campo_tipo.getJSONArray(nome_campo_aux).get(1).equals("Texto")){
+		    					if(nome_campo_aux.equals("Equipes no Site")) {
+		    						String pessoasonsite="";
+		    						Document pessoas;
+		    						MongoCursor<Document> resultado_aux = findIterable2.iterator();
+		    						if(resultado_aux.hasNext()) {
+		    						while(resultado_aux.hasNext()) {
+		    							pessoas=resultado_aux.next();
+		    							if(pessoas.getString("local_registro").equals(linha.getString("Site ID"))) {
+		    								
+		    								pessoasonsite=pessoasonsite+"<a href='#' onclick=exibe_detalheEquipe('"+pessoas.getString("Usuario")+"')><img class='imgRollout' style='margin-left: 5px;' width='32' height='32' src='./UserMgmt?opt=32&usuario="+pessoas.getString("Usuario")+"'></a>";
+		    							}
+		    						}
+		    						}
+		    						dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\""+pessoasonsite+"\",";
+		    						findIterable2.first();
+		    						resultado_aux.close();
+		    						
+		    					}else {
 		    					if(linha.get(nome_campo_aux)!=null) {
 		    						//System.out.println(nome_campo_aux);
 		    						dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\""+linha.getString(nome_campo_aux)+"\",";
 		    					}else {
 		    						dados_tabela=dados_tabela+"\""+nome_campo_aux+"\":\"\",";
 		    					}
+		    				}
 		    				}else if(campo_tipo.getJSONArray(nome_campo_aux).get(1).equals("Moeda")){
 		    					if(linha.get(nome_campo_aux)!=null) {
 		    						//System.out.println(nome_campo_aux);
@@ -2804,7 +2885,7 @@ public class RolloutServlet extends HttpServlet {
     					}
     					document.append("Update_by", "masteradmin");
 						document.append("Update_time", time);
-    					c.InserirSimpels("rolloutCampos", document);
+    					c.InserirSimples("rolloutCampos", document);
     					document.clear();
     				}
     			}else {
@@ -2898,7 +2979,7 @@ public class RolloutServlet extends HttpServlet {
 				        historico.append("update_time", d.getTime());
 					
 					c.AtualizaUm("rollout", filtros, update);
-					c.InserirSimpels("rollout_history", historico);
+					c.InserirSimples("rollout_history", historico);
 					historico.clear();
 					filtros.clear();
 					update.clear();
@@ -2941,7 +3022,7 @@ public class RolloutServlet extends HttpServlet {
 				        }
 				        historico.append("update_by", p.get_PessoaUsuario());
 				        historico.append("update_time", d.getTime());
-				        c.InserirSimpels("rollout_history", historico);
+				        c.InserirSimples("rollout_history", historico);
 						historico.clear();
 				
 					c.AtualizaUm("rollout", filtros, update);
@@ -2987,7 +3068,7 @@ public class RolloutServlet extends HttpServlet {
     				        
     				        historico.append("update_by", p.get_PessoaUsuario());
     				        historico.append("update_time", d.getTime());
-    				        c.InserirSimpels("rollout_history", historico);
+    				        c.InserirSimples("rollout_history", historico);
     						historico.clear();
     					
     					
@@ -3041,7 +3122,7 @@ public class RolloutServlet extends HttpServlet {
     				        
     				        historico.append("update_by", p.get_PessoaUsuario());
     				        historico.append("update_time",d.getTime());
-    				        c.InserirSimpels("rollout_history", historico);
+    				        c.InserirSimples("rollout_history", historico);
     						historico.clear();
     						//if(!conn.Alterar(query)){
     							//System.out.println("Erro de Update");
@@ -3089,7 +3170,7 @@ public class RolloutServlet extends HttpServlet {
     				        historico.append("Novo Valor" , jObj2.getString("value"));
     				        historico.append("update_by", p.get_PessoaUsuario());
     				        historico.append("update_time", d.getTime());
-    				        c.InserirSimpels("rollout_history", historico);
+    				        c.InserirSimples("rollout_history", historico);
     						historico.clear();
     					//System.out.println(filtros.toJson().toString());
     					//System.out.println(update.toJson().toString());
@@ -3191,7 +3272,7 @@ public class RolloutServlet extends HttpServlet {
 		    				    historico.append("update_time", d.getTime());
     						
     						}
-    						    c.InserirSimpels("rollout_history", historico);
+    						    c.InserirSimples("rollout_history", historico);
 		    			        historico.clear();
     						    update = new Document();
     					        update.append("$set", updates);
@@ -4713,7 +4794,7 @@ public class RolloutServlet extends HttpServlet {
 					site_novo.append("GEO", geo);
 					site_novo.append("Update_by", p.get_PessoaUsuario());
 					site_novo.append("Update_time", time);
-					c.InserirSimpels("Rollout_Sites", site_novo);
+					c.InserirSimples("Rollout_Sites", site_novo);
 					site_novo.clear();
 				}
 			}
@@ -4904,7 +4985,7 @@ public class RolloutServlet extends HttpServlet {
 		new_site.append("update_by", p.getEmpresa().getEmpresa_id());
 		new_site.append("update_time", time);
 		//System.out.println(new_site.toJson());
-		c.InserirSimpels("rollout", new_site);
+		c.InserirSimples("rollout", new_site);
 		/*for(int i=0;i<campos.length();i++){
 			if(!campos.getJSONObject(i).getString("nome_campo").equals("recid")){
 				nome_campo=campos.getJSONObject(i).getString("nome_campo").replace("_inicio", "");

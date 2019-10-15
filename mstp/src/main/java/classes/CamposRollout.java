@@ -63,10 +63,12 @@ public class CamposRollout {
 				//campo_tipo=rs.getString(1);
 				rs.beforeFirst();
 				while(rs.next()) {
+					
 					dados= new JSONArray() ;
 					dados.put(rs.getString(2));
 					dados.put(rs.getString(3));
 					dados.put(rs.getInt(4));
+					dados.put(rs.getString(1));
 					jsonObject.put(rs.getString(1),dados);
 					
 				}

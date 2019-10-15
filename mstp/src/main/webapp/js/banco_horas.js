@@ -104,11 +104,15 @@ function armazena_hh(){
 function carrega_extrato_he(){
 	document.getElementById('add_banco_de_Horas').style.display = "none";
 	document.getElementById('div_mostra_extrato_hh').style.display = "block";
+	var selection=$('#range_consulta_horas_banco').jqxDateTimeInput('getRange');
+	var func =  $('#select_func_HH_extrato').val();
 	$.ajax({
 		  type: "POST",
-		  data: {"opt":"5"
+		  data: {"opt":"5",
+			  "func":func,
+			  "from":moment(selection.from).format('L'),
+			  "to":moment(selection.to).format('L')
 			 },		  
-		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
 		  url: "./UserMgmt",
 		  cache: false,
 		  dataType: "text",

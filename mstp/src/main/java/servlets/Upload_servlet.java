@@ -350,7 +350,7 @@ public class Upload_servlet extends HttpServlet {
 				    			
 				    			//System.out.println(sql);
 				    			if(!site_id_encontrado.equals("nao encontrado")) {
-					    			c.InserirSimpels("sites", site);
+					    			c.InserirSimples("sites", site);
 					    		}
 				    			
 				    			}
@@ -434,7 +434,7 @@ public class Upload_servlet extends HttpServlet {
 					site_novo.append("GEO", geo);
 					site_novo.append("Update_by", p.get_PessoaUsuario());
 					site_novo.append("Update_time", time);
-					c.InserirSimpels("Rollout_Sites", site_novo);
+					c.InserirSimples("Rollout_Sites", site_novo);
 					site_novo.clear();
 				}
 			}

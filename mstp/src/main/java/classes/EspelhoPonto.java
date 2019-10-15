@@ -34,7 +34,7 @@ public class EspelhoPonto {
 	}
 	public void TabelaPontos(String nome,String usuarioid,float altura,float largura,PDDocument document,PDPage page,String mes,String inicio,String fim,Document empresa,Document usuario,Pessoa p,Conexao mysql,PDType0Font font2) {
 		String padrao_data_br = "dd/MM/yyyy";
-		final String padrao_data_hora_br = "dd/MM/yyyy HH:mm:ss";
+		//final String padrao_data_hora_br = "dd/MM/yyyy HH:mm:ss";
 		Locale locale_ptBR = new Locale( "pt" , "BR" ); 
 		Locale.setDefault(locale_ptBR);
 		DateFormat f2 = DateFormat.getDateInstance(DateFormat.MEDIUM, locale_ptBR);
@@ -44,12 +44,12 @@ public class EspelhoPonto {
         // we want table across whole page width (subtracted by left and right margin ofcourse)
         float tableWidth = largura - (2 * margin);
         boolean drawContent = true;
-        float yStart = yStartNewPage;
+        //float yStart = yStartNewPage;
         float bottomMargin = 70;
         // y position is your coordinate of top left corner of the table
         float yPosition = 620;
         PDFont fontBold = PDType1Font.TIMES_BOLD;
-        PDFont font = PDType1Font.TIMES_ROMAN;
+        //PDFont font = PDType1Font.TIMES_ROMAN;
         
         Feriado feriado= new Feriado();
         SimpleDateFormat format = new SimpleDateFormat(padrao_data_br);
@@ -498,7 +498,9 @@ public class EspelhoPonto {
 				}else {
 					total_horas_acumulada_domingostring=total_horas_acumulada_domingostring+":"+minutos_acumuladosint;
 				}
+				
         	 yPosition=150;
+        	 page=document.getPage(document.getNumberOfPages()-1);
         	 BaseTable tablerodape = new BaseTable(yPosition, yStartNewPage,
  			        bottomMargin, tableWidth, margin, document, page, true, drawContent);
         	 Row<PDPage> row = tablerodape.createRow(4);

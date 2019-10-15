@@ -110,7 +110,7 @@ public class PermitsServlet extends HttpServlet {
 			campo.append("ativo", "Y");
 			campo.append("dt_add", time);
 			campo.append("add_by", p.get_PessoaUsuario());
-			mongo.InserirSimpels("PermitsCampos", campo);
+			mongo.InserirSimples("PermitsCampos", campo);
 			mongo.fecharConexao();
 		}else if(opt.equals("2")) {
 			Bson filtro;
@@ -450,7 +450,7 @@ public class PermitsServlet extends HttpServlet {
 			campo_cadastro.append("Aquisicao", campo_aquisicao);
 			campo_cadastro.append("Licenciamento", campo_licenciamento);
 			campo_cadastro.append("Financeiro", campo_financeiro);
-			mongo.InserirSimpels("Permits", campo_cadastro);
+			mongo.InserirSimples("Permits", campo_cadastro);
 			mongo.fecharConexao();
 		}else if(opt.equals("11")){
 			param1=req.getParameter("pagesize");

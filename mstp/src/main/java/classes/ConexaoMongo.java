@@ -69,7 +69,7 @@ public class ConexaoMongo {
      //System.out.println("conectado com sucesso");
      
 	}
-	public boolean InserirSimpels(String Collection,Document document) {
+	public boolean InserirSimples(String Collection,Document document) {
 		
 		MongoCollection<Document> coll = db.getCollection(Collection);
 		try {
@@ -90,7 +90,7 @@ public boolean InserirMuitos(String Collection,List<Document> document_list) {
 		
 		try {
 			for(int i=0;i<document_list.size();i++) {
-				InserirSimpels(Collection,document_list.get(i));
+				InserirSimples(Collection,document_list.get(i));
 			}
 			return true;
 		}catch(MongoWriteException e) {
@@ -232,6 +232,24 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 			              Aggregates.match(Filters.eq(Campo, Valor)),
 			              
 			              Aggregates.group("$"+agregado, Accumulators.sum("count", 1))
+			      )
+			).forEach(printBlock);
+		return resultado;
+	}
+	public List<Document> consultaaggregationmultiplo(String Collection,List<Bson>Filtros,String agregado1,String agregado2) {
+		List<Document> resultado = new ArrayList<Document>();
+		 Block<Document> printBlock = new Block<Document>() {
+		        @Override
+		        public void apply(final Document document) {
+		        	resultado.add(document);
+		            System.out.println(document.toJson());
+		        }
+		    };
+		db.getCollection(Collection).aggregate(
+			      Arrays.asList(
+			              Aggregates.match(Filters.and(Filtros)),
+			              Aggregates.group("$"+agregado1, Accumulators.push(agregado1, 0)),
+			              Aggregates.group("$"+agregado2, Accumulators.push(agregado2, 0))
 			      )
 			).forEach(printBlock);
 		return resultado;

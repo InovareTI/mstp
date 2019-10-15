@@ -525,14 +525,15 @@ public class UserMgmt extends HttpServlet {
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
 				}else if(opt.equals("5")){
-				
-				query="select * from horas_extras where id_usuario='"+p.get_PessoaUsuario()+"' and aprovada='Y' and compensada='N'";
-				System.out.println("Carregabdo extrato de horas "+p.get_PessoaUsuario()+" em "+f3.format(time));
+				param1=req.getParameter("func");
+				param2=req.getParameter("from");
+				param3=req.getParameter("to");
+				query="select * from horas_extras where id_usuario='"+param1+"' and aprovada='Y' and compensada='N' and str_to_date(he_data,'%d/%m/%Y')>=str_to_date('"+param2+"','%d/%m/%Y')";
+				System.out.println(query);
+				System.out.println("Carregando extrato de horas "+param1+" em "+f3.format(time));
 				rs=conn.Consulta(query);
-				if(rs.next()) {
-					rs.beforeFirst();
-					dados_tabela="<table style=\"color:black\" id=\"tabela_registro_de_HH\" "
-							
+				dados_tabela="<table style=\"color:black\" id=\"tabela_registro_de_HH\" "
+						
 							+ "data-use-row-attr-func=\"true\" "
 							
 							+ "data-show-refresh=\"true\" "
@@ -549,12 +550,16 @@ public class UserMgmt extends HttpServlet {
 					dados_tabela=dados_tabela +" <th data-field=\"data_he\">Data</th>"+"\n";
 					dados_tabela=dados_tabela +" <th data-field=\"data_he_entrada\" >Inicio</th>"+"\n";
 					dados_tabela=dados_tabela +" <th data-field=\"data_he_saida\">Fim</th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"data_he_h_normais\">Horas Normais</th>"+"\n";
-					dados_tabela=dados_tabela +" <th data-field=\"data_he_h_noturna\">Horas Noturnas</th>"+"\n";
+					dados_tabela=dados_tabela +" <th data-field=\"data_he_h_normais\">Horas Extras Normais</th>"+"\n";
+					dados_tabela=dados_tabela +" <th data-field=\"data_he_h_noturna\">Horas Extras Noturnas</th>"+"\n";
 					dados_tabela=dados_tabela +" <th data-field=\"data_he_origen\">Origen</th>"+"\n";
+					dados_tabela=dados_tabela +" <th data-field=\"data_he_tipo\">Tipo</th>"+"\n";
 					dados_tabela=dados_tabela +"</tr>"+"\n";
 					dados_tabela=dados_tabela +"</thead>"+"\n";
 					dados_tabela=dados_tabela +"<tbody>"+"\n";
+				if(rs.next()) {
+					rs.beforeFirst();
+					
 					while(rs.next()) {
 						dados_tabela=dados_tabela + "<tr>"+"\n";
 						dados_tabela=dados_tabela + " <td>"+rs.getString("he_data")+"</td>"+"\n";
@@ -563,17 +568,19 @@ public class UserMgmt extends HttpServlet {
 						dados_tabela=dados_tabela + " <td>"+rs.getString("he_quantidade")+"</td>"+"\n";
 						dados_tabela=dados_tabela + " <td>"+rs.getString("horas_noturnas")+"</td>"+"\n";
 						dados_tabela=dados_tabela + " <td>"+rs.getString("origen")+"</td>"+"\n";
+						dados_tabela=dados_tabela + " <td>"+rs.getString("tipo_HH")+"</td>"+"\n";
 						dados_tabela=dados_tabela + "</tr>"+"\n";
 					}
-					dados_tabela=dados_tabela + "</tbody>";
-					dados_tabela=dados_tabela + "</table>";
 					
-					//System.out.println(dados_tabela);
-					resp.setContentType("application/html");  
-					resp.setCharacterEncoding("UTF-8"); 
-					PrintWriter out = resp.getWriter();
-					out.print(dados_tabela);
 				}
+				dados_tabela=dados_tabela + "</tbody>";
+				dados_tabela=dados_tabela + "</table>";
+				
+				//System.out.println(dados_tabela);
+				resp.setContentType("application/html");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				out.print(dados_tabela);
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("6")){
@@ -2017,8 +2024,8 @@ public class UserMgmt extends HttpServlet {
 							out.print("Senhas Redefinidas");
 							rs=conn.Consulta("select email,nome from usuarios where id_usuario='"+usuarios[u]+"' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
 							if(rs.next()) {
-								email.enviaEmailSimples(rs.getString("email"), "MSTP - Notificação de Alteração de Senha","Prezado "+rs.getString("nome")+", \n Informamos que sua senha foi alterada em "+time+" por "+p.get_PessoaName()+". \n \n \n Caso deseje voce pode alterar sua senha em www.mstp.com.br! \n \n \n Acesse: http://www.mstp.com.br\n\n Seu usuário: "+usuarios[u]+"\n \n Sua Senha é: "+param2 +"\n \n Acesse o link abaixo em seu aparelho celular para baixar o MSTP Mobile (android): \n http://inovareti.jelasticlw.com.br/mstp_mobile/download/mstp_mobile_last_version.apk \n \n  Acesse nosso canal no youtube e saiba mais sobre o MSTP \n \n https://www.youtube.com/channel/UCxac14HGRuq7wcMgpc4tFXw");
-								email.enviaEmailSimples(p.getEmail(), "MSTP - Notificação de Alteração de Senha - Cópia","Prezado "+rs.getString("nome")+", \n Informamos que sua senha foi alterada em "+time+" por "+p.get_PessoaName()+". \n \n \n Caso deseje voce pode alterar sua senha em www.mstp.com.br! \n \n \n Acesse: http://www.mstp.com.br\n\n Seu usuário: "+usuarios[u]+"\n \n Sua Senha é: "+param2 +"\n \n Acesse o link abaixo em seu aparelho celular para baixar o MSTP Mobile (android): \n http://inovareti.jelasticlw.com.br/mstp_mobile/download/mstp_mobile_last_version.apk \n \n  Acesse nosso canal no youtube e saiba mais sobre o MSTP \n \n https://www.youtube.com/channel/UCxac14HGRuq7wcMgpc4tFXw");
+								email.enviaEmailSimples(rs.getString("email"), "MSTP - Notificação de Alteração de Senha","Prezado "+rs.getString("nome")+", \n Informamos que sua senha foi alterada em "+time+" por "+p.get_PessoaName()+". \n \n \n Caso deseje voce pode alterar sua senha em www.mstp.com.br! \n \n \n Acesse: https://www.mstp.com.br\n\n Seu usuário: "+usuarios[u]+"\n \n Sua Senha é: "+param2 +"\n \n Acesse o link abaixo em seu aparelho celular para baixar o MSTP Mobile (android): \n Google Play \n \n  Acesse nosso canal no youtube e saiba mais sobre o MSTP \n \n https://www.youtube.com/channel/UCxac14HGRuq7wcMgpc4tFXw");
+								email.enviaEmailSimples(p.getEmail(), "MSTP - Notificação de Alteração de Senha - Cópia","Prezado "+rs.getString("nome")+", \n Informamos que sua senha foi alterada em "+time+" por "+p.get_PessoaName()+". \n \n \n Caso deseje voce pode alterar sua senha em www.mstp.com.br! \n \n \n Acesse: https://www.mstp.com.br\n\n Seu usuário: "+usuarios[u]+"\n \n Sua Senha é: "+param2 +"\n \n Acesse o link abaixo em seu aparelho celular para baixar o MSTP Mobile (android): \n Google Play \n \n  Acesse nosso canal no youtube e saiba mais sobre o MSTP \n \n https://www.youtube.com/channel/UCxac14HGRuq7wcMgpc4tFXw");
 							}
 							}
 					}
@@ -2576,7 +2583,7 @@ public class UserMgmt extends HttpServlet {
 			justificativa.append("Foto_requerida", param3);
 			justificativa.append("update_by", p.get_PessoaUsuario());
 			justificativa.append("update_time", time);
-			c.InserirSimpels("Justificativas", justificativa);
+			c.InserirSimples("Justificativas", justificativa);
 			
 			resp.setContentType("application/text");  
 			resp.setCharacterEncoding("UTF-8"); 
@@ -3432,7 +3439,7 @@ public class UserMgmt extends HttpServlet {
 								autorizacao.append("motivo_hora_extra", "AJUSTE RETROATIVA");
 								autorizacao.append("dt_solicitacao_string", f3.format(time));
 								
-								mongo.InserirSimpels("Autoriza_HE", autorizacao);
+								mongo.InserirSimples("Autoriza_HE", autorizacao);
 								inicio.add(Calendar.DAY_OF_MONTH, 1);
 							}
 						}
@@ -3451,7 +3458,7 @@ public class UserMgmt extends HttpServlet {
 							autorizacao.append("motivo_hora_extra", "AJUSTE RETROATIVA");
 							autorizacao.append("dt_solicitacao_string", f3.format(time));
 							
-							mongo.InserirSimpels("Autoriza_HE", autorizacao);
+							mongo.InserirSimples("Autoriza_HE", autorizacao);
 							inicio.add(Calendar.DAY_OF_MONTH, 1);
 						}
 					}
@@ -3467,6 +3474,7 @@ public class UserMgmt extends HttpServlet {
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("46")) {
 				EspelhoPonto espelho=new EspelhoPonto();
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" INICIANDO EXPORT DE ESPELHOS DE PONTO ");
 				Document empresa=new Document();
 				Document usuario=new Document();
 				param1=req.getParameter("mes");
@@ -3482,6 +3490,7 @@ public class UserMgmt extends HttpServlet {
 				rs=conn.Consulta("select * from usuarios where validado='Y' and ativo='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
 				ServletContext context = req.getSession().getServletContext();
 				String fullPath = context.getRealPath("/WEB-INF/PlayfairDisplay-Regular.ttf");
+				//String fullPath2 = context.getRealPath("/WEB-INF/Arial.ttf");
 				//String fullPath = context.getRealPath("/WEB-INF/PlayfairDisplay-Regular.ttf");
 				if(rs.next()) {
 					rs.beforeFirst();
@@ -3494,7 +3503,7 @@ public class UserMgmt extends HttpServlet {
 					empresa.append("CnaeEmpresa", p.getEmpresa().getCnae());
 					
 					ByteArrayOutputStream pdf ;
-					//System.out.println(empresa.toJson());
+					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" INICIANDO EXPORT DE ESPELHOS DE PONTO 2");
 					while(rs.next()) {
 						usuario = new Document();
 						pdf =new ByteArrayOutputStream();
@@ -3522,11 +3531,14 @@ public class UserMgmt extends HttpServlet {
 						document.addPage( page );
 						
 						PDType0Font font2 = PDType0Font.load(document, new File(fullPath));
+						//PDFont  font3 = PDType0Font.load(document, new File(fullPath2));
+						
 						PDPageContentStream contentStream = new PDPageContentStream(document, page);
 						
 						espelho.TabelaCabecalho(rs.getString("nome"), page.getMediaBox().getHeight(), page.getMediaBox().getWidth(), document, page,param1,param3,param4,empresa,usuario).draw();
 						espelho.TabelaPontos(rs.getString("nome"),rs.getString("id_usuario"), page.getMediaBox().getHeight(), page.getMediaBox().getWidth(), document, page,param1,param3,param4,empresa,usuario,p,conn,font2);
-						contentStream.setFont( PDType1Font.TIMES_ROMAN, 10 );
+						
+						contentStream.setFont( font2, 10 );
 					
 						contentStream.close();
 						document.save(pdf);
@@ -3540,9 +3552,60 @@ public class UserMgmt extends HttpServlet {
 			}
 				zout.flush();
 			    zout.close(); 
+			    System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" FINALIZANDO EXPORT DE ESPELHOS DE PONTO ");
 			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				
+				
+			}else if(opt.equals("47")) {
+				ConexaoMongo mongo= new ConexaoMongo();
+				param1=req.getParameter("usuario");
+				dados_tabela="{\"fotos\":[";
+				query="";
+				query="select * from registro_foto where usuario='"+param1+"' and empresa="+p.getEmpresa().getEmpresa_id()+" and data_dia='"+f2.format(time)+"'";
+				
+				rs=conn.Consulta(query);
+				if(rs.next()) {
+					rs.beforeFirst();
+					while(rs.next()) {
+						dados_tabela=dados_tabela+rs.getInt(1)+",";
+					}
+					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+				}
+					dados_tabela=dados_tabela+"],";
+					System.out.println(dados_tabela);
+					query="select * from usuarios where id_usuario='"+param1+"' and empresa='"+p.getEmpresa().getEmpresa_id()+"' ";
+					
+					rs=conn.Consulta(query);
+					if(rs.next()) {
+						dados_tabela=dados_tabela+"\"nome\":"+"\""+rs.getString("nome")+"\",";
+						dados_tabela=dados_tabela+"\"ultimologin\":"+"\""+rs.getString("ultimo_acesso")+"\",";
+					}
+					Document registro;
+					Bson filtro;
+					List<Bson>filtros= new ArrayList<>();
+					filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+					filtros.add(filtro);
+					filtro=Filters.eq("Usuario",param1);
+					filtros.add(filtro);
+					filtro=Filters.eq("data_dia_string",f2.format(time));
+					filtros.add(filtro);
+					FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("Registros", filtros);
+					MongoCursor<Document> resultado = findIterable.iterator();
+					if(resultado.hasNext()) {
+						while(resultado.hasNext()) {
+							registro=resultado.next();
+							dados_tabela=dados_tabela+"\""+registro.getString("tipo_registro")+"\":"+"\""+registro.getString("datetime_mobile")+"\",";
+						}
+					}
+					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+					mongo.fecharConexao();
+					dados_tabela=dados_tabela+"}";
+					System.out.println(dados_tabela);
+					resp.setContentType("application/json");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print(dados_tabela);
 				
 			}
 			dados_tabela="";
@@ -3701,7 +3764,7 @@ public class UserMgmt extends HttpServlet {
 				registro.append("site_operadora_registro", array_string_aux[2]);
 				registro.append("timeStamp_mobile", param3);
 				registro.append("GEO", geo);
-	    		cm.InserirSimpels("Registros", registro);
+	    		cm.InserirSimples("Registros", registro);
 			}
 			if(tipo_registro.equals("Saída")) {
 				format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -3872,6 +3935,7 @@ public class UserMgmt extends HttpServlet {
 			if(p.getEmpresa().getEmpresa_id()==1) {
 			if(hora_entrada.get(Calendar.DAY_OF_WEEK)!=1 && hora_entrada.get(Calendar.DAY_OF_WEEK)!=7) {
 				if(f.verifica_feriado(f2.format(hora_entrada.getTime()),p.getEstadoUsuario(usuarioPesquisado, c), c, p.getEmpresa().getEmpresa_id())) {
+					
 					horas_extras=total_horas-1.2;
 					horas_extras_noturnas=0.0;
 					if(total_hora_saida>22.0 && total_hora_saida<23.59) {
@@ -3904,8 +3968,11 @@ public class UserMgmt extends HttpServlet {
 				retorno[3]="";
 				//msg="HE:" + String.valueOf(twoDForm.format(horas_extras)) + " | HEN:" + String.valueOf(twoDForm.format(horas_extras_noturnas));
 				}}else {
-				 
+				 if(total_horas>6) {
 					horas_extras=total_horas-1.2;
+				 }else {
+					 horas_extras=total_horas;
+				 }
 					horas_extras_noturnas=0.0;
 					if(total_hora_saida>22.0 && total_hora_saida<23.59) {
 						horas_extras_noturnas=total_hora_saida-22.0;
