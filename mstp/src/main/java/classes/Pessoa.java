@@ -270,7 +270,7 @@ public class Pessoa {
 			info.append("matricula", rs.getString("matricula"));
 			info.append("cpf", rs.getString("cpf"));
 			info.append("pis", rs.getString("pis"));
-			
+			info.append("email", rs.getString("email"));
 			
 			
 		}

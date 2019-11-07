@@ -40,8 +40,8 @@ public class ConexaoMongo {
 	public ConexaoMongo() {
 		
 	
-	//String host = "10.100.17.24:27017";
-	String host = "localhost:27017";
+	String host = "10.100.17.24:27017";
+	//String host = "localhost:27017";
 	String dbname = "mstpDB";
     String user = "mstpwebDB";
     String password = "Xmqxf9qdCXusVYsH";
@@ -62,11 +62,8 @@ public class ConexaoMongo {
      MongoClientOptions options = optionsBuilder.build();
      mongoClient = new MongoClient(new ServerAddress(host), Arrays.asList(credential),options);
      
-     //mongoClient = new MongoClient(new ServerAddress("mongodb://localhost:27017"), Arrays.asList(credential),options);
-     //MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
-
      db = mongoClient.getDatabase(dbname);
-     //System.out.println("conectado com sucesso");
+     
      
 	}
 	public boolean InserirSimples(String Collection,Document document) {
@@ -126,9 +123,6 @@ public void criar2dsphereindex(){
 		return findIterable;
 	}
 	public FindIterable<Document> ConsultaSimplesComFiltroInicioLimit(String Collection,List<Bson> Filtros,Integer inicio,Integer limit){
-		//System.out.println("Linhas a ignorar:"+inicio );
-		//System.out.println("Limite de Linhas:"+limit );
-		//System.out.println("Total de Linhas:"+ (limit-inicio));
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filtros)).skip(inicio).limit(limit);
 		return findIterable;
 	}

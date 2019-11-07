@@ -4613,7 +4613,7 @@ public class RolloutServlet extends HttpServlet {
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			
 			}
-			
+			c.fecharConexao();
 		}catch (SQLException e) {
 			conn.fecharConexao();
 			c.fecharConexao();
@@ -4801,6 +4801,7 @@ public class RolloutServlet extends HttpServlet {
 			lista_filtro.clear();
 		}
 		System.out.println("Sincronia de sites finalizado ");
+		c.fecharConexao();
 	}
 	
 	public void enviaMensagemPorUsuario(String usuario_src,String usuario_alvo,String mensagem,String dt_mensagem) {
@@ -5021,12 +5022,14 @@ public class RolloutServlet extends HttpServlet {
 				query="insert into rollout (recid,siteID,milestone,tipo_campo,value_atbr_field,empresa,update_by,update_time,ordenacao) values("+linha_id+",'site"+linha_id+"','"+campos.getJSONObject(i).getString("nome_campo")+"','"+campos.getJSONObject(i).getString("tipo_campo")+"','"+campos.getJSONObject(i).getString("valor_campo")+"',"+p.getEmpresa().getEmpresa_id()+",'"+p.get_PessoaUsuario()+"','"+time+"',"+ordem+")";
 				}
 			}
+			
 			conn.Inserir_simples(query);
 		}*/
 		resp.setContentType("application/html");  
 		resp.setCharacterEncoding("UTF-8"); 
 		PrintWriter out = resp.getWriter();
 		out.print(linha_id);
+		c.fecharConexao();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

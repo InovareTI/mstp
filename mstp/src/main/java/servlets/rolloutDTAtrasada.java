@@ -80,7 +80,7 @@ public class rolloutDTAtrasada extends HttpServlet {
 				    .build();
 			CronTrigger trigger3 = newTrigger()
 				    .withIdentity("trigger3", "group1")
-				    .withSchedule(cronSchedule("0 20 8 ? * MON,TUE,WED,THU,FRI *"))
+				    .withSchedule(cronSchedule("0 30 10 ? * MON,TUE,WED,THU,FRI *"))
 				    .build();
 			CronTrigger trigger4 = newTrigger()
 				    .withIdentity("trigger4", "group1")

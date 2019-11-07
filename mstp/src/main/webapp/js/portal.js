@@ -332,18 +332,7 @@ function carrega_portalRollout(){
 function carrega_portal(){
 	 var cont=0;
 	 var cont_aux=1;
-	 $.ajax({
-		  type: "POST",
-		  data: {"opt":"21"
-			
-			},		  
-		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
-		  url: "./POControl_Servlet",
-		  cache: false,
-		  dataType: "text",
-		  success: onSuccess21
-		});
-	 function onSuccess21(data){
+	 
 		 
 		if(geral.perfil.search("FinanceiroManager")>=0){
 			 g2(0,'grafico_container2');
@@ -357,26 +346,64 @@ function carrega_portal(){
 		 g6('grafico_container1');
 		 g7('grafico_container2');
 		 g8('grafico_container4');
+		 g10();
+		 g11();
+		 g12();
+		 grid_ticket_chart();
 		
-		 $('#docking').jqxDocking({  orientation: 'horizontal', mode: 'docked',theme: 'material' });
-		
-		 $('#docking').jqxDocking('importLayout', data);
-		 console.log(geral.perfil);
-		 $('#docking').on('dragEnd', function (event) {
-			 $.ajax({
-				  type: "POST",
-				  data: {"opt":"22",
-					"portal":$('#docking').jqxDocking('exportLayout'),  
-					
-					},		  
-				  //url: "http://localhost:8080/DashTM/D_Servlet",	  
-				  url: "./POControl_Servlet",
-				  cache: false,
-				  dataType: "text"
-				  
-				});
+		//console.log(geral.perfil);
 		 
-             
-         });
-	 }
+	 
  }
+function grid_ticket_chart(){
+	var timestamp =Date.now();
+	$.ajax({
+		  type: "POST",
+		  data: {"opt":"47",
+			  "_": timestamp
+			},		  
+		  url: "./POControl_Servlet",
+		  cache: false,
+		  dataType: "text",
+		 success: carrega_grid_chart_ticket
+		});
+	 function carrega_grid_chart_ticket(data){
+		 dataaux=JSON.parse(data);
+	var source =
+    {
+			 datatype: "json",
+	         datafields: [
+	        	 { name: 'id' , type: 'int'},
+	        	 { name: 'projeto', type: 'string' },
+	             { name: 'recurso', type: 'string' },
+	             { name: 'inicio' , type: 'string'},
+	             { name: 'fim', type: 'string' },
+	             { name: 'status', type: 'string' }
+	             
+	         ],
+        localdata: dataaux.dados,
+        id: 'id',
+    };
+	 var dataAdapter = new $.jqx.dataAdapter(source);
+	 
+   
+    $("#grid_ticket_chart").jqxGrid(
+            {
+            	width: 1200,
+                height: 150,
+                source: dataAdapter,
+                columnsresize: true,
+	            filterable: true,
+	            autoshowfiltericon: true,
+                columns: [
+                      { text: 'Ticket', datafield: 'id',cellsalign: "center",width: 200,filtertype: 'textbox'},
+                      { text: 'Projeto', datafield: 'projeto',cellsalign: "center", width: 330,filtertype: 'checkedlist' },
+                      { text: 'Recurso', datafield: 'recurso', width: 200,cellsalign: "center",filtertype: 'checkedlist' },
+                      { text: 'Início', datafield: 'inicio', width: 150,cellsalign: "center", filtertype: 'checkedlist' },
+                      { text: 'Fim', datafield: 'fim', width: 150,cellsalign: "center", filtertype: 'checkedlist' },
+                      { text: 'Status', datafield: 'status', width: 150,cellsalign: "center", filtertype: 'checkedlist' }
+                      
+                  ]
+            });
+	 }
+}

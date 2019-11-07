@@ -689,6 +689,8 @@ function carrega_select_func_ponto(){
 		$("#select_autor_historico_filtro").html(data);
 		$("#func_mensagem").html(data);
 		$("#select_func_HH_extrato").html(data);
+		$("#select_func_tickect").html(data);
+		$("#func_ticket_evento").html(data);
 		$('#select_func_folha_ponto').selectpicker('refresh');
 		$('#select_func_folha_ponto_analise').selectpicker('refresh');
 		$('#select_func_faltas').selectpicker('refresh');
@@ -696,5 +698,7 @@ function carrega_select_func_ponto(){
 		$("#select_autor_historico_filtro").selectpicker('refresh');
 		$("#func_mensagem").selectpicker('refresh');
 		$("#select_func_HH_extrato").selectpicker('refresh');
+		$("#select_func_tickect").selectpicker('refresh');
+		$("#func_ticket_evento").selectpicker('refresh');
 	}
 }

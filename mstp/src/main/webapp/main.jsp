@@ -92,7 +92,7 @@ response.setDateHeader ("Expires", -1);
   	<script src="js/jquery.tablednd.js"></script>
   	<script src="js/bootstrap-datetimepicker.min.js"></script>
    	<script src="js/locale/pt-br.js"></script>
-   	
+   	<script src="js/easytimer/easytimer.min.js"></script>
   	<script type="text/javascript" src="js/w2ui-1/w2ui-1.4.3.min.js"></script>
   	<script type="text/javascript" src="js/jqwidgets/jqxcore.js"></script>
   	<script type="text/javascript" src="js/jqwidgets/jqxloader.js"></script>
@@ -152,8 +152,13 @@ response.setDateHeader ("Expires", -1);
     <link rel="stylesheet" type="text/css" href="js/dhtmlx/pivot.css" />
     <script type="text/javascript" src="js/dhtmlx/pivot.js"></script>
     <script src="js/plugins/photoviewer/photoviewer.js"></script>
+   
+    
     <script src="js/viewerjs/viewer.js"></script>
     <script src="js/viewerjs/jquery-viewer.js"></script>
+    
+    <script src="js/Chart.min.js"></script>
+  <script src="js/utils.js"></script>
 	<script type="text/javascript" src="js/starter.js"></script>
 	<script type="text/javascript" src="js/portal.js"></script>
 	<script type="text/javascript" src="js/rollout.js"></script>
@@ -193,8 +198,45 @@ response.setDateHeader ("Expires", -1);
     });
   });
 </script>
+
 	
-    
+     <style>
+     .bulletshistorico {
+  list-style: none;
+}
+
+  .bulletshistorico li::before {
+  content: "\2022";
+  color: red;
+  font-weight: bold;
+  display: inline-block; 
+  width: 1em;
+  margin-left: -1em;
+}
+        .jqx-kanban-item-color-status {
+            width: 100%;
+            height: 25px;
+            border-top-left-radius: 3px;
+            border-top-right-radius: 3px;
+            position:relative;
+            margin-top:0px;
+            top: 0px;
+        }
+        .jqx-kanban-item {
+            padding-top: 0px;
+        }
+        .jqx-kanban-item-text {
+            padding-top: 6px;
+        }
+        .jqx-kanban-item-avatar {
+            top: 9px;
+        }
+        .jqx-kanban-template-icon {
+            position: absolute;
+            right: 3px;
+            top:12px;
+        }
+    </style>
 	<style>
 	
 	
@@ -457,10 +499,64 @@ response.setDateHeader ("Expires", -1);
 					<div class="janelas" id="portal" >
 					<div id='jqxtabs'>
 						<ul style='margin-left: 20px;'>
+				            <li>Tickets</li>
 				            <li>Usuários</li>
 				            <li>Rollout</li>
 				            <li>PO</li>
 	        			</ul>
+	        			<div>
+	        			<div style="display:block;width:100%">
+	        			<div style="padding:15px;width:24%;float:left">
+							<div class="card" style="border-radius: 25px;box-shadow: 5px 5px 5px rgba(0,0,0,0.5);">
+		    					<div class="container" style="text-align: center;align-content:center;background: #808080;height: 150px; border-radius: 25px;">
+		    		  				<div id="card_po_sem_ticket"><h3><b>num_po_sem_ticket</b></h3></div>
+		    		    			<br><p>Itens de PO sem Ticket</p>
+		    		  			</div>
+		    				</div>
+		    			</div>	
+		    			<div style="padding:15px;width:24%;float:left">
+		    				<div class="card" style="border-radius: 25px;box-shadow: 5px 5px 5px rgba(0,0,0,0.5);">
+		    					<div class="container" style="text-align: center;align-content:center;background: #808080;height: 150px; border-radius: 25px;">
+		    		  				<div id="card_ticket_abertos"><h3><b>num_tickets_Abertos</b></h3></div>
+		    		    			<br><p>Tickets Abertos</p>
+		    		  			</div>
+		    				</div>
+						</div>
+						<div style="padding:15px;width:24%;float:left;border-radius: 25px">
+		    				<div class="card" style="border-radius: 25px;box-shadow: 5px 5px 5px rgba(0,0,0,0.5);">
+		    					<div class="container" style="text-align: center;align-content:center;background: #808080;height: 150px; border-radius: 25px;">
+		    		  				<div id="card_ticket_andamento"><h3><b>num_tickets_Abertos</b></h3></div>
+		    		    			<br><p>Tickets em Execução</p>
+		    		  			</div>
+		    				</div>
+						</div>
+						<div style="padding:15px;width:24%;float:left;">
+		    				<div class="card" style="height: 150px; border-radius: 25px;box-shadow: 5px 5px 5px rgba(0,0,0,0.5);">
+		    					<div class="container" style="text-align: center;align-content:center;background: #73AD21;height: 150px; border-radius: 25px;">
+		    		  				<div id="card_ticket_finalizados"><h3><b>num_tickets_Abertos</b></h3></div>
+		    		    			<br><p>Tickets Finalizados</p>
+		    		  			</div>
+		    				</div>
+						</div>
+						</div>
+						<br>
+						<div style="display:block;width:100%">
+							<div id="canvas-holder" style="float:left;width:50%">
+								<canvas id="chart-area" style="width:100px"></canvas>
+							</div>
+							<div id="canvas-holder2" style="float:left;width:40%">
+								<canvas id="chart-area2"></canvas>
+							</div>
+							
+						</div>
+						<br>
+						<div style="text-align:center;width:100%">
+						<div id="grid_ticket_content" style="margin:auto;display: inline-block;">
+								<div id="grid_ticket_chart"></div>
+						</div>
+						</div>
+						
+						</div>
 	        			<div>
 						<div id='jqxWidget' style="width:100%;margin: auto;float: left">
 					        <div id="docking" style="width:1200px">
@@ -676,12 +772,12 @@ response.setDateHeader ("Expires", -1);
 								    <ul class="mfb-component__list">
 								      <!-- a child button, repeat as many times as needed -->
 								      <li>
-								        <a href="link.html" data-mfb-label="Novo Ticket" class="mfb-component__button--child">
+								        <a href="#" data-toggle="modal" data-target="#modal_new_Ticket" data-mfb-label="Novo Ticket" class="mfb-component__button--child">
 								          <i class="mfb-component__child-icon"><i class="fas fa-tasks"></i></i>
 								        </a>
 								      </li>
 								      <li>
-								        <a href="link.html" data-mfb-label="Novo Usuário" class="mfb-component__button--child">
+								        <a href="#" data-toggle="modal" data-target="#modal_user_add" class="mfb-component__button--child" data-mfb-label="Novo Usuário">
 								          <i class="mfb-component__child-icon"><i class="fas fa-user-plus "></i></i>
 								        </a>
 								      </li>
@@ -2110,6 +2206,39 @@ response.setDateHeader ("Expires", -1);
   </div>
 </div> 
 
+
+<div id="modal_new_Ticket" class="modal fade" role="dialog">
+  <div class="modal-dialog modal-lg">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title" style="color:black">Abertura de Ticket</h4>
+      </div>
+      <div class="modal-body" id="grid_item_container">
+     		<div style="float: left;">
+     			<select id="po_select_ticket" class="selectpicker" data-selected-text-format="count"  data-live-search="true" title="Escolha a PO" onchange='carrega_grid_poItem(this.value)'></select>
+     		</div>
+			<div style="float: right;">
+				<div id='from_ticket'></div>
+			</div>
+			<div style="float: left;">
+				   <select id="select_func_tickect" class="selectpicker" data-live-search="true" title="Escolha o Funcionário" onchange="CarregaDespesas()"></select>
+			</div>
+     		<div id="grid_item_po_ticket"></div>
+     		
+     		
+      </div>
+      <div class="modal-footer">
+       <button type="button" class="btn btn-success" onclick="add_Ticket()">Novo Ticket com itens selecionados</button> <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div> 
+
 <div id="modal_add_justificativa" class="modal fade" role="dialog">
   <div class="modal-dialog">
 
@@ -2403,7 +2532,43 @@ response.setDateHeader ("Expires", -1);
   </div>
 </div> 
 
+<div id="Modal_addTickectEvento" class="modal fade" role="dialog">
+  <div class="modal-dialog">
 
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title" style="color:black">Novo Evento do Ticket - <span id="span_ticket_num"></span></h4>
+      </div>
+      <div class="modal-body">
+      <table >
+      		<tr>
+      		<td style="padding: 10px"><select class="selectpicker" data-actions-box="true" multiple data-selected-text-format="count > 2" data-live-search="true" title="Escolha o Funcionário"  id="func_ticket_evento" ></select></td>
+	        </tr>
+	        <tr>
+      		<td style="padding: 10px"><select class="selectpicker" data-actions-box="true" data-selected-text-format="count > 2" data-live-search="true" onchange="atualiza_gap()" title="Atividade Principal"  id="atividade_eventoTicket" ><option value='PO'>PO</option><option value='Acesso'>Acesso</option><option value='Survey'>Survey</option><option value='Material'>Material</option><option value='Instalação'>Instalação</option><option value='Qualidade'>Qualidade</option><option value='Transmissão'>Transmissão</option><option value='Ativação'>Ativação</option><option value='HOF'>HandOver Físico</option><option value='HOL'>HandOver Lógivo</option></select></td>
+	        </tr>
+	        <tr>
+      		<td style="padding: 10px"><select class="selectpicker" data-actions-box="true" multiple data-selected-text-format="count > 2" data-live-search="true" title="GAP da Atividade"  id="gap_eventoTicket" ></select></td>
+	        </tr>
+	        <tr>
+      		<td style="padding: 10px"><select class="selectpicker" data-actions-box="true" data-selected-text-format="count > 2" data-live-search="true" title="Responsável"  id="owner_eventoTicket" ><option value='OPERADORA'>Operadora</option><option value='CLIENTE'>Cliente</option><option value='SPAZIO'>SPAZIO</option></select></td>
+	        </tr>
+      	</table>
+			<hr>
+        <label class="control-label"> Escreva sua Mensagem Abaixo. Seja Objetivo e breve</label>
+		<input id="mensagem_input_ticket" class="form-control" value="" type="text" rows="5" style="color:black;width:400px; height:50px;font-size: 14px" >	
+      	<div id="historico_ticket" style='height: 300px; overflow-y: scroll;'><div><h3 style="color:gray">Histórico de Eventos:</h3></div><hr><ul class="bulletshistorico" id="historico_ticket_itens"></ul></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" onclick="registraEventosTicket()">Enviar</button><button type="button" class="btn btn-success" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div> 
 
 
 <div id="Modal_EnviaMengagem" class="modal fade" role="dialog">

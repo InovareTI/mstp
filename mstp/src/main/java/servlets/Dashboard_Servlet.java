@@ -24,7 +24,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import com.mongodb.client.model.Filters;
@@ -567,6 +566,91 @@ public class Dashboard_Servlet extends HttpServlet {
 			    out.print(tabela);
 			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+		}else if(opt.equals("10")){
+			
+			ConexaoMongo mongo = new ConexaoMongo();
+			Bson filtro;
+			List<Bson> filtros = new ArrayList<>();
+			filtro= Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+			filtros.add(filtro);
+			filtro= Filters.or(Filters.not(Filters.eq("Requested Qty","0")),Filters.eq("Tickets",""));
+			filtros.add(filtro);
+			Long po_item_sem_ticket=mongo.ConsultaCountComplexa("PO", filtros);
+			filtros = new ArrayList<>();
+			filtro= Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+			filtros.add(filtro);
+			filtro= Filters.eq("TICKET_STATE","NEW");
+			filtros.add(filtro);
+			Long po_item_ticket_new=mongo.ConsultaCountComplexa("TICKETS", filtros);
+			filtros = new ArrayList<>();
+			filtro= Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+			filtros.add(filtro);
+			filtro= Filters.eq("TICKET_STATE","work");
+			filtros.add(filtro);
+			Long po_item_ticket_work=mongo.ConsultaCountComplexa("TICKETS", filtros);
+			filtros = new ArrayList<>();
+			filtro= Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+			filtros.add(filtro);
+			filtro= Filters.eq("TICKET_STATE","done");
+			filtros.add(filtro);
+			Long po_item_ticket_done=mongo.ConsultaCountComplexa("TICKETS", filtros);
+			resp.setContentType("application/json");  
+  		    resp.setCharacterEncoding("UTF-8"); 
+  		    PrintWriter out = resp.getWriter();
+  		    tabela="{\"item_po_sem_ticket\":"+po_item_sem_ticket+",\"item_po_ticket_new\":"+po_item_ticket_new+",\"item_po_ticket_work\":"+po_item_ticket_work+",\"item_po_ticket_done\":"+po_item_ticket_done+"}";
+  		    System.out.println(tabela);
+		    out.print(tabela);
+		    mongo.fecharConexao();
+		    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+		}else if(opt.equals("11")){
+			tabela="";
+			String tabela_aux="";
+			tabela="{\"projetos\":[";
+			tabela_aux="\"dados_projetos\":[";
+			ConexaoMongo mongo = new ConexaoMongo();
+			Bson filtro;
+			List<Bson> filtros = new ArrayList<>();
+			filtro= Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+			filtros.add(filtro);
+			List<String> projetos = mongo.ConsultaSimplesDistinct("TICKETS", "PROJETO", filtros);
+			if(!projetos.isEmpty()) {
+				Long pesquisa;
+				for(int i=0;i<projetos.size();i++) {
+					tabela=tabela+"\""+projetos.get(i)+"\",";
+					filtros = new ArrayList<>();
+					filtro= Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+					filtros.add(filtro);
+					filtro= Filters.eq("PROJETO",projetos.get(i));
+					filtros.add(filtro);
+					pesquisa=mongo.ConsultaCountComplexa("TICKETS", filtros);
+					tabela_aux=tabela_aux+pesquisa+",";
+				}
+				tabela=tabela.substring(0,tabela.length()-1);
+				tabela=tabela+"],\n";
+				tabela_aux=tabela_aux.substring(0,tabela_aux.length()-1);
+				tabela_aux=tabela_aux+"]\n";
+				tabela=tabela+tabela_aux;
+				tabela=tabela+"}";
+			}else {
+				tabela=tabela+"],\n";
+				tabela_aux=tabela_aux+"]\n";
+				tabela=tabela+tabela_aux;
+				tabela=tabela+"}";
+			}
+			
+			
+			
+			
+			resp.setContentType("application/json");  
+  		    resp.setCharacterEncoding("UTF-8"); 
+  		    PrintWriter out = resp.getWriter();
+  		    //tabela="{\"item_po_sem_ticket\":"+po_item_sem_ticket+",\"item_po_ticket_new\":"+po_item_ticket_new+",\"item_po_ticket_work\":"+po_item_ticket_work+",\"item_po_ticket_done\":"+po_item_ticket_done+"}";
+  		    //System.out.println(tabela);
+		    out.print(tabela);
+		    mongo.fecharConexao();
+		    Timestamp time2 = new Timestamp(System.currentTimeMillis());
+			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}
 				
 			

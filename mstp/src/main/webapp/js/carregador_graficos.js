@@ -1,3 +1,110 @@
+function g11(){
+	$.getJSON('./Dashboard_Servlet?opt=11', function(data) {
+		
+			var config = {
+				type: 'doughnut',
+				data: {
+					datasets: [{
+						data: data.dados_projetos,
+						backgroundColor: [
+							"red",
+							"orange",
+							"yellow",
+							"green",
+							"blue",
+						],
+						label: 'Tickets'
+					}],
+					labels: data.projetos
+				},
+				options: {
+					responsive: true,
+					legend: {
+						position: 'top',
+					},
+					title: {
+						display: true,
+						text: 'Distribuição de Tickets por Projeto'
+					},
+					animation: {
+						animateScale: true,
+						animateRotate: true
+					},
+					'onClick' : function (evt, item) {
+	                    console.log ('legend onClick', evt);
+	                    console.log('legd item', item);
+	                }
+				}
+			};
+			
+				var ctx = document.getElementById('chart-area').getContext('2d');
+				window.myDoughnut = new Chart(ctx, config);
+				 window.myDoughnut.options.circumference= 2 * Math.PI;
+				 window.myDoughnut.options.rotation= -Math.PI / 2 ;
+				 window.myDoughnut.update();
+				
+			
+			
+	 });
+}
+function g12(){
+	$.getJSON('./Dashboard_Servlet?opt=11', function(data) {
+		
+			var config = {
+				type: 'doughnut',
+				data: {
+					datasets: [{
+						data: data.dados_projetos,
+						backgroundColor: [
+							"red",
+							"orange",
+							"yellow",
+							"green",
+							"blue",
+						],
+						label: 'Tickets'
+					}],
+					labels: data.projetos
+				},
+				options: {
+					responsive: true,
+					legend: {
+						position: 'top',
+					},
+					title: {
+						display: true,
+						text: 'Distribuição de Tickets por Recurso'
+					},
+					animation: {
+						animateScale: true,
+						animateRotate: true
+					},
+					'onClick' : function (evt, item) {
+	                    console.log ('legend onClick', evt);
+	                    console.log('legd item', item);
+	                }
+				}
+			};
+			
+				
+				var ctx2 = document.getElementById('chart-area2').getContext('2d');
+				window.myDoughnut2 = new Chart(ctx2, config);
+				 window.myDoughnut2.options.circumference=  Math.PI;
+				 window.myDoughnut2.options.rotation= -Math.PI  ;
+				 window.myDoughnut2.update();
+			
+			
+	 });
+}
+function g10(){
+	 $.getJSON('./Dashboard_Servlet?opt=10', function(data) {
+		 console.log(data);
+		 $("#card_po_sem_ticket").html("<h2><b>"+data.item_po_sem_ticket+"</b></h2>");
+		 $("#card_ticket_abertos").html("<h2><b>"+data.item_po_ticket_new+"</b></h2>");
+		 $("#card_ticket_andamento").html("<h2><b>"+data.item_po_ticket_work+"</b></h2>");
+		 $("#card_ticket_finalizados").html("<h2><b>"+data.item_po_ticket_done+"</b></h2>");
+	 });
+}
 function g1 (opcao,local) {
 				
 			var options = {

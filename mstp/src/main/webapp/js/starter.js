@@ -7,21 +7,61 @@
 	var row = JSON.parse(text);
 	var milestone_pg;
 	var map;
+	var myDoughnut;
+	var myDoughnut2;
+	var timer;
 	//var mymap;
 $(document).ready(function () {
 	
 			geral.perfil="";
 			geral.banco="0";
             carrega_perfil();
-           
+            timer = new easytimer.Timer();
             carrega_portal();
             var Meusdockings = function (tab) {
                 switch (tab) {
-                    case 1:
+                case 1:
+                	$('#docking').jqxDocking({  orientation: 'horizontal', mode: 'docked',theme: 'material' });
+                	$.ajax({
+              		  type: "POST",
+              		  data: {"opt":"21"
+              			
+              			},		  
+              		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+              		  url: "./POControl_Servlet",
+              		  cache: false,
+              		  dataType: "text",
+              		  success: onSuccess21
+              		});
+              	 function onSuccess21(data){
+              		$('#docking').jqxDocking('importLayout', data);
+              	 }
+                	$('#docking').on('dragEnd', function (event) {
+           			 $.ajax({
+           				  type: "POST",
+           				  data: {"opt":"22",
+           					"portal":$('#docking').jqxDocking('exportLayout'),  
+           					
+           					},		  
+           				  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+           				  url: "./POControl_Servlet",
+           				  cache: false,
+           				  dataType: "text"
+           				  
+           				});
+           		 
+                        
+                    });
+                	 g5(0,'grafico_container3');
+            		 g6('grafico_container1');
+            		 g7('grafico_container2');
+            		 g8('grafico_container4');
+                	break;    
+                case 2:
                     	$('#docking_rollout').jqxDocking({  orientation: 'horizontal',width:1200, mode: 'docked',theme: 'material' });
                     	carrega_portalRollout();
                     	break;
-                    case 2:
+                    case 3:
                     	$('#docking_PO').jqxDocking({  orientation: 'horizontal',width:1200, mode: 'docked',theme: 'material' });
                         break;
                 }
@@ -199,6 +239,23 @@ $(document).ready(function () {
             $('#PO_upload_Modal').on('show.bs.modal', function (event) {
             	atualiza_select_cliente();
             });
+            $('#Modal_addTickectEvento').on('show.bs.modal', function (event) {
+            	$("#span_ticket_num").html(sessionStorage.getItem("ticket"));
+            	 $.ajax({
+           		  type: "POST",
+           		  data: {"opt":"50",
+           			  "ticketnum":sessionStorage.getItem("ticket")
+           			 },	  
+           		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+           		  url: "./POControl_Servlet",
+           		  cache: false,
+           		  dataType: "text",
+           		  success: exibe_historico
+           		});
+            	 function exibe_historico(data){
+            		 $("#historico_ticket_itens").html(data);
+            	 }
+            });
             $('#modal_project_add').on('show.bs.modal', function (event) {
             	atualiza_select_cliente();
             });
@@ -228,6 +285,47 @@ $(document).ready(function () {
             	  // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
             	  // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
             	  prepara_ajuste_ponto(recipient);
+            });
+            
+            $('#modal_new_Ticket').on('show.bs.modal', function (event) {
+            	$.ajax({
+			 		  type: "POST",
+			 		  data: {
+			 			  		"opt":"42"
+			 				},		  
+			 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+			 		  url: "./POControl_Servlet",
+			 		  cache: false,
+			 		  dataType: "text",
+			 		 success: atualiza_select_PO_ticket
+			 		});
+            	function atualiza_select_PO_ticket(data){
+            		//alert(data);
+            		$("#po_select_ticket").html(data);
+            		$('#po_select_ticket').selectpicker();
+            		$('#po_select_ticket').selectpicker('refresh');
+            	}
+            });
+            $("#from_ticket").jqxDateTimeInput({selectionMode: 'range'});
+            $('#TicketKanban').on('itemMoved', function (event) {
+                var args = event.args;
+                var itemId = args.itemId;
+                var oldParentId = args.oldParentId;
+                var newParentId = args.newParentId;
+                var itemData = args.itemData;
+                var oldColumn = args.oldColumn;
+                var newColumn = args.newColumn;
+                
+                console.log(args);
+                $.ajax({
+          		  type: "POST",
+          		  data: {"opt":"46","id_":itemData.id,"status_":newColumn.dataField},	  
+          		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+          		  url: "./POControl_Servlet",
+          		  cache: false,
+          		  dataType: "text"
+          		});
+               // updateStatusTicket(args.itemData);
             });
             $('#modal_rollout_history').on('show.bs.modal', function (event) {
               filtros={"filtros":[]};	
@@ -490,6 +588,7 @@ function menu(opt){
 		$(".janelas").hide();
 	     document.getElementById(opt).style.display = "block";
 	     ticketStarter();
+	     var ready = $('#TicketKanban').jqxKanban('ready'); 
 	}else if(opt=="importacoes"){
 		 $(".janelas").hide();
 	     document.getElementById(opt).style.display = "block";

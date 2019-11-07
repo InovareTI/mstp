@@ -1126,7 +1126,7 @@ function SyncToMongoDB() {
 	}
 }
 function SyncRollout(){
-	corrigerolloutspazio();
+	
 	carrega_gant();
 }
 function downloadFunc(){

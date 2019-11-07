@@ -50,10 +50,17 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.PDFTextStripperByArea;
+import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -245,6 +252,8 @@ public class POControl_Servlet extends HttpServlet {
 				List<Bson> filtros= new ArrayList<>();
 				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
 				filtros.add(filtro);
+				filtro=Filters.eq("PO_ATIVA","Y");
+				filtros.add(filtro);
 				FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("PO", filtros);
 				MongoCursor<Document> resultado =findIterable.iterator();
 				dados_tabela= dados_tabela+"[";
@@ -254,6 +263,17 @@ public class POControl_Servlet extends HttpServlet {
 						dados_tabela=dados_tabela+"{";
 						dados_tabela=dados_tabela+"\"PO NUMBER\":\""+poItemLinha.getString("PO NO")+"\",";
 						dados_tabela=dados_tabela+"\"ITEM\":\""+poItemLinha.getString("Item Description")+"\",";
+						dados_tabela=dados_tabela+"\"ITEM_CODE\":\""+poItemLinha.getString("Item Code")+"\",";
+						dados_tabela=dados_tabela+"\"PO LINE\":\""+poItemLinha.getString("PO Line NO")+"\",";
+						if(poItemLinha.get("Publish Date")!=null) {
+							dados_tabela=dados_tabela+"\"PUBLISHED\":\""+poItemLinha.getString("Publish Date")+"\",";
+						}else if(poItemLinha.get("creation_date")!=null) {
+							dados_tabela=dados_tabela+"\"PUBLISHED\":\""+poItemLinha.getString("creation_date")+"\",";
+						}else {
+							dados_tabela=dados_tabela+"\"PUBLISHED\":\"NO DATE FOUND\",";
+						}
+						
+						dados_tabela=dados_tabela+"\"Carregada\":\""+poItemLinha.getDate("DT_CARREGADA")+"\",";
 						dados_tabela=dados_tabela+"\"VALOR UNITARIO\":\""+poItemLinha.getString("Unit Price")+"\",";
 						dados_tabela=dados_tabela+"\"QTDE\":\""+poItemLinha.getString("Requested Qty")+"\",";
 						dados_tabela=dados_tabela+"\"VALOR TOTAL\":\""+poItemLinha.getString("Line Amount")+"\"},";
@@ -261,8 +281,9 @@ public class POControl_Servlet extends HttpServlet {
 					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
 				}
 				dados_tabela=dados_tabela+"]";
+				
 			}
-				System.out.println(dados_tabela);
+				//System.out.println(dados_tabela);
 				resp.setContentType("application/html");  
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
@@ -636,6 +657,7 @@ public class POControl_Servlet extends HttpServlet {
 							try {
 							String cliente="";
 							String projeto="";
+							String po_original="N";
 							ClienteEmpresa clienteObj = new ClienteEmpresa();
 							ProjetoCliente projetoObj = new ProjetoCliente();
 							ServletContext context = req.getSession().getServletContext();
@@ -657,6 +679,8 @@ public class POControl_Servlet extends HttpServlet {
 										}else if(item.getFieldName().equals("projeto")){
 											projeto=item.getString();
 											projetoObj.setProjetoClienteById(mysql, Integer.parseInt(projeto));
+										}else if(item.getFieldName().equals("po_orinal")) {
+											po_original="Y";
 										}
 								    }
 									}
@@ -963,7 +987,8 @@ public class POControl_Servlet extends HttpServlet {
 									    
 						    				
 									        	}else if(p.getEmpresa().getEmpresa_id()==1 ) {// if de empresas
-									        		
+									        			Bson filtro;
+									        			List<Bson> filtros = new ArrayList<>();
 									        		    inputStream= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
 									        		    String po_numberNumero=item.getName();
 													    DataFormatter dataFormatter = new DataFormatter();
@@ -987,10 +1012,12 @@ public class POControl_Servlet extends HttpServlet {
 										    				cellValue=cellValue.replace("\n","|");
 											    			campos[i]=cellValue;
 											    		}
-											    		System.out.println("chegou aqui 3");
+											    		//System.out.println("chegou aqui 3");
 											    		Calendar d = Calendar.getInstance();
+											    		String po_inserida="Y";
 											    		while(rowIterator.hasNext()) {
-											    			//System.out.println("chegou aqui 4");
+											    			po_inserida="Y";
+											    			filtros = new ArrayList<>();
 											    			row_aux = rowIterator.next();
 											    			Document linhaPO = new Document();
 											    			linhaPO.append("Empresa",p.getEmpresa().getEmpresa_id());
@@ -998,8 +1025,11 @@ public class POControl_Servlet extends HttpServlet {
 											    			linhaPO.append("PO_VALIDADA","N");
 											    			linhaPO.append("DT_CARREGADA",d.getTime());
 											    			linhaPO.append("USER_CARREGADA",p.get_PessoaUsuario());
+											    			linhaPO.append("CLIENTE",clienteObj.getNome());
+											    			linhaPO.append("PROJETO",projetoObj.getNome());
+											    			linhaPO.append("ARQUIVO_PO_ORIGINAL",po_original);
 											    			for(int i=0;i<row_aux.getLastCellNum();i++) {
-											    				//System.out.println("indice do campo: "+i);
+											    				
 											    				cell = row_aux.getCell(i);
 											    				cellValue = dataFormatter.formatCellValue(cell);
 											    				cellValue=cellValue.replace("'","");
@@ -1008,14 +1038,30 @@ public class POControl_Servlet extends HttpServlet {
 											    				cellValue=cellValue.replace("\\\"","_");
 											    				cellValue=cellValue.replace("\n","|");
 											    				linhaPO.append(campos[i], cellValue);
-											    				//System.out.println(campos[i] +" - "+cellValue);
 											    			}
-											    			//System.out.println("chegou aqui 7");
-											    			//System.out.println(linhaPO.toJson());
-											    			//System.out.println("chegou aqui 8");
-											    			mongo.InserirSimples("PO", linhaPO);
+											    			filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+											    			filtros.add(filtro);
+											    			filtro=Filters.eq("PO NO",linhaPO.getString("PO NO"));
+											    			filtros.add(filtro);
+											    			filtro=Filters.eq("PO Line NO",linhaPO.getString("PO Line NO"));
+											    			filtros.add(filtro);
+											    			filtro=Filters.eq("Item Code",linhaPO.getString("Item Code"));
+											    			filtros.add(filtro);
+											    			filtro=Filters.eq("Publish Date",linhaPO.getString("Publish Date"));
+											    			filtros.add(filtro);
+											    			FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("PO", filtros);
+											    			if(!findIterable.iterator().hasNext()) {
+											    				mongo.InserirSimples("PO", linhaPO);
+											    				po_inserida="Y";
+											    			}else {
+											    				po_inserida="N";
+											    				System.out.println("___________________________");
+											    				System.out.println("PO DUPLICADA NAO INSERIDA!" + time);
+											    				System.out.println("___________________________");
+											    			}
+											    			filtros.clear();
 											    		}
-											    		mongo.fecharConexao();
+											    		
 											    		
 											    		//
 											    		
@@ -1026,14 +1072,16 @@ public class POControl_Servlet extends HttpServlet {
 											        	PrintWriter pw = resp.getWriter();
 											        	pw.print(jsonObject); 
 											        	pw.close();
+											        	if(po_inserida.equals("Y")) {
 											        	 Semail email= new Semail();
-													     rs=mysql.Consulta("select distinct usuarios.nome,usuarios.email from usuarios,perfil_funcoes where perfil_funcoes.funcao_nome='POManager'  and perfil_funcoes.empresa_id="+p.getEmpresa().getEmpresa_id()+" and perfil_funcoes.usuario_id=usuarios.id_usuario and usuarios.ativo='Y'");
+											        	 rs=mysql.Consulta("select distinct usuarios.nome,usuarios.email from usuarios,perfil_funcoes where perfil_funcoes.funcao_nome='POManager'  and perfil_funcoes.empresa_id="+p.getEmpresa().getEmpresa_id()+" and perfil_funcoes.usuario_id=usuarios.id_usuario and usuarios.ativo='Y'");
 										    			 if(rs.next()) {
 										    				 rs.beforeFirst();
 										    				 while(rs.next()) {
 										    					 email.enviaEmailSimples(rs.getString("email"), "MSTP - Notificação de Inserção de PO","Prezado "+rs.getString("nome")+", \n \n Informamos que uma nova PO foi carregada no sistema MSTP. \n\nEmpresa Emissora:"+clienteObj.getNome()+". \nPO Número:"+po_numberNumero+" \nProjeto:"+projetoObj.getNome()+" \n\nMensagem Automática.Favor não responder!\n  Operação realizada em: "+time);
 										    				 }
 										    			 }
+											        	}
 									        	}
 								    		}// if upload do arquivo ok
 									    
@@ -2013,10 +2061,791 @@ public class POControl_Servlet extends HttpServlet {
 						}
 						Timestamp time2 = new Timestamp(System.currentTimeMillis());
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-					}
+					}else if(opt.equals("41")) {
+						//System.out.println("chegou aqui na 41");
+						param1=req.getParameter("pono");
+						param2=req.getParameter("itemcode");
+						param3=req.getParameter("poline");
+						param4=req.getParameter("publishdate");
+						//System.out.println(param1);
+						//System.out.println(param2);
+						//System.out.println(param3);
+						//System.out.println(param4);
+						Bson filtro;
+						List<Bson> filtros = new ArrayList<>();
+						filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+						filtros.add(filtro);
+						filtro=Filters.eq("PO NO",param1);
+						filtros.add(filtro);
+						filtro=Filters.eq("PO Line NO",param3);
+						filtros.add(filtro);
+						filtro=Filters.eq("Item Code",param2);
+						filtros.add(filtro);
+						if(param4.equals(null) || param4==null) {
+							
+						}else {
+							filtro=Filters.eq("Publish Date",param4);
+							filtros.add(filtro);
+						}
+						FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("PO", filtros);
+						if(findIterable.iterator().hasNext()) {
+							Document resultado = findIterable.iterator().next();
+							resp.setContentType("application/json");  
+							resp.setCharacterEncoding("UTF-8"); 
+							PrintWriter out = resp.getWriter();
+							out.print(resultado.toJson());
+							out.close();
+						}else {
+							resp.setContentType("application/text");  
+							resp.setCharacterEncoding("UTF-8"); 
+							PrintWriter out = resp.getWriter();
+							out.print("Informações não encontradas");
+							out.close();
+						}
+						
+					}else if(opt.equals("42")) {
+						//System.out.println("Buscando PO's nos tickects");
+						Bson filtro;
+						List<Bson> filtros = new ArrayList<>();
+						filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+						filtros.add(filtro);
+						filtro=Filters.eq("TICKET_TODOS_ITENS","Y");
+						filtros.add(filtro);
+						List<String> pos_ticket = mongo.ConsultaSimplesDistinct("TICKETS", "PO_NUM", filtros);
+						
+						//System.out.println("tamanho do resultado das POsé : "+ pos_ticket.size());
+						dados_tabela="";
+						
+						filtros = new ArrayList<>();
+						filtro = Filters.nin("PO NO", pos_ticket);
+						filtros.add(filtro);
+						filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+						filtros.add(filtro);
+						filtro=Filters.eq("PO_ATIVA","Y");
+						filtros.add(filtro);
+						List<String> pos = mongo.ConsultaSimplesDistinct("PO","PO NO", filtros);
+						//pos.removeAll(pos_ticket);
+						if(!pos.isEmpty()) {
+							for(int i=0;i<pos.size();i++) {
+								
+								dados_tabela=dados_tabela+"<option value='"+pos.get(i)+"'>"+pos.get(i)+"</option>";
+							}
+						}
+						//System.out.println("Resultado: "+ dados_tabela);
+						resp.setContentType("application/text");  
+						resp.setCharacterEncoding("UTF-8"); 
+						PrintWriter out = resp.getWriter();
+						out.print(dados_tabela);
+						out.close();
+						
+					}else if(opt.equals("43")) {
+						dados_tabela="";
+						param1=req.getParameter("po");
+						Bson filtro;
+						Document poItemLinha;
+						List<Bson> filtros= new ArrayList<>();
+						filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+						filtros.add(filtro);
+						filtro=Filters.eq("PO NO",param1);
+						filtros.add(filtro);
+						filtro=Filters.eq("PO_ATIVA","Y");
+						filtros.add(filtro);
+						filtro=Filters.or(Filters.eq("Tickets",""),Filters.not(Filters.eq("Requested Qty","0")));
+						filtros.add(filtro);
+						FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("PO", filtros);
+						MongoCursor<Document> resultado =findIterable.iterator();
+						dados_tabela= dados_tabela+"[";
+						if(resultado.hasNext()){
+							while(resultado.hasNext()) {
+								poItemLinha=resultado.next();
+								dados_tabela=dados_tabela+"{";
+								dados_tabela=dados_tabela+"\"PO_NUM\":\""+poItemLinha.getString("PO NO")+"\",";
+								dados_tabela=dados_tabela+"\"ITEM\":\""+poItemLinha.getString("Item Description")+"\",";
+								dados_tabela=dados_tabela+"\"ITEM_CODE\":\""+poItemLinha.getString("Item Code")+"\",";
+								dados_tabela=dados_tabela+"\"PO_LINE\":\""+poItemLinha.getString("PO Line NO")+"\",";
+								if(poItemLinha.get("Publish Date")!=null) {
+									dados_tabela=dados_tabela+"\"PUBLISHED\":\""+poItemLinha.getString("Publish Date")+"\",";
+								}else if(poItemLinha.get("creation_date")!=null) {
+									dados_tabela=dados_tabela+"\"PUBLISHED\":\""+poItemLinha.getString("creation_date")+"\",";
+								}else {
+									dados_tabela=dados_tabela+"\"PUBLISHED\":\""+poItemLinha.getString("NO DATE FOUND")+"\",";
+								}
+								
+								dados_tabela=dados_tabela+"\"SITE\":\""+poItemLinha.getString("Site Name")+"\",";
+								dados_tabela=dados_tabela+"\"PROJETO\":\""+poItemLinha.getString("Project Name")+"\",";
+								dados_tabela=dados_tabela+"\"PROJETO_CODE\":\""+poItemLinha.getString("Project Code")+"\",";
+								dados_tabela=dados_tabela+"\"QTDE\":"+poItemLinha.getString("Requested Qty").replace(",", ".")+",";
+								dados_tabela=dados_tabela+"\"QTDE_TICKET\":"+poItemLinha.getString("Requested Qty").replace(",", ".")+"},";
+								
+							}
+							dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+						}
+						dados_tabela=dados_tabela+"]";
+						
 					
+						//System.out.println(dados_tabela);
+						resp.setContentType("application/html");  
+						resp.setCharacterEncoding("UTF-8"); 
+						PrintWriter out = resp.getWriter();
+						out.print(dados_tabela);
+						out.close();
+					}else if(opt.equals("44")) {
+						String param10,param11,param12,param13,param14,param15;
+						param1=req.getParameter("po_num");
+						param2=req.getParameter("ticket");
+						param3=req.getParameter("item");
+						param4=req.getParameter("item_code");
+						param5=req.getParameter("po_line");
+						param6=req.getParameter("published");
+						param7=req.getParameter("site");
+						param8=req.getParameter("projeto");
+						param9=req.getParameter("tags");
+						param10=req.getParameter("recurso");
+						param11=req.getParameter("incio_planejado_bl");
+						param12=req.getParameter("incio_planejado_bl");
+						param13=req.getParameter("todos_itens");
+						param14=req.getParameter("quantidade_itens");
+						param15=req.getParameter("quantidade_pos_restante");
+						Document ticket = new Document();
+						Calendar dataAtual = Calendar.getInstance();
+						ticket.append("Empresa", p.getEmpresa().getEmpresa_id());
+						ticket.append("dt_aberto", dataAtual.getTime());
+						ticket.append("usuario_registro", p.get_PessoaUsuario());
+						ticket.append("Status", "Aberto");
+						ticket.append("PO_NUM", param1);
+						ticket.append("TICKET_TODOS_ITENS",param13);
+						ticket.append("TICKET_STATE","NEW");
+						ticket.append("TICKET_NUM", param2);
+						ticket.append("INICIO_BL_STR", param11);
+						ticket.append("FIM_BL_STR", param12);
+						ticket.append("ITEM", param3);
+						ticket.append("ITEM_CODE", param4);
+						ticket.append("PO_LINE", param5);
+						ticket.append("PUBLISHED", param6);
+						ticket.append("QTDE_TICKET", param14);
+						ticket.append("SITE", param7);
+						ticket.append("PROJETO", param8);
+						ticket.append("TAGS", param9);
+						ticket.append("RECURSO", param10);
+						mongo.InserirSimples("TICKETS", ticket);
+						
+						Document update_filtros = new Document();
+						Document update_comando = new Document();
+						Document update = new Document();
+						update_filtros.append("Empresa", p.getEmpresa().getEmpresa_id());
+						update_filtros.append("PO NO", param1);
+						update_filtros.append("Item Code", param4);
+						update_filtros.append("PO Line NO", param5);
+						
+							if(!param6.equals("null")) {
+								update_filtros.append("Publish Date", param6);
+							}
+						
+						System.out.println("_______________________________________________");
+						System.out.println("Filtros de atualizacao de PO: ");
+						System.out.println(update_filtros.toJson());
+						System.out.println("_______________________________________________");
+						Bson filtro;
+						Document po;
+						String tickets="";
+						List<Bson> filtros = new ArrayList<>();
+						filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+						filtros.add(filtro);
+						filtro=Filters.eq("PO NO",param1);
+						filtros.add(filtro);
+						filtro=Filters.eq("Item Code",param4);
+						filtros.add(filtro);
+						filtro=Filters.eq("PO Line NO",param5);
+						filtros.add(filtro);
+						filtro=Filters.eq("Publish Date",param6);
+						filtros.add(filtro);
+						FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("PO", filtros);
+						MongoCursor<Document> resultado =findIterable.iterator();
+						if(resultado.hasNext()) {
+							
+							po=resultado.next();
+							if(po.get("Tickets")!=null) {
+								tickets=po.getString("Tickets");
+							}
+						}
+						if(tickets.equals("")) {
+							update.append("Tickets", tickets.concat(param2));
+						}else {
+							update.append("Tickets", tickets.concat(","+param2));
+						}
+						update.append("Requested Qty", param15);
+						update_comando.append("$set", update);
+						
+						System.out.println("Atualizacao de PO: ");
+						System.out.println(update.toJson());
+						System.out.println("_______________________________________________");
+						mongo.AtualizaUm("PO", update_filtros, update_comando);
+						Document recurso=p.getPessoaInfo(param10, mysql);
+						Semail email= new Semail();
+	    				email.enviaEmailSimples(recurso.getString("email"), "MSTP - Notificação de Ticket - "+param2,"Prezado "+recurso.getString("nome")+", \n \n Informamos que voce possui as seguintes tarefas não iniciadas: \n\n Projeto: "+param8+"\nSite: "+param7+" \n Item: "+param3+" \nQuantidade: "+param14+" \nPlanejamento: "+param11+" - "+param12+" \n\n  Operação realizada em: "+time+" \n \n Caso não seja o responsável correto  solicitamos que entre em contato com o administrador do sistema para sua empresa! \n \n \n Esse é um email Automático gerado pelo sistema. Favor não responder!");
+	    				
+						mongo.fecharConexao();
+					}else if(opt.equals("45")) {
+						try {
+						dados_tabela="";
+						Bson filtro;
+						Document tickect_item;
+						List<Bson> filtros= new ArrayList<>();
+						filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+						filtros.add(filtro);
+						String aux_ticket="";
+						String label_aux="";
+						String site_aux="";
+						FindIterable<Document> findIterable = mongo.ConsultaOrdenada2("TICKETS", "TICKET_NUM", 1, filtros);
+						MongoCursor<Document> resultado =findIterable.iterator();
+						dados_tabela= dados_tabela+"{\"source\":\n[\n";
+						if(resultado.hasNext()){
+							while(resultado.hasNext()) {
+								tickect_item=resultado.next();
+								if(!aux_ticket.equals(tickect_item.getString("TICKET_NUM"))) {
+									if(!aux_ticket.equals("")) {
+										dados_tabela=dados_tabela+"\"content\":\""+label_aux+"</div></div>\"";
+										dados_tabela=dados_tabela+"},\n";
+										System.out.println("Dados Tabela é : =>\n"+dados_tabela);
+										label_aux="";
+									}
+									aux_ticket=tickect_item.getString("TICKET_NUM");
+									if(tickect_item.get("SITE")!=null) {
+										if(tickect_item.getString("SITE").indexOf("_")>0) {
+											site_aux=tickect_item.getString("SITE").substring(0,tickect_item.getString("SITE").indexOf("_"));
+										}else {
+											site_aux=tickect_item.getString("SITE");
+										}
+									}else {
+										site_aux="SITE Ñ IDENTIFICADO";
+									}
+									
+									System.out.println(site_aux);
+									dados_tabela=dados_tabela+"{";
+									dados_tabela=dados_tabela+"\"id\":\""+tickect_item.getString("TICKET_NUM")+"\",";
+									dados_tabela=dados_tabela+"\"state\":\""+tickect_item.getString("TICKET_STATE")+"\",";
+									dados_tabela=dados_tabela+"\"label\":\"<div><label>Ticket - "+tickect_item.getString("TICKET_NUM")+"</label>\",";
+									dados_tabela=dados_tabela+"\"tags\":\""+tickect_item.getString("TAGS")+"\",";
+									dados_tabela=dados_tabela+"\"hex\":\""+tickect_item.getString("COR")+"\",";
+									dados_tabela=dados_tabela+"\"resourceId\":\""+tickect_item.getString("RECURSO")+"\",";
+									label_aux=label_aux+"<div id='expanderTicket_"+tickect_item.getString("TICKET_NUM")+"' class='jqxExpanderTicketClass'><div id='expanderHeader'>"+site_aux+" / "+tickect_item.getString("PO_NUM")+"</div><div id='expanderContent'><br> Site: "+site_aux+"<br>Descrição: "+tickect_item.getString("ITEM")+"<br>Quantidade: "+tickect_item.getString("QTDE_TICKET")+"<br>";
+								}else {
+									label_aux=label_aux+"<br> Site: "+site_aux+"<br>Descrição: "+tickect_item.getString("ITEM")+"<br>Quantidade: "+tickect_item.getString("QTDE_TICKET")+"<br>";
+								}
+							}
+							dados_tabela=dados_tabela+"\"content\":\""+label_aux+"\"";
+							dados_tabela=dados_tabela+"},\n";
+							dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+							
+						}
+						dados_tabela= dados_tabela+"\n],\n";
+						System.out.println("Dados Tabela é : =>\n"+dados_tabela);
+						dados_tabela= dados_tabela+"\"recursos\":[";
+						rs=mysql.Consulta("select * from usuarios where empresa='"+p.getEmpresa().getEmpresa_id()+"' and ATIVO='Y'");
+						if(rs.next()) {
+							rs.beforeFirst();
+							while(rs.next()) {
+								dados_tabela=dados_tabela+"{";
+								dados_tabela=dados_tabela+"\"id\":\""+rs.getString("id_usuario")+"\",";
+								dados_tabela=dados_tabela+"\"name\":\""+rs.getString("nome")+"\"},\n";
+							}
+							dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+							
+						}
+						dados_tabela= dados_tabela+"\n]";
+						dados_tabela= dados_tabela+"}";
+						System.out.println("Dados Tabela é : =>\n"+dados_tabela);
+						resp.setContentType("application/html");  
+						resp.setCharacterEncoding("UTF-8"); 
+						PrintWriter out = resp.getWriter();
+						out.print(dados_tabela);
+						out.close();
+						mongo.fecharConexao();
+						}catch(Exception e) {
+							System.out.println("ERRO");
+							System.out.println(e.getMessage());
+							System.out.println(e.getCause());
+						}
+					}else if(opt.equals("46")) {
+						param1=req.getParameter("id_");
+						param2=req.getParameter("status_");
+						//System.out.println(param1);
+						//System.out.println(param2);
+						Document update_filtros = new Document();
+						Document update_comando = new Document();
+						Document update = new Document();
+						update_filtros.append("Empresa", p.getEmpresa().getEmpresa_id());
+						update_filtros.append("TICKET_NUM", param1);
+						update.append("TICKET_STATE", param2);
+						update_comando.append("$set", update);
+						mongo.AtualizaUm("TICKETS", update_filtros, update_comando);
+					}else if(opt.equals("47")) {
+						dados_tabela="";
+						Bson filtro;
+						Document tickect_item;
+						List<Bson> filtros= new ArrayList<>();
+						filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+						filtros.add(filtro);
+						
+						
+						FindIterable<Document> findIterable = mongo.ConsultaOrdenada2("TICKETS", "TICKET_NUM", 1, filtros);
+						MongoCursor<Document> resultado =findIterable.iterator();
+						dados_tabela= dados_tabela+"{\"dados\":\n[\n";
+						if(resultado.hasNext()){
+							while(resultado.hasNext()) {
+								tickect_item=resultado.next();
+								
+									dados_tabela=dados_tabela+"{";
+									dados_tabela=dados_tabela+"\"id\":\""+tickect_item.getString("TICKET_NUM")+"\",";
+									dados_tabela=dados_tabela+"\"projeto\":\""+tickect_item.getString("PROJETO")+"\",";
+									dados_tabela=dados_tabela+"\"recurso\":\""+tickect_item.getString("RECURSO")+"\",";
+									dados_tabela=dados_tabela+"\"inicio\":\""+tickect_item.getString("INICIO_BL_STR")+"\",";
+									dados_tabela=dados_tabela+"\"fim\":\""+tickect_item.getString("FIM_BL_STR")+"\",";
+									dados_tabela=dados_tabela+"\"status\":\""+tickect_item.getString("TICKET_STATE")+"\"},\n";
+							}
+							
+							dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+							
+						}
+						dados_tabela= dados_tabela+"\n]}";
+						
+						//System.out.println(dados_tabela);
+						resp.setContentType("application/html");  
+						resp.setCharacterEncoding("UTF-8"); 
+						PrintWriter out = resp.getWriter();
+						out.print(dados_tabela);
+						out.close();
+						mongo.fecharConexao();
+					}else if(opt.equals("48")) {
+						Bson filtro;
+						Document po;
+						List<Bson> filtros= new ArrayList<>();
+						filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+						filtros.add(filtro);
+						FindIterable<Document> findIterable = mongo.ConsultaOrdenada2("PO", "PO NO", 1, filtros);
+						MongoCursor<Document> resultado =findIterable.iterator();
+						
+						if(resultado.hasNext()){
+							System.out.println("Crindo Controle Master");
+							XSSFWorkbook workbook = new XSSFWorkbook();
+							XSSFSheet sheet = workbook.createSheet("MSTP E2E Detail Table");
+							Row row;
+							Cell cell;
+							int rowIndex = 0;
+							int colIndex = 0;
+							XSSFCellStyle cellStyle = workbook.createCellStyle();
+			            	
+			                cellStyle.setAlignment(HorizontalAlignment.CENTER);
+			                cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+			                cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+			                cellStyle.setFillBackgroundColor(IndexedColors.BLUE_GREY.getIndex());
+			                cellStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+			                cellStyle.setBorderBottom(BorderStyle.THIN);
+			                cellStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+			                cellStyle.setBorderLeft(BorderStyle.THIN);
+			                cellStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+			                cellStyle.setBorderRight(BorderStyle.THIN);
+			                cellStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
+			                cellStyle.setBorderTop(BorderStyle.THIN);
+			                cellStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
+			                XSSFCellStyle cellStyle3 = workbook.createCellStyle();
+			            	
+			                cellStyle3.setAlignment(HorizontalAlignment.CENTER);
+			                cellStyle3.setVerticalAlignment(VerticalAlignment.CENTER);
+			                cellStyle3.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+			                cellStyle3.setFillBackgroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+			                cellStyle3.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+			                cellStyle3.setBorderBottom(BorderStyle.THIN);
+			                cellStyle3.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+			                cellStyle3.setBorderLeft(BorderStyle.THIN);
+			                cellStyle3.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+			                cellStyle3.setBorderRight(BorderStyle.THIN);
+			                cellStyle3.setRightBorderColor(IndexedColors.BLACK.getIndex());
+			                cellStyle3.setBorderTop(BorderStyle.THIN);
+			                cellStyle3.setTopBorderColor(IndexedColors.BLACK.getIndex());
+			                rowIndex=1;
+			            	row = sheet.createRow((short) rowIndex);
+			            	row.setRowStyle(cellStyle);
+			            	cell = row.createCell((short) colIndex);
+			                cell.setCellValue("PO_ID(PO NO + Ship NO)");
+			                sheet.autoSizeColumn(colIndex);
+			                cell.setCellStyle(cellStyle3);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("PR_NUM");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("PO NO");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("REVISION_NUM");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("PO_LINE_NUM");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("SHIPMENT_NUM");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("SHIPPING_MODE");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("SHIP_TO_DETAIL");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("PO+LINE");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("CUTOMER_ITEM");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("PROJECT");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("SITE");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("CREATION_DATE");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("REQUEST_DATE");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("EXPIRE_DATE");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("NEED_DATE");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("QTY_REQUEST");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("DUE_REQUEST");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("UNIT_PRICE");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("TOTAL_LINE_PRICE");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("UNIT_OF_MEASURE");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("INVOICED");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("INVOICE");
+			                cell.setCellStyle(cellStyle);
+			                sheet.autoSizeColumn(colIndex);
+			                colIndex=colIndex+1;
+			                colIndex=0;
+			                rowIndex=rowIndex+1;
+							while(resultado.hasNext()) {
+								po=resultado.next();
+								row = sheet.createRow((short) rowIndex);
+								cell = row.createCell((short) colIndex);
+								if(po.get("PO NO")!=null) {
+									if(po.get("Shipment NO")!=null) {
+										cell.setCellValue(po.getString("PO NO")+"_"+po.getString("Shipment NO"));
+									}else {
+										cell.setCellValue(po.getString("PO NO")+"_");
+									}
+								}else {
+									cell.setCellValue("NO PO ID FOUND");
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("PR NO")!=null) {
+									cell.setCellValue(po.getString("PR NO"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				              
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("PO NO")!=null) {
+									cell.setCellValue(po.getString("PO NO"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				               
+				                cell = row.createCell((short) colIndex);
+								if(po.get("Change History")!=null) {
+									cell.setCellValue(po.getString("Change History"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("PO Line NO")!=null) {
+									cell.setCellValue(po.getString("PO Line NO"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("Shipment NO")!=null) {
+									cell.setCellValue(po.getString("Shipment NO"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("Bill To")!=null) {
+									cell.setCellValue(po.getString("Bill To"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("Bill To")!=null) {
+									cell.setCellValue(po.getString("Bill To"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("PO NO")!=null) {
+									if(po.get("PO Line NO")!=null) {
+									cell.setCellValue(po.getString("PO NO")+"_"+po.getString("PO Line NO"));
+									}
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("Item Code")!=null) {
+									cell.setCellValue(po.getString("Item Code"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("Project Name")!=null) {
+									cell.setCellValue(po.getString("Project Name"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("Site Name")!=null) {
+									cell.setCellValue(po.getString("Site Name"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("Publish Date")!=null) {
+									
+									cell.setCellValue(po.getString("Publish Date"));
+								}else if(po.get("creation_date")!=null) {
+									
+									cell.setCellValue(po.getString("creation_date"));
+								}else {
+									cell.setCellValue("NO DATE FOUND");
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("Start Date")!=null) {
+									cell.setCellValue(po.getString("Start Date"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("End Date")!=null) {
+									cell.setCellValue(po.getString("End Date"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("End Date")!=null) {
+									cell.setCellValue(po.getString("End Date"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("Requested Qty")!=null) {
+									cell.setCellValue(po.getString("Requested Qty"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("Due Qty")!=null) {
+									cell.setCellValue(po.getString("Due Qty"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("Unit Price")!=null) {
+									cell.setCellValue(po.getString("Unit Price"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("Line Amount")!=null) {
+									cell.setCellValue(po.getString("Line Amount"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                
+				                cell = row.createCell((short) colIndex);
+								if(po.get("Unit")!=null) {
+									cell.setCellValue(po.getString("Unit"));
+								}
+				                sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                //invoiced
+				                cell = row.createCell((short) colIndex);
+								cell.setCellValue(po.getString("N"));
+								sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                //end invoiced
+				                //invoiced
+				                cell = row.createCell((short) colIndex);
+								cell.setCellValue(po.getString(""));
+								sheet.autoSizeColumn(colIndex);
+				                colIndex=colIndex+1;
+				                //end invoiced
+				                rowIndex=rowIndex+1;
+				                colIndex=0;
+							}
+							resp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+			                resp.setHeader("Content-Disposition", "attachment; filename="+time.toString()+"_Master_Control.xlsx");
+			                workbook.write(resp.getOutputStream());
+			                workbook.close();
+						}
+					}else if(opt.equals("49")) {
+						Calendar d = Calendar.getInstance();
+						param1 = req.getParameter("func");
+						param6 = req.getParameter("ticket_num");
+						param2 = req.getParameter("atividade");
+						param3 = req.getParameter("gap");
+						param4 = req.getParameter("owner");
+						param5 = req.getParameter("desc");
+						
+						
+						Document historico = new Document();
+						historico.append("TICKET_NUM", param6);
+						historico.append("Empresa", p.getEmpresa().getEmpresa_id());
+						historico.append("TICKET_HISTORICO_ADD_DATE",d.getTime());
+						historico.append("TICKET_HISTORICO_DATE",d.getTime());
+						historico.append("TICKET_HISTORICO_ADD_MILIS",d.getTimeInMillis());
+						historico.append("TICKET_HISTORICO_ADD_USER",p.get_PessoaUsuario());
+						historico.append("TICKET_HISTORICO_FUNC",param1.replaceAll(",", ";"));
+						historico.append("TICKET_HISTORICO_ATIVIDADE",param2);
+						historico.append("TICKET_HISTORICO_GAP",param3);
+						historico.append("TICKET_HISTORICO_OWNER",param4);
+						historico.append("TICKET_HISTORICO_DESC",param5);
+						System.out.println(historico.toJson());
+						mongo.InserirSimples("TICKET_HISTORICO", historico);
+						resp.setContentType("application/html");  
+						resp.setCharacterEncoding("UTF-8"); 
+						PrintWriter out = resp.getWriter();
+						out.print("OK");
+						out.close();	
+					}else if(opt.equals("50")) {
+						param1=req.getParameter("ticketnum");
+						System.out.println("buscando historico de "+param1);
+						Bson filtro;
+						List<Bson> filtros = new ArrayList<>();
+						filtro = Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+						filtros.add(filtro);
+						filtro = Filters.eq("TICKET_NUM",param1);
+						filtros.add(filtro);
+						Document historico;
+						dados_tabela="";
+						FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("TICKET_HISTORICO", filtros);
+						MongoCursor<Document> resultado = findIterable.iterator();
+						if(resultado.hasNext()) {
+							while(resultado.hasNext()) {
+								historico=resultado.next();
+								dados_tabela=dados_tabela+"<li><label style='color:gray;'>Data do Evento:"+ f3.format(historico.getDate("TICKET_HISTORICO_DATE"))+" <br>Categorias: "+ historico.getString("TICKET_HISTORICO_ATIVIDADE")+" | "+historico.getString("TICKET_HISTORICO_GAP") +" | "+historico.getString("TICKET_HISTORICO_OWNER")+" <br>Registro: "+historico.getString("TICKET_HISTORICO_DESC")+"</label><br><label style='font-size:10px;color:#D3D3D3;float:right'>Adicionado em : "+f3.format(historico.getDate("TICKET_HISTORICO_ADD_DATE"))+" por "+historico.getString("TICKET_HISTORICO_ADD_USER")+"</label></li>";
+							}
+						}
+						resp.setContentType("application/html");  
+						resp.setCharacterEncoding("UTF-8"); 
+						PrintWriter out = resp.getWriter();
+						out.print(dados_tabela);
+						out.close();
+					}
+					mongo.fecharConexao();
 				} catch (SQLException e) {
-			
+				mongo.fecharConexao();
 				mysql.fecharConexao();
 				// TODO Auto-generated catch block
 				e.printStackTrace();
