@@ -56,7 +56,7 @@ public class CamposRollout {
 		JSONArray dados= new JSONArray() ;
 		JSONObject jsonObject = new JSONObject(); 
 		try {
-		String query="select field_name,field_type,tipo,ordenacao from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id() + " and rollout_nome='"+rolloutid+"' order by ordenacao asc";
+		String query="select field_name,field_type,tipo,ordenacao,regraPinta from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id() + " and rollout_nome='"+rolloutid+"' order by ordenacao asc";
 		rs=c.Consulta(query);
 		
 			if(rs.next()) {
@@ -69,6 +69,7 @@ public class CamposRollout {
 					dados.put(rs.getString(3));
 					dados.put(rs.getInt(4));
 					dados.put(rs.getString(1));
+					dados.put(rs.getString(5));
 					jsonObject.put(rs.getString(1),dados);
 					
 				}

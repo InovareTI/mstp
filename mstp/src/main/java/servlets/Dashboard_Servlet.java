@@ -598,7 +598,7 @@ public class Dashboard_Servlet extends HttpServlet {
   		    resp.setCharacterEncoding("UTF-8"); 
   		    PrintWriter out = resp.getWriter();
   		    tabela="{\"item_po_sem_ticket\":"+po_item_sem_ticket+",\"item_po_ticket_new\":"+po_item_ticket_new+",\"item_po_ticket_work\":"+po_item_ticket_work+",\"item_po_ticket_done\":"+po_item_ticket_done+"}";
-  		    System.out.println(tabela);
+  		    //System.out.println(tabela);
 		    out.print(tabela);
 		    mongo.fecharConexao();
 		    Timestamp time2 = new Timestamp(System.currentTimeMillis());

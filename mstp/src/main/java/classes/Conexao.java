@@ -26,17 +26,16 @@ public class Conexao
 {
 	
 	private Connection connection;
-	private PreparedStatement stmtBatchUpdateAtributo;
-	private PreparedStatement stmtBatchUpdateMilestone;
-	private PreparedStatement stmtBatchInsertMilestone;
-	private PreparedStatement stmtBatchInsertAtributo;
+	//private PreparedStatement stmtBatchUpdateAtributo;
+	//private PreparedStatement stmtBatchUpdateMilestone;
+	//private PreparedStatement stmtBatchInsertMilestone;
+	//private PreparedStatement stmtBatchInsertAtributo;
 	
 	public Conexao() {
 		connection =null;
 		try	{
-			
-			 Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
-			String databaseURL = "jdbc:mysql://10.100.20.30/mstpDB?user=mstpwebDB&password=YV89aRRuN2-vV7@";
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			String databaseURL = "jdbc:mysql://10.100.20.30/mstpDB?user=mstpwebDB&password=mafXuv-h1vbyd-Kynfy8";
 			//String databaseURL = "jdbc:mysql://127.0.0.1/mstpDB?user=root&password=r2d2c3p0";
 			connection = DriverManager.getConnection(databaseURL);
 			connection.setAutoCommit(false);
@@ -55,54 +54,13 @@ public class Conexao
 			}
 		
 	}
-	public void set_stmtBtachUpdateMilestone(String sql) {
-		try {
-			stmtBatchUpdateMilestone=getConnection().prepareStatement(sql);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	public void set_stmtBtachInsertMilestone(String sql) {
-		try {
-			stmtBatchInsertMilestone=getConnection().prepareStatement(sql);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	public void set_stmtBtachInsertAtributo(String sql) {
-		try {
-			stmtBatchInsertAtributo=getConnection().prepareStatement(sql);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	public void set_stmtBtachUpdateAtributo(String sql) {
-		try {
-			stmtBatchUpdateAtributo=getConnection().prepareStatement(sql);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	public PreparedStatement get_BatchUpdateAtributo() {
-		
-		return stmtBatchUpdateAtributo;
-	}
-	public PreparedStatement get_BatchInsertAtributo() {
-			
-			return stmtBatchInsertAtributo;
-		}
-	public PreparedStatement get_BatchUpdateMilestone() {
-		
-		return stmtBatchUpdateMilestone;
-	}
-	public PreparedStatement get_BatchInsertMilestone() {
-		
-		return stmtBatchInsertMilestone;
-	}
+	
+	
+	
+	
+	
+	
+	
 	public Connection getConnection() {
 		return this.connection; 
 		//connection;

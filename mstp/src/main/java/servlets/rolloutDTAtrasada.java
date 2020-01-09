@@ -28,6 +28,8 @@ import classes.RelatorioOperacionalDiario;
 import classes.RolloutAtualizaDuracao;
 import classes.RolloutDataAtrasada;
 import classes.RolloutNaoIniciadas;
+import classes.PreChekToCheckJob;
+import classes.RegrasRollout;
 
 /**
  * Servlet implementation class rolloutDTAtrasada
@@ -70,6 +72,12 @@ public class rolloutDTAtrasada extends HttpServlet {
 			JobDetail job4 = newJob(RelatorioOperacionalDiario.class)
 				    .withIdentity("jobRelatorioOperacionalSimples", "group1")
 				    .build();
+			JobDetail job5 = newJob(PreChekToCheckJob.class)
+				    .withIdentity("JobPreChekToCheckJob", "group2")
+				    .build();
+			JobDetail job6 = newJob(RegrasRollout.class)
+				    .withIdentity("RegrasRolloutJob", "group2")
+				    .build();
 			CronTrigger trigger = newTrigger()
 				    .withIdentity("trigger1", "group1")
 				    .withSchedule(cronSchedule("0 0 8 ? * MON,TUE,WED,THU,FRI *"))
@@ -86,12 +94,25 @@ public class rolloutDTAtrasada extends HttpServlet {
 				    .withIdentity("trigger4", "group1")
 				    .withSchedule(cronSchedule("0 30 16 ? * MON,TUE,WED,THU,FRI *"))
 				    .build();
-			sched.scheduleJob(job, trigger);
-			sched.scheduleJob(job2, trigger2);
-			sched.scheduleJob(job3, trigger3);
-			sched.scheduleJob(job4, trigger4);
+			CronTrigger trigger5 = newTrigger()
+				    .withIdentity("trigger5", "group2")
+				    .withSchedule(cronSchedule("0 0 0/2 ? * * *"))
+				    .build();
+			CronTrigger trigger6 = newTrigger()
+				    .withIdentity("trigger6", "group2")
+				    .withSchedule(cronSchedule("0 47 10/2 ? * MON,TUE,WED,THU,FRI,SAT,SUN *"))
+				    .build();
+			//sched.scheduleJob(job, trigger);
+			//sched.scheduleJob(job2, trigger2);
+			//sched.scheduleJob(job3, trigger3);
+			//sched.scheduleJob(job4, trigger4);
+			//sched.scheduleJob(job5, trigger5);
+			sched.scheduleJob(job6, trigger6);
+			//System.out.println(sched.getSchedulerInstanceId());
+			
 			sched.start();
 			System.out.println("Scheduler MSTP INICIADO");
+			
 			//Thread.sleep(60L * 1000L);
 			//System.out.println("thread dormindo");
 			//sched.shutdown(true);

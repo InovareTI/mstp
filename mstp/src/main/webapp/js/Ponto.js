@@ -682,6 +682,7 @@ function carrega_select_func_ponto(){
 		  success: onSuccessUserMgmt2
 		});
 	function onSuccessUserMgmt2(data){
+		sessionStorage.setItem("funcs_ativo",data);
 		$("#select_func_folha_ponto").html(data);
 		$("#select_func_folha_ponto_analise").html(data);
 		$("#select_func_faltas").html(data);
@@ -691,6 +692,7 @@ function carrega_select_func_ponto(){
 		$("#select_func_HH_extrato").html(data);
 		$("#select_func_tickect").html(data);
 		$("#func_ticket_evento").html(data);
+		$("#select_func_novo_tickect_id").html(data);
 		$('#select_func_folha_ponto').selectpicker('refresh');
 		$('#select_func_folha_ponto_analise').selectpicker('refresh');
 		$('#select_func_faltas').selectpicker('refresh');
@@ -700,5 +702,6 @@ function carrega_select_func_ponto(){
 		$("#select_func_HH_extrato").selectpicker('refresh');
 		$("#select_func_tickect").selectpicker('refresh');
 		$("#func_ticket_evento").selectpicker('refresh');
+		$("#select_func_novo_tickect_id").selectpicker('refresh');
 	}
 }

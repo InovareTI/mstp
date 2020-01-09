@@ -172,7 +172,7 @@ public class RolloutServlet extends HttpServlet {
 		Locale.setDefault(locale_ptBR);
 		
 		Conexao conn = (Conexao) session.getAttribute("conexao");
-		ConexaoMongo c = new ConexaoMongo();
+		ConexaoMongo mongo = new ConexaoMongo();
 		Rollout r = new Rollout();
 		
 		double money; 
@@ -193,6 +193,7 @@ public class RolloutServlet extends HttpServlet {
 				//JSONObject rollout_campos=r.getCampos().getCampos_tipo(conn,p,param1);
 				//Iterator<String>campos_nomes=rollout_campos.keys();
 				rs= conn.Consulta("select * from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param1+"' order by ordenacao");
+				JSONObject detalhesCampos = r.getCampos().getCampos_tipo(conn, p, param1);
 				String campos_aux="";
 				dados_tabela="{ \"columgroup\": ["+"\n";
     			if(rs.next()){
@@ -248,7 +249,7 @@ public class RolloutServlet extends HttpServlet {
     							}else if(rs.getString("field_name").equals("Equipes no Site")) {
     								campos_aux=campos_aux+"{ \"text\": \""+rs.getString("field_name")+"\",\"datafield\":\""+rs.getString("field_name")+"\",\"columntype\": \"combobox\",\"filtertype\": \"checkedlist\",\"width\":90,\"editable\":False},"+ "\n";
     							}else {
-    								campos_aux=campos_aux+"{ \"text\": \""+rs.getString("field_name")+"\",\"datafield\":\""+rs.getString("field_name")+"\",\"columntype\": \"textbox\",\"width\":80},"+ "\n";
+    								campos_aux=campos_aux+"{ \"text\": \""+rs.getString("field_name")+"\",\"datafield\":\""+rs.getString("field_name")+"\",\"columntype\": \"textbox\",\"width\":80,\"cellclassname\": \""+detalhesCampos.getJSONArray(rs.getString("field_name")).get(4)+"\"},"+ "\n";
     							}
     						}else if(rs.getString("tipo").equals("Data")){
     							dados_tabela=dados_tabela+"{ \"name\": \""+rs.getString("field_name")+"\", \"type\": \"date\"},"+ "\n";	
@@ -404,7 +405,7 @@ public class RolloutServlet extends HttpServlet {
     				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
     				List<Bson> rollout_filtrado_integrado_filtro = new ArrayList<>();
     				rollout_filtrado_integrado_filtro.add(filtro);
-    				FindIterable<Document> findIterable=c.ConsultaCollectioncomFiltrosLista("Rollout_Sites", rollout_filtrado_integrado_filtro); 
+    				FindIterable<Document> findIterable=mongo.ConsultaCollectioncomFiltrosLista("Rollout_Sites", rollout_filtrado_integrado_filtro); 
     				findIterable.forEach((Block<Document>) doc -> {
     					
     					rollout_filtrado_integrado.add(((Document)((Document)doc.get("GEO")).get("properties")).getString("SiteID"));
@@ -438,14 +439,14 @@ public class RolloutServlet extends HttpServlet {
 			    out.print(jObj);
 					
 					
-			c.fecharConexao();
+			mongo.fecharConexao();
 			Timestamp time2 = new Timestamp(System.currentTimeMillis());
 			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
 				}else if(opt.equals("2")) {
 					if(p.getPerfil_funcoes().contains("RolloutManager")) {	
 				param1=req.getParameter("rollout");
-				System.out.println("rollout para consulta: "+ param1);
+				//System.out.println("rollout para consulta: "+ param1);
                 
 				rs=conn.Consulta("Select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param1+"' order by ordenacao");
 	    		
@@ -485,7 +486,7 @@ public class RolloutServlet extends HttpServlet {
 					}else{
 						//System.out.println("Consulta returns empty");
 					}
-					c.fecharConexao();
+					mongo.fecharConexao();
 					Timestamp time2 = new Timestamp(System.currentTimeMillis());
 					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}
@@ -654,7 +655,7 @@ public class RolloutServlet extends HttpServlet {
 						{
 	                		recids.add(filtros.getInt(i));
 						}
-	                	findIterable=c.ConsultaComplexaArrayRecID("rollout", "recid", recids);
+	                	findIterable=mongo.ConsultaComplexaArrayRecID("rollout", "recid", recids);
 	                }else if(param2.equals("filtro")) {
 	                if(filtros.length()>0) {
 	                	
@@ -846,7 +847,7 @@ public class RolloutServlet extends HttpServlet {
 						filtro_list.add(filtro);
 						filtro=Filters.eq("rolloutId", param3);
 						filtro_list.add(filtro);
-	                	findIterable = c.ConsultaCollectioncomFiltrosLista("rollout",filtro_list);
+	                	findIterable = mongo.ConsultaCollectioncomFiltrosLista("rollout",filtro_list);
 	                }else {
 	                	filtro=Filters.eq("Empresa", p.getEmpresa().getEmpresa_id());
 						filtro_list.add(filtro);
@@ -854,7 +855,7 @@ public class RolloutServlet extends HttpServlet {
 						filtro_list.add(filtro);
 						filtro=Filters.eq("rolloutId", param3);
 						filtro_list.add(filtro);
-	                	findIterable = c.ConsultaCollectioncomFiltrosLista("rollout",filtro_list);
+	                	findIterable = mongo.ConsultaCollectioncomFiltrosLista("rollout",filtro_list);
 	                }
 	                }else if(param2.equals("completo")){
 	                	filtro_list.clear();
@@ -864,7 +865,7 @@ public class RolloutServlet extends HttpServlet {
 						filtro_list.add(filtro);
 						filtro=Filters.eq("rolloutId", param3);
 						filtro_list.add(filtro);
-	                	findIterable = c.ConsultaCollectioncomFiltrosLista("rollout",filtro_list);
+	                	findIterable = mongo.ConsultaCollectioncomFiltrosLista("rollout",filtro_list);
 						//findIterable=c.ConsultaOrdenadaRolloutCompleto("rollout",p.getEmpresa().getEmpresa_id());
 						//query="Select * from rollout where empresa="+p.getEmpresa().getEmpresa_id()+" and linha_ativa='Y' order by recid,ordenacao";
 					}
@@ -1132,14 +1133,14 @@ public class RolloutServlet extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print("Rollout não disponivel para download");
 	            }
-	            c.fecharConexao();
+	            mongo.fecharConexao();
 	            Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
 				}else if(opt.equals("4")) {
 				if(p.getPerfil_funcoes().contains("RolloutManager")) {	
-				insere_linha_rollout(c,req,resp,p);
-				c.fecharConexao();
+				insere_linha_rollout(mongo,req,resp,p);
+				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -1201,7 +1202,7 @@ public class RolloutServlet extends HttpServlet {
 				        	
 				        	filtro=Filters.eq("Empresa",null);
 				        	filtro_lista.add(filtro);	
-				        	c.RemoverFiltroList("rollout", filtro_lista);
+				        	mongo.RemoverFiltroList("rollout", filtro_lista);
 			    			FindIterable<Document> findIterable;
 			    			Document changes;
 			    			Document linha_doc;
@@ -1223,7 +1224,7 @@ public class RolloutServlet extends HttpServlet {
 	    	            		 //System.out.println(campos.toString());
 	    	            	 }
 				        	int last_recid=0;
-				        	findIterable=c.LastRegisterCollention("rollout", "recid");
+				        	findIterable=mongo.LastRegisterCollention("rollout", "recid");
 				        	
 				        	changes=findIterable.first();
 				        	last_recid=Integer.parseInt(changes.get("recid").toString());
@@ -1259,7 +1260,7 @@ public class RolloutServlet extends HttpServlet {
 			    						if(i==0) {
 			    							 if(cellValue.length()>0) {
 					    						 recid=Integer.parseInt(cellValue);
-					    						 linha_doc=c.ConsultaSimplesComFiltro("rollout", "recid", recid, p.getEmpresa().getEmpresa_id()).first();
+					    						 linha_doc=mongo.ConsultaSimplesComFiltro("rollout", "recid", recid, p.getEmpresa().getEmpresa_id()).first();
 					    						 operacao="update";
 					    						 colunacelula=i;
 					    					 }else {
@@ -1844,7 +1845,7 @@ public class RolloutServlet extends HttpServlet {
 					    			changes.append("update_by", p.get_PessoaUsuario());
 					    			changes.append("update_time",time);
 					    			
-					    			c.InserirSimples("rollout", changes);
+					    			mongo.InserirSimples("rollout", changes);
     							}else if(operacao.equals("update")){
     								filtros.append("recid",recid);
         							filtros.append("Empresa" , p.getEmpresa().getEmpresa_id());
@@ -1853,9 +1854,9 @@ public class RolloutServlet extends HttpServlet {
         							if(!changes.isEmpty()) {
         								//System.out.println(changes.toJson());
 	        					        update.append("$set", changes);
-	        					        c.AtualizaUm("rollout", filtros, update);
+	        					        mongo.AtualizaUm("rollout", filtros, update);
 	        					        //System.out.println(lista_hitorico.toString());
-	        					        c.InserirMuitos("rollout_history", lista_hitorico);
+	        					        mongo.InserirMuitos("rollout_history", lista_hitorico);
 	        					        
         							}else {
         								System.out.println("sem registro de mudança para recid - "+recid);
@@ -1870,7 +1871,7 @@ public class RolloutServlet extends HttpServlet {
 					}//loop de arquivos
 					atualiza_sites_integrados(p);
 				}//if de upload de arquivo
-				c.fecharConexao();
+				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -1886,28 +1887,36 @@ public class RolloutServlet extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(rs.getString(1));
 				}
-				c.fecharConexao();
+				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
 				}else if(opt.equals("7")) {
 				if(p.getPerfil_funcoes().contains("RolloutManager")) {
 				param1=req.getParameter("rolloutid");
-				query="select field_name from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param1+"' order by ordenacao";
+				query="select field_name,field_type from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param1+"' order by ordenacao";
 				rs=conn.Consulta(query);
 				if(rs.next()) {
 					rs.beforeFirst();
 					dados_tabela="";
-					dados_tabela=dados_tabela+"<option value=''>Selecione o Campo</option>";
+					//dados_tabela=dados_tabela+"<option value=''>Selecione o Campo</option>";
 					while(rs.next()) {
-						dados_tabela=dados_tabela+"<option value='"+rs.getString(1)+"'>"+rs.getString(1)+"</option>";
+						if(rs.getString(2).equals("Milestone")) {
+							dados_tabela=dados_tabela+"<option value='BL_Inicio_"+rs.getString(1)+"'>Inicio "+rs.getString(1)+"</option>";
+							dados_tabela=dados_tabela+"<option value='BL_Fim_"+rs.getString(1)+"'>Fim "+rs.getString(1)+"</option>";
+							dados_tabela=dados_tabela+"<option value='Incio_"+rs.getString(1)+"'>Inicio Real "+rs.getString(1)+"</option>";
+							dados_tabela=dados_tabela+"<option value='Fim_"+rs.getString(1)+"'>Fim Real "+rs.getString(1)+"</option>";
+							dados_tabela=dados_tabela+"<option value='Resp_"+rs.getString(1)+"'>Responsável "+rs.getString(1)+"</option>";
+						}else {
+							dados_tabela=dados_tabela+"<option value='"+rs.getString(1)+"'>"+rs.getString(1)+"</option>";
+						}
 					}
 					resp.setContentType("application/text");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
 				}
-				c.fecharConexao();
+				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -1932,7 +1941,7 @@ public class RolloutServlet extends HttpServlet {
     						
     						updates=new Document();
     						updates.append("$set",valor);
-    						c.AtualizaUm("rollout", filtro, updates);
+    						mongo.AtualizaUm("rollout", filtro, updates);
     						
     						//conn.Alterar("update rollout set linha_ativa='N',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+linhas[j]+" and empresa="+p.getEmpresa().getEmpresa_id());
     					}
@@ -1951,7 +1960,7 @@ public class RolloutServlet extends HttpServlet {
 						
 						updates=new Document();
 						updates.append("$set",valor);
-						c.AtualizaUm("rollout", filtro, updates);
+						mongo.AtualizaUm("rollout", filtro, updates);
     					
     					//conn.Alterar("update rollout set linha_ativa='N',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+param1+" and empresa="+p.getEmpresa().getEmpresa_id());
 
@@ -1961,7 +1970,7 @@ public class RolloutServlet extends HttpServlet {
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print("OK");
-				 c.fecharConexao();
+				 mongo.fecharConexao();
 				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
 					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -1984,11 +1993,11 @@ public class RolloutServlet extends HttpServlet {
     			List<Bson> filtroLista = new ArrayList<>();
     			Filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
     			filtroLista.add(Filtro);
-    			System.out.println("dia da pesquisa:"+f2.format(hoje.getTime()));
+    			//System.out.println("dia da pesquisa:"+f2.format(hoje.getTime()));
     			Filtro=Filters.eq("data_dia_string",f2.format(hoje.getTime()));
     			filtroLista.add(Filtro);
     			//List<Document> aux=c.consultaaggregationmultiplo("Registros", filtroLista,"local_registro","Usuario");
-    			FindIterable<Document> findIterable2 = c.ConsultaCollectioncomFiltrosLista("Registros", filtroLista);
+    			FindIterable<Document> findIterable2 = mongo.ConsultaCollectioncomFiltrosLista("Registros", filtroLista);
     			//FindIterable<Document> findIterable2=r.getUsuariosSite(p);
 				
 				
@@ -2319,13 +2328,13 @@ public class RolloutServlet extends HttpServlet {
 	    				lista_filtro_aux.add(Filtro);
 	    				filtro_aux=Filters.eq("tipo_local_registro","Site");
 	    				lista_filtro_aux.add(filtro_aux);
-	    				List<String> sitesdia=c.ConsultaSimplesDistinct("Registros", "local_registro", lista_filtro_aux);
+	    				List<String> sitesdia=mongo.ConsultaSimplesDistinct("Registros", "local_registro", lista_filtro_aux);
 	    				filtro=Filters.in("Site ID", sitesdia);
 	    				filtro_list.add(filtro);
 					}
 					System.out.println("Executando consulta com filtros");
-					totallinhas=c.CountSimplesComFiltroInicioLimit("rollout",filtro_list);
-					findIterable = c.ConsultaSimplesComFiltroInicioLimit("rollout",filtro_list,pagina_linhas*pagina,pagina_linhas);
+					totallinhas=mongo.CountSimplesComFiltroInicioLimit("rollout",filtro_list);
+					findIterable = mongo.ConsultaSimplesComFiltroInicioLimit("rollout",filtro_list,pagina_linhas*pagina,pagina_linhas);
 				}else {
 					
 					filtro_list = new ArrayList<Bson>();
@@ -2339,7 +2348,7 @@ public class RolloutServlet extends HttpServlet {
 	    				lista_filtro_aux.add(Filtro);
 	    				filtro_aux=Filters.eq("tipo_local_registro","Site");
 	    				lista_filtro_aux.add(filtro_aux);
-	    				List<String> sitesdia=c.ConsultaSimplesDistinct("Registros", "local_registro", lista_filtro_aux);
+	    				List<String> sitesdia=mongo.ConsultaSimplesDistinct("Registros", "local_registro", lista_filtro_aux);
 	    				//System.out.println("tamnho: "+sitesdia.size());
 	    				filtro=Filters.in("Site ID", sitesdia);
 	    				filtro_list.add(filtro);
@@ -2351,9 +2360,9 @@ public class RolloutServlet extends HttpServlet {
 					filtro=Filters.eq("rolloutId", param3);
 					filtro_list.add(filtro);
 					//System.out.println("Executando consulta sem filtros");
-					totallinhas=c.CountSimplesComFiltroInicioLimit("rollout",filtro_list);
+					totallinhas=mongo.CountSimplesComFiltroInicioLimit("rollout",filtro_list);
 					//System.out.println("Encontrou "+ totallinhas);
-					findIterable = c.ConsultaSimplesComFiltroInicioLimit("rollout",filtro_list,pagina_linhas*pagina,pagina_linhas);
+					findIterable = mongo.ConsultaSimplesComFiltroInicioLimit("rollout",filtro_list,pagina_linhas*pagina,pagina_linhas);
 				}
 				
 				MongoCursor<Document> resultado = findIterable.iterator();
@@ -2562,7 +2571,7 @@ public class RolloutServlet extends HttpServlet {
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
 					
-			    c.fecharConexao();
+			    mongo.fecharConexao();
 			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -2681,7 +2690,7 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
-			    c.fecharConexao();
+			    mongo.fecharConexao();
 			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -2706,7 +2715,7 @@ public class RolloutServlet extends HttpServlet {
 		  		    PrintWriter out = resp.getWriter();
 				    out.print("Erro no salvamento do relatório");
 				}
-				 c.fecharConexao();
+				 mongo.fecharConexao();
 				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
 					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -2726,7 +2735,7 @@ public class RolloutServlet extends HttpServlet {
 		  		    PrintWriter out = resp.getWriter();
 				    out.print(dados_tabela);
 				}
-				 c.fecharConexao();
+				 mongo.fecharConexao();
 				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
 					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -2809,7 +2818,7 @@ public class RolloutServlet extends HttpServlet {
     			dados_tabela= dados_tabela+"\n"+"],";
     			System.out.println("Campos 2 definido");
     			
-    			FindIterable<Document> findIterable = c.ConsultaSimplesSemFiltro("rollout");
+    			FindIterable<Document> findIterable = mongo.ConsultaSimplesSemFiltro("rollout");
     			dados_tabela= dados_tabela+"\n"+"\"records\":[";
     			MongoCursor<Document> doccursor = findIterable.iterator();
     			while(doccursor.hasNext()) {
@@ -2850,7 +2859,7 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
-			    c.fecharConexao();
+			    mongo.fecharConexao();
 			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -2869,7 +2878,7 @@ public class RolloutServlet extends HttpServlet {
 				//JSONObject campos_tipo = r.getCampos().getCampos_tipo(conn, p);
     			document=new Document();
     			if(rs.next()) {
-    				c.RemoverMuitosSemFiltro("rolloutCampos",p.getEmpresa().getEmpresa_id());
+    				mongo.RemoverMuitosSemFiltro("rolloutCampos",p.getEmpresa().getEmpresa_id());
     				//System.out.println("entrou no if do rs");
     				String CampoNome="";
     				int colunas = rs.getMetaData().getColumnCount();
@@ -2885,14 +2894,14 @@ public class RolloutServlet extends HttpServlet {
     					}
     					document.append("Update_by", "masteradmin");
 						document.append("Update_time", time);
-    					c.InserirSimples("rolloutCampos", document);
+    					mongo.InserirSimples("rolloutCampos", document);
     					document.clear();
     				}
     			}else {
     				System.out.println("Sicronia com Mongo Finalizada porém sem sincronia dos campos do rollout");
     			}
     			System.out.println("MSTP WEB - "+f3.format(time)+" "+ p.get_PessoaUsuario()+" finalizada sincronia de campos do rollout entre mysql e mongo");
-    			 c.fecharConexao();
+    			 mongo.fecharConexao();
     			 Timestamp time2 = new Timestamp(System.currentTimeMillis());
     				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -2959,7 +2968,7 @@ public class RolloutServlet extends HttpServlet {
 						update = new Document();
 				        update.append("$set", updates);
 				        historico.append("recid" , jObj2.getInt("id"));
-				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
+				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(mongo,jObj2.getInt("id")));
 				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
 				        historico.append("TipoCampo" , "Milestone");
 				        historico.append("Milestone" , cmp);
@@ -2978,8 +2987,8 @@ public class RolloutServlet extends HttpServlet {
 				        
 				        historico.append("update_time", d.getTime());
 					
-					c.AtualizaUm("rollout", filtros, update);
-					c.InserirSimples("rollout_history", historico);
+					mongo.AtualizaUm("rollout", filtros, update);
+					mongo.InserirSimples("rollout_history", historico);
 					historico.clear();
 					filtros.clear();
 					update.clear();
@@ -3005,7 +3014,7 @@ public class RolloutServlet extends HttpServlet {
 						update = new Document();
 				        update.append("$set", updates);
 				        historico.append("recid" , jObj2.getInt("id"));
-				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
+				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(mongo,jObj2.getInt("id")));
 				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
 				        historico.append("TipoCampo" , "Milestone");
 				        historico.append("Milestone" , cmp);
@@ -3022,10 +3031,10 @@ public class RolloutServlet extends HttpServlet {
 				        }
 				        historico.append("update_by", p.get_PessoaUsuario());
 				        historico.append("update_time", d.getTime());
-				        c.InserirSimples("rollout_history", historico);
+				        mongo.InserirSimples("rollout_history", historico);
 						historico.clear();
 				
-					c.AtualizaUm("rollout", filtros, update);
+					mongo.AtualizaUm("rollout", filtros, update);
 					filtros.clear();
 					update.clear();
 					updates.clear();
@@ -3050,7 +3059,7 @@ public class RolloutServlet extends HttpServlet {
     						updates.append("update_by", p.get_PessoaUsuario());
     						updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
     						historico.append("recid" , jObj2.getInt("id"));
-    				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
+    				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(mongo,jObj2.getInt("id")));
     				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
     				        historico.append("TipoCampo" , "Milestone");
     				        historico.append("Milestone" , cmp);
@@ -3068,7 +3077,7 @@ public class RolloutServlet extends HttpServlet {
     				        
     				        historico.append("update_by", p.get_PessoaUsuario());
     				        historico.append("update_time", d.getTime());
-    				        c.InserirSimples("rollout_history", historico);
+    				        mongo.InserirSimples("rollout_history", historico);
     						historico.clear();
     					
     					
@@ -3085,7 +3094,7 @@ public class RolloutServlet extends HttpServlet {
     							}
     							update = new Document();
         				        update.append("$set", updates);
-        				        c.AtualizaUm("rollout", filtros, update);
+        				        mongo.AtualizaUm("rollout", filtros, update);
         				        filtros.clear();
         						update.clear();
         						updates.clear();
@@ -3104,7 +3113,7 @@ public class RolloutServlet extends HttpServlet {
     						updates.append("update_by", p.get_PessoaUsuario());
     						updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
     						historico.append("recid" , jObj2.getInt("id"));
-    				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
+    				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(mongo,jObj2.getInt("id")));
     				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
     				        historico.append("TipoCampo" , "Milestone");
     				        historico.append("Milestone" , cmp);
@@ -3122,7 +3131,7 @@ public class RolloutServlet extends HttpServlet {
     				        
     				        historico.append("update_by", p.get_PessoaUsuario());
     				        historico.append("update_time",d.getTime());
-    				        c.InserirSimples("rollout_history", historico);
+    				        mongo.InserirSimples("rollout_history", historico);
     						historico.clear();
     						//if(!conn.Alterar(query)){
     							//System.out.println("Erro de Update");
@@ -3138,7 +3147,7 @@ public class RolloutServlet extends HttpServlet {
     							update = new Document();
         				        update.append("$set", updates);
         				        //System.out.println(filtros.toJson());
-        				        c.AtualizaUm("rollout", filtros, update);
+        				        mongo.AtualizaUm("rollout", filtros, update);
         				        filtros.clear();
         						update.clear();
         						updates.clear();
@@ -3161,7 +3170,7 @@ public class RolloutServlet extends HttpServlet {
     						update = new Document();
     				        update.append("$set", updates);
     				        historico.append("recid" , jObj2.getInt("id"));
-    				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
+    				        historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(mongo,jObj2.getInt("id")));
     				        historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
     				        historico.append("TipoCampo" , "Milestone");
     				        historico.append("Milestone" , cmp);
@@ -3170,11 +3179,11 @@ public class RolloutServlet extends HttpServlet {
     				        historico.append("Novo Valor" , jObj2.getString("value"));
     				        historico.append("update_by", p.get_PessoaUsuario());
     				        historico.append("update_time", d.getTime());
-    				        c.InserirSimples("rollout_history", historico);
+    				        mongo.InserirSimples("rollout_history", historico);
     						historico.clear();
     					//System.out.println(filtros.toJson().toString());
     					//System.out.println(update.toJson().toString());
-    					c.AtualizaUm("rollout", filtros, update);
+    					mongo.AtualizaUm("rollout", filtros, update);
     					filtros.clear();
     					update.clear();
     					updates.clear();
@@ -3198,7 +3207,7 @@ public class RolloutServlet extends HttpServlet {
     								updates.append("update_by", p.get_PessoaUsuario());
     								updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
     								historico.append("recid" , jObj2.getInt("id"));
-    		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
+    		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(mongo,jObj2.getInt("id")));
     		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
     		    				    historico.append("TipoCampo" , "Milestone");
     		    				    historico.append("Milestone" , cmp.substring(5,cmp.length()));
@@ -3209,7 +3218,7 @@ public class RolloutServlet extends HttpServlet {
     		    				    historico.append("update_time", d.getTime());
     		    				    atualizacao_resp="comunicar";
     		    				    mensagem_resp=jObj2.getString("value");
-    		    				    mensagem_conteudo="Voce recebeu uma Tarefa :\n Site: "+r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id"))+"\nAtividade: "+cmp.substring(5, cmp.length());
+    		    				    mensagem_conteudo="Voce recebeu uma Tarefa :\n Site: "+r.getCampos().BuscaSitebyRecID(mongo,jObj2.getInt("id"))+"\nAtividade: "+cmp.substring(5, cmp.length());
     							}else {
     								d =Calendar.getInstance();
     								//query="update rollout set value_atbr_field='"+jObj2.getString("value")+"',update_by='"+p.get_PessoaUsuario()+"',update_time='"+time+"' where recid="+jObj2.getInt("id")+ " and milestone='"+cmp+"' and empresa="+p.getEmpresa().getEmpresa_id() ;
@@ -3220,7 +3229,7 @@ public class RolloutServlet extends HttpServlet {
     								updates.append("update_by", p.get_PessoaUsuario());
     								updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
     								historico.append("recid" , jObj2.getInt("id"));
-    		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
+    		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(mongo,jObj2.getInt("id")));
     		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
     		    				    historico.append("TipoCampo" , "Atributo");
     		    				    historico.append("Milestone" , "");
@@ -3242,7 +3251,7 @@ public class RolloutServlet extends HttpServlet {
 								updates.append("update_by", p.get_PessoaUsuario());
 								updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
 								historico.append("recid" , jObj2.getInt("id"));
-		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
+		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(mongo,jObj2.getInt("id")));
 		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
 		    				    historico.append("TipoCampo" , "Atributo");
 		    				    historico.append("Milestone" , "");
@@ -3261,7 +3270,7 @@ public class RolloutServlet extends HttpServlet {
 								updates.append("update_by", p.get_PessoaUsuario());
 								updates.append("update_time", checa_formato_data(f2.format(d.getTime())));
 								historico.append("recid" , jObj2.getInt("id"));
-		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(c,jObj2.getInt("id")));
+		    				    historico.append("SiteID" , r.getCampos().BuscaSitebyRecID(mongo,jObj2.getInt("id")));
 		    				    historico.append("Empresa" , p.getEmpresa().getEmpresa_id());
 		    				    historico.append("TipoCampo" , "Atributo");
 		    				    historico.append("Milestone" , "");
@@ -3272,14 +3281,14 @@ public class RolloutServlet extends HttpServlet {
 		    				    historico.append("update_time", d.getTime());
     						
     						}
-    						    c.InserirSimples("rollout_history", historico);
+    						    mongo.InserirSimples("rollout_history", historico);
 		    			        historico.clear();
     						    update = new Document();
     					        update.append("$set", updates);
     					        
     						//System.out.println(filtros.toJson().toString());
     						//System.out.println(update.toJson().toString());
-    						c.AtualizaUm("rollout", filtros, update);
+    						mongo.AtualizaUm("rollout", filtros, update);
     						filtros.clear();
     						update.clear();
     						updates.clear();
@@ -3306,7 +3315,7 @@ public class RolloutServlet extends HttpServlet {
 				out.print("Rollout Atualizado!");
 				
 				
-				 c.fecharConexao();
+				 mongo.fecharConexao();
 				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
 					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -3327,7 +3336,7 @@ public class RolloutServlet extends HttpServlet {
 				for(int i=0;i<filtrosArray.length();i++) {
 					JSONObject filtros_campo=filtrosArray.getJSONObject(i);
 					
-						FindIterable<Document> findIterable=c.ConsultaComplexaComFiltro("rollout", rollout_filtrado_lista, campo_tipo.getJSONArray(filtros_campo.getString("datafield")).get(1).toString(), filtros_campo.getString("filtercondition"), filtros_campo.getString("datafield"), filtros_campo.getString("filtersvalue"));
+						FindIterable<Document> findIterable=mongo.ConsultaComplexaComFiltro("rollout", rollout_filtrado_lista, campo_tipo.getJSONArray(filtros_campo.getString("datafield")).get(1).toString(), filtros_campo.getString("filtercondition"), filtros_campo.getString("datafield"), filtros_campo.getString("filtersvalue"));
 						rollout_filtrado_lista.clear();
 						rollout_filtrado_site.clear();
 					findIterable.forEach((Block<Document>) doc -> {
@@ -3339,7 +3348,7 @@ public class RolloutServlet extends HttpServlet {
 					
 				}
 				//System.out.println("numero de registros : "+rollout_filtrado_lista.size());
-				FindIterable<Document> findIterable=c.ConsultaComplexaArray("Rollout_Sites", "GEO.properties.SiteID",rollout_filtrado_site); 
+				FindIterable<Document> findIterable=mongo.ConsultaComplexaArray("Rollout_Sites", "GEO.properties.SiteID",rollout_filtrado_site); 
 				findIterable.forEach((Block<Document>) doc -> {
 					rollout_filtrado_site_Geo.add((Document)doc.get("GEO"));
 				});
@@ -3350,7 +3359,7 @@ public class RolloutServlet extends HttpServlet {
 				document_featurecollection.append("features", rollout_filtrado_site_Geo);
 				rollout_filtrado.append("\"rollout\"", document_featurecollection.toJson().toString());
 				
-				FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",checa_formato_data(f2.format(time).toString()),p.getEmpresa().getEmpresa_id());
+				FindIterable<Document> findIterable2=mongo.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",checa_formato_data(f2.format(time).toString()),p.getEmpresa().getEmpresa_id());
 				List<Document> lista_sites= new ArrayList<Document>();
 				document_featurecollection.clear();
 				document_featurecollection.append("type", "FeatureCollection");
@@ -3381,7 +3390,7 @@ public class RolloutServlet extends HttpServlet {
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print(resultado);
-				 c.fecharConexao();
+				 mongo.fecharConexao();
 				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
 					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -3390,7 +3399,7 @@ public class RolloutServlet extends HttpServlet {
 				//System.out.println("buscando sites integrados no rollout") ;
 				
 				List<String> rollout_filtrado_site=new ArrayList<String>();
-				FindIterable<Document> findIterable=c.ConsultaSimplesSemFiltro("Rollout_Sites");
+				FindIterable<Document> findIterable=mongo.ConsultaSimplesSemFiltro("Rollout_Sites");
 				findIterable.forEach((Block<Document>) doc -> {
 					
 					rollout_filtrado_site.add(doc.get("GEO.properties.SiteID").toString());
@@ -3402,7 +3411,7 @@ public class RolloutServlet extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				//System.out.println(rollout_filtrado_site.toString());
 				out.print(rollout_filtrado_site.toString());
-				 c.fecharConexao();
+				 mongo.fecharConexao();
 				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
 					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -3420,7 +3429,7 @@ public class RolloutServlet extends HttpServlet {
 					
 				}
 				//System.out.println(id_aux.toString());
-				FindIterable<Document> findIterable=c.ConsultaComplexaArrayRecID("rollout_history", "recid",id_aux);
+				FindIterable<Document> findIterable=mongo.ConsultaComplexaArrayRecID("rollout_history", "recid",id_aux);
 				
 				findIterable.forEach((Block<Document>) doc -> {
 					
@@ -3445,14 +3454,14 @@ public class RolloutServlet extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				//System.out.println(rollout_filtrado_site.toString());
 				out.print(historico_site.toString());
-				 c.fecharConexao();
+				 mongo.fecharConexao();
 				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
 					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
 				}else if(opt.equals("19")) {
 				if(p.getPerfil_funcoes().contains("RolloutManager")) {
 					
-					param1=req.getParameter("rolloutid");
+				param1=req.getParameter("rolloutid");
 				//JSONObject campo_tipo=r.getCampos().getCampos_tipo(conn, p,param3);
 				JSONObject jsonObject_campos = r.getCampos().getCampos_tipo(conn, p,param1);
 				String resultado="";
@@ -3468,7 +3477,7 @@ public class RolloutServlet extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				//System.out.println(rollout_filtrado_site.toString());
 				out.print(resultado);
-				 c.fecharConexao();
+				 mongo.fecharConexao();
 				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
 					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -3521,7 +3530,7 @@ public class RolloutServlet extends HttpServlet {
 				System.out.println("site:"+site.toString());
 				System.out.println("campos:"+campos.toString());
 				System.out.println("autor:"+autor.toString());
-				FindIterable<Document> findIterable=c.ConsultaFiltrosHistoricoRollout("rollout_history", site,campos,autor,param4,param5,p.getEmpresa().getEmpresa_id());
+				FindIterable<Document> findIterable=mongo.ConsultaFiltrosHistoricoRollout("rollout_history", site,campos,autor,param4,param5,p.getEmpresa().getEmpresa_id());
 				
 				findIterable.forEach((Block<Document>) doc -> {
 					
@@ -3546,7 +3555,7 @@ public class RolloutServlet extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				//System.out.println(rollout_filtrado_site.toString());
 				out.print(historico_site.toString());
-				 c.fecharConexao();
+				 mongo.fecharConexao();
 				 Timestamp time2 = new Timestamp(System.currentTimeMillis());
 					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -3596,7 +3605,7 @@ public class RolloutServlet extends HttpServlet {
 				
 				System.out.println("Executando consulta MAPA OPERACIONAL 1");
 				//totallinhas=c.CountSimplesSemFiltroInicioLimit("rollout");
-				findIterable = c.ConsultaRolloutPeriodoData("rollout",filtro_list,p.getEmpresa().getEmpresa_id());
+				findIterable = mongo.ConsultaRolloutPeriodoData("rollout",filtro_list,p.getEmpresa().getEmpresa_id());
 				MongoCursor<Document> resultado = findIterable.iterator();
 		
     			Document linha=new Document();
@@ -3636,7 +3645,7 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
-			    c.fecharConexao();
+			    mongo.fecharConexao();
 			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -3693,7 +3702,7 @@ public class RolloutServlet extends HttpServlet {
 				filtro_list.add(filtrodoc);
 				Bson filtro;
 				Bson filtro2;
-				projetos=c.ConsultaSimplesDistinct("rollout", "PROJETO",filtro_list);
+				projetos=mongo.ConsultaSimplesDistinct("rollout", "PROJETO",filtro_list);
 				projeto="PROJETO";
 				//if(projetos.size()==0) {
 				//	projetos=c.ConsultaSimplesDistinct("rollout", "Projeto",filtro_list);
@@ -3717,12 +3726,12 @@ public class RolloutServlet extends HttpServlet {
 						dados_tabela=dados_tabela+"\"projeto\":\""+projetos.get(indice)+"\",";
 						filtro=Filters.eq(projeto,projetos.get(indice));
 						filtro_list.add(filtro);
-						projeto_sites_total=c.ConsultaCountComplexa("rollout", filtro_list);
+						projeto_sites_total=mongo.ConsultaCountComplexa("rollout", filtro_list);
 						dados_tabela=dados_tabela+"\"totalsites\":"+projeto_sites_total+",";
 						filtro2=Filters.eq("status_INSTALAÇÃO","Finalizada");
 						filtro=Filters.elemMatch("Milestone", filtro2);
 						filtro_list.add(filtro);
-						projeto_sites_total_realizado=c.ConsultaCountComplexa("rollout", filtro_list);
+						projeto_sites_total_realizado=mongo.ConsultaCountComplexa("rollout", filtro_list);
 						dados_tabela=dados_tabela+"\"sites_done\":"+projeto_sites_total_realizado+",";
 						//System.out.println("tamanho antes do primeiro clear:"+filtro_list.size()+" dos filtros list na rodada:"+indice);
 						filtro_list.clear();
@@ -3734,7 +3743,7 @@ public class RolloutServlet extends HttpServlet {
 						filtro=Filters.elemMatch("Milestone", filtro2);
 						filtro_list.add(filtro);
 						//System.out.println("tamanho refeito:"+filtro_list.size()+" dos filtros list na rodada:"+indice);
-						projeto_sites_total_planejado=c.ConsultaCountComplexa("rollout", filtro_list);
+						projeto_sites_total_planejado=mongo.ConsultaCountComplexa("rollout", filtro_list);
 						dados_tabela=dados_tabela+"\"sites_planejados\":"+projeto_sites_total_planejado+",";
 						filtro_list.clear();
 						filtro_list=new ArrayList<Bson>(filtro_list_aux);
@@ -3744,7 +3753,7 @@ public class RolloutServlet extends HttpServlet {
 						filtro2=Filters.eq("status_INSTALAÇÃO","Nao Iniciada");
 						filtro=Filters.elemMatch("Milestone", filtro2);
 						filtro_list.add(filtro);
-						projeto_sites_total_planejado_realizado=c.ConsultaCountComplexa("rollout", filtro_list);
+						projeto_sites_total_planejado_realizado=mongo.ConsultaCountComplexa("rollout", filtro_list);
 						dados_tabela=dados_tabela+"\"sites_planejados_done\":"+projeto_sites_total_planejado_realizado+"},\n";
 						filtro_list.clear();
 						filtro_list=new ArrayList<Bson>(filtro_list_aux);
@@ -3761,7 +3770,7 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
-			    c.fecharConexao();
+			    mongo.fecharConexao();
 			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -3808,7 +3817,7 @@ public class RolloutServlet extends HttpServlet {
 				filtrodoc=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
 				filtro_list.add(filtrodoc);
 				Document escopo=new Document();
-				projetos=c.ConsultaSimplesDistinct("rollout", "PROJETO",filtro_list);
+				projetos=mongo.ConsultaSimplesDistinct("rollout", "PROJETO",filtro_list);
 				dados_tabela="";
 				dados_tabela= dados_tabela+"[";
 				int id=0;
@@ -3816,7 +3825,7 @@ public class RolloutServlet extends HttpServlet {
 				for(int indice=0;indice<projetos.size();indice++) {
 					filtrodoc=Filters.eq("PROJETO",projetos.get(indice));
 					filtro_list.add(filtro_list.size(),filtrodoc);
-					doc_lista=c.consultaaggregation("rollout", filtro_list,"ESCOPO");
+					doc_lista=mongo.consultaaggregation("rollout", filtro_list,"ESCOPO");
 					if(doc_lista.size()>0) {
 						for(int indice2=0;indice2<doc_lista.size();indice2++) {
 							escopo=doc_lista.get(indice2);
@@ -3840,7 +3849,7 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
-			    c.fecharConexao();
+			    mongo.fecharConexao();
 			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -3887,7 +3896,7 @@ public class RolloutServlet extends HttpServlet {
 				}
 				filtrodoc=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
 				filtro_list.add(filtrodoc);
-				projetos=c.ConsultaSimplesDistinct("rollout", "Milestone.0.resp_INSTALAÇÃO",filtro_list);
+				projetos=mongo.ConsultaSimplesDistinct("rollout", "Milestone.0.resp_INSTALAÇÃO",filtro_list);
 				dados_tabela="";
 				dados_tabela= dados_tabela+"[";
 				int id=0;
@@ -3895,7 +3904,7 @@ public class RolloutServlet extends HttpServlet {
 				for(int indice=0;indice<projetos.size();indice++) {
 					filtrodoc=Filters.elemMatch("Milestone", Filters.eq("resp_INSTALAÇÃO",projetos.get(indice)));
 					filtro_list.add(filtro_list.size(),filtrodoc);
-					doc_lista=c.consultaaggregationMilestone("rollout", filtro_list,"PROJETO");
+					doc_lista=mongo.consultaaggregationMilestone("rollout", filtro_list,"PROJETO");
 					if(doc_lista.size()>0) {
 						for(int indice2=0;indice2<doc_lista.size();indice2++) {
 							escopo=doc_lista.get(indice2);
@@ -3919,7 +3928,7 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
-			    c.fecharConexao();
+			    mongo.fecharConexao();
 			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -3928,7 +3937,7 @@ public class RolloutServlet extends HttpServlet {
 				List<String> projetos = new ArrayList<String>();
 				dados_tabela="";
 				Document campo= new Document();
-				FindIterable<Document> findIterable = c.ConsultaOrdenada("rolloutCampos", "ordenacao", 1, p.getEmpresa().getEmpresa_id());
+				FindIterable<Document> findIterable = mongo.ConsultaOrdenada("rolloutCampos", "ordenacao", 1, p.getEmpresa().getEmpresa_id());
 				MongoCursor<Document> resultado=findIterable.iterator();
 				if(resultado.hasNext()) {
 					while(resultado.hasNext()) {
@@ -3942,7 +3951,7 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print(dados_tabela);
-			    c.fecharConexao();
+			    mongo.fecharConexao();
 			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -3964,7 +3973,7 @@ public class RolloutServlet extends HttpServlet {
 				Long duracao_dias;
 				Document milestone_aux = new Document();
 				List<Document> milestone= new ArrayList<Document>();
-				FindIterable<Document> findIterable = c.ConsultaOrdenada("rollout", "recid", 1, p.getEmpresa().getEmpresa_id());
+				FindIterable<Document> findIterable = mongo.ConsultaOrdenada("rollout", "recid", 1, p.getEmpresa().getEmpresa_id());
 				MongoCursor<Document> resultado=findIterable.iterator();
 				if(resultado.hasNext()) {
 					
@@ -4018,7 +4027,7 @@ public class RolloutServlet extends HttpServlet {
 							}
 							if(!updates.isEmpty()) {
 								update.append("$set", updates);
-								c.AtualizaUm("rollout", filtros, update);
+								mongo.AtualizaUm("rollout", filtros, update);
 							}
 							update.clear();
 							filtros.clear();
@@ -4039,7 +4048,7 @@ public class RolloutServlet extends HttpServlet {
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
 			    out.print("tarefa finalizada!");
-			    c.fecharConexao();
+			    mongo.fecharConexao();
 			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
@@ -4052,7 +4061,7 @@ public class RolloutServlet extends HttpServlet {
 				Bson filtrodoc;
 				filtrodoc=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
 				filtro_list_aux.add(filtrodoc);
-				FindIterable<Document> findIterable = c.ConsultaCollectioncomFiltrosLista("rollouts_ids",filtro_list_aux);
+				FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("rollouts_ids",filtro_list_aux);
 				MongoCursor<Document> resultado=findIterable.iterator();
 				if(resultado.hasNext()) {
 					while(resultado.hasNext()) {
@@ -4297,27 +4306,27 @@ public class RolloutServlet extends HttpServlet {
 						filtro=Filters.not(Filters.eq("WORK DATE", null));
 						filtro_list.add(filtro_list.size(),filtro);
 					}
-					result1 = c.ConsultaCountComplexa("rollout",filtro_list);
+					result1 = mongo.ConsultaCountComplexa("rollout",filtro_list);
 					if(p.getEmpresa().getEmpresa_id()==1) {
 						filtro_list.remove(filtro_list.size()-1);
 						filtro=Filters.eq("PO PRINCIPAL", "SIM");
 						filtro_list.add(filtro_list.size(),filtro);
 					}
-					result2 = c.ConsultaCountComplexa("rollout",filtro_list);
+					result2 = mongo.ConsultaCountComplexa("rollout",filtro_list);
 					if(p.getEmpresa().getEmpresa_id()==1) {
 						filtro_list.remove(filtro_list.size()-1);
 					}
-					site_list = c.ConsultaSimplesDistinct("rollout", "Site ID", filtro_list);
+					site_list = mongo.ConsultaSimplesDistinct("rollout", "Site ID", filtro_list);
 					filtro=Filters.not(Filters.eq("Milestone.0.resp_INSTALAÇÃO", ""));
 					filtro_list.add(filtro_list.size(),filtro);
-					site_list2 = c.ConsultaSimplesDistinct("rollout", "Milestone.0.resp_INSTALAÇÃO", filtro_list);
+					site_list2 = mongo.ConsultaSimplesDistinct("rollout", "Milestone.0.resp_INSTALAÇÃO", filtro_list);
 					filtro_list.remove(filtro_list.size()-1);
-					Document soma_valor=c.ConsultaSomaCampo("rollout",filtro_list,"VALOR TOTAL PO");
+					Document soma_valor=mongo.ConsultaSomaCampo("rollout",filtro_list,"VALOR TOTAL PO");
 					//site_list3 = c.c.ConsultaSomaCampo("rollout",filtro_list,"VALOR TOTAL PO");("rollout", "VALOR TOTAL PO", filtro_list);
 					valor=soma_valor.getDouble("sum");
 						
                 }else {
-                	System.out.println("contando sem filtro");
+                	//System.out.println("contando sem filtro");
                 	filtro=Filters.eq("Empresa", p.getEmpresa().getEmpresa_id());
 					filtro_list.add(filtro);
 					filtro=Filters.eq("rolloutId", param2);
@@ -4326,16 +4335,16 @@ public class RolloutServlet extends HttpServlet {
 					filtro_list.add(filtro);
 					filtro=Filters.not(Filters.eq("WORK DATE", ""));
 					filtro_list.add(filtro_list.size(),filtro);
-					result1 = c.ConsultaCountComplexa("rollout",filtro_list);
+					result1 = mongo.ConsultaCountComplexa("rollout",filtro_list);
 					filtro_list.remove(filtro_list.size()-1);
 					filtro=Filters.eq("PO PRINCIPAL", "SIM");
 					filtro_list.add(filtro);
-					result2 = c.ConsultaCountComplexa("rollout",filtro_list);
+					result2 = mongo.ConsultaCountComplexa("rollout",filtro_list);
 					filtro_list.remove(filtro_list.size()-1);
-					site_list = c.ConsultaSimplesDistinct("rollout", "Site ID", filtro_list);
+					site_list = mongo.ConsultaSimplesDistinct("rollout", "Site ID", filtro_list);
 					filtro=Filters.not(Filters.eq("Milestone.0.resp_INSTALAÇÃO", ""));
 					filtro_list.add(filtro_list.size(),filtro);
-					site_list2 = c.ConsultaSimplesDistinct("rollout", "Milestone.0.resp_INSTALAÇÃO", filtro_list);
+					site_list2 = mongo.ConsultaSimplesDistinct("rollout", "Milestone.0.resp_INSTALAÇÃO", filtro_list);
 					filtro_list.remove(filtro_list.size()-1);
 					filtro_list.clear();
 					filtro_list= new ArrayList<Bson>();
@@ -4345,7 +4354,7 @@ public class RolloutServlet extends HttpServlet {
 					filtro_list.add(filtro);
 					filtro=Filters.eq("Linha_ativa", "Y");
 					filtro_list.add(filtro);
-					Document soma_valor=c.ConsultaSomaCampo("rollout",filtro_list,"VALOR TOTAL PO");
+					Document soma_valor=mongo.ConsultaSomaCampo("rollout",filtro_list,"VALOR TOTAL PO");
 					//site_list3 = c.c.ConsultaSomaCampo("rollout",filtro_list,"VALOR TOTAL PO");("rollout", "VALOR TOTAL PO", filtro_list);
 					valor=soma_valor.getDouble("sum");
                 }
@@ -4373,13 +4382,13 @@ public class RolloutServlet extends HttpServlet {
 					filtro_list.add(filtro);
 					filtro=Filters.eq("Linha_ativa", "Y");
 					filtro_list.add(filtro);
-					result1 = c.ConsultaCountComplexa("rollout",filtro_list);
+					result1 = mongo.ConsultaCountComplexa("rollout",filtro_list);
 				
-					result2 = c.ConsultaSimplesDistinct("rollout", "PO", filtro_list).size();
-					site_list = c.ConsultaSimplesDistinct("rollout", "Site ID", filtro_list);
+					result2 = mongo.ConsultaSimplesDistinct("rollout", "PO", filtro_list).size();
+					site_list = mongo.ConsultaSimplesDistinct("rollout", "Site ID", filtro_list);
 					for(int indice_campos=0;indice_campos<nomes_campos.length;indice_campos++) {
 						if(campo_tipo.getJSONArray(nomes_campos[indice_campos]).get(0).equals("Milestone")){
-							site_list2 = c.ConsultaSimplesDistinct("rollout", "Milestone.0.resp_"+nomes_campos[indice_campos], filtro_list);
+							site_list2 = mongo.ConsultaSimplesDistinct("rollout", "Milestone.0.resp_"+nomes_campos[indice_campos], filtro_list);
 							result3=result3+site_list2.size();
 						}
 					}
@@ -4409,7 +4418,7 @@ public class RolloutServlet extends HttpServlet {
 				filtro.append("value", param1);
 				update.append("text",param2);
 				update_comando.append("$set", update);
-				c.AtualizaUm("rollouts_ids", filtro, update_comando);
+				mongo.AtualizaUm("rollouts_ids", filtro, update_comando);
 				resp.setContentType("application/html");  
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
@@ -4425,7 +4434,7 @@ public class RolloutServlet extends HttpServlet {
 				List<Bson> filtros=new ArrayList<>();
 				filtro=Filters.eq("Empresa", p.getEmpresa().getEmpresa_id());
 				filtros.add(filtro);
-				FindIterable<Document> finditerable=c.ConsultaCollectioncomFiltrosLista("rollouts_ids", filtros);
+				FindIterable<Document> finditerable=mongo.ConsultaCollectioncomFiltrosLista("rollouts_ids", filtros);
 				MongoCursor<Document> resultado = finditerable.iterator();
 				dados_tabela="";
 				if(resultado.hasNext()) {
@@ -4612,22 +4621,272 @@ public class RolloutServlet extends HttpServlet {
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Rollout opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			
+			}else if(opt.equals("37")) {
+				param1=req.getParameter("regra");
+				param2=req.getParameter("id");
+				param3=req.getParameter("executar");
+				param4=req.getParameter("nome");
+				
+				JSONObject regra = new JSONObject(param1);
+				
+				Document regraDocument_aux = Document.parse(regra.toString());
+				System.out.println(regraDocument_aux.toJson());
+				JSONArray condicao = regra.getJSONArray("condicao");
+				JSONArray acao = regra.getJSONArray("acao");
+				Document condicaoDocument;
+				Document acaoDocument;
+				Document RegraDocument= new Document();
+				List<Document> lista_condicao=new ArrayList<>();
+				List<Document> lista_acao=new ArrayList<>();
+				for(int indice=0;indice<condicao.length();indice++) {
+					JSONObject condicaoAux = condicao.getJSONObject(indice);
+					condicaoDocument = new Document();
+					condicaoDocument.append("rollout",condicaoAux.getString("rollout"));
+					condicaoDocument.append("campo",condicaoAux.getString("campo"));
+					condicaoDocument.append("condicao",condicaoAux.getString("condicao"));
+					condicaoDocument.append("valor",condicaoAux.getString("valor"));
+					condicaoDocument.append("operador",condicaoAux.getString("operador"));
+					lista_condicao.add(condicaoDocument);
+				}
+				for(int indice=0;indice<acao.length();indice++) {
+					JSONObject acaoAux = acao.getJSONObject(indice);
+					acaoDocument = new Document();
+					acaoDocument.append("acao",acaoAux.getString("acao"));
+					acaoDocument.append("campo",acaoAux.getString("campo"));
+					acaoDocument.append("valor",acaoAux.getString("valor"));
+					lista_acao.add(acaoDocument);
+				}
+				RegraDocument.append("Empresa", p.getEmpresa().getEmpresa_id());
+				RegraDocument.append("ATIVA", "Y");
+				RegraDocument.append("NomeRegra", regra.getString("nome"));
+				RegraDocument.append("regraID", param2);
+				RegraDocument.append("condicao", lista_condicao);
+				RegraDocument.append("acao", lista_acao);
+				RegraDocument.append("Adicionada",time);
+				RegraDocument.append("Autor",p.get_PessoaUsuario());
+				
+				mongo.InserirSimples("RegrasRollout", RegraDocument);
+				if(param3.equals("1")) {
+					Bson filtro;
+				
+					Document atualizacao ;
+					Document atualizacao_comando = new Document();
+					List<Bson> filtros = new ArrayList<>();
+					filtro = Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+					filtros.add(filtro);
+					for(int indice=0;indice<condicao.length();indice++) {
+						JSONObject condicaoAux = condicao.getJSONObject(indice);
+						filtro = Filters.eq("rolloutId",condicaoAux.getString("rollout"));
+						filtros.add(filtro);
+						if(condicaoAux.getString("condicao").equals("contem")) {
+							filtro = Filters.regex(condicaoAux.getString("campo"), condicaoAux.getString("valor"));
+							filtros.add(filtro);
+						}else if(condicaoAux.getString("condicao").equals("vazio")) {
+							filtro = Filters.eq(condicaoAux.getString("campo"), "");
+							filtros.add(filtro);
+						}else if(condicaoAux.getString("condicao").equals("n_vazio")) {
+							filtro = Filters.not((Filters.eq(condicaoAux.getString("campo"), "")));
+							filtros.add(filtro);
+						}
+					}
+					
+					FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("rollout", filtros);
+					MongoCursor<Document> resultado = findIterable.iterator();
+					if(resultado.hasNext()) {
+						atualizacao=new Document();
+						for(int indice=0;indice<acao.length();indice++) {
+							JSONObject acaoAux = acao.getJSONObject(indice);
+							
+							if(acaoAux.getString("acao").equals("AtualizaCampoRollout")) {
+								atualizacao.append(acaoAux.getString("campo"),acaoAux.getString("valor"));
+								
+							}
+						}
+						if(!atualizacao.isEmpty()) {
+							atualizacao_comando.append("$set", atualizacao);
+							mongo.AtualizaMuitos("rollout", filtros, atualizacao_comando);
+							filtros = new ArrayList<>();
+							filtro= Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+							filtros.add(filtro);
+							filtro= Filters.eq("ATIVA","Y");
+							filtros.add(filtro);
+							filtro= Filters.eq("regraID",param2);
+							filtros.add(filtro);
+							atualizacao=new Document();
+							atualizacao.append("UltimaExecucao",time);
+							mongo.AtualizaMuitos("RegrasRollout", filtros, atualizacao_comando);
+						}
+					}
+					
+				}
+			}else if(opt.equals("38")) {
+				Bson filtro;
+				dados_tabela="";
+				List<Bson> filtros = new ArrayList<>();
+				filtro= Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				filtros.add(filtro);
+				filtro= Filters.eq("ATIVA","Y");
+				filtros.add(filtro);
+				FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("RegrasRollout", filtros);
+				MongoCursor<Document> resultado =findIterable.iterator();
+				Document regra;
+				Document condicaoaux;
+				Document acaoaux;
+				String strcondicoes="";
+				String stracoes="";
+				int contador=0;
+				if(resultado.hasNext()) {
+					dados_tabela="{\"draw\": 1,\n";
+					dados_tabela=dados_tabela+"\"recordsTotal\": replace1 ,\n";
+					dados_tabela=dados_tabela+"\"recordsFiltered\": 10 ,\n";
+					dados_tabela=dados_tabela+"\"data\":[";
+					while(resultado.hasNext()) {
+						contador=contador+1;
+						regra=resultado.next();
+						List<Document> condicoes = (List<Document>) regra.get("condicao");
+						for(int indice=0;indice<condicoes.size();indice++) {
+							condicaoaux = condicoes.get(indice);
+							strcondicoes = strcondicoes+condicaoaux.getString("rollout")+" > "+ condicaoaux.getString("campo")+" > "+condicaoaux.getString("condicao")+" > "+condicaoaux.getString("valor")+" <br>";
+						}
+						List<Document> acoes = (List<Document>) regra.get("acao");
+						for(int indice=0;indice<acoes.size();indice++) {
+							acaoaux = acoes.get(indice);
+							stracoes = stracoes+acaoaux.getString("acao")+" > "+ acaoaux.getString("campo")+" > "+acaoaux.getString("valor")+" <br>";
+						}
+						dados_tabela=dados_tabela+"[\"<a href='#' style='color:red' onclick=apagaRegra('"+regra.getString("regraID")+"')>Apagar</a>|<a href='#' style='color:green' onclick=executaRegra('"+regra.getString("regraID")+"')>Executar</a>\",\""+regra.getString("NomeRegra")+"\",\""+strcondicoes+"\",\""+stracoes+"\",\""+f3.format(regra.getDate("UltimaExecucao"))+"\",\""+regra.getString("Autor")+"\"],\n";
+						
+					}
+					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+					dados_tabela=dados_tabela+"]}";
+					dados_tabela=dados_tabela.replace("replace1", Integer.toString(contador));
+					//System.out.println(dados_tabela);
+					resp.setContentType("application/json");  
+			  		resp.setCharacterEncoding("UTF-8"); 
+			  		PrintWriter out = resp.getWriter();
+					out.print(dados_tabela);
+				}else {
+					dados_tabela="{\"draw\": 1,\n";
+					dados_tabela=dados_tabela+"\"recordsTotal\": 0 ,\n";
+					dados_tabela=dados_tabela+"\"recordsFiltered\": 10 ,\n";
+					dados_tabela=dados_tabela+"\"data\":[]}";
+					//System.out.println("sem resultado na pesquisa de regras");
+					resp.setContentType("application/json");  
+			  		resp.setCharacterEncoding("UTF-8"); 
+			  		PrintWriter out = resp.getWriter();
+					out.print(dados_tabela);
+				}
+			}else if(opt.equals("39")) {
+				param1 = req.getParameter("id");
+				Bson filtro;
+				
+				List<Bson> filtros = new ArrayList<>();
+				filtro= Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				filtros.add(filtro);
+				filtro= Filters.eq("ATIVA","Y");
+				filtros.add(filtro);
+				filtro= Filters.eq("regraID",param1);
+				filtros.add(filtro);
+				
+				Document Atualizacao = new Document();
+				Atualizacao.append("ATIVA", "N");
+				Document Atualizacao_comando = new Document();
+				Atualizacao_comando.append("$set", Atualizacao);
+				
+				mongo.AtualizaMuitos("RegrasRollout", filtros, Atualizacao_comando);
+				resp.setContentType("application/json");  
+		  		resp.setCharacterEncoding("UTF-8"); 
+		  		PrintWriter out = resp.getWriter();
+				out.print("Atualização executada com sucesso");
+			}else if(opt.equals("40")) {
+				param1 = req.getParameter("id");
+				Bson filtro;
+				JSONObject regra ;
+				JSONArray condicao;
+				JSONArray acao ;
+				Document condicaoDocument= new Document();
+				Document acaoDocument= new Document();
+				Document RegraDocument= new Document();
+				Document atualizacao ;
+				Document atualizacao_comando = new Document();
+				List<Bson> filtros = new ArrayList<>();
+				filtro= Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				filtros.add(filtro);
+				filtro= Filters.eq("ATIVA","Y");
+				filtros.add(filtro);
+				filtro= Filters.eq("regraID",param1);
+				filtros.add(filtro);
+				FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("RegrasRollout", filtros);
+				MongoCursor<Document> resultado = findIterable.iterator();
+				if(resultado.hasNext()) {
+					while(resultado.hasNext()) {
+						 regra = new JSONObject(resultado.next().toJson());
+						 condicao = regra.getJSONArray("condicao");
+						 acao = regra.getJSONArray("acao");
+						 condicaoDocument= new Document();
+						acaoDocument= new Document();
+						RegraDocument= new Document();
+						filtros = new ArrayList<>();
+						for(int indice=0;indice<condicao.length();indice++) {
+							JSONObject condicaoAux = condicao.getJSONObject(indice);
+							filtro = Filters.eq("rolloutId",condicaoAux.getString("rollout"));
+							filtros.add(filtro);
+							if(condicaoAux.getString("condicao").equals("contem")) {
+								filtro = Filters.regex(condicaoAux.getString("campo"), condicaoAux.getString("valor"));
+								filtros.add(filtro);
+							}else if(condicaoAux.getString("condicao").equals("vazio")) {
+								filtro = Filters.eq(condicaoAux.getString("campo"), "");
+								filtros.add(filtro);
+							}else if(condicaoAux.getString("condicao").equals("n_vazio")) {
+								filtro = Filters.not((Filters.eq(condicaoAux.getString("campo"), "")));
+								filtros.add(filtro);
+							}
+						}
+						atualizacao=new Document();
+						for(int indice=0;indice<acao.length();indice++) {
+							JSONObject acaoAux = acao.getJSONObject(indice);
+							
+							if(acaoAux.getString("acao").equals("AtualizaCampoRollout")) {
+								atualizacao.append(acaoAux.getString("campo"),acaoAux.getString("valor"));
+								
+							}
+						}
+						if(!atualizacao.isEmpty()) {
+							atualizacao_comando.append("$set", atualizacao);
+							mongo.AtualizaMuitos("rollout", filtros, atualizacao_comando);
+							filtros = new ArrayList<>();
+							filtro= Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+							filtros.add(filtro);
+							filtro= Filters.eq("ATIVA","Y");
+							filtros.add(filtro);
+							filtro= Filters.eq("regraID",param1);
+							filtros.add(filtro);
+							atualizacao=new Document();
+							atualizacao.append("UltimaExecucao",time);
+							mongo.AtualizaMuitos("RegrasRollout", filtros, atualizacao_comando);
+						}
+					}
+				}
+				
+				resp.setContentType("application/json");  
+		  		resp.setCharacterEncoding("UTF-8"); 
+		  		PrintWriter out = resp.getWriter();
+				out.print("Atualização executada com sucesso");
 			}
-			c.fecharConexao();
+			mongo.fecharConexao();
 		}catch (SQLException e) {
 			conn.fecharConexao();
-			c.fecharConexao();
+			mongo.fecharConexao();
 			
 			System.out.println("ERROR: MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" - servlet de Rollout opt - "+ opt );
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}catch (JSONException e) {
-			c.fecharConexao();
+			mongo.fecharConexao();
 			conn.fecharConexao();
 			System.out.println("ERROR: MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" - servlet de Rollout opt - "+ opt );
 			e.printStackTrace();
 		} catch (FileUploadException e) {
-			c.fecharConexao();
+			mongo.fecharConexao();
 			conn.fecharConexao();
 			System.out.println("ERROR: MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" - servlet de Rollout opt - "+ opt );
 			// TODO Auto-generated catch block

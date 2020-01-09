@@ -49,15 +49,20 @@ response.setDateHeader ("Expires", -1);
 	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.css">
 	<script src="js/jquery-3.2.1.min.js" type="text/javascript"></script>
 	<script src="js/jquery-confirm.min.js" type="text/javascript"></script>
-	<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.js"></script>
-	<link rel="stylesheet" type="text/css" href="css/DataTable/buttons.dataTables.min.css" />
-	
-	<script src="js/DataTable/dataTables.buttons.js" type="text/javascript"></script>
-	<script src="js/DataTable/jszip.min.js" type="text/javascript"></script>
-	<script src="js/DataTable/buttons.print.js" type="text/javascript"></script>
-	<script src="js/DataTable/buttons.html5.js" type="text/javascript"></script>
-	<script src="js/DataTable/pdfmake.min.js" type="text/javascript"></script>
-	<script src="js/DataTable/vfs_fonts.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css"/>
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.6.1/css/buttons.dataTables.min.css"/>
+ 
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.1/js/dataTables.buttons.min.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.1/js/buttons.colVis.min.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.1/js/buttons.flash.min.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.1/js/buttons.html5.min.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.1/js/buttons.print.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
 	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/rowgroup/1.1.0/css/rowGroup.dataTables.min.css" />
 	<script src="https://cdn.datatables.net/rowgroup/1.1.0/js/dataTables.rowGroup.min.js" type="text/javascript"></script>
 	
@@ -101,7 +106,7 @@ response.setDateHeader ("Expires", -1);
     <script type="text/javascript" src="js/jqwidgets/jqxbuttons.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxscrollbar.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxmenu.js"></script>
-    <script type="text/javascript" src="js/jqwidgets/jqxcombobox.js"></script>
+    
     <script defer src="https://use.fontawesome.com/releases/v5.0.2/js/all.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.filter.js"></script>
@@ -128,6 +133,7 @@ response.setDateHeader ("Expires", -1);
     <script type="text/javascript" src="js/jqwidgets/jqxcheckbox.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxlistbox.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxdropdownlist.js"></script>
+    <script type="text/javascript" src="js/jqwidgets/jqxcombobox.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxcalendar.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxnumberinput.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxpasswordinput.js"></script>
@@ -260,6 +266,11 @@ response.setDateHeader ("Expires", -1);
 .yellow {
   color: black !important;
   background-color: yellow !important;
+}
+
+.orange {
+  color: black !important;
+  background-color: #FF7F50 !important;
 }
 
 .red {
@@ -474,6 +485,7 @@ response.setDateHeader ("Expires", -1);
 												<h2 class="icon icon-settings">Configurações rollout</h2>
 												<ul>
 													<li><a class="icon icon-user" href="#" onclick="menu('campos_rollout')">Campos do Rollout</a></li>
+													<li><a class="icon icon-user" href="#" onclick="menu('regras_rollout')">Regras de Automação</a></li>
 													<li><a class="icon icon-key" href="#" onclick="menu('arvore_rollout_conf')">Árvore de Rollout</a></li>
 													<li><a class="icon icon-user" href="#" onclick="menu('vistoria_campos')">Checklist</a></li>
 												</ul></div></li>
@@ -599,7 +611,6 @@ response.setDateHeader ("Expires", -1);
 					            <div style="overflow: hidden;width:400px">
 					                <div id="window5" style="height: 350px">
 					                    <div><div id='from'></div></div>
-					                   
 					                    <div id='grafico_container1_rollout'><div class="loader"></div></div>
 					                </div>
 					                <div id="window6" style="height: 350px">
@@ -757,7 +768,7 @@ response.setDateHeader ("Expires", -1);
 					<div class="janelas" id="ticketWindow" style="display:none;width:100%;height:100%;background:lightgray;">
 								
 								 <div id="TicketToolBar"></div>
-								<div id="TicketKanban"></div> 
+								 <div id="TicketKanban"></div> 
 								
 								<ul class="mfb-component--br mfb-slidein" data-mfb-toggle="hover" data-mfb-state="closed">
 								  <li class="mfb-component__wrap">
@@ -1772,6 +1783,44 @@ response.setDateHeader ("Expires", -1);
 						</div>
         			</div>
         		</div>
+        		<div class="janelas" id="regras_rollout" style="display:none;">
+        		   <div id="painel_operacoes_regras_rollout" class="panel panel-primary" style="width:90%;margin:0 auto;">
+        					<div class="panel-heading"><h3 class="panel-title">Regras do rollout</h3></div>
+		        			<div class="panel-body">
+		        				<button type="button" class="btn btn-info" data-toggle="modal" data-target="#modal_nova_regra_rollout">Nova Regra</button><button type="button" class="btn btn-danger">Desabilitar Regra</button>
+	        				</div>
+        			</div>
+        			<div id="painel_regras_rollout" class="panel panel-primary" style="width:90%;margin:0 auto;">
+        					<div class="panel-heading"><h3 class="panel-title">Regras do rollout</h3></div>
+		        			<div class="panel-body">
+		        				<div id="div_tabela_regras_rollout">
+				        				<table id="tabela_regras_rollout" class="display" style="color:black;width:100%">
+							        <thead>
+							            <tr>
+							                <th>Operações</th>
+							                <th>Nome Regra</th>
+							                <th>Condição</th>
+							                <th>Ação</th>
+							                <th>Ultima Execução</th>
+							                <th>Criado Por</th>
+							                
+							            </tr>
+							        </thead>
+							        <tfoot>
+							            <tr>
+							                <th>Operações</th>
+							                <th>Nome Regra</th>
+							                <th>Condição</th>
+							                <th>Ação</th>
+							                <th>Ultima Execução</th>
+							                <th>Criado Por</th>
+							            </tr>
+							        </tfoot>
+							    </table>
+		        				</div>
+	        				</div>
+        			</div>
+        		</div>
         		<div class="janelas" id="campos_rollout" style="display:none;">
         		<input type="hidden" id="rolloutid_campos_conf" value="">
 				<div id="div_tabela_campos_rollout"></div>
@@ -2007,6 +2056,91 @@ response.setDateHeader ("Expires", -1);
   </div>
 </div>
 
+<div id="modal_nova_regra_rollout" class="modal fade subconpo" role="dialog">
+  <div class="modal-dialog modal-lg">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title label_janelas">Nova Regra</h4>
+      </div>
+      <div class="modal-body">
+      	<div id="div_condicao_regra">
+      		<div><h2>Condição</h2></div>
+      		<div>
+      		<label class="control-label">Nome da Regra:</label>
+      		<input type="text" id="inputNomeRegra" class="form-control" placeholder="Digite aqui um nome de referencia"/>
+      			<table style="width:100%">
+      				<tr><td style="color:black;width:100px">Rollout</td><td><select  id="select_rollout_regra_rollout" class="selectpicker" data-live-search="true" title="Escolha o rollout" onchange="carrega_campos_rollout2(this.value)"></select></td></tr>
+      				<tr><td style="color:black;width:100px">Campo</td><td><select  id="select_campo_regra_rollout" class="selectpicker" data-live-search="true" title="Escolha o campo" onchange="habilitaDesabilitaCondicaoRegra(this.value)" disabled></select></td></tr>
+      				<tr><td style="color:black;width:100px">Condição</td><td><select  id="select_condicao_regra_rollout" class="selectpicker" data-live-search="true" title="Escolha a condição" onchange="habilitaDesabilitaCondicaoValorRegra(this.value)" disabled><option value='vazio'>É Vazio</option><option value='n_vazio'>Não é Vazio</option><option value="contem">Contem</option></select></td></tr>
+      				<tr><td style="color:black;width:100px">Valor</td><td><input type="text" id="inputValorCondicaoRegra" class="form-control" placeholder="Digite aqui o valor da condição se necessário" disabled/></td></tr>
+      			</table>
+      			<br>
+      			<button style="float:right" type="button" class="btn btn-info" onclick="montarCondicao('E')">Adicionar Condição "&"</button>
+      			<button style="float:right" type="button" class="btn btn-info" onclick="montarCondicao('Ou')" disabled >Adicionar Condição "Ou"</button>
+      		</div>
+		</div>
+		<br>
+		<br>
+		<p>
+			<div id="div_resumo_regra">
+				<table id="tabela_condicao" style="color:black;width:100%">
+					<thead>
+						<tr>
+							<th>Rollout</th>
+							<th>Campo</th>
+							<th>Condição</th>
+							<th>Valor</th>
+							<th>Operador</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+		</p>
+		<hr>
+		<p>
+		<select class="selectpicker" id="select_acao_regra" data-live-search="true" title="Escolha a Ação" onchange="preparaAcaoRegra(this.value)" disabled>
+			<option value="EnviarEmail">Enviar Email(Em Desenvolvimento)</option>
+			<option value="EnviarMensagem">Enviar Mensagem(Em Desenvolvimento)</option>
+			<option value="CriarAlerta">Criar Alerta(Em Desenvolvimento)</option>
+			<option value="AtualizaCampoRollout">Atualizar Campo</option>
+		</select>
+		<select  id="select_campo_acao_rollout" class="selectpicker" data-live-search="true" title="Escolha o campo" onchange="habilitaDesabilitaCondicaoRegra(this.value)" disabled></select>
+		<input type="text" id="inputValorAcaoRegra" class="form-control" placeholder="Digite aqui o valor ou emails separados por virgula" disabled/>
+		<button type="button" class="btn btn-primary" onclick="montarAcao()">Adicionar Ação</button>
+		<br>
+		<table id="tabela_acao" style="color:black;width:100%">
+					<thead>
+						<tr>
+							<th>Ação</th>
+							<th>Campo</th>
+							<th>Valor</th>
+							
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+		
+		</p>
+      </div>
+      <br>
+      <br>
+      
+      <div class="modal-footer">
+        <button id="btn_SalvarAplicarRegra" onclick="salvarRegra(1)" type="button" class="btn btn-danger" data-dismiss="modal">Salvar e Aplicar Regra</button><button id="btn_SalvarRegra" onclick="salvarRegra(0)" type="button" class="btn btn-info" data-dismiss="modal">Salvar</button><button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
 
 <div id="Modal_campos_rollout" class="modal fade" role="dialog">
   <div class="modal-dialog">
@@ -2152,6 +2286,140 @@ response.setDateHeader ("Expires", -1);
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div>  
+
+
+<div id="modal_dt_agendamento_qc" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title" style="color:black;">Data de Agendamento do QC</h4>
+      </div>
+      <div class="modal-body">
+      <div style="padding:10px">
+			<div class="row">
+				<div class="col-sm">
+			    	<div id="div_dt_agendamento_qc"></div>
+			    </div>
+			</div>
+		</div>
+	    <hr>
+	   
+	   
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div>  
+
+<div id="modal_work_ticket" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title" style="color:black;">Requisitos de Execução</h4>
+      </div>
+      <div class="modal-body">
+      <div style="padding:10px">
+      		<div class="row">
+				<div class="col-sm">
+			    	<label style="color:black;">MOS</label>
+			    </div>
+				<div class="col-sm">
+			    	<div id="div_dt_mos"></div>
+			    </div>
+			</div>
+			<br>
+			<div class="row">
+				<div class="col-sm">
+			    	<label style="color:black;">Site Sign</label>
+			    </div>
+				<div class="col-sm">
+			    	<div id="div_dt_site_sign"></div>
+			    </div>
+			</div>
+			<br>
+			<div class="row">
+				<div class="col-sm">
+			    	<label style="color:black;">Site Verify</label>
+			    </div>
+				<div class="col-sm">
+			    	<div id="div_dt_site_verify"></div>
+			    </div>
+			</div>
+			<br>
+			<div class="row">
+				<div class="col-sm" style="float:left;">
+			    	<div id="jqxCheckBoxSite_">Site</div>
+			    </div>
+				<div class="col-sm" style="float:left;">
+			    	<div id="jqxCheckBoxWH_">WhareHouse</div>
+			    </div>
+			    <div class="col-sm" style="float:left;">
+			    	<div id="jqxCheckBoxEHS_">EHS OK</div>
+			    </div>
+			</div>
+		</div>
+	    <hr>
+	   
+	   
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="modal_atualiza_tickets" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title" style="color:black;">Atualizar Informações do Ticket</h4>
+      </div>
+      <div class="modal-body">
+      
+		<div class="row">
+			<div class="col-sm">
+		    	<div id='jqxCheckBox_select_func_novo_tickect_id' style='margin-left: 10px; float: left;'>Novo Responsável</div>
+		    </div>
+			<div class="col-sm">
+		    	<select id="select_func_novo_tickect_id" class="selectpicker" data-live-search="true" title="Escolha o Funcionário"></select>
+		    </div>
+		</div>
+	    <hr>
+	    <div class="row">
+	    	<div class="col-sm">
+		    	<div id='jqxCheckBox_replanTickect' style='margin-left: 10px; float: left;'>Novo Planejamento</div>
+		    </div>
+		    <div class="col-sm">
+			    
+			    <div id="replanTickect"></div>
+			</div>
+	    </div>
+	   
+      </div>
+      <div class="modal-footer">
+        <button type="button" onclick="UpdateTicket()" class="btn btn-default" data-dismiss="modal">Fechar</button>
       </div>
     </div>
 
@@ -2563,7 +2831,7 @@ response.setDateHeader ("Expires", -1);
       	<div id="historico_ticket" style='height: 300px; overflow-y: scroll;'><div><h3 style="color:gray">Histórico de Eventos:</h3></div><hr><ul class="bulletshistorico" id="historico_ticket_itens"></ul></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" onclick="registraEventosTicket()">Enviar</button><button type="button" class="btn btn-success" data-dismiss="modal">Fechar</button>
+        <button type="button" class="btn btn-default" onclick="registraEventosTicket(null)">Enviar</button><button type="button" class="btn btn-success" data-dismiss="modal">Fechar</button>
       </div>
     </div>
 

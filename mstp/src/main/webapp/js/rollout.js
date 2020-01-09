@@ -38,7 +38,43 @@ function exibe_detalheEquipe(usuario){
 		 
 	 }
 }
-
+function carregaRegras(){
+	$('#tabela_regras_rollout').DataTable({
+		"searching": true,
+	    "ordering": false,
+	    "lengthChange": false,
+	    "processing": true,
+        "ajax": './RolloutServlet?opt=38',
+        "lengthMenu": [10,20]
+	});
+}
+function executaRegra(id){
+	$.ajax({
+		  type: "POST",
+		  data: {"opt":"40","id":id},		  
+		  url: "./RolloutServlet",
+		  cache: false,
+		  dataType: "text",
+		  success: RegraExecutada
+		});
+	function RegraExecutada(data){
+		$.alert(data.toString());
+		$('#tabela_regras_rollout').DataTable().ajax.reload();
+	}
+}
+function apagaRegra(id){
+	$.ajax({
+		  type: "POST",
+		  data: {"opt":"39","id":id},		  
+		  url: "./RolloutServlet",
+		  cache: false,
+		  dataType: "text",
+		  success: RegraExcluida
+		});
+	function RegraExcluida(data){
+		$('#tabela_regras_rollout').DataTable().ajax.reload();
+	}
+}
 function atualiza_dash_rollout(){
 	
 	filtros={"filtros":[]};
@@ -301,8 +337,10 @@ function busca_rollouts(){
 		function atualiza_select_rollout(data){
 			//alert(data);
 			$('#select_rollout_campos').html(data);
+			$('#select_rollout_regra_rollout').html(data);
 			$('#select_rollout_campos').selectpicker();
 			$('#select_rollout_campos').selectpicker('refresh');
+			$('#select_rollout_regra_rollout').selectpicker('refresh');
 			sessionStorage.setItem("rolloutsid_"+geral.empresa_id, data);
 		}
 	}
@@ -574,6 +612,133 @@ function carrega_campos_rollout(){
 		$("#select_campos_update_lote").selectpicker('refresh');
 	}
 }
+function carrega_campos_rollout2(rollout){
+	
+  	 if (rollout) {
+  		$.ajax({
+  		  type: "POST",
+  		  data: {"opt":"7","rolloutid":rollout
+  			
+  			
+  			},		  
+  		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+  		  url: "./RolloutServlet",
+  		  cache: false,
+  		  dataType: "text",
+  		  success: onSuccessCamposRollout
+  		});
+  	function onSuccessCamposRollout(data){
+  		$("#select_campo_regra_rollout").prop('disabled',false);
+  		$("#select_campo_regra_rollout").html(data)
+  		$("#select_campo_regra_rollout").selectpicker('refresh');
+  		
+  		$("#select_campo_acao_rollout").html(data)
+  		$("#select_campo_acao_rollout").selectpicker('refresh');
+  	}
+  	 }else{
+  		 $.alert("Informe o Rollout");
+  		 return ;
+  	 }
+	
+}
+function habilitaDesabilitaCondicaoRegra(opt){
+	
+	if(opt){
+		$("#select_condicao_regra_rollout").prop('disabled',false);
+		$("#select_condicao_regra_rollout").selectpicker('refresh');
+	}else{
+		$("#select_condicao_regra_rollout").prop('disabled',true);
+		$("#select_condicao_regra_rollout").selectpicker('refresh');
+	}
+}
+function habilitaDesabilitaCondicaoValorRegra(opt){
+	
+	if(opt=='contem'){
+		$("#inputValorCondicaoRegra").prop('disabled',false);
+		
+	}else{
+		$("#inputValorCondicaoRegra").prop('disabled',true);
+		
+	}
+}
+function montarCondicao(operador){
+	var condicao = sessionStorage.getItem("condicao");
+	if (condicao){
+		condicao = JSON.parse(condicao);
+		condicao.condicao.push({rollout:$('#select_rollout_regra_rollout').val(),campo:$('#select_campo_regra_rollout').val(),condicao:$('#select_condicao_regra_rollout').val(),valor:$('#inputValorCondicaoRegra').val(),operador:operador});
+	}else{
+		condicao = JSON.parse('{"condicao":[],"acao":[]}');
+		condicao.condicao.push({rollout:$('#select_rollout_regra_rollout').val(),campo:$('#select_campo_regra_rollout').val(),condicao:$('#select_condicao_regra_rollout').val(),valor:$('#inputValorCondicaoRegra').val(),operador:operador});
+	}
+	
+	sessionStorage.setItem("condicao",JSON.stringify(condicao));
+	$('#tabela_condicao').find('tbody').append('<tr><td>'+$('#select_rollout_regra_rollout').val()+'</td><td>'+$('#select_campo_regra_rollout').val()+'</td><td>'+$('#select_condicao_regra_rollout').val()+'</td><td>'+$('#inputValorCondicaoRegra').val()+'</td><td>'+operador+'</td></tr>');
+	$("#select_acao_regra").prop('disabled',false);
+	$("#select_acao_regra").selectpicker('refresh');
+}
+function montarAcao(){
+	var condicao = sessionStorage.getItem("condicao");
+	if (condicao){
+		condicao = JSON.parse(condicao);
+		condicao.acao.push({acao:$('#select_acao_regra').val(),campo:$('#select_campo_acao_rollout').val(),valor:$('#inputValorAcaoRegra').val()});
+	}else{
+		condicao = JSON.parse('{"condicao":[],"acao":[]}');
+		condicao.acao.push({acao:$('#select_acao_regra').val(),campo:$('#select_campo_acao_rollout').val(),valor:$('#inputValorAcaoRegra').val()});
+	}
+	
+	sessionStorage.setItem("condicao",JSON.stringify(condicao));
+	$('#tabela_acao').find('tbody').append('<tr><td>'+$('#select_acao_regra').val()+'</td><td>'+$('#select_campo_acao_rollout').val()+'</td><td>'+$('#inputValorAcaoRegra').val()+'</td></tr>');
+	
+}
+function salvarRegra(opt){
+	var timestamp = Date.now();
+	var condicao = sessionStorage.getItem("condicao");
+	condicao = JSON.parse(condicao);
+	condicao.nome=$('#inputNomeRegra').val()
+	if (condicao){
+		$.ajax({
+	  		  type: "POST",
+	  		  data: {"opt":"37","regra":JSON.stringify(condicao),"id":timestamp,"executar":opt},		  
+	  		  url: "./RolloutServlet",
+	  		  cache: false,
+	  		  dataType: "text",
+	  		  success: RegraCriada
+	  		});
+		function RegraCriada(data){
+			$.alert("Regra criada com sucesso!");
+			sessionStorage.removeItem("condicao");
+			$("#inputValorAcaoRegra").val('');
+			$("#inputValorAcaoRegra").prop('disabled',true);
+			$('#select_acao_regra').selectpicker('deselectAll');
+			$('#select_campo_acao_rollout').selectpicker('deselectAll');
+			$('#select_rollout_regra_rollout').selectpicker('deselectAll');
+			$('#select_campo_regra_rollout').selectpicker('deselectAll');
+			$('#select_condicao_regra_rollout').selectpicker('deselectAll');
+			$("#inputValorCondicaoRegra").val('');
+			$("#inputValorCondicaoRegra").prop('disabled',true);
+			$("#inputNomeRegra").val('');
+			$('#tabela_acao').find('tbody').html('');
+			$('#tabela_condicao').find('tbody').html('');
+			$('#tabela_regras_rollout').DataTable().ajax.reload();
+		}
+	}else{
+		$.alert("Regra não esta configurada corretamente");
+		
+		
+	}
+}
+function preparaAcaoRegra(opt){
+	$("#inputValorAcaoRegra").prop('disabled',true);
+	if(opt){
+		if(opt=="EnviarEmail"){
+			$("#inputValorAcaoRegra").prop('disabled',false);
+		}else if(opt=="AtualizaCampoRollout"){
+			$("#select_campo_acao_rollout").prop('disabled',false);
+			$("#select_campo_acao_rollout").selectpicker('refresh');
+			$("#inputValorAcaoRegra").prop('disabled',false);
+		}
+	}
+}
 function verifica_campo_tipo(campo,origem){
 	//alert(campo);
 	$.ajax({
@@ -736,13 +901,9 @@ function carrega_gant(){
 		 var d = new Date();
 		 //alert(moment(d).format("L"));
 		 var cellclassInicioReal = function(row, columnfield, value) {
-			 //console.log(row);
-			 //console.log(columnfield);
 			 var coluna=columnfield.substr(columnfield.indexOf("_")+1);
-			 //console.log(coluna);
 			 var data = $('#jqxgrid').jqxGrid('getrowdata', row);
-			 //console.log(data);
-			  if (value == "") {
+			 if (value == "") {
 			    return 'nada';
 			  } else if (moment(value).format("L") == moment(d).format("L") && data["edate_"+coluna]=="") {
 			    return 'yellow';
@@ -754,6 +915,11 @@ function carrega_gant(){
 				   return 'nada';
 			  }
 			};
+			var cellclassCampoRegra = function(row, columnfield, value) {
+				
+				    return 'orange';
+				  
+				};
 			var cellclassFimReal = function(row, columnfield, value) {
 				if (value == "") {
 				    return 'nada';
@@ -776,16 +942,18 @@ function carrega_gant(){
 				data['campos2'][i].cellsrenderer=siteMarcadoIntegrado;
 			}
 			if(texto_a=="Inicio Real"){
-				
 				data['campos2'][i].validation=validaDataActual;
 				data['campos2'][i].cellclassname=cellclassInicioReal;
 			}
 			if(texto_a=="Fim Real"){
-				
 				data['campos2'][i].validation=validaDataActual;
 				data['campos2'][i].cellclassname=cellclassFimReal;
 			}
 			
+			if(data['campos2'][i].cellclassname=="marcar"){
+				console.log(data['campos2'][i].cellclassname);
+				data['campos2'][i].cellclassname=cellclassCampoRegra;
+			}
 			
 		}
 		var PeopleSource =

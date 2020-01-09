@@ -9,27 +9,22 @@ import java.util.List;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import com.mongodb.Block;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
-import com.mongodb.MongoClientURI;
 import com.mongodb.MongoCredential;
 import com.mongodb.MongoWriteException;
 import com.mongodb.ServerAddress;
-import com.mongodb.async.SingleResultCallback;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Indexes;
-import com.mongodb.client.model.InsertManyOptions;
-import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.UpdateResult;
 
 public class ConexaoMongo {
@@ -44,8 +39,8 @@ public class ConexaoMongo {
 	//String host = "localhost:27017";
 	String dbname = "mstpDB";
     String user = "mstpwebDB";
-    String password = "Xmqxf9qdCXusVYsH";
-	
+    String password = "Zuvka6-7noxfy-d@hf1k";
+    //String password = "r2d2c3p0";
 	
     //System.out.println("host: " + host + "\ndbname: " + dbname + "\nuser: " + user + "\npassword: " + password);
      //password = "";
@@ -461,14 +456,26 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 			return true;
 		}
 	}
+	public boolean AtualizaMuitos(String Collection,List<Bson> campo_condicao, Document campo_valor) {
+		MongoCollection<Document> coll = db.getCollection(Collection);
+		UpdateResult resultado;
+		
+		resultado=coll.updateMany(Filters.and(campo_condicao), campo_valor);
+		if(resultado.getModifiedCount()==0) {
+			System.out.println(resultado.getModifiedCount()+" - documentos atualizados");
+			return false;
+		}else {
+			System.out.println(resultado.getModifiedCount()+" - documentos atualizados");
+			return true;
+		}
+	}
 	public boolean AtualizaMuitos(String Collection,Document campo_condicao, Document campo_valor) {
 		MongoCollection<Document> coll = db.getCollection(Collection);
 		UpdateResult resultado;
-		//System.out.println("chegou na funcao do update");
-		//System.out.println("Filtro:"+campo_condicao.toJson());
-		//System.out.println("Update:"+campo_valor.toJson());
+		
 		resultado=coll.updateMany(campo_condicao, campo_valor);
 		if(resultado.getModifiedCount()==0) {
+			System.out.println(resultado.getModifiedCount()+" - documentos atualizados");
 			return false;
 		}else {
 			System.out.println(resultado.getModifiedCount()+" - documentos atualizados");
@@ -478,17 +485,19 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 	public boolean AtualizaMuitos(String Collection,Bson campo_condicao, Document campo_valor) {
 		MongoCollection<Document> coll = db.getCollection(Collection);
 		UpdateResult resultado;
-		//System.out.println("chegou na funcao do update");
+		System.out.println("chegou na funcao do update");
 		//System.out.println("Filtro:"+campo_condicao.toJson());
-		//System.out.println("Update:"+campo_valor.toJson());
+		System.out.println("Update:"+campo_valor.toJson());
 		resultado=coll.updateMany(campo_condicao, campo_valor);
 		if(resultado.getModifiedCount()==0) {
+			System.out.println(resultado.getModifiedCount()+" - documentos atualizados");
 			return false;
 		}else {
 			System.out.println(resultado.getModifiedCount()+" - documentos atualizados");
 			return true;
 		}
 	}
+	
 	public void fecharConexao() {
 		 this.mongoClient.close();
 		 //System.out.println("Conexão encerrada com sucesso");

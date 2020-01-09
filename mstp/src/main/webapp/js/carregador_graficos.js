@@ -98,7 +98,7 @@ function g12(){
 }
 function g10(){
 	 $.getJSON('./Dashboard_Servlet?opt=10', function(data) {
-		 console.log(data);
+		 
 		 $("#card_po_sem_ticket").html("<h2><b>"+data.item_po_sem_ticket+"</b></h2>");
 		 $("#card_ticket_abertos").html("<h2><b>"+data.item_po_ticket_new+"</b></h2>");
 		 $("#card_ticket_andamento").html("<h2><b>"+data.item_po_ticket_work+"</b></h2>");

@@ -14,7 +14,7 @@ function load_site_markers(){
 	
 	$.getJSON('./SiteMgmt?opt=3', function(data) {
 		
-		console.log(data);
+		
 		var geojsonLayer = new L.GeoJSON(null, {
 		      onEachFeature: function (feature, layer) {
 		        if (feature.properties) {

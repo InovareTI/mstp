@@ -19,6 +19,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -180,8 +181,8 @@ public class POControl_Servlet extends HttpServlet {
 			query="";
 			dados_tabela="<table id=\"tabela_de_po\"  data-use-row-attr-func=\"true\" data-reorderable-rows=\"true\" data-toggle=\"table\"  data-filter-control=\"true\" data-click-to-select=\"true\" data-pagination=\"true\"  data-search=\"true\" data-advanced-search=\"true\">" +"\n";
 			dados_tabela=dados_tabela + "<thead>"+"\n";
-			dados_tabela=dados_tabela +"<tr>"+"\n";
 			dados_tabela=dados_tabela +" <th data-field=\"po_mstp_id\">MSTP ID</th>"+"\n";
+			dados_tabela=dados_tabela +"<tr>"+"\n";
 			dados_tabela=dados_tabela +" <th data-checkbox=\"true\"></th>"+"\n";
 			dados_tabela=dados_tabela +" <th data-field=\"po\" data-filter-control=\"select\">PO</th>"+"\n";
 			dados_tabela=dados_tabela +" <th data-field=\"po1\" data-filter-control=\"select\">Emissão</th>"+"\n";
@@ -289,8 +290,6 @@ public class POControl_Servlet extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				out.print(dados_tabela);
 				out.close();
-				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("2")){
 				//System.out.println("Deletando PO's");
 				param1=req.getParameter("po");
@@ -310,8 +309,6 @@ public class POControl_Servlet extends HttpServlet {
 					mysql.Excluir("update po_table set PO_ATIVA='N',DT_PO_DESATIVADA='"+time+"',RESP_PO_DEATIVADA='"+p.get_PessoaUsuario()+"' where po_id="+param1);
 					mysql.Excluir("delete from po_item_table where po_number='"+param1+"'");
 				}
-				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("3")){
 				param1=req.getParameter("po");
 				rs=mysql.Consulta("Select po_item_table.* from po_item_table,po_table where po_table.po_number='"+param1+"' and po_table.PO_ATIVA='Y' and po_table.po_number=po_item_table.po_number and po_item_table.empresa="+p.getEmpresa().getEmpresa_id()+" order by po_item_id");
@@ -375,9 +372,6 @@ public class POControl_Servlet extends HttpServlet {
 				PrintWriter out = resp.getWriter();
 				out.print(dados_tabela);
 				out.close();
-				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-				
 			}else if(opt.equals("4")){
 				//System.out.println("Validando PO's");
 				 time = new Timestamp(System.currentTimeMillis());
@@ -396,8 +390,6 @@ public class POControl_Servlet extends HttpServlet {
 					
 					mysql.Alterar("update po_table set validada='Y',dt_validada='"+time+"' where po_number='"+param1+"'");
 				}
-				Timestamp time2 = new Timestamp(System.currentTimeMillis());
-				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("5")){
 				
                 //System.out.println("Carregando PO de Subcon");
@@ -450,8 +442,6 @@ public class POControl_Servlet extends HttpServlet {
 					}else{
 						//System.out.println("Consulta returns empty");
 					}
-					Timestamp time2 = new Timestamp(System.currentTimeMillis());
-					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}else if(opt.equals("6")){
 					
 	                //System.out.println("Carregando tabela de Projetos");
@@ -501,8 +491,6 @@ public class POControl_Servlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
 						out.close();
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("7")){
 						
 		                //System.out.println("Cadastrando Projeto...");
@@ -534,8 +522,6 @@ public class POControl_Servlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print(last_id);
 						//System.out.println("Resposta Consulta 3 Enviada!");
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("8")){
 							
 			                //System.out.println("Carregando tabela de Clientes");
@@ -577,8 +563,6 @@ public class POControl_Servlet extends HttpServlet {
 								PrintWriter out = resp.getWriter();
 								out.print(dados_tabela);
 								out.close();
-								Timestamp time2 = new Timestamp(System.currentTimeMillis());
-								System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}else if(opt.equals("9")){
 							//System.out.println("Cadastrando Cliente...");
 			                param1=req.getParameter("nomeCompleto");
@@ -607,9 +591,6 @@ public class POControl_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print(last_id);
 							out.close();
-							Timestamp time2 = new Timestamp(System.currentTimeMillis());
-							System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-							
 						}else if(opt.equals("10")){
 						param1=req.getParameter("cliente");	
 						rs= mysql.Consulta("select * from project_table where customer_id='"+param1+"' and empresa="+p.getEmpresa().getEmpresa_id());
@@ -628,10 +609,7 @@ public class POControl_Servlet extends HttpServlet {
 			    		resp.setCharacterEncoding("UTF-8"); 
 			    		PrintWriter out = resp.getWriter();
 			    		out.print(dados_tabela);
-			    		Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-							
-						}else if(opt.equals("11")){
+			    		}else if(opt.equals("11")){
 							
 							rs= mysql.Consulta("select * from customer_table where empresa="+p.getEmpresa().getEmpresa_id());
 		    			dados_tabela="";
@@ -650,10 +628,7 @@ public class POControl_Servlet extends HttpServlet {
 			    		PrintWriter out = resp.getWriter();
 			    		out.print(dados_tabela);
 			    		out.close();
-			    		Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-							
-						}else if(opt.equals("12")){
+			    		}else if(opt.equals("12")){
 							try {
 							String cliente="";
 							String projeto="";
@@ -741,7 +716,7 @@ public class POControl_Servlet extends HttpServlet {
 									    			PDPage docPage = (PDPage) document.getPage(indice);
 									    			
 									    		 if (!document.isEncrypted()) {
-									    			 System.out.println("Trabalhando pagina "+ (indice+1)+" de "+ paginas);
+									    			// System.out.println("Trabalhando pagina "+ (indice+1)+" de "+ paginas);
 									    			 PDFTextStripperByArea stripper = new PDFTextStripperByArea();
 									    			 if(indice==0) {
 									    			 PDFTextStripper tStripper = new PDFTextStripper();
@@ -770,7 +745,7 @@ public class POControl_Servlet extends HttpServlet {
 									                 stripper.extractRegions(docPage);
 									                 //System.out.println("controle 4");
 									                 po_number = stripper.getTextForRegion("PO").replaceAll("\\n", "").replaceAll("\\r", "").trim();
-									                 System.out.println(po_number);
+									                // System.out.println(po_number);
 									                 po_number_string="string";
 							                    	 if(StringUtils.isNumeric(po_number)) {
 							                    		 po_number_string="numero";
@@ -779,7 +754,7 @@ public class POControl_Servlet extends HttpServlet {
 							                    		 po_number_string="string";
 							                    	 }
 									                 dt_issuePO = stripper.getTextForRegion("POdt").replaceAll("\\n", "").replaceAll("\\r", "").trim();
-									                 System.out.println(dt_issuePO);
+									                // System.out.println(dt_issuePO);
 									                 if(dt_issuePO.length()==9) {
 								                    		if(dt_issuePO.substring(2, 5).equals("May")) {
 								                    		dt_issuePO=dt_issuePO.substring(0, 2)+"-05-"+dt_issuePO.substring(5, dt_issuePO.length());
@@ -810,7 +785,7 @@ public class POControl_Servlet extends HttpServlet {
 									                 DateFormat format = new SimpleDateFormat("dd-MM-yyyy");
 							             			 Date d1=format.parse(dt_issuePO);
 							             			 dt_issuePO=f2.format(d1);
-							             			 System.out.println(dt_issuePO);
+							             			// System.out.println(dt_issuePO);
 									                 //valor= stripper.getTextForRegion("valorpo").replaceAll("\\n", "").replaceAll("\\r", "").trim();
 									                 valor=valor.substring(valor.indexOf("Total Value:")+13,valor.indexOf("BRL")).trim();
 							                    
@@ -818,12 +793,12 @@ public class POControl_Servlet extends HttpServlet {
 							                    	 valor=valor.replace(",", ".");
 							                    
 							                    	 valordouble=Double.parseDouble(valor);
-							                    	 System.out.println(valordouble);
+							                    	 //System.out.println(valordouble);
 									                 site= stripper.getTextForRegion("siteid").replaceAll("\\n", "").replaceAll("\\r", "").trim();
-									                 System.out.println("Site sem parse: "+site);
+									                 //System.out.println("Site sem parse: "+site);
 									                 site=site.trim().substring(0,site.indexOf(',')).trim();
 									                 //site=site.substring(0,site.indexOf(" "));
-									                 System.out.println("Site com parse: "+site);
+									                // System.out.println("Site com parse: "+site);
 									    			 }
 									                 Rectangle line ;
 									                 Rectangle segunda ;
@@ -841,7 +816,7 @@ public class POControl_Servlet extends HttpServlet {
 									                	 stripper.extractRegions(docPage);
 									                	 auxLine=stripper.getTextForRegion("linha");
 									                	 if(auxLine.trim().equals("Line Status")) {
-									                		 System.out.println("achou a linha");
+									                		// System.out.println("achou a linha");
 									                		 break;
 									                	 }else {
 									                		 limite=limite+8;
@@ -933,9 +908,9 @@ public class POControl_Servlet extends HttpServlet {
 									                			 }
 									                			 docPage = (PDPage) document.getPage(indice);
 											                	 
-											                	 System.out.println("Linha:"+item_linha);
+											                	 //System.out.println("Linha:"+item_linha);
 									                			 insere_item="insert into po_item_table(po_number,po_item_cod,po_item_name,po_item_desc,empresa,po_item_qtd,po_item_valor,po_item_site) values('"+po_numberNumero+"','"+item_cod+"','"+itemString+"','"+itemString+"',"+p.getEmpresa().getEmpresa_id()+","+quantidadeStr+",'"+precoStr.replace(".", "").replaceAll(",", ".")+"','"+site+"')";
-									                			 System.out.println("query da tabela de itens:"+insere_item);
+									                			// System.out.println("query da tabela de itens:"+insere_item);
 									                			 stmt.addBatch(insere_item);
 										                 	}
 									                	 }
@@ -957,7 +932,7 @@ public class POControl_Servlet extends HttpServlet {
 									                 }else {
 									                	 query="insert into po_table (po_number,empresa,arquivo_id,id_po_file,dt_emitida,total_po,dt_registrada,empresa_emissora,validada,PO_ATIVA,registrada_por) values ('"+po_number+"',"+p.getEmpresa().getEmpresa_id()+","+id_arquivo+","+id_arquivo+",'"+dt_issuePO+"','"+valordouble+"','"+time+"','"+cliente+"','Sem Validação','Y','"+p.get_PessoaUsuario()+"')";
 									                 }
-									                 System.out.println("query da tabela de PO:"+query);
+									                 //System.out.println("query da tabela de PO:"+query);
 									                 rs=mysql.Consulta("select * from po_table where po_number='"+po_numberNumero+"' or po_number='"+po_number+"'");
 									                 if(rs.next()) {
 									                	 System.out.println("INSERÇÃO DE PO ABORTADA. MOTIVO: PO DUPLICADA");
@@ -1050,9 +1025,41 @@ public class POControl_Servlet extends HttpServlet {
 											    			filtro=Filters.eq("Publish Date",linhaPO.getString("Publish Date"));
 											    			filtros.add(filtro);
 											    			FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("PO", filtros);
+											    			String recurso="";
 											    			if(!findIterable.iterator().hasNext()) {
 											    				mongo.InserirSimples("PO", linhaPO);
 											    				po_inserida="Y";
+											    				JSONObject params = new JSONObject();
+											    				Long ticket=time.getTime();
+																params.append("po_num",linhaPO.getString("PO NO"));
+																params.append("ticket",ticket.toString());
+																params.append("item",req.getParameter("item"));
+																params.append("item_code",linhaPO.getString("Item Code"));
+																params.append("po_line",linhaPO.getString("PO Line NO"));
+																params.append("published",linhaPO.getString("Publish Date"));
+																params.append("site",linhaPO.getString("Site Name"));
+																params.append("projeto",linhaPO.getString("Project Name"));
+																params.append("tags",linhaPO.getString("Project Name"));
+																if(linhaPO.getString("Project Name").equals("Brazil TIM Lithium Battery Project")) {
+																	recurso = "luciano_spazio";
+																}else if(linhaPO.getString("Project Name").equals("Brazil TIM Mobile Access - G&U 2014~2020")) {
+																	recurso = "peterson_spazio";
+																}else if(linhaPO.getString("Project Name").equals("Brazil TIM MW 2018 3 years")) {
+																	recurso = "peterson_spazio";
+																}else if(linhaPO.getString("Project Name").equals("Brazil VIVO GUL 2020-2021")) {
+																	recurso = "peterson_spazio";
+																}else {
+																	recurso = "324_FERNANDO";
+																}
+																Calendar plano = Calendar.getInstance();
+																params.append("recurso",recurso);
+																params.append("incio_planejado_bl",f3.format(plano));
+																plano.add(Calendar.DAY_OF_MONTH, 3);
+																params.append("fim_planejado_bl",f3.format(plano));
+																params.append("todos_itens","Y");
+																params.append("quantidade_itens",linhaPO.getString("Requested Qty"));
+																params.append("quantidade_pos_restante","0");
+																criaTicket(mysql,mongo,params,p);
 											    			}else {
 											    				po_inserida="N";
 											    				System.out.println("___________________________");
@@ -1072,6 +1079,7 @@ public class POControl_Servlet extends HttpServlet {
 											        	PrintWriter pw = resp.getWriter();
 											        	pw.print(jsonObject); 
 											        	pw.close();
+											        	mongo.fecharConexao();
 											        	if(po_inserida.equals("Y")) {
 											        	 Semail email= new Semail();
 											        	 rs=mysql.Consulta("select distinct usuarios.nome,usuarios.email from usuarios,perfil_funcoes where perfil_funcoes.funcao_nome='POManager'  and perfil_funcoes.empresa_id="+p.getEmpresa().getEmpresa_id()+" and perfil_funcoes.usuario_id=usuarios.id_usuario and usuarios.ativo='Y'");
@@ -1134,11 +1142,6 @@ public class POControl_Servlet extends HttpServlet {
 						        out.flush();
 						    	//out.print(dados_tabela);
 						}
-							Timestamp time2 = new Timestamp(System.currentTimeMillis());
-							System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-					
-							
-							
 						}else if(opt.equals("14")){
 						if(p.getPerfil_funcoes().contains("RolloutManager")) {
 						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" Inserção/Editando de Campos no rollout.");
@@ -1207,9 +1210,7 @@ public class POControl_Servlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print(retorno);
 						out.close();
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-							}
+						}
 					}else if(opt.equals("15")){
 						if(p.getPerfil_funcoes().contains("RolloutManager")) {
 		                param1=req.getParameter("ordem");
@@ -1235,11 +1236,9 @@ public class POControl_Servlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print("Ordem de campos atualizada!");
 						out.close();
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 						}
 					}else if(opt.equals("16")){
-						System.out.println(p.get_PessoaUsuario()+" pode enviar mensagem:"+p.getPerfil_funcoes().contains("MessageSender"));
+						//System.out.println(p.get_PessoaUsuario()+" pode enviar mensagem:"+p.getPerfil_funcoes().contains("MessageSender"));
 						//System.out.println(p.getPerfil_funcoes());
 						if(p.getPerfil_funcoes().contains("MessageSender")) {
 						param1=req.getParameter("mensagem");
@@ -1257,9 +1256,6 @@ public class POControl_Servlet extends HttpServlet {
 							 enviaMensagemPorUsuario(param2,param1);
 						 }
 						}
-						 Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-							
 					}else if(opt.equals("17")){
 						//System.out.println("Deletando PO's");
 						param1=req.getParameter("campos");
@@ -1309,8 +1305,6 @@ public class POControl_Servlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print("Campos Removidos");
 						out.close();
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("18")){
 						if(p.get_PessoaPerfil_nome().equals("tecnico")) {
 							query="Select usuarios.* from usuarios where  usuarios.ativo='Y' and usuarios.id_usuario='"+p.get_PessoaUsuario()+"' and empresa='"+p.getEmpresa().getEmpresa_id()+"'";
@@ -1356,9 +1350,6 @@ public class POControl_Servlet extends HttpServlet {
 							out.print(dados_tabela);
 							out.close();
 						}
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-						
 					}else if(opt.equals("19")){
 						System.out.println("Função Migrada para Servlet de usuário opt 26");
 					}else if(opt.equals("20")){
@@ -1405,9 +1396,7 @@ public class POControl_Servlet extends HttpServlet {
 				    		PrintWriter out = resp.getWriter();
 				    		out.print(mensagem_retorno);
 				    		out.close();
-				    		Timestamp time2 = new Timestamp(System.currentTimeMillis());
-							System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-		    		}else if(opt.equals("21")){
+				    }else if(opt.equals("21")){
 		    			String charts="";
 		    			//System.out.println("Carregando Portal...");
 		    			query="select user_portal from portal_user where id_usuario='"+session.getAttribute("user")+"'";
@@ -1425,9 +1414,7 @@ public class POControl_Servlet extends HttpServlet {
 				    	PrintWriter out = resp.getWriter();
 				    	out.print(charts);
 				    	out.close();
-				    	Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-		    		}else if(opt.equals("22")){
+				    }else if(opt.equals("22")){
 		    			
 		    		//System.out.println("Salvando Portal...");
 		    			param1=req.getParameter("portal");
@@ -1440,9 +1427,6 @@ public class POControl_Servlet extends HttpServlet {
 		    				query="insert into portal_user (id_usuario,user_portal) values('"+session.getAttribute("user")+"','"+param1+"')";
 		    				mysql.Inserir_simples(query);
 		    			}
-		    			Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-		    			
 		    		}else if(opt.equals("23")){
 		    			
 		    			
@@ -1516,18 +1500,13 @@ public class POControl_Servlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
 						out.close();
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-		    		}else if(opt.equals("24")){
+					}else if(opt.equals("24")){
 		    			System.out.println("funcao migrada para rollout servlet opt 24");
 		    		}else if(opt.equals("99")){
 		    			//System.out.println("saindo do Servlet");
 		    			mysql.fecharConexao();
 		    			session.removeAttribute("user");
 		    			session.invalidate();
-		    			Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-		    			
 		    		}else if(opt.equals("25")){
 		    			//System.out.println("saindo do Servlet");
 		    			param1=req.getParameter("linha");
@@ -1548,9 +1527,7 @@ public class POControl_Servlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print("OK");
 						out.close();
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-		    		}else if(opt.equals("26")){
+					}else if(opt.equals("26")){
 						//System.out.println("Editando CampPO's");
 						param1=req.getParameter("campos");
 						//System.out.println(param1);
@@ -1582,8 +1559,6 @@ public class POControl_Servlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
 						out.close();
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("27")){
 						//System.out.println("carregando ajuda....");
 						//param1=req.getParameter("campos");
@@ -1606,8 +1581,6 @@ public class POControl_Servlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
 						out.close();
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("28")){
 						int linha_id=0;
 						//System.out.println("linkando po no rollout ....");
@@ -1659,8 +1632,6 @@ public class POControl_Servlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print("Dados Sincronizados!");
 						out.close();
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("29")){
 						String Classe="";
 						//System.out.println("Carregando Faturamento ....");
@@ -1735,8 +1706,6 @@ public class POControl_Servlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
 						out.close();
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("30")){
 						
 						//System.out.println("Carregando Milestones para o faturamento ....");
@@ -1757,8 +1726,6 @@ public class POControl_Servlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
 						out.close();
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("31")){
 		    			int aux_id,j,i=0;
 		    			int aux_id_qtd=0;
@@ -1809,9 +1776,7 @@ public class POControl_Servlet extends HttpServlet {
 		    				}
 		    				//System.out.println(fluxo.getJSONObject(i).getString("milestone"));
 		    			}
-		    			Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-					}else if(opt.equals("32")){
+		    		}else if(opt.equals("32")){
 						//System.out.println("Sincronizando tabela de faturamento...");
 						query="select * from faturamento where milestones_trigger<>'0' and status_faturamento='Aguardando Execução'";
 						rs=mysql.Consulta(query);
@@ -1835,8 +1800,6 @@ public class POControl_Servlet extends HttpServlet {
 								}
 							}
 						}
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("33")){
 						query="";
 						query="select * from perfil_funcoes where usuario_id='"+p.get_PessoaUsuario()+"' and ativo='Y'";
@@ -1879,8 +1842,6 @@ public class POControl_Servlet extends HttpServlet {
 							PrintWriter out = resp.getWriter();
 							out.print("[\"perfil nao definido\"]");
 						}
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("34")){
 						param1=req.getParameter("titulo");
 						param2=req.getParameter("mensagem");
@@ -1898,22 +1859,16 @@ public class POControl_Servlet extends HttpServlet {
 								mysql.Inserir_simples("insert into updates_message (id_message,usuario,titulo,message,messagem_lida,dt_message) values("+id_message+",'"+rs.getString(1)+"','"+param1+"','"+param2+"','N','"+time+"')");
 							}
 						}
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("35")){
 						query="update empresas set modulo='Módulo de controle Usuarios',assinado='Y',dt_termo_aceite='"+time+"',valor='R$326,00' where id_empresa="+p.getEmpresa().getEmpresa_id();
 						if(mysql.Update_simples(query)) {
 							
 						}
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("36")){
 						query="update empresas set modulo='Módulo de controle Usuarios',assinado='Cancelado',dt_termo_aceite='"+time+"',valor='R$326,00' where id_empresa="+p.getEmpresa().getEmpresa_id();
 						if(mysql.Update_simples(query)) {
 							
 						}
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("37")){
 						query="select * from modulo_mstp where empresa="+p.getEmpresa().getEmpresa_id();
 						rs=mysql.Consulta(query);
@@ -1980,8 +1935,6 @@ public class POControl_Servlet extends HttpServlet {
 								out.print(dados_tabela);
 								out.close();
 							}
-							Timestamp time2 = new Timestamp(System.currentTimeMillis());
-							System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("38")) {
 						int contador=0;
 						String progress_bar="";
@@ -2021,8 +1974,6 @@ public class POControl_Servlet extends HttpServlet {
 							out.print(dados_tabela);
 							out.close();
 						}
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("39")) {
 						if(mysql.Alterar("update modulo_mstp set termo_aceite='Y',dt_termo_aceite='"+time+"' where empresa="+p.getEmpresa().getEmpresa_id())) {
 							resp.setContentType("application/json");  
@@ -2037,8 +1988,6 @@ public class POControl_Servlet extends HttpServlet {
 							out.print("Erro na aceitação do Termo");
 							out.close();
 						}
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("40")) {
 						param1=req.getParameter("idarq");
 						//System.out.println("Carregando foto de perfil de "+p.get_PessoaUsuario());
@@ -2059,8 +2008,6 @@ public class POControl_Servlet extends HttpServlet {
 							
 						
 						}
-						Timestamp time2 = new Timestamp(System.currentTimeMillis());
-						System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					}else if(opt.equals("41")) {
 						//System.out.println("chegou aqui na 41");
 						param1=req.getParameter("pono");
@@ -2190,109 +2137,55 @@ public class POControl_Servlet extends HttpServlet {
 						out.print(dados_tabela);
 						out.close();
 					}else if(opt.equals("44")) {
-						String param10,param11,param12,param13,param14,param15;
-						param1=req.getParameter("po_num");
-						param2=req.getParameter("ticket");
-						param3=req.getParameter("item");
-						param4=req.getParameter("item_code");
-						param5=req.getParameter("po_line");
-						param6=req.getParameter("published");
-						param7=req.getParameter("site");
-						param8=req.getParameter("projeto");
-						param9=req.getParameter("tags");
-						param10=req.getParameter("recurso");
-						param11=req.getParameter("incio_planejado_bl");
-						param12=req.getParameter("incio_planejado_bl");
-						param13=req.getParameter("todos_itens");
-						param14=req.getParameter("quantidade_itens");
-						param15=req.getParameter("quantidade_pos_restante");
-						Document ticket = new Document();
-						Calendar dataAtual = Calendar.getInstance();
-						ticket.append("Empresa", p.getEmpresa().getEmpresa_id());
-						ticket.append("dt_aberto", dataAtual.getTime());
-						ticket.append("usuario_registro", p.get_PessoaUsuario());
-						ticket.append("Status", "Aberto");
-						ticket.append("PO_NUM", param1);
-						ticket.append("TICKET_TODOS_ITENS",param13);
-						ticket.append("TICKET_STATE","NEW");
-						ticket.append("TICKET_NUM", param2);
-						ticket.append("INICIO_BL_STR", param11);
-						ticket.append("FIM_BL_STR", param12);
-						ticket.append("ITEM", param3);
-						ticket.append("ITEM_CODE", param4);
-						ticket.append("PO_LINE", param5);
-						ticket.append("PUBLISHED", param6);
-						ticket.append("QTDE_TICKET", param14);
-						ticket.append("SITE", param7);
-						ticket.append("PROJETO", param8);
-						ticket.append("TAGS", param9);
-						ticket.append("RECURSO", param10);
-						mongo.InserirSimples("TICKETS", ticket);
+						param1 = req.getParameter("ticket");
+						JSONObject params = new JSONObject(param1);
 						
-						Document update_filtros = new Document();
-						Document update_comando = new Document();
-						Document update = new Document();
-						update_filtros.append("Empresa", p.getEmpresa().getEmpresa_id());
-						update_filtros.append("PO NO", param1);
-						update_filtros.append("Item Code", param4);
-						update_filtros.append("PO Line NO", param5);
-						
-							if(!param6.equals("null")) {
-								update_filtros.append("Publish Date", param6);
-							}
-						
-						System.out.println("_______________________________________________");
-						System.out.println("Filtros de atualizacao de PO: ");
-						System.out.println(update_filtros.toJson());
-						System.out.println("_______________________________________________");
-						Bson filtro;
-						Document po;
-						String tickets="";
-						List<Bson> filtros = new ArrayList<>();
-						filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
-						filtros.add(filtro);
-						filtro=Filters.eq("PO NO",param1);
-						filtros.add(filtro);
-						filtro=Filters.eq("Item Code",param4);
-						filtros.add(filtro);
-						filtro=Filters.eq("PO Line NO",param5);
-						filtros.add(filtro);
-						filtro=Filters.eq("Publish Date",param6);
-						filtros.add(filtro);
-						FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("PO", filtros);
-						MongoCursor<Document> resultado =findIterable.iterator();
-						if(resultado.hasNext()) {
-							
-							po=resultado.next();
-							if(po.get("Tickets")!=null) {
-								tickets=po.getString("Tickets");
-							}
-						}
-						if(tickets.equals("")) {
-							update.append("Tickets", tickets.concat(param2));
-						}else {
-							update.append("Tickets", tickets.concat(","+param2));
-						}
-						update.append("Requested Qty", param15);
-						update_comando.append("$set", update);
-						
-						System.out.println("Atualizacao de PO: ");
-						System.out.println(update.toJson());
-						System.out.println("_______________________________________________");
-						mongo.AtualizaUm("PO", update_filtros, update_comando);
-						Document recurso=p.getPessoaInfo(param10, mysql);
-						Semail email= new Semail();
-	    				email.enviaEmailSimples(recurso.getString("email"), "MSTP - Notificação de Ticket - "+param2,"Prezado "+recurso.getString("nome")+", \n \n Informamos que voce possui as seguintes tarefas não iniciadas: \n\n Projeto: "+param8+"\nSite: "+param7+" \n Item: "+param3+" \nQuantidade: "+param14+" \nPlanejamento: "+param11+" - "+param12+" \n\n  Operação realizada em: "+time+" \n \n Caso não seja o responsável correto  solicitamos que entre em contato com o administrador do sistema para sua empresa! \n \n \n Esse é um email Automático gerado pelo sistema. Favor não responder!");
-	    				
+						criaTicket(mysql,mongo,params,p);
 						mongo.fecharConexao();
 					}else if(opt.equals("45")) {
 						try {
 						dados_tabela="";
+						param1=req.getParameter("options");
+						
+						JSONObject filtrosKanbam = new JSONObject(param1);
 						Bson filtro;
 						Document tickect_item;
 						List<Bson> filtros= new ArrayList<>();
 						filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
 						filtros.add(filtro);
+						if(!filtrosKanbam.isNull("usuario")) {
+							if(!filtrosKanbam.getString("usuario").equals("ALL")) {
+								filtro=Filters.eq("RECURSO",filtrosKanbam.getString("usuario"));
+								filtros.add(filtro);
+							}
+						}
+						if(!filtrosKanbam.isNull("projeto")) {
+							if(!filtrosKanbam.getString("projeto").equals("Todos os Projetos")) {
+								filtro=Filters.eq("PROJETO",filtrosKanbam.getString("projeto"));
+								filtros.add(filtro);
+							}
+						}
+						if(!filtrosKanbam.isNull("range")) {
+							
+							Calendar range = Calendar.getInstance();
+							if(filtrosKanbam.getString("range").equals("Hoje")) {
+								filtro=Filters.gte("INICIO_BL_DATE",range.getTime());
+								filtros.add(filtro);
+								filtro=Filters.lte("FIM_BL_DATE",range.getTime());
+								filtros.add(filtro);
+							}else if(filtrosKanbam.getString("range").equals("semanaCorrente")) {
+								int dia_inicio=range.get(Calendar.DAY_OF_WEEK);
+								int dia_fim = 7-dia_inicio;
+								Calendar inicio = Calendar.getInstance();
+								Calendar fim = Calendar.getInstance();
+								inicio.add(Calendar.DAY_OF_MONTH, dia_inicio*(-1));
+								fim.add(Calendar.DAY_OF_MONTH, dia_fim);
+								filtro=Filters.gte("INICIO_BL_DATE",inicio.getTime());
+								filtros.add(filtro);
+								filtro=Filters.lte("FIM_BL_DATE",fim.getTime());
+								filtros.add(filtro);
+							}
+						}
 						String aux_ticket="";
 						String label_aux="";
 						String site_aux="";
@@ -2304,9 +2197,9 @@ public class POControl_Servlet extends HttpServlet {
 								tickect_item=resultado.next();
 								if(!aux_ticket.equals(tickect_item.getString("TICKET_NUM"))) {
 									if(!aux_ticket.equals("")) {
-										dados_tabela=dados_tabela+"\"content\":\""+label_aux+"</div></div>\"";
+										dados_tabela=dados_tabela+"\"content\":\""+label_aux+"</div></div><div id='expanderTicketChecklist_"+aux_ticket+"' class='jqxExpanderTicketClass'><div id='expanderHeader'>Atividades</div><div id='expanderContent'> <div id='jqxCheckBoxMOS_"+aux_ticket+"' data-atividade='MOS' style='margin-left: 10px;'><span></span></div> <div id='jqxCheckBoxSiteSign_"+aux_ticket+"' data-atividade='site_sign' style='margin-left: 10px;'><span></span></div><div id='jqxCheckBoxSiteVerify_"+aux_ticket+"' data-atividade='site_verify' style='margin-left: 10px;'><span></span></div><div id='jqxCheckBoxMOSWH_"+aux_ticket+"' data-atividade='MOS_WH' style='margin-left: 10px;'><span></span></div><div id='jqxCheckBoxMOSSITE_"+aux_ticket+"' data-atividade='MOS_SITE' style='margin-left: 10px;'><span></span></div><div id='jqxCheckBoxEHS_"+aux_ticket+"' style='margin-left: 10px;'><span></span></div><div id='jqxCheckBoxQCagendado_"+aux_ticket+"' style='margin-left: 10px;'><span></span></div></div></div>\"";
 										dados_tabela=dados_tabela+"},\n";
-										System.out.println("Dados Tabela é : =>\n"+dados_tabela);
+										//System.out.println("Dados Tabela é : =>\n"+dados_tabela);
 										label_aux="";
 									}
 									aux_ticket=tickect_item.getString("TICKET_NUM");
@@ -2320,7 +2213,7 @@ public class POControl_Servlet extends HttpServlet {
 										site_aux="SITE Ñ IDENTIFICADO";
 									}
 									
-									System.out.println(site_aux);
+									//System.out.println(site_aux);
 									dados_tabela=dados_tabela+"{";
 									dados_tabela=dados_tabela+"\"id\":\""+tickect_item.getString("TICKET_NUM")+"\",";
 									dados_tabela=dados_tabela+"\"state\":\""+tickect_item.getString("TICKET_STATE")+"\",";
@@ -2333,13 +2226,13 @@ public class POControl_Servlet extends HttpServlet {
 									label_aux=label_aux+"<br> Site: "+site_aux+"<br>Descrição: "+tickect_item.getString("ITEM")+"<br>Quantidade: "+tickect_item.getString("QTDE_TICKET")+"<br>";
 								}
 							}
-							dados_tabela=dados_tabela+"\"content\":\""+label_aux+"\"";
+							dados_tabela=dados_tabela+"\"content\":\""+label_aux+"</div></div><div id='expanderTicketChecklist_"+aux_ticket+"' class='jqxExpanderTicketClass'><div id='expanderHeader'>Atividades</div><div id='expanderContent'><div id='jqxCheckBoxMOS_"+aux_ticket+"' data-atividade='MOS' style='margin-left: 10px;'><span></span></div><div id='jqxCheckBoxSiteSign_"+aux_ticket+"' class='TickectChecklist' style='margin-left: 10px;'><span></span></div><div id='jqxCheckBoxSiteVerify_"+aux_ticket+"' class='TickectChecklist' data-atividade='site_verify' style='margin-left: 10px;'><span></span></div><div id='jqxCheckBoxMOSWH_"+aux_ticket+"' data-atividade='MOS_WH' style='margin-left: 10px;'><span></span></div><div id='jqxCheckBoxMOSSITE_"+aux_ticket+"' data-atividade='MOS_SITE' style='margin-left: 10px;'><span></span></div><div id='jqxCheckBoxEHS_"+aux_ticket+"' class='TickectChecklist' style='margin-left: 10px;'><span></span></div><div id='jqxCheckBoxQCagendado_"+aux_ticket+"' style='margin-left: 10px;'><span></span></div></div></div>\"";
 							dados_tabela=dados_tabela+"},\n";
 							dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
 							
 						}
 						dados_tabela= dados_tabela+"\n],\n";
-						System.out.println("Dados Tabela é : =>\n"+dados_tabela);
+						//System.out.println("Dados Tabela é : =>\n"+dados_tabela);
 						dados_tabela= dados_tabela+"\"recursos\":[";
 						rs=mysql.Consulta("select * from usuarios where empresa='"+p.getEmpresa().getEmpresa_id()+"' and ATIVO='Y'");
 						if(rs.next()) {
@@ -2354,7 +2247,7 @@ public class POControl_Servlet extends HttpServlet {
 						}
 						dados_tabela= dados_tabela+"\n]";
 						dados_tabela= dados_tabela+"}";
-						System.out.println("Dados Tabela é : =>\n"+dados_tabela);
+						//System.out.println("Dados Tabela é : =>\n"+dados_tabela);
 						resp.setContentType("application/html");  
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
@@ -2362,6 +2255,7 @@ public class POControl_Servlet extends HttpServlet {
 						out.close();
 						mongo.fecharConexao();
 						}catch(Exception e) {
+							System.out.println("Dados Tabela é : =>\n"+dados_tabela);
 							System.out.println("ERRO");
 							System.out.println(e.getMessage());
 							System.out.println(e.getCause());
@@ -2378,7 +2272,7 @@ public class POControl_Servlet extends HttpServlet {
 						update_filtros.append("TICKET_NUM", param1);
 						update.append("TICKET_STATE", param2);
 						update_comando.append("$set", update);
-						mongo.AtualizaUm("TICKETS", update_filtros, update_comando);
+						mongo.AtualizaMuitos("TICKETS", update_filtros, update_comando);
 					}else if(opt.equals("47")) {
 						dados_tabela="";
 						Bson filtro;
@@ -2791,28 +2685,151 @@ public class POControl_Servlet extends HttpServlet {
 						}
 					}else if(opt.equals("49")) {
 						Calendar d = Calendar.getInstance();
-						param1 = req.getParameter("func");
+						param1 = req.getParameter("dados");
+						JSONObject detalhes = new JSONObject(param1);
 						param6 = req.getParameter("ticket_num");
 						param2 = req.getParameter("atividade");
 						param3 = req.getParameter("gap");
 						param4 = req.getParameter("owner");
 						param5 = req.getParameter("desc");
 						
-						
-						Document historico = new Document();
-						historico.append("TICKET_NUM", param6);
-						historico.append("Empresa", p.getEmpresa().getEmpresa_id());
-						historico.append("TICKET_HISTORICO_ADD_DATE",d.getTime());
-						historico.append("TICKET_HISTORICO_DATE",d.getTime());
-						historico.append("TICKET_HISTORICO_ADD_MILIS",d.getTimeInMillis());
-						historico.append("TICKET_HISTORICO_ADD_USER",p.get_PessoaUsuario());
-						historico.append("TICKET_HISTORICO_FUNC",param1.replaceAll(",", ";"));
-						historico.append("TICKET_HISTORICO_ATIVIDADE",param2);
-						historico.append("TICKET_HISTORICO_GAP",param3);
-						historico.append("TICKET_HISTORICO_OWNER",param4);
-						historico.append("TICKET_HISTORICO_DESC",param5);
-						System.out.println(historico.toJson());
-						mongo.InserirSimples("TICKET_HISTORICO", historico);
+						if(detalhes.getString("tipo").equals("RegistroManualEventos")) {
+							Document historico = new Document();
+							historico.append("TICKET_NUM", detalhes.getString("ticketnum"));
+							historico.append("Empresa", p.getEmpresa().getEmpresa_id());
+							historico.append("TICKET_HISTORICO_ADD_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_ADD_MILIS",d.getTimeInMillis());
+							historico.append("TICKET_HISTORICO_ADD_USER",p.get_PessoaUsuario());
+							historico.append("TICKET_HISTORICO_TIPO",detalhes.getString("tipo"));
+							historico.append("TICKET_HISTORICO_FUNC",detalhes.getString("fun").replaceAll(",", ";"));
+							historico.append("TICKET_HISTORICO_ATIVIDADE",detalhes.getString("atividade"));
+							historico.append("TICKET_HISTORICO_GAP",detalhes.getString("gap"));
+							historico.append("TICKET_HISTORICO_OWNER",detalhes.getString("owner"));
+							historico.append("TICKET_HISTORICO_DESC",detalhes.getString("desc"));
+							//System.out.println(historico.toJson());
+							mongo.InserirSimples("TICKET_HISTORICO", historico);
+						}else if(detalhes.getString("tipo").equals("ItemMovidoManualmente")) {
+							Document historico = new Document();
+							historico.append("TICKET_NUM", detalhes.getString("ticketnum"));
+							historico.append("Empresa", p.getEmpresa().getEmpresa_id());
+							historico.append("TICKET_HISTORICO_ADD_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_ADD_MILIS",d.getTimeInMillis());
+							historico.append("TICKET_HISTORICO_ADD_USER",p.get_PessoaUsuario());
+							historico.append("TICKET_HISTORICO_TIPO",detalhes.getString("tipo"));
+							historico.append("TICKET_HISTORICO_DESC",detalhes.getString("desc"));
+							//System.out.println(historico.toJson());
+							mongo.InserirSimples("TICKET_HISTORICO", historico);
+						}else if(detalhes.getString("tipo").equals("MudancaResponsavel")) {
+							Document historico = new Document();
+							historico.append("TICKET_NUM", detalhes.getString("ticketnum"));
+							historico.append("Empresa", p.getEmpresa().getEmpresa_id());
+							historico.append("TICKET_HISTORICO_ADD_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_ADD_MILIS",d.getTimeInMillis());
+							historico.append("TICKET_HISTORICO_ADD_USER",p.get_PessoaUsuario());
+							historico.append("TICKET_HISTORICO_TIPO",detalhes.getString("tipo"));
+							historico.append("TICKET_HISTORICO_DESC",detalhes.getString("desc"));
+							//System.out.println(historico.toJson());
+							mongo.InserirSimples("TICKET_HISTORICO", historico);
+						}else if(detalhes.getString("tipo").equals("ReplanejamentoDatas")) {
+							Document historico = new Document();
+							historico.append("TICKET_NUM", detalhes.getString("ticketnum"));
+							historico.append("Empresa", p.getEmpresa().getEmpresa_id());
+							historico.append("TICKET_HISTORICO_ADD_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_ADD_MILIS",d.getTimeInMillis());
+							historico.append("TICKET_HISTORICO_ADD_USER",p.get_PessoaUsuario());
+							historico.append("TICKET_HISTORICO_TIPO",detalhes.getString("tipo"));
+							historico.append("TICKET_HISTORICO_DESC",detalhes.getString("desc"));
+							//System.out.println(historico.toJson());
+							mongo.InserirSimples("TICKET_HISTORICO", historico);
+						}else if(detalhes.getString("tipo").equals("AgendamentoQC")) {
+							Document historico = new Document();
+							historico.append("TICKET_NUM", detalhes.getString("ticketnum"));
+							historico.append("Empresa", p.getEmpresa().getEmpresa_id());
+							historico.append("TICKET_HISTORICO_ADD_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_ADD_MILIS",d.getTimeInMillis());
+							historico.append("TICKET_HISTORICO_ADD_USER",p.get_PessoaUsuario());
+							historico.append("TICKET_HISTORICO_TIPO",detalhes.getString("tipo"));
+							historico.append("TICKET_HISTORICO_DESC",detalhes.getString("desc"));
+							//System.out.println(historico.toJson());
+							mongo.InserirSimples("TICKET_HISTORICO", historico);
+						}else if(detalhes.getString("tipo").equals("SiteSign")) {
+							Document historico = new Document();
+							historico.append("TICKET_NUM", detalhes.getString("ticketnum"));
+							historico.append("Empresa", p.getEmpresa().getEmpresa_id());
+							historico.append("TICKET_HISTORICO_ADD_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_ADD_MILIS",d.getTimeInMillis());
+							historico.append("TICKET_HISTORICO_ADD_USER",p.get_PessoaUsuario());
+							historico.append("TICKET_HISTORICO_TIPO",detalhes.getString("tipo"));
+							historico.append("TICKET_HISTORICO_DESC",detalhes.getString("desc"));
+							//System.out.println(historico.toJson());
+							mongo.InserirSimples("TICKET_HISTORICO", historico);
+						}else if(detalhes.getString("tipo").equals("SiteVerify")) {
+							Document historico = new Document();
+							historico.append("TICKET_NUM", detalhes.getString("ticketnum"));
+							historico.append("Empresa", p.getEmpresa().getEmpresa_id());
+							historico.append("TICKET_HISTORICO_ADD_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_ADD_MILIS",d.getTimeInMillis());
+							historico.append("TICKET_HISTORICO_ADD_USER",p.get_PessoaUsuario());
+							historico.append("TICKET_HISTORICO_TIPO",detalhes.getString("tipo"));
+							historico.append("TICKET_HISTORICO_DESC",detalhes.getString("desc"));
+							//System.out.println(historico.toJson());
+							mongo.InserirSimples("TICKET_HISTORICO", historico);
+						}else if(detalhes.getString("tipo").equals("EHS_OK")) {
+							Document historico = new Document();
+							historico.append("TICKET_NUM", detalhes.getString("ticketnum"));
+							historico.append("Empresa", p.getEmpresa().getEmpresa_id());
+							historico.append("TICKET_HISTORICO_ADD_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_ADD_MILIS",d.getTimeInMillis());
+							historico.append("TICKET_HISTORICO_ADD_USER",p.get_PessoaUsuario());
+							historico.append("TICKET_HISTORICO_TIPO",detalhes.getString("tipo"));
+							historico.append("TICKET_HISTORICO_DESC",detalhes.getString("desc"));
+							//System.out.println(historico.toJson());
+							mongo.InserirSimples("TICKET_HISTORICO", historico);
+						}else if(detalhes.getString("tipo").equals("MOS_Date")) {
+							Document historico = new Document();
+							historico.append("TICKET_NUM", detalhes.getString("ticketnum"));
+							historico.append("Empresa", p.getEmpresa().getEmpresa_id());
+							historico.append("TICKET_HISTORICO_ADD_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_ADD_MILIS",d.getTimeInMillis());
+							historico.append("TICKET_HISTORICO_ADD_USER",p.get_PessoaUsuario());
+							historico.append("TICKET_HISTORICO_TIPO",detalhes.getString("tipo"));
+							historico.append("TICKET_HISTORICO_DESC",detalhes.getString("desc"));
+							//System.out.println(historico.toJson());
+							mongo.InserirSimples("TICKET_HISTORICO", historico);
+						}else if(detalhes.getString("tipo").equals("Site_OK")) {
+							Document historico = new Document();
+							historico.append("TICKET_NUM", detalhes.getString("ticketnum"));
+							historico.append("Empresa", p.getEmpresa().getEmpresa_id());
+							historico.append("TICKET_HISTORICO_ADD_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_ADD_MILIS",d.getTimeInMillis());
+							historico.append("TICKET_HISTORICO_ADD_USER",p.get_PessoaUsuario());
+							historico.append("TICKET_HISTORICO_TIPO",detalhes.getString("tipo"));
+							historico.append("TICKET_HISTORICO_DESC",detalhes.getString("desc"));
+							//System.out.println(historico.toJson());
+							mongo.InserirSimples("TICKET_HISTORICO", historico);
+						}else if(detalhes.getString("tipo").equals("WH_OK")) {
+							Document historico = new Document();
+							historico.append("TICKET_NUM", detalhes.getString("ticketnum"));
+							historico.append("Empresa", p.getEmpresa().getEmpresa_id());
+							historico.append("TICKET_HISTORICO_ADD_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_DATE",d.getTime());
+							historico.append("TICKET_HISTORICO_ADD_MILIS",d.getTimeInMillis());
+							historico.append("TICKET_HISTORICO_ADD_USER",p.get_PessoaUsuario());
+							historico.append("TICKET_HISTORICO_TIPO",detalhes.getString("tipo"));
+							historico.append("TICKET_HISTORICO_DESC",detalhes.getString("desc"));
+							//System.out.println(historico.toJson());
+							mongo.InserirSimples("TICKET_HISTORICO", historico);
+						}
 						resp.setContentType("application/html");  
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
@@ -2820,7 +2837,7 @@ public class POControl_Servlet extends HttpServlet {
 						out.close();	
 					}else if(opt.equals("50")) {
 						param1=req.getParameter("ticketnum");
-						System.out.println("buscando historico de "+param1);
+						//System.out.println("buscando historico de "+param1);
 						Bson filtro;
 						List<Bson> filtros = new ArrayList<>();
 						filtro = Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
@@ -2834,7 +2851,33 @@ public class POControl_Servlet extends HttpServlet {
 						if(resultado.hasNext()) {
 							while(resultado.hasNext()) {
 								historico=resultado.next();
-								dados_tabela=dados_tabela+"<li><label style='color:gray;'>Data do Evento:"+ f3.format(historico.getDate("TICKET_HISTORICO_DATE"))+" <br>Categorias: "+ historico.getString("TICKET_HISTORICO_ATIVIDADE")+" | "+historico.getString("TICKET_HISTORICO_GAP") +" | "+historico.getString("TICKET_HISTORICO_OWNER")+" <br>Registro: "+historico.getString("TICKET_HISTORICO_DESC")+"</label><br><label style='font-size:10px;color:#D3D3D3;float:right'>Adicionado em : "+f3.format(historico.getDate("TICKET_HISTORICO_ADD_DATE"))+" por "+historico.getString("TICKET_HISTORICO_ADD_USER")+"</label></li>";
+								if(historico.get("TICKET_HISTORICO_TIPO")!=null) {
+									if(historico.getString("TICKET_HISTORICO_TIPO").equals("RegistroManualEventos")) {
+										dados_tabela=dados_tabela+"<li><label style='color:gray;'>Data do Evento:"+ f3.format(historico.getDate("TICKET_HISTORICO_DATE"))+" <br>Categorias: "+ historico.getString("TICKET_HISTORICO_ATIVIDADE")+" | "+historico.getString("TICKET_HISTORICO_GAP") +" | "+historico.getString("TICKET_HISTORICO_OWNER")+" <br>Registro: "+historico.getString("TICKET_HISTORICO_DESC")+"</label><br><label style='font-size:10px;color:#D3D3D3;float:right'>Adicionado em : "+f3.format(historico.getDate("TICKET_HISTORICO_ADD_DATE"))+" por "+historico.getString("TICKET_HISTORICO_ADD_USER")+"</label></li>";
+									}else if(historico.getString("TICKET_HISTORICO_TIPO").equals("ItemMovidoManualmente")) {
+										dados_tabela=dados_tabela+"<li><label style='color:gray;'>Data do Evento:"+ f3.format(historico.getDate("TICKET_HISTORICO_DATE"))+"</label><br> Registro: <label style='color:green;'>"+historico.getString("TICKET_HISTORICO_DESC")+"</label><br><label style='font-size:10px;color:#D3D3D3;float:right'>Adicionado em : "+f3.format(historico.getDate("TICKET_HISTORICO_ADD_DATE"))+" por "+historico.getString("TICKET_HISTORICO_ADD_USER")+"</label></li>";
+									}else if(historico.getString("TICKET_HISTORICO_TIPO").equals("MudancaResponsavel")) {
+										dados_tabela=dados_tabela+"<li><label style='color:gray;'>Data do Evento:"+ f3.format(historico.getDate("TICKET_HISTORICO_DATE"))+"</label><br> Registro: <label style='color:green;'>"+historico.getString("TICKET_HISTORICO_DESC")+"</label><br><label style='font-size:10px;color:#D3D3D3;float:right'>Adicionado em : "+f3.format(historico.getDate("TICKET_HISTORICO_ADD_DATE"))+" por "+historico.getString("TICKET_HISTORICO_ADD_USER")+"</label></li>";
+									}else if(historico.getString("TICKET_HISTORICO_TIPO").equals("ReplanejamentoDatas")) {
+										dados_tabela=dados_tabela+"<li><label style='color:gray;'>Data do Evento:"+ f3.format(historico.getDate("TICKET_HISTORICO_DATE"))+"</label><br> Registro: <label style='color:green;'>"+historico.getString("TICKET_HISTORICO_DESC")+"</label><br><label style='font-size:10px;color:#D3D3D3;float:right'>Adicionado em : "+f3.format(historico.getDate("TICKET_HISTORICO_ADD_DATE"))+" por "+historico.getString("TICKET_HISTORICO_ADD_USER")+"</label></li>";
+									}else if(historico.getString("TICKET_HISTORICO_TIPO").equals("AgendamentoQC")) {
+										dados_tabela=dados_tabela+"<li><label style='color:gray;'>Data do Evento:"+ f3.format(historico.getDate("TICKET_HISTORICO_DATE"))+"</label><br> Registro: <label style='color:green;'>"+historico.getString("TICKET_HISTORICO_DESC")+"</label><br><label style='font-size:10px;color:#D3D3D3;float:right'>Adicionado em : "+f3.format(historico.getDate("TICKET_HISTORICO_ADD_DATE"))+" por "+historico.getString("TICKET_HISTORICO_ADD_USER")+"</label></li>";
+									}else if(historico.getString("TICKET_HISTORICO_TIPO").equals("SiteSign")) {
+										dados_tabela=dados_tabela+"<li><label style='color:gray;'>Data do Evento:"+ f3.format(historico.getDate("TICKET_HISTORICO_DATE"))+"</label><br> Registro: <label style='color:green;'>"+historico.getString("TICKET_HISTORICO_DESC")+"</label><br><label style='font-size:10px;color:#D3D3D3;float:right'>Adicionado em : "+f3.format(historico.getDate("TICKET_HISTORICO_ADD_DATE"))+" por "+historico.getString("TICKET_HISTORICO_ADD_USER")+"</label></li>";
+									}else if(historico.getString("TICKET_HISTORICO_TIPO").equals("SiteVerify")) {
+										dados_tabela=dados_tabela+"<li><label style='color:gray;'>Data do Evento:"+ f3.format(historico.getDate("TICKET_HISTORICO_DATE"))+"</label><br> Registro: <label style='color:green;'>"+historico.getString("TICKET_HISTORICO_DESC")+"</label><br><label style='font-size:10px;color:#D3D3D3;float:right'>Adicionado em : "+f3.format(historico.getDate("TICKET_HISTORICO_ADD_DATE"))+" por "+historico.getString("TICKET_HISTORICO_ADD_USER")+"</label></li>";
+									}else if(historico.getString("TICKET_HISTORICO_TIPO").equals("EHS_OK")) {
+										dados_tabela=dados_tabela+"<li><label style='color:gray;'>Data do Evento:"+ f3.format(historico.getDate("TICKET_HISTORICO_DATE"))+"</label><br> Registro: <label style='color:green;'>"+historico.getString("TICKET_HISTORICO_DESC")+"</label><br><label style='font-size:10px;color:#D3D3D3;float:right'>Adicionado em : "+f3.format(historico.getDate("TICKET_HISTORICO_ADD_DATE"))+" por "+historico.getString("TICKET_HISTORICO_ADD_USER")+"</label></li>";
+									}else if(historico.getString("TICKET_HISTORICO_TIPO").equals("MOS_Date")) {
+										dados_tabela=dados_tabela+"<li><label style='color:gray;'>Data do Evento:"+ f3.format(historico.getDate("TICKET_HISTORICO_DATE"))+"</label><br> Registro: <label style='color:green;'>"+historico.getString("TICKET_HISTORICO_DESC")+"</label><br><label style='font-size:10px;color:#D3D3D3;float:right'>Adicionado em : "+f3.format(historico.getDate("TICKET_HISTORICO_ADD_DATE"))+" por "+historico.getString("TICKET_HISTORICO_ADD_USER")+"</label></li>";
+									}else if(historico.getString("TICKET_HISTORICO_TIPO").equals("Site_OK")) {
+										dados_tabela=dados_tabela+"<li><label style='color:gray;'>Data do Evento:"+ f3.format(historico.getDate("TICKET_HISTORICO_DATE"))+"</label><br> Registro: <label style='color:green;'>"+historico.getString("TICKET_HISTORICO_DESC")+"</label><br><label style='font-size:10px;color:#D3D3D3;float:right'>Adicionado em : "+f3.format(historico.getDate("TICKET_HISTORICO_ADD_DATE"))+" por "+historico.getString("TICKET_HISTORICO_ADD_USER")+"</label></li>";
+									}else if(historico.getString("TICKET_HISTORICO_TIPO").equals("WH_OK")) {
+										dados_tabela=dados_tabela+"<li><label style='color:gray;'>Data do Evento:"+ f3.format(historico.getDate("TICKET_HISTORICO_DATE"))+"</label><br> Registro: <label style='color:green;'>"+historico.getString("TICKET_HISTORICO_DESC")+"</label><br><label style='font-size:10px;color:#D3D3D3;float:right'>Adicionado em : "+f3.format(historico.getDate("TICKET_HISTORICO_ADD_DATE"))+" por "+historico.getString("TICKET_HISTORICO_ADD_USER")+"</label></li>";
+									}
+								}else {
+									dados_tabela=dados_tabela+"<li><label style='color:gray;'>Sem Histórico de Eventos</label></li>";
+								}
 							}
 						}
 						resp.setContentType("application/html");  
@@ -2842,8 +2885,209 @@ public class POControl_Servlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
 						out.close();
+					}else if(opt.equals("51")) {
+						Bson filtro;
+						List<Bson> filtros = new ArrayList<>();
+						filtro = Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+						filtros.add(filtro);
+						List<String>projeto = mongo.ConsultaSimplesDistinct("TICKETS", "PROJETO", filtros);
+						projeto.add(0, "Todos os Projetos");
+						JSONArray aux = new JSONArray(projeto.toArray());
+						
+						//System.out.println(aux.toString());
+						resp.setContentType("application/html");  
+						resp.setCharacterEncoding("UTF-8"); 
+						PrintWriter out = resp.getWriter();
+						out.print(aux.toString());
+						out.close();
+					}else if(opt.equals("52")) {
+						rs=mysql.Consulta("select id_usuario,nome from usuarios where empresa='"+p.getEmpresa().getEmpresa_id()+"' and ATIVO='Y'");
+						dados_tabela="";
+						dados_tabela="[";
+						if(rs.next()) {
+							
+							rs.beforeFirst();
+							dados_tabela=dados_tabela+"{\"usuario\":\"ALL\",";
+							dados_tabela=dados_tabela+"\"nome\":\"Todos os Funcionários\"},\n";
+							while(rs.next()) {
+								dados_tabela=dados_tabela+"{\"usuario\":\""+rs.getString("id_usuario")+"\",";
+								dados_tabela=dados_tabela+"\"nome\":\""+rs.getString("nome")+"\"},\n";
+							}
+							dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+							
+						}
+						dados_tabela=dados_tabela+"]";
+						//System.out.println(dados_tabela);
+						resp.setContentType("application/html");  
+						resp.setCharacterEncoding("UTF-8"); 
+						PrintWriter out = resp.getWriter();
+						out.print(dados_tabela);
+						out.close();
+					}else if(opt.equals("53")) {
+						param1=req.getParameter("mudancas");
+						JSONObject mudancas = new JSONObject(param1);
+						Document update = new Document();
+						Document comando = new Document();
+						Bson filtro;
+						filtro = Filters.and(Filters.eq("Empresa", p.getEmpresa().getEmpresa_id()),Filters.eq("TICKET_NUM", mudancas.getString("ticket")));
+						if(!mudancas.isNull("name")) {
+							update.append("RECURSO", mudancas.getString("name"));
+						}
+						if(!mudancas.isNull("from")) {
+							update.append("INICIO_BL_STR", mudancas.getString("from"));
+							update.append("FIM_BL_STR", mudancas.getString("to"));
+							SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+							Date d1=format.parse(mudancas.getString("from"));
+							update.append("INICIO_BL_DATE", d1);
+							d1=format.parse(mudancas.getString("to"));
+							update.append("FIM_BL_DATE", d1);
+						}
+						comando.append("$set", update);
+						
+						if(mongo.AtualizaMuitos("TICKETS", filtro, comando)) {
+							Semail email = new Semail();
+							Document pessoa = p.getPessoaInfo(mudancas.getString("name"), mysql);
+							email.enviaEmailSimples(pessoa.getString("email"),"MSTP - Novo Ticket", "Prezado "+pessoa.getString("nome")+",\n\n Informamos que foi atríbuido ao seu usuário o ticket numero: "+mudancas.getString("ticket")+"\n\n Por favor informe diretamente no sistema MSTP o progresso em tempo deste serviço.\n\n\n ESSE É UM EMAIL AUTOMÁTICO . NÃO RESPONDER!");
+							
+						}
+						
+					}else if(opt.equals("54")) {
+						param1=req.getParameter("ticket");
+						param2="";
+						param3=req.getParameter("tipo");
+						String tipo="";
+						Document checklist;
+						Document update_filtros = new Document();
+						Document update_comando = new Document();
+						Document update = new Document();
+						Document atividade = new Document();
+						SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+						Date d1;
+						List<Document> atividades = new ArrayList<>();
+						update_filtros.append("Empresa", p.getEmpresa().getEmpresa_id());
+						update_filtros.append("TICKET_NUM", param1);
+						
+						if(param3.equals("QCAgendamento")) {
+							param2=req.getParameter("date");
+							tipo="TICKET_QC_DATE";
+							atividade.append("nome", tipo);
+							atividade.append("tipo", "data");
+							atividade.append("valor_STR", req.getParameter("date"));
+							d1=format.parse(param2);
+							atividade.append("valor_DATE", d1);
+							
+						}else if(param3.equals("SiteVerify")) {
+							tipo="TICKET_SITEVERIFY";
+							param2=req.getParameter("date");
+							atividade.append("nome", tipo);
+							atividade.append("tipo", "data");
+							atividade.append("valor_STR", req.getParameter("date"));
+							d1=format.parse(param2);
+							atividade.append("valor_DATE", d1);
+							
+						}else if(param3.equals("SiteSign")) {
+							tipo="TICKET_SITESIGN";
+							param2=req.getParameter("date");
+							atividade.append("nome", tipo);
+							atividade.append("tipo", "data");
+							atividade.append("valor_STR", req.getParameter("date"));
+							d1=format.parse(param2);
+							atividade.append("valor_DATE", d1);
+							
+						}else if(param3.equals("EHS_OK")) {
+							tipo="TICKET_EHS_OK";
+							atividade.append("nome", tipo);
+							atividade.append("valor_STR", req.getParameter("valor"));
+							atividade.append("tipo", "check");
+							
+						}else if(param3.equals("MOS_Date")) {
+							tipo="TICKET_MOS_DATE";
+							param2=req.getParameter("date");
+							atividade.append("nome", tipo);
+							atividade.append("valor_STR", req.getParameter("date"));
+							atividade.append("tipo", "data");
+							d1=format.parse(param2);
+							atividade.append("valor_DATE", d1);
+							
+						}else if(param3.equals("WH_OK")) {
+							tipo="TICKET_MOS_WH_OK";
+							atividade.append("nome", tipo);
+							atividade.append("valor_STR", req.getParameter("valor"));
+							atividade.append("tipo", "check");
+							
+						}else if(param3.equals("Site_OK")) {
+							tipo="TICKET_MOS_SITE_OK";
+							atividade.append("nome", tipo);
+							atividade.append("valor_STR", req.getParameter("valor"));
+							atividade.append("tipo", "check");
+							
+						}
+						
+						atividades.add(atividade);
+						Bson filtro;
+						List<Bson> filtros = new ArrayList<>();
+						filtro = Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+						filtros.add(filtro);
+						filtro = Filters.eq("TICKET_NUM",param1);
+						filtros.add(filtro);
+						Document historico;
+						dados_tabela="";
+						FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("TICKET_CHECKLIST", filtros);
+						MongoCursor<Document> resultado = findIterable.iterator();
+						if(resultado.hasNext()) {
+							checklist=resultado.next();
+							List<Document> atividadesAux = (List<Document>) checklist.get("Atividades");
+							atividadesAux.add(atividade);
+							update.append("Atividades", atividadesAux);
+							update_comando.append("$set", update);
+							mongo.AtualizaMuitos("TICKET_CHECKLIST", update_filtros, update_comando);
+						}else {
+							update.append("Empresa", p.getEmpresa().getEmpresa_id());
+							update.append("TICKET_NUM", param1);
+							update.append("Atividades", atividades);
+							mongo.InserirSimples("TICKET_CHECKLIST", update);
+						}
+						
+						
+						resp.setContentType("application/html");  
+						resp.setCharacterEncoding("UTF-8"); 
+						PrintWriter out = resp.getWriter();
+						out.print("OK");
+						out.close();
+					}else if(opt.equals("55")) {
+						param1=req.getParameter("ticket");
+						Bson filtro;
+						Document checklist;
+						List<Bson> filtros = new ArrayList<>();
+						filtro = Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+						filtros.add(filtro);
+						filtro = Filters.eq("TICKET_NUM",param1);
+						filtros.add(filtro);
+						Document historico;
+						dados_tabela="[";
+						FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("TICKET_CHECKLIST", filtros);
+						MongoCursor<Document> resultado = findIterable.iterator();
+						if(resultado.hasNext()) {
+							checklist=resultado.next();
+							List<Document> atividadesAux = (List<Document>) checklist.get("Atividades");
+							for(int indice=0;indice<atividadesAux.size();indice++) {
+								dados_tabela=dados_tabela+"{";
+								dados_tabela=dados_tabela+"\"nome\":\""+atividadesAux.get(indice).getString("nome")+"\",";
+								dados_tabela=dados_tabela+"\"valor\":\""+atividadesAux.get(indice).getString("valor_STR")+"\"},";
+							}
+							dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
+						}
+						dados_tabela=dados_tabela+"]";
+						resp.setContentType("application/html");  
+						resp.setCharacterEncoding("UTF-8"); 
+						PrintWriter out = resp.getWriter();
+						out.print(dados_tabela);
+						out.close();
 					}
 					mongo.fecharConexao();
+					Timestamp time2 = new Timestamp(System.currentTimeMillis());
+					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+					
 				} catch (SQLException e) {
 				mongo.fecharConexao();
 				mysql.fecharConexao();
@@ -2858,10 +3102,130 @@ public class POControl_Servlet extends HttpServlet {
 			} catch (EmailException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}
+				} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
     		
 		
 		}
+    public Boolean criaTicket(Conexao mysql,ConexaoMongo mongo,JSONObject req, Pessoa p) {
+    	try {
+    		System.out.println("__________________________________");
+    		System.out.println("INICIANDO CRIAÇÃO DE TICKET");
+    		System.out.println("__________________________________");
+    		String param10,param11,param12,param13,param14,param15;
+    		//System.out.println(req.toString());
+    		String param1=req.getString("po_num");
+    		String param2=req.getString("ticket");
+    		String param3=req.getString("item");
+    		String param4=req.getString("item_code");
+    		String param5=req.getString("po_line");
+    		String param6=req.getString("published");
+    		String param7=req.getString("site");
+    		String param8=req.getString("projeto");
+    		String param9=req.getString("tags");
+			param10=req.getString("recurso");
+			param11=req.getString("incio_planejado_bl");
+			param12=req.getString("fim_planejado_bl");
+			param13=req.getString("todos_itens");
+			//param14=(String) req.get("quantidade_itens");
+			//param15=(String) req.get("quantidade_pos_restante");
+			Document ticket = new Document();
+			SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+			Date d1=format.parse(param11);
+			Calendar dataAtual = Calendar.getInstance();
+			ticket.append("Empresa", p.getEmpresa().getEmpresa_id());
+			ticket.append("dt_aberto", dataAtual.getTime());
+			ticket.append("usuario_registro", p.get_PessoaUsuario());
+			ticket.append("Status", "Aberto");
+			ticket.append("PO_NUM", param1);
+			ticket.append("TICKET_TODOS_ITENS",param13);
+			ticket.append("TICKET_STATE","NEW");
+			ticket.append("TICKET_NUM", param2);
+			ticket.append("INICIO_BL_STR", param11);
+			ticket.append("INICIO_BL_DATE", d1);
+			ticket.append("FIM_BL_STR", param12);
+			d1=format.parse(param12);
+			ticket.append("FIM_BL_DATE", d1);
+			ticket.append("ITEM", param3);
+			ticket.append("ITEM_CODE", param4);
+			ticket.append("PO_LINE", param5);
+			ticket.append("PUBLISHED", param6);
+			ticket.append("QTDE_TICKET", req.get("quantidade_itens"));
+			ticket.append("SITE", param7);
+			ticket.append("PROJETO", param8);
+			ticket.append("TAGS", param9);
+			ticket.append("RECURSO", param10);
+			mongo.InserirSimples("TICKETS", ticket);
+			
+			Document update_filtros = new Document();
+			Document update_comando = new Document();
+			Document update = new Document();
+			update_filtros.append("Empresa", p.getEmpresa().getEmpresa_id());
+			update_filtros.append("PO NO", param1);
+			update_filtros.append("Item Code", param4);
+			update_filtros.append("PO Line NO", param5);
+			
+				if(!param6.equals("null")) {
+					update_filtros.append("Publish Date", param6);
+				}
+			
+			//System.out.println("_______________________________________________");
+			//System.out.println("Filtros de atualizacao de PO: ");
+			//System.out.println(update_filtros.toJson());
+			//System.out.println("_______________________________________________");
+			Bson filtro;
+			Document po;
+			String tickets="";
+			List<Bson> filtros = new ArrayList<>();
+			filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+			filtros.add(filtro);
+			filtro=Filters.eq("PO NO",param1);
+			filtros.add(filtro);
+			filtro=Filters.eq("Item Code",param4);
+			filtros.add(filtro);
+			filtro=Filters.eq("PO Line NO",param5);
+			filtros.add(filtro);
+			filtro=Filters.eq("Publish Date",param6);
+			filtros.add(filtro);
+			FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("PO", filtros);
+			MongoCursor<Document> resultado =findIterable.iterator();
+			if(resultado.hasNext()) {
+				
+				po=resultado.next();
+				if(po.get("Tickets")!=null) {
+					tickets=po.getString("Tickets");
+				}
+			}
+			if(tickets.equals("")) {
+				update.append("Tickets", tickets.concat(param2));
+			}else {
+				update.append("Tickets", tickets.concat(","+param2));
+			}
+			update.append("Requested Qty", req.get("quantidade_pos_restante"));
+			update_comando.append("$set", update);
+			
+			//System.out.println("Atualizacao de PO: ");
+			//System.out.println(update.toJson());
+			//System.out.println("_______________________________________________");
+			mongo.AtualizaUm("PO", update_filtros, update_comando);
+			Document recurso=p.getPessoaInfo(param10, mysql);
+			Semail email= new Semail();
+			Timestamp time = new Timestamp(System.currentTimeMillis());
+			email.enviaEmailSimples(recurso.getString("email"), "MSTP - Notificação de Ticket - "+param2,"Prezado "+recurso.getString("nome")+", \n \n Informamos que voce possui as seguintes tarefas não iniciadas: \n\n Projeto: "+param8+"\nSite: "+param7+" \n Item: "+param3+" \nQuantidade: "+req.get("quantidade_itens")+" \nPlanejamento: "+param11+" - "+param12+" \n\n  Operação realizada em: "+time+" \n \n Caso não seja o responsável correto  solicitamos que entre em contato com o administrador do sistema para sua empresa! \n \n \n Esse é um email Automático gerado pelo sistema. Favor não responder!");
+			
+			mongo.fecharConexao();
+			System.out.println("__________________________________");
+    		System.out.println("TICKET CRIADO COM SUCESSO!");
+    		System.out.println("__________________________________");
+    		return true;
+    	}catch(Exception e) {
+    		System.out.println(e.getMessage());
+    		e.printStackTrace();
+    		return false;
+    	}
+    }
     public void enviaMensagemPorUsuario(String usuario,String mensagem) {
     	try {
 			   String jsonResponse;

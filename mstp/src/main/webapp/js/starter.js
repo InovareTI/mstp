@@ -10,6 +10,7 @@
 	var myDoughnut;
 	var myDoughnut2;
 	var timer;
+	var optionsKanban=JSON.parse("{}");
 	//var mymap;
 $(document).ready(function () {
 	
@@ -18,6 +19,7 @@ $(document).ready(function () {
             carrega_perfil();
             timer = new easytimer.Timer();
             carrega_portal();
+            
             var Meusdockings = function (tab) {
                 switch (tab) {
                 case 1:
@@ -67,7 +69,190 @@ $(document).ready(function () {
                 }
             }
             $('#jqxtabs').jqxTabs({height:800,theme: 'light',initTabContent:Meusdockings});
-            
+            $('#div_dt_site_sign').jqxDateTimeInput({formatString:'dd/MM/yyyy HH:mm:ss',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',showTimeButton: true});
+            $('#div_dt_site_sign').on('valueChanged', function (event) {
+                //console.log(event);
+            	var date = event.args.date;
+            	var datecompouse = moment(date).format('L') + " " + moment(date).format('LTS');
+            	var ticket = sessionStorage.getItem("ItemMovedId");
+            	$.ajax({
+           		  type: "POST",
+           		  data: {"opt":"54","tipo":"SiteSign","date":datecompouse,"ticket":ticket
+           			 },	  
+           		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+           		  url: "./POControl_Servlet",
+           		  cache: false,
+           		  dataType: "text",
+           		  success: registra_data_SS
+           		});
+            	function registra_data_SS(data){
+            		var detalhes = JSON.parse("{}");
+                    detalhes.ticketnum=ticket;
+                    detalhes.tipo="SiteSign";
+                    detalhes.desc = "Site Sign registrado na data "+datecompouse+" por "+geral.usuario;
+            		registraEventosTicket(detalhes);
+            	}
+            });
+            var condicao = sessionStorage.getItem("condicao");
+            if(condicao){
+            	sessionStorage.removeItem("condicao");
+            }
+            $('#div_dt_site_verify').jqxDateTimeInput({formatString:'dd/MM/yyyy HH:mm:ss',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',showTimeButton: true});
+            $('#div_dt_site_verify').on('valueChanged', function (event) {
+                //console.log(event);
+            	var date = event.args.date;
+            	var datecompouse = moment(date).format('L') + " " + moment(date).format('LTS');
+            	var ticket = sessionStorage.getItem("ItemMovedId");
+            	$.ajax({
+           		  type: "POST",
+           		  data: {"opt":"54","tipo":"SiteVerify","date":datecompouse,"ticket":ticket
+           			 },	  
+           		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+           		  url: "./POControl_Servlet",
+           		  cache: false,
+           		  dataType: "text",
+           		  success: registra_data_SV
+           		});
+            	function registra_data_SV(data){
+            		var detalhes = JSON.parse("{}");
+                    detalhes.ticketnum=ticket;
+                    detalhes.tipo="SiteVerify";
+                    detalhes.desc = "Site Verify registrado na data "+datecompouse+" por "+geral.usuario;
+            		registraEventosTicket(detalhes);
+            	}
+            });
+            $('#div_dt_mos').jqxDateTimeInput({formatString:'dd/MM/yyyy HH:mm:ss',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',showTimeButton: true});
+            $('#div_dt_mos').on('valueChanged', function (event) {
+                //console.log(event);
+            	var date = event.args.date;
+            	var datecompouse = moment(date).format('L') + " " + moment(date).format('LTS');
+            	var ticket = sessionStorage.getItem("ItemMovedId");
+            	$.ajax({
+           		  type: "POST",
+           		  data: {"opt":"54","tipo":"MOS_Date","date":datecompouse,"ticket":ticket
+           			 },	  
+           		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+           		  url: "./POControl_Servlet",
+           		  cache: false,
+           		  dataType: "text",
+           		  success: registra_data_mos
+           		});
+            	function registra_data_mos(data){
+            		var detalhes = JSON.parse("{}");
+                    detalhes.ticketnum=ticket;
+                    detalhes.tipo="MOS_Date";
+                    
+            		detalhes.desc = "MOS registrado em "+datecompouse+" por "+geral.usuario;
+            		
+            		registraEventosTicket(detalhes);
+            		
+            	}
+            });
+            $('#div_dt_agendamento_qc').jqxDateTimeInput({formatString:'dd/MM/yyyy HH:mm:ss',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',showTimeButton: true});
+            $('#div_dt_agendamento_qc').on('valueChanged', function (event) {
+                //console.log(event);
+            	var date = event.args.date;
+            	var datecompouse = moment(date).format('L') + " " + moment(date).format('LTS');
+            	var ticket = sessionStorage.getItem("ItemMovedId");
+            	$.ajax({
+           		  type: "POST",
+           		  data: {"opt":"54","tipo":"QCAgendamento","date":datecompouse,"ticket":ticket
+           			 },	  
+           		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+           		  url: "./POControl_Servlet",
+           		  cache: false,
+           		  dataType: "text",
+           		  success: registra_data_qc
+           		});
+            	function registra_data_qc(data){
+            		var detalhes = JSON.parse("{}");
+                    detalhes.ticketnum=ticket;
+                    detalhes.tipo="AgendamentoQC";
+                    
+            		detalhes.desc = "QC agendado para "+datecompouse+" por "+geral.usuario;
+            		
+            		registraEventosTicket(detalhes);
+            		
+            	}
+            });
+            $('#jqxCheckBoxSite_').jqxCheckBox({ width: 260, height: 25});
+            $("#jqxCheckBoxSite_").on('change', function (event) {
+                var checked = event.args.checked;
+                var ticket = sessionStorage.getItem("ItemMovedId");
+               
+                	$.ajax({
+                 		  type: "POST",
+                 		  data: {"opt":"54","tipo":"Site_OK","ticket":ticket,"valor":checked
+                 			 },	  
+                 		  url: "./POControl_Servlet",
+                 		  cache: false,
+                 		  dataType: "text",
+                 		  success: registra_OK_Site
+                 		});
+                  	function registra_OK_Site(data){
+                  		
+                  		var detalhes = JSON.parse("{}");
+                          detalhes.ticketnum=ticket;
+                          detalhes.tipo="Site_OK";
+                          
+                  		detalhes.desc = "Material Entregue no Site em  "+moment().format('L')+" por "+geral.usuario;
+                  		registraEventosTicket(detalhes);
+                  		
+                  	}
+                
+            });
+            $('#jqxCheckBoxWH_').jqxCheckBox({ width: 260, height: 25});
+            $("#jqxCheckBoxWH_").on('change', function (event) {
+                var checked = event.args.checked;
+                var ticket = sessionStorage.getItem("ItemMovedId");
+               
+                	$.ajax({
+                 		  type: "POST",
+                 		  data: {"opt":"54","tipo":"WH_OK","ticket":ticket,"valor":checked
+                 			 },	  
+                 		  url: "./POControl_Servlet",
+                 		  cache: false,
+                 		  dataType: "text",
+                 		  success: registra_OK_WH
+                 		});
+                  	function registra_OK_WH(data){
+                  		
+                  		var detalhes = JSON.parse("{}");
+                          detalhes.ticketnum=ticket;
+                          detalhes.tipo="WH_OK";
+                          
+                  		detalhes.desc = "Material Entregue no WhareHouse em  "+moment().format('L')+" por "+geral.usuario;
+                  		registraEventosTicket(detalhes);
+                  		
+                  	}
+                
+            });
+            $('#jqxCheckBoxEHS_').jqxCheckBox({ width: 260, height: 25});
+            $("#jqxCheckBoxEHS_").on('change', function (event) {
+                var checked = event.args.checked;
+                var ticket = sessionStorage.getItem("ItemMovedId");
+               
+                	$.ajax({
+                 		  type: "POST",
+                 		  data: {"opt":"54","tipo":"EHS_OK","ticket":ticket,"valor":checked
+                 			 },	  
+                 		  url: "./POControl_Servlet",
+                 		  cache: false,
+                 		  dataType: "text",
+                 		  success: registra_OK_EHS
+                 		});
+                  	function registra_OK_EHS(data){
+                  		
+                  		var detalhes = JSON.parse("{}");
+                          detalhes.ticketnum=ticket;
+                          detalhes.tipo="EHS_OK";
+                          
+                  		detalhes.desc = "EHS registrado como OK em  "+moment().format('L')+" por "+geral.usuario;
+                  		registraEventosTicket(detalhes);
+                  		
+                  	}
+                
+            });
             $('#range_espelho').jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode: 'range'});
             $('#range_espelho_analise').jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode: 'range'});
             $('#range_consulta_horas_banco').jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode: 'range'});
@@ -79,61 +264,117 @@ $(document).ready(function () {
             	carrega_extrato_he();
             });
             $('#jqxtabs_usuario').jqxTabs({height:800,theme: 'light'});
-           // carrega_tabela_site();
+          
             $("#TicketToolBar").jqxToolBar(
             		{ 
             		  width: "100%", 
             		  height: 45, 
             		  theme:'light',
-            		  tools: 'button button button | button button button | button button | button',
-            	     initTools: function (type, index, tool, menuToolIninitialization) {
-                     var icon = $("<div class='jqx-editor-toolbar-icon jqx-editor-toolbar-icon-light buttonIcon'></div>");
+            		  tools: 'toggleButton dropdownlist dropdownlist | toggleButton toggleButton toggleButton',
+            	      initTools: function (type, index, tool, menuToolIninitialization) {
+                     
                      switch (index) {
                          case 0:
-                             icon.addClass("jqx-editor-toolbar-icon-bold jqx-editor-toolbar-icon-bold-light");
-                             icon.attr("title", "Bold");
-                             tool.append(icon);
+                             tool.text("Meus Tickets");
+                             tool.on("click", function () {
+                                 var toggled = tool.jqxToggleButton("toggled");
+                               
+                                 if (toggled) {
+                                	 optionsKanban.usuario=geral.usuario;
+                                	
+                                	 ticketStarter(optionsKanban);
+                                 } else {
+                                	 optionsKanban.usuario="ALL";
+                                	 
+                                	 ticketStarter(optionsKanban);
+                                 }
+                             });
                              break;
                          case 1:
-                             icon.addClass("jqx-editor-toolbar-icon-italic jqx-editor-toolbar-icon-italic-light");
-                             icon.attr("title", "Italic");
-                             tool.append(icon);
+                        	 $.ajax({
+                          		  type: "POST",
+                          		  data: {"opt":"51"
+                          			 },	  
+                          		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+                          		  url: "./POControl_Servlet",
+                          		  cache: false,
+                          		  dataType: "text",
+                          		  success: aaaaa
+                          		});
+                           	 function aaaaa(data){
+                           		 var aux = JSON.parse(data);
+                           		 tool.jqxDropDownList({ width: 220,height:32,theme:"light", source: aux });
+                           	 } 
+	                        	 tool.on('select', function (event) {
+	                        		 var args = event.args;
+	                        		 var item = tool.jqxDropDownList('getItem', args.index);
+	                        		 optionsKanban.projeto=item.label;
+	                        		
+	                        		 ticketStarter(optionsKanban);
+	                        	 });
+                           	 
                              break;
                          case 2:
-                             icon.addClass("jqx-editor-toolbar-icon-underline jqx-editor-toolbar-icon-underline-light");
-                             icon.attr("title", "Underline");
-                             tool.append(icon);
+                        	 $.ajax({
+                         		  type: "POST",
+                         		  data: {"opt":"52"
+                         			 },	  
+                         		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+                         		  url: "./POControl_Servlet",
+                         		  cache: false,
+                         		  dataType: "text",
+                         		  success: bbbb
+                         		});
+                          	 function bbbb(data){
+                          		 var aux = JSON.parse(data);
+                          		var source =
+                                {
+                                    datatype: "json",
+                                    datafields: [
+                                        { name: 'usuario' },
+                                        { name: 'nome' }
+                                    ],
+                                    localData: aux
+                                   
+                                };
+                                var dataAdapter = new $.jqx.dataAdapter(source);
+	                        	 tool.jqxDropDownList({ width: 220,height:32,theme:"light", source: dataAdapter,displayMember: "nome", valueMember: "usuario" });
+                          	 }
+	                        	 tool.on('select', function (event) {
+	                        		 var args = event.args;
+	                        		 var item = tool.jqxDropDownList('getItem', args.index);
+	                        		 optionsKanban.usuario=item.value;
+	                        		 
+	                        		 ticketStarter(optionsKanban);
+	                        	 });
+                          	 
                              break;
                          case 3:
-                             icon.addClass("jqx-editor-toolbar-icon-justifyleft jqx-editor-toolbar-icon-justifyleft-light");
-                             icon.attr("title", "Align Text Left");
-                             tool.append(icon);
+                        	 tool.text("Hoje");
+                        	 tool.on("click", function () {
+                                 var toggled = tool.jqxToggleButton("toggled");
+                                 optionsKanban.range="hoje";
+                                 
+                                 ticketStarter(optionsKanban);
+                        	 });
                              break;
                          case 4:
-                             icon.addClass("jqx-editor-toolbar-icon-justifycenter jqx-editor-toolbar-icon-justifycenter-light");
-                             icon.attr("title", "Center");
-                             tool.append(icon);
+                        	 tool.text("Semana Atual");
+                        	 tool.on("click", function () {
+                        		 optionsKanban.range="semanaCorrente";
+                        		 
+                        		 ticketStarter(optionsKanban);
+                        	 });
                              break;
                          case 5:
-                             icon.addClass("jqx-editor-toolbar-icon-justifyright jqx-editor-toolbar-icon-justifyright-light");
-                             icon.attr("title", "Align Text Right");
-                             tool.append(icon);
+                        	 tool.text("Mês Atual");
+                        	 tool.on("click", function () {
+                        		 optionsKanban.range="MesCorrente";
+                        		
+                        		 ticketStarter(optionsKanban);
+                        	 });
                              break;
-                         case 6:
-                             icon.addClass("jqx-editor-toolbar-icon-outdent jqx-editor-toolbar-icon-outdent-light");
-                             icon.attr("title", "Decrease Indent");
-                             tool.append(icon);
-                             break;
-                         case 7:
-                             icon.addClass("jqx-editor-toolbar-icon-indent jqx-editor-toolbar-icon-indent-light");
-                             icon.attr("title", "Increase Indent");
-                             tool.append(icon);
-                             break;
-                         case 8:
-                             icon.addClass("jqx-editor-toolbar-icon-insertimage jqx-editor-toolbar-icon-insertimage-light");
-                             icon.attr("title", "Insert Image");
-                             tool.append(icon);
-                             break;
+                        
                      }
                  }
              });
@@ -157,7 +398,7 @@ $(document).ready(function () {
 			}).on('fileuploaded', function(event, data, previewId, index) {
 				var form = data.form, files = data.files, extra = data.extra,
 		        response = data.response, reader = data.reader;
-				console.log(response);
+				//console.log(response);
 		});
             $("#excelExport").jqxButton({disabled: true});
            
@@ -307,25 +548,11 @@ $(document).ready(function () {
             	}
             });
             $("#from_ticket").jqxDateTimeInput({selectionMode: 'range'});
-            $('#TicketKanban').on('itemMoved', function (event) {
-                var args = event.args;
-                var itemId = args.itemId;
-                var oldParentId = args.oldParentId;
-                var newParentId = args.newParentId;
-                var itemData = args.itemData;
-                var oldColumn = args.oldColumn;
-                var newColumn = args.newColumn;
-                
-                console.log(args);
-                $.ajax({
-          		  type: "POST",
-          		  data: {"opt":"46","id_":itemData.id,"status_":newColumn.dataField},	  
-          		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
-          		  url: "./POControl_Servlet",
-          		  cache: false,
-          		  dataType: "text"
-          		});
-               // updateStatusTicket(args.itemData);
+            
+            $('#modal_atualiza_tickets').on('show.bs.modal', function (event) {
+            	$("#replanTickect").jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode: 'range'});
+            	$("#jqxCheckBox_select_func_novo_tickect_id").jqxCheckBox({ width: 200, height: 25});
+            	$("#jqxCheckBox_replanTickect").jqxCheckBox({ width: 200, height: 25});
             });
             $('#modal_rollout_history').on('show.bs.modal', function (event) {
               filtros={"filtros":[]};	
@@ -576,7 +803,7 @@ function carrega_perfil(){
 		 if(geral.perfil.search("AssinaturaManager")>=0){
 			 document.getElementById('assinatura_menu_div').style.display = "block";
 		 }
-		 console.log(geral);
+		 
 		 
 	 });
 }
@@ -587,8 +814,14 @@ function menu(opt){
 	}else if(opt=="ticketWindow"){
 		$(".janelas").hide();
 	     document.getElementById(opt).style.display = "block";
-	     ticketStarter();
-	     var ready = $('#TicketKanban').jqxKanban('ready'); 
+	     var ready = $('#TicketKanban').jqxKanban('ready');
+			if(ready){
+			}else{
+				optionsKanban=JSON.parse("{}");
+				optionsKanban.usuario="ALL";
+				ticketStarter(optionsKanban);
+			}
+	     
 	}else if(opt=="importacoes"){
 		 $(".janelas").hide();
 	     document.getElementById(opt).style.display = "block";
@@ -607,6 +840,10 @@ function menu(opt){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
 		carrega_checklist();
+	}else if(opt=="regras_rollout" && geral.perfil.search("RolloutManager")>=0){
+		$(".janelas").hide();
+		document.getElementById(opt).style.display = "block";
+		carregaRegras();
 	}else if(opt=="PO" && geral.perfil.search("POManager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
