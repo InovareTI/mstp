@@ -173,69 +173,59 @@ function carrega_faltas(){
 }
 function carrega_usuarios(){
 	
-	$.ajax({
-		  type: "POST",
-		  data: {"opt":"18"},		  
-		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
-		  url: "./POControl_Servlet",
-		  cache: false,
-		  dataType: "text",
-		  success: onSuccess18
-		});
-	function onSuccess18(data)
-	{
+	$('#tabela_usuario').DataTable({
+		"searching": true,
+	    "ordering": false,
+	    "lengthChange": false,
+	    "processing": true,
+        "ajax": './POControl_Servlet?opt=18',
+        "lengthMenu": [10,20]
+	});
+	
+	$('#tabela_usuario tbody').on( 'click', 'tr', function () {
+        $(this).toggleClass('selected');
+    } );
+	
+	//$.ajax({
+	//	  type: "POST",
+	//	  data: {"opt":"18"},		  
+	//	  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+	//	  url: "./POControl_Servlet",
+	//	  cache: false,
+	//	  dataType: "text",
+	//	  success: onSuccess18
+	//	});
+	//function onSuccess18(data)
+	//{
 		
 		$("#splitter2").jqxSplitter({ width: '100%', theme:'light', height: '90%', panels: [{ size: 350}] });
-		$("#div_tabela_usuario").html("<div id=\"toolbar_tabela_usuario\" role=\"toolbar\" class=\"btn-toolbar\">"+
-        		
-    			"<button type=\"button\" class=\"btn btn-info\" data-toggle=\"modal\" data-target=\"#modal_user_add\">Novo Usuário</button>"+
-    			"<button id=\"desabilitar_usuario\" type=\"button\" class=\"btn btn-danger\">Desabilitar Usuário</button>"+
-    			"<button id=\"btn_reset_senha\" type=\"button\" class=\"btn btn-danger\" onclick=\"reset_senha()\">Redefinir Senha</button>"+
-    			"<button id=\"btn_ferias\" type=\"button\" class=\"btn btn-info\" onclick=\"iniciar_ferias()\">Agendar Férias de Funcionário</button>"+
-    			"<button id=\"btn_tipo_usu\" type=\"button\" class=\"btn btn-info\" onclick=\"definiTipoUsuario()\">Alterar Tipo Usuário</button>"+
-    			"<div class=\"btn-group\" role=\"group\">"+
-    		    "<button id=\"btnGroupDrop2\" type=\"button\" class=\"btn btn-secondary aria-haspopup=\"true\" dropdown-toggle\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">"+
-    		     "Importar"+
-    		     "<span class=\"caret\"></span> "+
-    		    "</button>"+
-    		    "<ul class=\"dropdown-menu\" aria-labelledby=\"btnGroupDrop1\">"+
-    		    "  <li><a class=\"dropdown-item\" href=\"#\">Substuição Completa</a></li>"+
-    		     " <li><a class=\"dropdown-item\" href=\"#\" data-toggle=\"modal\" data-target=\"#modal_add_usuarios\">Adicionar novos Usuários</a></li>"+
-    		     " <li><a class=\"dropdown-item\" href=\"#\" data-toggle=\"modal\" data-target=\"#modal_atualiza_usuarios\">Atualizar informações existentes</a></li>"+
-    		    "</ul>"+
-    		  "</div>"+
-    			"<a href=\"javascript:window.location='UserMgmt?opt=16'\" class=\"btn btn-primary\">Exportar</button>"+
-    			"<a id=\"template_importar_usuario\" href=\"templates/template_usuarios_mstp.xlsx\" type=\"button\" class=\"btn btn-link btn-info\">Template(importação)</a>"+
-    			"<button type=\"button\" class=\"btn btn-info\" onclick=\"geraAutorizaHERetroativa()\">Autorização de HE retroativa</button>"+
-    		    "</div>" + data);
-		$('#tabela_usuario').bootstrapTable();
-		var $table = $('#tabela_usuario'),
-	     $button = $('#desabilitar_usuario');
-	 $(function () {
-	     $button.click(function () {
-	    	 
-	         var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
-	             return row.user;
-	         });
-	         $.ajax({
-		   		  type: "POST",
-		   		  data: {"opt":"3",
-		   			  "users":ids.toString()},		  
-		   		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
-		   		  url: "./UserMgmt",
-		   		  cache: false,
-		   		  dataType: "text",
-		   		  success: Desabilita_usuario_n
-		   		});
-	         function Desabilita_usuario_n(data){
-	        	 //alert(data);
-	        	 $table.bootstrapTable('remove', {
-		             field: 'user',
-		             values: ids
-		         });
-	         }
-	     });
-	 });
+		
+		
+	 //$(function () {
+	 //    $button.click(function () {
+	 //   	 
+	 //        var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
+	 //            return row.user;
+	 //        });
+	 //        $.ajax({
+	//	   		  type: "POST",
+	//	   		  data: {"opt":"3",
+	//	   			  "users":ids.toString()},		  
+	//	   		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+	//	   		  url: "./UserMgmt",
+	//	   		  cache: false,
+	//	   		  dataType: "text",
+	//	   		  success: Desabilita_usuario_n
+	//	   		});
+	//         function Desabilita_usuario_n(data){
+	//        	 //alert(data);
+	//        	 $table.bootstrapTable('remove', {
+	//	             field: 'user',
+	//	             values: ids
+	//	         });
+	 //        }
+	 //    });
+	// });
 	 var timestamp = Date.now();
 	 
 	 $.getJSON('./UserMgmt?opt=37&_='+timestamp, function(data) {
@@ -326,7 +316,7 @@ function carrega_usuarios(){
      });
 	 
 	 
-	}
+	
 
 }
 function carrega_grupo_usuario(){
@@ -396,13 +386,16 @@ function carrega_grupo_usuario(){
 }
 
 function reset_senha(){
-	var $table = $('#tabela_usuario');
-	var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
-         return row.user;
-     });
-	 console.log(ids);
+	var table = $('#tabela_usuario').DataTable();
+	
+	var dados=[];
+	table.rows('.selected').every( function ( rowIdx, tableLoop, rowLoop ) {
+		//console.log(this.data())
+		dados.push([this.data()[0],this.data()[1],this.data()[2]]);
+	});
+	//console.log(dados);
 	$.confirm({
-	    title: 'Redefinir senha - '+ids.length+' usuários selecionados',
+	    title: 'Redefinir senha - '+table.rows('.selected').data().length+' usuários selecionados',
 	    content: '' +
 	    '<form action="" class="formName">' +
 	    '<div class="form-group">' +
@@ -425,7 +418,7 @@ function reset_senha(){
 	      	      		  type: "POST",
 	      	      		  data: {"opt":"24",
 	      	      			  "senha":name,
-	      	      			  "usuarios":ids.toString()},		  
+	      	      			  "usuarios":JSON.stringify(dados)},		  
 	      	      		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
 	      	      		  url: "./UserMgmt",
 	      	      		  cache: false,
@@ -434,7 +427,7 @@ function reset_senha(){
 	      	      		});
 	      	            function onSuccessReset(data){
 	      	            	$.alert(data.toString());
-	      	            	$table.bootstrapTable('uncheckAll');
+	      	            	$('#tabela_usuario tbody').toggleClass('selected');
 	      	            }
 	                }
 	                

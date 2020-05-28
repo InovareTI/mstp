@@ -211,6 +211,9 @@ function tabela_relatorio(){
 		});
 	}
 }
+function uploadTemplate_rel(id_rel){
+	$('#temp_id_txt').val(id_rel);
+}
 function criar_relatorio(){
 	var tipo_rel=$('#select_tipo_relatorio').find("option:selected").text();
 	$.ajax({

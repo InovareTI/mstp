@@ -46,16 +46,18 @@ response.setDateHeader ("Expires", -1);
 	
 	<link href="js/plugins/photoviewer/photoviewer.css" rel="stylesheet">
 	<link href="js/viewerjs/viewer.css" rel="stylesheet">
-	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.css">
+	
 	<script src="js/jquery-3.2.1.min.js" type="text/javascript"></script>
 	<script src="js/jquery-confirm.min.js" type="text/javascript"></script>
 	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css"/>
 	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.6.1/css/buttons.dataTables.min.css"/>
- 
+ <link rel="stylesheet" type="text/css" href=""/>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
 	<script type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/rowreorder/1.2.6/js/dataTables.rowReorder.min.js"></script>
+	
 	<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.1/js/dataTables.buttons.min.js"></script>
 	<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.1/js/buttons.colVis.min.js"></script>
 	<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.1/js/buttons.flash.min.js"></script>
@@ -488,6 +490,7 @@ response.setDateHeader ("Expires", -1);
 													<li><a class="icon icon-user" href="#" onclick="menu('regras_rollout')">Regras de Automação</a></li>
 													<li><a class="icon icon-key" href="#" onclick="menu('arvore_rollout_conf')">Árvore de Rollout</a></li>
 													<li><a class="icon icon-user" href="#" onclick="menu('vistoria_campos')">Checklist</a></li>
+													<li><a class="icon icon-user" href="#" onclick="menu('importa_rollout')">Importação do Rollout</a></li>
 												</ul></div></li>
 										
 										
@@ -610,7 +613,13 @@ response.setDateHeader ("Expires", -1);
 					        <div id="docking_rollout" style="width:1200px">
 					            <div style="overflow: hidden;width:400px">
 					                <div id="window5" style="height: 350px">
-					                    <div><div id='from'></div></div>
+					                    <div><div>
+						                    	<div style="float:left" id='from'></div>
+						                    	<div style="float:right" >
+						                    		<button class="btn" data-toggle="modal" data-target="#seleciona_rollout_modal">Selecionar Rollout</button>
+						                    	</div>
+					                    	</div>
+					                    </div>
 					                    <div id='grafico_container1_rollout'><div class="loader"></div></div>
 					                </div>
 					                <div id="window6" style="height: 350px">
@@ -742,6 +751,10 @@ response.setDateHeader ("Expires", -1);
 						}
 						</script>
 					</div>
+					<div class="janelas" id="importa_rollout" style="display:none;width:100%;height:100%;">
+					<button class="btn btn-success" data-toggle="modal" data-target="#modal_upload_rollout">Importar Rollout</button>
+					</div>
+					
 					<div class="janelas" id="equipe_diarias" style="display:none;width:100%;height:100%;">
 					
 						<div class="panel panel-primary" style="width:90%;margin:0 auto">
@@ -828,14 +841,17 @@ response.setDateHeader ("Expires", -1);
 		        				<hr>
 		        				<div > 
 		        				<table>
-								        <tr>
-								            
-								            <td>
-								                <div id="divPivotGrid" style="height: 700px; width: 100%;">
-								                </div>
-								            </td>
-								        </tr>
-								    </table>
+									        <tr>
+									            <td>
+									                <div id="divPivotGridDesigner" style="height: 400px; width: 250px;">
+									                </div>
+									            </td>
+									            <td>
+									                <div id="divPivotGrid" style="height: 400px; width: 550px;">
+									                </div>
+									            </td>
+									        </tr>
+									    </table>
 								    </div>
 		        				</div>
 	        		</div>
@@ -1216,30 +1232,37 @@ response.setDateHeader ("Expires", -1);
         		</div>
         		<div class="janelas" id="assinaturas" style="display:none;margin:0 auto;">
         		<div id="tabela_div_assinaturas" style="width:90%;margin:0 auto;">
-        		<table style="width:90%;margin:0 auto;">
-        		<thead>
-        		<th>PayPal</th>
-        		<th>Descrição</th>
-        		</thead>
-        		<tbody><tr><td><div id="btn_assinar1"><button type="button" class="btn btn-info" onclick="inicia_assinatura(1)">Aceitar & Assinar</button></div></td><td>Módulo de controle de ponto com emissao de espelho de ponto até 70 usuários.</td>
-        		
-        		<td>
-					     <A HREF="https://www.paypal.com/cgi-bin/webscr?cmd=_subscr-find&alias=5TTCUD9752CMQ">
-					<IMG SRC="https://www.paypalobjects.com/pt_BR/i/btn/btn_unsubscribe_LG.gif" BORDER="0">
-					</A>
-        		</td>
-        		</tr>
-        		<tr><td><div id="btn_assinar2"><button type="button" class="btn btn-info" onclick="inicia_assinatura(2)">Aceitar & Assinar</button></div></td><td>Módulo de rollout + Mapa Operacional e Base com informações de Site</td>
-        		
-        		<td>
-					     <A HREF="https://www.paypal.com/cgi-bin/webscr?cmd=_subscr-find&alias=5TTCUD9752CMQ">
-							<IMG SRC="https://www.paypalobjects.com/pt_BR/i/btn/btn_unsubscribe_LG.gif" BORDER="0">
-						</A>
-        		</td>
-        		</tr>
-        		</tbody>
-        		
-        		</table>
+        		<div class="panel panel-default" style="width:90%;margin:0 auto">
+	        				<div class="panel-heading">Módulos</div>
+		        				<div class="panel-body">
+		        			
+        				<table id="tabela_assinaturas" class="display" style="color:black;width:100%">
+							        <thead>
+							            <tr>
+							                <th>Nome do Módulo</th>
+							                <th>Descrição</th>
+							                <th>Data Assinatura</th>
+							                <th>Valor</th>
+							                <th>termo de Aceite/th>
+							                <th>Data do Aceite</th>
+							                <th>Assinar</th>
+							            </tr>
+							        </thead>
+							        <tfoot>
+							            <tr>
+							               <th>Nome do Módulo</th>
+							                <th>Descrição</th>
+							                <th>Data Assinatura</th>
+							                <th>Valor</th>
+							                <th>termo de Aceite/th>
+							                <th>Data do Aceite</th>
+							                <th>Assinar</th>
+							            </tr>
+							        </tfoot>
+							    </table>
+							    	
+		        				</div>
+	        		</div>
         		</div>
         		</div>
         		
@@ -1754,7 +1777,53 @@ response.setDateHeader ("Expires", -1);
 				            <li>Grupos</li>
 	        			</ul>
 	        			<div>
-        					<div id="div_tabela_usuario"></div>
+        					<div id="div_tabela_usuario">
+        					<div>
+        					<button  class="btn btn-info" data-toggle="modal" data-target="#modal_user_add">Novo Usuário</button>
+        					<button id="desabilitar_usuario" class="btn btn-danger">Desabilitar Usuário</button>
+        					<button id="btn_reset_senha" type="button" class="btn btn-danger" onclick="reset_senha()">Redefinir Senha</button>
+        					<button id="btn_ferias" class="btn btn-info" onclick="iniciar_ferias()">Agendar Férias de Funcionário</button>
+        					<button id="btn_tipo_usu" class="btn btn-info" onclick="definiTipoUsuario()">Alterar Tipo Usuário</button>
+        					<div class="btn-group" role="group">
+				    		    <button id="btnGroupDrop2" class="btn btn-secondary" aria-haspopup="true" dropdown-toggle data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				    		     Importar
+				    		     <span class="caret"></span>
+				    		    </button>
+				    		    <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+				    		      <li><a class="dropdown-item" href="#">Substuição Completa</a></li>
+				    		      <li><a class="dropdown-item" href="#" data-toggle="modal" data-target="#modal_add_usuarios">Adicionar novos Usuários</a></li>
+				    		      <li><a class="dropdown-item" href="#" data-toggle="modal" data-target="#modal_atualiza_usuarios">Atualizar informações existentes</a></li>
+				    		    </ul>
+			    		    </div>
+			    		    <a href="javascript:window.location='UserMgmt?opt=16'" class="btn btn-primary">Exportar</button>
+    						<a id="template_importar_usuario" href="templates/template_usuarios_mstp.xlsx" type="button" class="btn btn-link btn-info">Template(importação)</a>
+    						
+        					</div>
+        					<table id="tabela_usuario" class="display" style="color:black;width:100%">
+							        <thead>
+							            <tr>
+							                <th>Usuario</th>
+							                <th>Nome</th>
+							                <th>Email</th>
+							                <th>Perfil</th>
+							                <th>Tipo</th>
+							                <th>Validado</th>
+							                <th>Ultimo Acesso</th>
+							            </tr>
+							        </thead>
+							        <tfoot>
+							            <tr>
+							               <th>Usuario</th>
+							                <th>Nome</th>
+							                <th>Email</th>
+							                <th>Perfil</th>
+							                <th>Tipo</th>
+							                <th>Validado</th>
+							                <th>Ultimo Acesso</th>
+							            </tr>
+							        </tfoot>
+							    </table>
+        					</div>
         				</div>
         				<div>
         				
@@ -1823,7 +1892,43 @@ response.setDateHeader ("Expires", -1);
         		</div>
         		<div class="janelas" id="campos_rollout" style="display:none;">
         		<input type="hidden" id="rolloutid_campos_conf" value="">
-				<div id="div_tabela_campos_rollout"></div>
+				<div id="div_tabela_campos_rollout" style="height: 100%">
+				<div id="painel_operacoes_regras_rollout" class="panel panel-primary" style="width:90%;margin:0 auto;">
+        					<div class="panel-heading"><h3 class="panel-title">Campos dos Rollouts</h3></div>
+		        			<div class="panel-body">
+		        				<button class="btn btn-primary" id="btn_novo_campo_rollout" data-toggle="modal" data-target='#Modal_campos_rollout'>Novo Campo</button>
+		        				<button class="btn btn-primary" id="btn_edita_campo_rollout" onclick="edita_campos_rollout()">Editar Campo</button>
+		        				<select id="select_rollout_campos" class="selectpicker" data-live-search="true" title="Escolha o Rollout" onchange="carrega_tabela_campos_rollout(this.value)"></select>
+		        			</div>
+		        </div>
+				<div id="painel_operacoes_regras_rollout" class="panel panel-primary" style="width:90%;margin:0 auto;">
+        					<div class="panel-heading"><h3 class="panel-title">Campos dos Rollouts</h3></div>
+		        			<div class="panel-body">
+		        				 <table id="tabela_campos_rollout" class="display" style="color:black;width:100%">
+					        <thead>
+					            <tr>
+					                <th>Ordem</th>
+					                <th>Campo</th>
+					                <th>Tipo</th>
+					                <th>Valor</th>
+					                <th>Status</th>
+					                
+					            </tr>
+					        </thead>
+					        <tfoot>
+					            <tr>
+					                <th>Ordem</th>
+					                <th>Campo</th>
+					                <th>Tipo</th>
+					                <th>Valor</th>
+					                <th>Status</th>
+					            </tr>
+					        </tfoot>
+					    </table>
+	        				</div>
+        			</div>
+					
+				</div>
 			</div>
         		 <div class="janelas" id="senha" style="display:none;">
         	<div class="form-group">
@@ -2027,6 +2132,30 @@ response.setDateHeader ("Expires", -1);
   </div>
 </div>
 
+
+
+<div id="seleciona_rollout_modal" class="modal fade subconpo" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title label_janelas">Seleciona Rollout</h4>
+      </div>
+      <div class="modal-body">
+      	<select  id="select_dashboard_rollout" class="selectpicker" data-live-search="true" title="Escolha o rollout" onchange="g1(2,'grafico_container1_rollout');"></select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
 <div id="modal_lanca_autorizacaoHeretro" class="modal fade subconpo" role="dialog">
   <div class="modal-dialog">
 
@@ -2158,7 +2287,7 @@ response.setDateHeader ("Expires", -1);
       		<tr><td style="padding: 10px"><label class="control-label label_janelas">Nome do Campo</label></td></tr>
 	        <tr><td style="padding: 10px"><input type="text" class="form-control" id="nome_campo_rollout"></td></tr>
 	        <tr><td style="padding: 10px"><label class="control-label label_janelas">Tipo do Campo</label></td></tr>
-	        <tr><td style="padding: 10px" class="label_janelas"><select class="form-control" id="tipo_campo_rollout" onchange="mostra_div(this.value)"><option>Milestone</option><option>Atributo</option></select><br><div id="chk_pgto" class="checkbox"><label class="control-label label_janelas"><input type="checkbox" id="trigger_pagamento" onclick="habilita_campo(this)">Aciona Pagamento</label><br><label class="control-label label_janelas">Percentual Pagamento</label><br><input type="text" class="form-control label_janelas" id="percent_pagamento" disabled="disabled"></div><div id="div_campo_atributo" style="display:none"><select class="form-control label_janelas" id="tipo_atributo_rollout" onchange="mostra_div_lista(this.value)"><option>-</option><option>Texto</option><option>Data</option><option>Numero</option><option>Lista</option></select></div><br><div id="div_campo_atributo_lista" style="display:none"><input type="text" class="form-control label_janelas" id="lista_atributo">Coloque os valores separados por virgula(,).</div></td></tr>
+	        <tr><td style="padding: 10px" class="label_janelas"><select class="form-control" id="tipo_campo_rollout" onchange="mostra_div(this.value)"><option>Milestone</option><option>Atributo</option></select><br><div id="chk_pgto" class="checkbox"><label class="control-label label_janelas"><input type="checkbox" id="trigger_pagamento" onclick="habilita_campo(this)">Aciona Pagamento</label><br><label class="control-label label_janelas">Percentual Pagamento</label><br><input type="text" class="form-control label_janelas" id="percent_pagamento" disabled="disabled"></div><div id="div_campo_atributo" style="display:none"><select class="form-control label_janelas" id="tipo_atributo_rollout" onchange="mostra_div_lista(this.value)"><option>-</option><option>Texto</option><option>Data</option><option>Numero</option><option>Lista</option><option>Moeda(R$)</option></select></div><br><div id="div_campo_atributo_lista" style="display:none"><input type="text" class="form-control label_janelas" id="lista_atributo">Coloque os valores separados por virgula(,).</div></td></tr>
 			<tr><td style="padding: 10px"><label class="control-label label_janelas">Descrição</label></td></tr>
 	        <tr><td style="padding: 10px"><input type="text" class="form-control" id="desc_campo_rollout"></td></tr>      	
       	</table>
@@ -2564,6 +2693,32 @@ response.setDateHeader ("Expires", -1);
 
   </div>
 </div>
+
+<div id="modal_upload_template_checklist" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+      <input type="hidden" value='' id='temp_id_txt'/>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title" style="color:black">Carregar Template de Relatório</h4>
+      </div>
+      <div class="modal-body">
+     
+			<hr>
+        <label class="control-label" style="color:black">Selecionar Arquivo</label>
+		<input id="input_5_arq" name="total_input5[]" type="file" >	
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <div id="modal_campos_vistoria2" class="modal fade" role="dialog">
   <div class="modal-dialog modal-lg">
 
@@ -2747,7 +2902,7 @@ response.setDateHeader ("Expires", -1);
   </div>
 </div> 
 <div id="PO_upload_Modal" class="modal fade" role="dialog">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
 
     <!-- Modal content-->
     
@@ -2759,8 +2914,9 @@ response.setDateHeader ("Expires", -1);
       <div class="modal-body">
       <table >
       		<tr>
-      		<td style="padding: 10px"><select class="form-control" required id="cliente_carrega_po" onchange="carrega_select_projeto(this.value)"><option>Cliente...</option></select></td>
-	        <td style="padding: 10px"><select class="form-control" required id="projeto_carrega_po"><option>Projeto...</option></select></td>
+      		<td style="padding: 10px"><select class="selectpicker" data-live-search="true" id="cliente_carrega_po" onchange="carrega_select_projeto(this.value)" title="Selecione o Cliente"></select></td>
+	        <td style="padding: 10px"><select class="selectpicker" data-live-search="true" id="projeto_carrega_po" title="Selecione o Projeto"></select></td>
+	        <td style="padding: 10px"><select class="selectpicker" data-live-search="true" id="select_rollout_carrega_po" title="Selecione o Rollout"></select></td>
 	        </tr>
       	</table>
 			<hr>

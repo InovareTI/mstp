@@ -82,6 +82,6 @@ function carrega_select_projeto(cliente){
 	{
 		
 		$("#projeto_carrega_po").html(data);
-		
+		$("#projeto_carrega_po").selectpicker('refresh');
 	}
 }

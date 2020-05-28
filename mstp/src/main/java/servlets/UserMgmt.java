@@ -2004,48 +2004,31 @@ public class UserMgmt extends HttpServlet {
 				
 				String retornaSenha="";
 				MessageDigest md;
-				String [] usuarios;
+				//String [] usuarios;
 				md = MessageDigest.getInstance( "SHA-256" );
 				param1=req.getParameter("usuarios");
 				param2=req.getParameter("senha");
+				System.out.println(param1);
+				JSONArray linhas = new JSONArray(param1);
+				JSONArray usuarios;
 				md.update( (param2).getBytes());     
-			    BigInteger hash = new BigInteger(1,md.digest() );     
+			    BigInteger hash = new BigInteger(1,md.digest() );  
 			    retornaSenha = hash.toString(16); 
-				//System.out.println(param1);
-				//System.out.println(param2);
-				if(param1.indexOf(",")>0) {
-					usuarios=param1.split(",");
-					for(int u=0;u<usuarios.length;u++) {
-						query="update usuarios set HASH='"+retornaSenha+"' where id_usuario='"+usuarios[u]+"' and empresa='"+p.getEmpresa().getEmpresa_id()+"'";
-						if(conn.Alterar(query)) {
-							resp.setContentType("application/html");  
-							resp.setCharacterEncoding("UTF-8"); 
-							PrintWriter out = resp.getWriter();
-							out.print("Senhas Redefinidas");
-							rs=conn.Consulta("select email,nome from usuarios where id_usuario='"+usuarios[u]+"' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
-							if(rs.next()) {
-								email.enviaEmailSimples(rs.getString("email"), "MSTP - Notificação de Alteração de Senha","Prezado "+rs.getString("nome")+", \n Informamos que sua senha foi alterada em "+time+" por "+p.get_PessoaName()+". \n \n \n Caso deseje voce pode alterar sua senha em www.mstp.com.br! \n \n \n Acesse: https://www.mstp.com.br\n\n Seu usuário: "+usuarios[u]+"\n \n Sua Senha é: "+param2 +"\n \n Acesse o link abaixo em seu aparelho celular para baixar o MSTP Mobile (android): \n Google Play \n \n  Acesse nosso canal no youtube e saiba mais sobre o MSTP \n \n https://www.youtube.com/channel/UCxac14HGRuq7wcMgpc4tFXw");
-								email.enviaEmailSimples(p.getEmail(), "MSTP - Notificação de Alteração de Senha - Cópia","Prezado "+rs.getString("nome")+", \n Informamos que sua senha foi alterada em "+time+" por "+p.get_PessoaName()+". \n \n \n Caso deseje voce pode alterar sua senha em www.mstp.com.br! \n \n \n Acesse: https://www.mstp.com.br\n\n Seu usuário: "+usuarios[u]+"\n \n Sua Senha é: "+param2 +"\n \n Acesse o link abaixo em seu aparelho celular para baixar o MSTP Mobile (android): \n Google Play \n \n  Acesse nosso canal no youtube e saiba mais sobre o MSTP \n \n https://www.youtube.com/channel/UCxac14HGRuq7wcMgpc4tFXw");
-							}
-							}
-					}
-					
-				}else {
-					query="update usuarios set HASH='"+retornaSenha+"' where id_usuario='"+param1+"' and empresa='"+p.getEmpresa().getEmpresa_id()+"'";
+				for(int indice=0;indice<linhas.length();indice++) {
+					usuarios = linhas.getJSONArray(indice);
+					query="update usuarios set HASH='"+retornaSenha+"' where id_usuario='"+usuarios.get(0)+"' and empresa='"+p.getEmpresa().getEmpresa_id()+"'";
 					if(conn.Alterar(query)) {
-						resp.setContentType("application/html");  
-						resp.setCharacterEncoding("UTF-8"); 
-						PrintWriter out = resp.getWriter();
-						out.print("Senha Redefinida");
-						rs=conn.Consulta("select email,nome from usuarios where id_usuario='"+param1+"' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
-						if(rs.next()) {
-							email.enviaEmailSimples(rs.getString("email"), "MSTP - Notificação de Alteração de Senha","Prezado "+rs.getString("nome")+", \n Informamos que sua senha foi alterada em "+time+" por "+p.get_PessoaName()+". \n \n \n Caso deseje voce pode alterar sua senha em www.mstp.com.br! \n \n \n Acesse: http://www.mstp.com.br\n\n Seu usuário: "+param1+"\n \n Sua Senha é: "+param2 +"\n \n Acesse o link abaixo em seu aparelho celular para baixar o MSTP Mobile (android): \n http://inovareti.jelasticlw.com.br/mstp_mobile/download/mstp_mobile_last_version.apk \n \n  Acesse nosso canal no youtube e saiba mais sobre o MSTP \n \n https://www.youtube.com/channel/UCxac14HGRuq7wcMgpc4tFXw");
-							email.enviaEmailSimples(p.getEmail(), "MSTP - Notificação de Alteração de Senha - Cópia","Prezado "+rs.getString("nome")+", \n Informamos que sua senha foi alterada em "+time+" por "+p.get_PessoaName()+". \n \n \n Caso deseje voce pode alterar sua senha em www.mstp.com.br! \n \n \n Acesse: http://www.mstp.com.br\n\n Seu usuário: "+param1+"\n \n Sua Senha é: "+param2 +"\n \n Acesse o link abaixo em seu aparelho celular para baixar o MSTP Mobile (android): \n http://inovareti.jelasticlw.com.br/mstp_mobile/download/mstp_mobile_last_version.apk \n \n  Acesse nosso canal no youtube e saiba mais sobre o MSTP \n \n https://www.youtube.com/channel/UCxac14HGRuq7wcMgpc4tFXw");
-						}
-					}
+						email.enviaEmailSimples(usuarios.getString(2), "MSTP - Notificação de Alteração de Senha","Prezado "+usuarios.get(1)+", \n Informamos que sua senha foi alterada em "+time+" por "+p.get_PessoaName()+". \n \n \n Caso deseje voce pode alterar sua senha em www.mstp.com.br! \n \n \n Acesse: https://www.mstp.com.br\n\n Seu usuário: "+usuarios.get(0)+"\n \n Sua Senha é: "+param2 +"\n \n Acesse o link abaixo em seu aparelho celular para baixar o MSTP Mobile (android): \n Google Play \n \n  Acesse nosso canal no youtube e saiba mais sobre o MSTP \n \n https://www.youtube.com/channel/UCxac14HGRuq7wcMgpc4tFXw");
+						email.enviaEmailSimples(p.getEmail(), "MSTP - Notificação de Alteração de Senha - Cópia","Prezado "+usuarios.get(1)+", \n Informamos que sua senha foi alterada em "+time+" por "+p.get_PessoaName()+". \n \n \n Caso deseje voce pode alterar sua senha em www.mstp.com.br! \n \n \n Acesse: https://www.mstp.com.br\n\n Seu usuário: "+usuarios.get(0)+"\n \n Sua Senha é: "+param2 +"\n \n Acesse o link abaixo em seu aparelho celular para baixar o MSTP Mobile (android): \n Google Play \n \n  Acesse nosso canal no youtube e saiba mais sobre o MSTP \n \n https://www.youtube.com/channel/UCxac14HGRuq7wcMgpc4tFXw");
 					
+					}
 				}
-				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				   
+				resp.setContentType("application/json");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				out.print("Senha(s) alterada(s) com sucesso");
+			    Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 				}
 				}else if(opt.equals("25")){
@@ -2115,7 +2098,12 @@ public class UserMgmt extends HttpServlet {
 		    		resp.setContentType("application/html");  
 		    		resp.setCharacterEncoding("UTF-8"); 
 		    		PrintWriter out = resp.getWriter();
-		    		out.print(last_id);
+		    		if(last_id>0) {
+		    			out.print("501 - Usuário criado com sucesso");
+		    		}else {
+		    			out.print("502 - Erro na criação do usuário");
+		    		}
+    			
     			
     			}else{
 	    			System.out.println("Consulta returns empty");

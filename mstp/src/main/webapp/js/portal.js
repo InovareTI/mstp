@@ -324,7 +324,7 @@ function carrega_portalRollout(){
 		 $("#from2").on('change', function (event) {
 	        g9(1,'grafico_container2_rollout');
 	    });
-		 g1(1,'grafico_container1_rollout');
+		 g1(0,'grafico_container1_rollout');
 		 g9(1,'grafico_container2_rollout');
 		
 	}

@@ -28,6 +28,7 @@ import classes.RelatorioOperacionalDiario;
 import classes.RolloutAtualizaDuracao;
 import classes.RolloutDataAtrasada;
 import classes.RolloutNaoIniciadas;
+import classes.StatusMilestone;
 import classes.PreChekToCheckJob;
 import classes.RegrasRollout;
 
@@ -59,8 +60,8 @@ public class rolloutDTAtrasada extends HttpServlet {
 		try {
 			
 			Scheduler sched = sf.getScheduler();
-			JobDetail job = newJob(RolloutDataAtrasada.class)
-				    .withIdentity("jobRolloutDtAtrasadas", "group1")
+			JobDetail job = newJob(StatusMilestone.class)
+				    .withIdentity("jobStatusMilestone", "group1")
 				    
 				    .build();
 			JobDetail job2 = newJob(RolloutAtualizaDuracao.class)
@@ -80,7 +81,7 @@ public class rolloutDTAtrasada extends HttpServlet {
 				    .build();
 			CronTrigger trigger = newTrigger()
 				    .withIdentity("trigger1", "group1")
-				    .withSchedule(cronSchedule("0 0 8 ? * MON,TUE,WED,THU,FRI *"))
+				    .withSchedule(cronSchedule("0 0 6 1/1 * ? *"))
 				    .build();
 			CronTrigger trigger2 = newTrigger()
 				    .withIdentity("trigger2", "group1")
@@ -100,10 +101,10 @@ public class rolloutDTAtrasada extends HttpServlet {
 				    .build();
 			CronTrigger trigger6 = newTrigger()
 				    .withIdentity("trigger6", "group2")
-				    .withSchedule(cronSchedule("0 47 10/2 ? * MON,TUE,WED,THU,FRI,SAT,SUN *"))
+				    .withSchedule(cronSchedule("0 0 6/2 ? * MON,TUE,WED,THU,FRI,SAT,SUN *"))
 				    .build();
-			//sched.scheduleJob(job, trigger);
-			//sched.scheduleJob(job2, trigger2);
+			sched.scheduleJob(job, trigger);
+			sched.scheduleJob(job2, trigger2);
 			//sched.scheduleJob(job3, trigger3);
 			//sched.scheduleJob(job4, trigger4);
 			//sched.scheduleJob(job5, trigger5);

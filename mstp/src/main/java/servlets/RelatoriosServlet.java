@@ -1,12 +1,16 @@
 package servlets;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.NumberFormat;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.ServletConfig;
@@ -16,6 +20,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.json.JSONObject;
 
 import classes.Conexao;
 import classes.Pessoa;
@@ -127,7 +137,7 @@ public class RelatoriosServlet extends HttpServlet {
 					dados_tabela=dados_tabela+"\"data\":[";
 					while(rs.next()) {
 						contador=contador+1;
-						dados_tabela=dados_tabela+"[\"<a href='#' onclick='edita_relatorio_info("+rs.getInt("id")+")'><i class='far fa-edit fa-lg' style='color:gray;padding:3px;'></i></a><a href='#' data-toggle='modal' data-target='#modal_campos_vistoria2' onclick='carrega_campos_relatorio("+rs.getInt("id")+")'><i class='fas fa-cogs fa-lg' style='color:gray;padding:3px;'></i></a><a href='#' onclick='remover_relatorio("+rs.getInt("id")+")'><i class='far fa-trash-alt fa-lg' style='color:red;padding:3px;'></i></a>\",\""+rs.getString("relatorio_nome")+"\",\""+rs.getString("descricao")+"\",\""+rs.getString("tipo_relatorio")+"\",\""+rs.getString("generated_by")+"\",\""+rs.getString("dt_generated")+"\"],\n";
+						dados_tabela=dados_tabela+"[\"<a href='#' onclick='edita_relatorio_info("+rs.getInt("id")+")'><i class='far fa-edit fa-lg' style='color:gray;padding:3px;'></i></a><a href='#' data-toggle='modal' data-target='#modal_campos_vistoria2' onclick='carrega_campos_relatorio("+rs.getInt("id")+")'><i class='fas fa-cogs fa-lg' style='color:gray;padding:3px;'></i></a><a href='#' data-toggle='modal' data-target='#modal_upload_template_checklist' onclick='uploadTemplate_rel("+rs.getInt("id")+")'><i class='fas fa-upload fa-lg' style='color:gray;padding:3px;'></i></a><a href='#' onclick='remover_relatorio("+rs.getInt("id")+")'><i class='far fa-trash-alt fa-lg' style='color:red;padding:3px;'></i></a>\",\""+rs.getString("relatorio_nome")+"\",\""+rs.getString("descricao")+"\",\""+rs.getString("tipo_relatorio")+"\",\""+rs.getString("generated_by")+"\",\""+rs.getString("dt_generated")+"\"],\n";
 					}
 					dados_tabela=dados_tabela.replace("replace1", Integer.toString(contador));
 					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
@@ -281,11 +291,54 @@ public class RelatoriosServlet extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print("[\""+rs.getString("relatorio_nome")+"\",\""+rs.getString("descricao")+"\",\""+rs.getString("tipo_relatorio")+"\"]");
 				}
+			} else if(opt.equals("8")){
+				InputStream inputStream=null;
+				
+				if (ServletFileUpload.isMultipartContent(req)) {
+					List<FileItem> multiparts;
+					
+						multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
+					
+					Iterator<FileItem> iter = multiparts.iterator();
+					Integer num_rel = 0;
+					while (iter.hasNext()) {
+						FileItem item = iter.next();
+						if (item.isFormField()) {
+							num_rel=Integer.parseInt(item.getString());
+						}
+					}
+					iter = multiparts.iterator();
+					while (iter.hasNext()) {
+						FileItem item = iter.next();
+						if (item.isFormField()) {
+						       System.out.println("valor do item é:" + item.getString());
+						}else{
+							System.out.println("Iniciando Uplaod de Template");
+							inputStream = item.getInputStream();
+							String sql = "update vistoria_report set report_template=?,report_template_nome=?,report_template_tipo=? where id="+num_rel+" and empresa="+p.getEmpresa().getEmpresa_id();
+							PreparedStatement statement;
+							statement = conn.getConnection().prepareStatement(sql);
+							statement.setBlob(1, inputStream);
+							statement.setString(2,item.getName());
+							statement.setString(3,item.getContentType());
+							int linha = statement.executeUpdate();
+						    statement.getConnection().commit();
+						    resp.setContentType("application/json"); 
+				        	JSONObject jsonObject = new JSONObject(); 
+				        	jsonObject.put("Sucesso", "Sucesso"); 
+				        	PrintWriter pw = resp.getWriter();
+				        	pw.print(jsonObject); 
+						}
+					}
+				}
 			}
 		}catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+		} catch (FileUploadException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 }

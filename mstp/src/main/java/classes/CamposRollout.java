@@ -56,7 +56,7 @@ public class CamposRollout {
 		JSONArray dados= new JSONArray() ;
 		JSONObject jsonObject = new JSONObject(); 
 		try {
-		String query="select field_name,field_type,tipo,ordenacao,regraPinta from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id() + " and rollout_nome='"+rolloutid+"' order by ordenacao asc";
+		String query="select field_name,field_type,tipo,ordenacao,regraPinta,Atributo_parametro from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id() + " and rollout_nome='"+rolloutid+"' order by ordenacao asc";
 		rs=c.Consulta(query);
 		
 			if(rs.next()) {
@@ -70,6 +70,7 @@ public class CamposRollout {
 					dados.put(rs.getInt(4));
 					dados.put(rs.getString(1));
 					dados.put(rs.getString(5));
+					dados.put(rs.getString(6));
 					jsonObject.put(rs.getString(1),dados);
 					
 				}
@@ -85,18 +86,25 @@ public class CamposRollout {
 		}
 		return jsonObject;
 	}
-	public String[] getCamposOrdenados(Conexao c, Pessoa p) {
+	public String[] getCamposOrdenados(Conexao c, Pessoa p, String rollout) {
 		ResultSet rs;
-		String[] dados=null;
-		int i=0;
 		
-		String query="select field_name,field_type,tipo,ordencao from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id() + " order by ordenacao asc";
-		rs=c.Consulta(query);
+		int i=0;
+		String query="";
+		Integer quantidade_campos=0;
 		try {
+		query="select count(field_name) from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id() +" and rollout_nome='"+rollout+"' order by ordenacao asc";
+		rs=c.Consulta(query);
+		if(rs.next()) {
+			quantidade_campos=rs.getInt(1);
+		}
+		String[] dados=new String[quantidade_campos];
+		query="select field_name from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id() +" and rollout_nome='"+rollout+"' order by ordenacao asc";
+		rs=c.Consulta(query);
+		
 			if(rs.next()) {
 				//campo_tipo=rs.getString(1);
 				rs.beforeFirst();
-				
 				while(rs.next()) {
 					dados[i]=rs.getString(1);
 					i=i+1;
@@ -104,11 +112,13 @@ public class CamposRollout {
 			}else {
 				campo_tipo="Campo nao encontrado";
 			}
+			return dados;
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return null;
 		}
-		return dados;
+		
 	}
 	public void setCampo_tipo(String campo_tipo) {
 		this.campo_tipo = campo_tipo;

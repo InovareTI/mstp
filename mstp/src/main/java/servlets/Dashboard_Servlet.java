@@ -176,7 +176,7 @@ public class Dashboard_Servlet extends HttpServlet {
 				tabela=tabela+"{\"name\":\"SEM PO\","+"\n";
 				tabela=tabela+" \"data\":[0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00]}]";
 			}
-			  System.out.println(tabela);
+			  //System.out.println(tabela);
     		  resp.setContentType("application/json");  
     		  resp.setCharacterEncoding("UTF-8"); 
     		 // resp.getWriter().write(tabela); 
@@ -189,12 +189,69 @@ public class Dashboard_Servlet extends HttpServlet {
 		}else if(opt.equals("3")){
 			dtfrom=req.getParameter("dtfrom");
 			dtto=req.getParameter("dtto");
+			String rollout = req.getParameter("rollout");
+			//System.out.println(rollout);
 			SimpleDateFormat format = new SimpleDateFormat(padrao_data_br);
 			Date i = format.parse(dtfrom);
 			Date f = format.parse(dtto);
 			ConexaoMongo mongo= new ConexaoMongo();
+			rs = conn.Consulta("select field_name,rollout_id,rollout_nome from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+rollout+"' order by rollout_id");
 			Bson filtro;
-			String milestone="";
+			//String milestone="";
+			List<Bson> filtros = new ArrayList<>();
+			if(rs.next()) {
+				rs.beforeFirst();
+				tabela="{\"categorias\":[\"Incio Planejado\",\"Fim Planejado\",\"Inicio Real\",\"Fim Real\"],";
+				tabela=tabela+"\"dados\":[";
+				while(rs.next()) {
+					filtros.clear();
+					filtros = new ArrayList<>();
+					filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+					filtros.add(filtro);
+					filtro=Filters.eq("Linha_ativa","Y");
+					filtros.add(filtro);
+					filtro=Filters.eq("rolloutId",rollout);
+					filtros.add(filtro);
+					filtro=Filters.elemMatch("Milestone", Filters.gte("edate_"+rs.getString("field_name"),i));
+					filtros.add(filtro);
+					filtro=Filters.elemMatch("Milestone", Filters.lte("edate_"+rs.getString("field_name"),f));
+					filtros.add(filtro);
+					Long totalFimReal= mongo.CountSimplesComFiltroInicioLimit("rollout", filtros);
+
+					filtros.remove(filtros.size()-1);
+					filtros.remove(filtros.size()-1);
+					
+					filtro=Filters.elemMatch("Milestone", Filters.gte("sdate_pre_"+rs.getString("field_name"),i));
+					filtros.add(filtro);
+					filtro=Filters.elemMatch("Milestone", Filters.lte("sdate_pre_"+rs.getString("field_name"),f));
+					filtros.add(filtro);
+					
+					Long totalInicioPrevisto= mongo.CountSimplesComFiltroInicioLimit("rollout", filtros);
+					filtros.remove(filtros.size()-1);
+					filtros.remove(filtros.size()-1);
+					filtro=Filters.elemMatch("Milestone", Filters.gte("edate_pre_"+rs.getString("field_name"),i));
+					filtros.add(filtro);
+					filtro=Filters.elemMatch("Milestone", Filters.lte("edate_pre_"+rs.getString("field_name"),f));
+					filtros.add(filtro);
+					Long totalFimPrevisto= mongo.CountSimplesComFiltroInicioLimit("rollout", filtros);
+					filtros.remove(filtros.size()-1);
+					filtros.remove(filtros.size()-1);
+					filtro=Filters.elemMatch("Milestone", Filters.gte("sdate_"+rs.getString("field_name"),i));
+					filtros.add(filtro);
+					filtro=Filters.elemMatch("Milestone", Filters.lte("sdate_"+rs.getString("field_name"),f));
+					filtros.add(filtro);
+					Long totalInicioReal= mongo.CountSimplesComFiltroInicioLimit("rollout", filtros);
+					
+					tabela=tabela+"{\"name\":\""+rs.getString("field_name")+"\",";
+					tabela=tabela+"\"data\":["+totalInicioPrevisto+","+totalFimPrevisto+","+totalInicioReal+","+totalFimReal+"]},";
+				}
+				tabela=tabela.substring(0,tabela.length()-1);
+				tabela=tabela+"]}";
+			}else {
+				tabela="{\"categorias\":[\"Incio Planejado\",\"Fim Planejado\",\"Inicio Real\",\"Fim Real\"],";
+				tabela=tabela+"\"dados\":[{\"name\":\"Sem Milestone\",\"data\":[0,0,0,0]}]}";
+			}
+			/*
 			if(p.getEmpresa().getEmpresa_id()==8) {
 				milestone="TSS";
 			}else if(p.getEmpresa().getEmpresa_id()==1) {
@@ -204,7 +261,7 @@ public class Dashboard_Servlet extends HttpServlet {
 			}else {
 				milestone="Sem Milestone Definido";
 			}
-			List<Bson> filtros = new ArrayList<>();
+			
 			filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
 			filtros.add(filtro);
 			filtro=Filters.eq("Linha_ativa","Y");
@@ -257,8 +314,8 @@ public class Dashboard_Servlet extends HttpServlet {
 			Long totalFimReal= mongo.CountSimplesComFiltroInicioLimit("rollout", filtros);
 			tabela=tabela+"{\"name\":\"Fim Real\","+"\n";
 			tabela=tabela+" \"data\":["+totalFimReal+"]}]";
-			
-				System.out.println(tabela);
+			*/
+				//System.out.println("Grafico de barras de milestones:"+tabela);
 				resp.setContentType("application/json");  
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
@@ -655,7 +712,7 @@ public class Dashboard_Servlet extends HttpServlet {
 				
 			
 		}catch (Exception e) {
-			conn.fecharConexao();
+			//conn.fecharConexao();
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

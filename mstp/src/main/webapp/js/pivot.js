@@ -3,15 +3,59 @@ function init_pivot(){
 	var data1 = new Array();
 	 var localization = getLocalization('pt-BR');
     $.getJSON('./RolloutServlet?opt=10', function(data) {
-    	myPivot_design = new dhx.Pivot("divPivotGrid", {
-    	    data: data.records,                 
-    	    fields: {
-    	        rows: [],
-    	        columns: [],
-    	        values: [],
-    	    },
-    	    fieldList: data.campos2
-    	});
+    	
+    	 var source =
+         {
+             localdata: data.records,
+             datatype: "array",
+             datafields:data.campos,
+             
+         };
+         var dataAdapter = new $.jqx.dataAdapter(source);
+         dataAdapter.dataBind();
+         
+         var pivotDataSource = new $.jqx.pivot(
+                 dataAdapter,
+                 {
+                     customAggregationFunctions: {
+                         'weeknum': function (values) {
+                        	 console.log(values);
+                             if (values.length <= 1)
+                                 return 'W0';
+                             for (var i = 0; i < values.length; i++){
+                            	 
+                             }
+                             var d = Date.parse(values);
+                             var semana=moment().week(d);
+                             console.log("semana:" +semana);
+                             return "W"+semana;
+                         }
+                     },
+                     pivotValuesOnRows: false,
+                     fields: data.campos2,
+                     rows: [],
+                     columns: [],
+                     filters: [],
+                     values: []
+                 });
+         	var localization = { 'weeknum': 'ContaWeek' };
+         // create a pivot grid
+         $('#divPivotGrid').jqxPivotGrid(
+         {
+             localization: localization,
+             source: pivotDataSource,
+             treeStyleRows: false,
+             autoResize: false,
+             multipleSelectionEnabled: true
+         });
+         var pivotGridInstance = $('#divPivotGrid').jqxPivotGrid('getInstance');
+         // create a pivot grid
+         $('#divPivotGridDesigner').jqxPivotDesigner(
+         {
+             type: 'pivotGrid',
+             target: pivotGridInstance
+         });
+    	
     });
     $button = $('#salvar_pivot_btn');
     $button.click(function () {

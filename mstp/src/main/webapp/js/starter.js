@@ -7,28 +7,27 @@
 	var row = JSON.parse(text);
 	var milestone_pg;
 	var map;
+	var dados_rollout;
 	var myDoughnut;
 	var myDoughnut2;
 	var timer;
 	var optionsKanban=JSON.parse("{}");
 	//var mymap;
 $(document).ready(function () {
-	
-			geral.perfil="";
-			geral.banco="0";
-            carrega_perfil();
-            timer = new easytimer.Timer();
-            carrega_portal();
-            
+	        geral.perfil="";
+	        geral.banco="0";
+	        carrega_perfil();
+	        
+	        carrega_portal();
+            carrega_cliente_table();
+           
             var Meusdockings = function (tab) {
                 switch (tab) {
                 case 1:
                 	$('#docking').jqxDocking({  orientation: 'horizontal', mode: 'docked',theme: 'material' });
                 	$.ajax({
               		  type: "POST",
-              		  data: {"opt":"21"
-              			
-              			},		  
+              		  data: {"opt":"21"},		  
               		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
               		  url: "./POControl_Servlet",
               		  cache: false,
@@ -61,9 +60,10 @@ $(document).ready(function () {
                 	break;    
                 case 2:
                     	$('#docking_rollout').jqxDocking({  orientation: 'horizontal',width:1200, mode: 'docked',theme: 'material' });
+                    	
                     	carrega_portalRollout();
                     	break;
-                    case 3:
+                case 3:
                     	$('#docking_PO').jqxDocking({  orientation: 'horizontal',width:1200, mode: 'docked',theme: 'material' });
                         break;
                 }
@@ -379,7 +379,7 @@ $(document).ready(function () {
                  }
              });
          
-            carrega_tree_rollout();
+            
             calcula_quantidade_hh_disponivel();
             $("#input_sites_arq").fileinput({
             	language: "pt-BR",
@@ -420,6 +420,19 @@ $(document).ready(function () {
 			    allowedFileExtensions: ['xlsx'],
 			    maxFileCount: 5
 			});
+            $("#input_5_arq").fileinput({
+            	language: "pt-BR",
+			    uploadUrl: "./RelatoriosServlet?opt=8", // server upload action
+			    uploadAsync: false,
+			    allowedFileExtensions: ['xlsx'],
+			    maxFileCount: 5,
+			    uploadExtraData:function (previewId, index) {
+			        var obj = {rel_id:$("#temp_id_txt").val()};
+			        //obj[0]=$("#cliente_carrega_po").val();
+			        //obj[1]=$("#projeto_carrega_po").val()
+			        return obj;
+			    }
+			});
            
             $("#input_PO_file").fileinput({
 			    uploadUrl: "./POControl_Servlet?opt=12", 
@@ -427,12 +440,27 @@ $(document).ready(function () {
 			    allowedFileExtensions: ['pdf', 'xls', 'xlsx'],
 			    maxFileCount: 5,
 			    uploadExtraData:function (previewId, index) {
-			        var obj = {cliente:$("#cliente_carrega_po").val(),projeto:$("#projeto_carrega_po").val()};
+			        var obj = {cliente:$("#cliente_carrega_po").val(),projeto:$("#projeto_carrega_po").val(),rolloutid:$("#select_rollout_carrega_po").val()};
 			        //obj[0]=$("#cliente_carrega_po").val();
 			        //obj[1]=$("#projeto_carrega_po").val()
 			        return obj;
 			    }
-			}).on('fileuploaded', function(event, data, previewId, index) {
+			}).on('filebatchpreupload', function(event, data) {
+				
+		        if($("#cliente_carrega_po").val()=="" || $("#cliente_carrega_po").val()==null || $("#projeto_carrega_po").val()=="" || $("#projeto_carrega_po").val()==null || $("#select_rollout_carrega_po").val()=="" || $("#select_rollout_carrega_po").val()==null){
+		        	return {
+		                message: "Selecione corretamente os dados.", // upload error message
+		                data:{} // any other data to send that can be referred in `filecustomerror`
+		            };
+		        }
+		        var rollout_aux=$('#select_rollout_carrega_po').find("option:selected").text();
+		        if (!window.confirm("Confirmar Rollout selecionado : " + rollout_aux + "?")) {
+		            return {
+		                message: "Carregamento Cancelado!", // upload error message
+		                data:{} // any other data to send that can be referred in `filecustomerror`
+		            };
+		        }
+		    }).on('fileuploaded', function(event, data, previewId, index) {
 				carrega_PO(0);
 		});
             $("#input_usuario2_arq").fileinput({
@@ -466,13 +494,9 @@ $(document).ready(function () {
                     return strengthValue;
                 }
             });
+           
             
-            carrega_tabela_campos_rollout();
-            //if(geral.perfil.search("RolloutView")>=0 || geral.perfil.search("RolloutManager")>=0){
-            	
-            	carrega_gant();
             
-            carrega_cliente_table();
             load_site_markers();
             carrega_select_func_ponto();
             carrega_usuarios();
@@ -723,20 +747,15 @@ $(document).ready(function () {
 });
 function inicia_assinatura2(){
 	 if(geral.perfil.search("AssinaturaManager")>=0){
-		$.ajax({
-			  type: "POST",
-			  data: {"opt":"37"},		  
-			  //url: "http://localhost:8080/DashTM/D_Servlet",	  
-			  url: "./POControl_Servlet",
-			  cache: false,
-			  dataType: "text",
-			  success: onSuccessinicia_assinatura2
+		 $('#tabela_assinaturas').DataTable({
+				"searching": true,
+			    "ordering": false,
+			    "lengthChange": false,
+			    "processing": true,
+		        "ajax": './POControl_Servlet?opt=37',
+		        "lengthMenu": [10,20]
 			});
-		function onSuccessinicia_assinatura2(data){
-			$("#tabela_div_assinaturas").html(data);
-			$("#tabela_modulo_mstp").bootstrapTable();
-			
-		}
+		
 	 }
 }
 function inicia_assinatura(opt){
@@ -760,7 +779,8 @@ function inicia_assinatura(opt){
 	    				});
 	    			function onSuccessinicia_aceite_termo(data){
 	    				$.alert(data.toString());
-	    				inicia_assinatura2();
+	    				$('#tabela_assinaturas').DataTable().ajax.reload();
+	    				//inicia_assinatura2();
 	    				
 	    			}
 	    		}
@@ -783,7 +803,7 @@ function carrega_perfil(){
 	geral.perfil="";
 	$.getJSON('./POControl_Servlet?opt=33', function(data) {
 	
-		 //alert("perfil carregado");
+		
 		 geral.perfil=data.perfil;
 		 geral.usuario=data.usuario;
 		 geral.nome=data.nome;
@@ -800,6 +820,7 @@ function carrega_perfil(){
 		 geral.empresa_uf=data.empresa_uf;
 		 geral.empresa_cidade=data.empresa_cidade;
 		 geral.empresa_endereco=data.empresa_endereco;
+		 busca_rollouts();
 		 if(geral.perfil.search("AssinaturaManager")>=0){
 			 document.getElementById('assinatura_menu_div').style.display = "block";
 		 }
@@ -851,6 +872,11 @@ function menu(opt){
 	}else if(opt=="campos_rollout" && geral.perfil.search("RolloutManager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
+		carrega_tabela_campos_rollout();
+	}else if(opt=="importa_rollout" && geral.perfil.search("RolloutManager")>=0){
+		$(".janelas").hide();
+		document.getElementById(opt).style.display = "block";
+		
 	}else if(opt=="arvore_rollout_conf" && geral.perfil.search("RolloutManager")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";

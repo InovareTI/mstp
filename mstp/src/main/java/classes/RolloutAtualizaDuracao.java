@@ -1,6 +1,7 @@
 package classes;
 
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -19,7 +20,8 @@ import com.mongodb.client.model.Filters;
 public class RolloutAtualizaDuracao implements Job{
 	public void execute(JobExecutionContext context) {
 	    ConexaoMongo mongo = new ConexaoMongo();
-	    System.out.println("INICIANDO ATUALIZACAO DE DURACAO");
+	    Timestamp time = new Timestamp(System.currentTimeMillis());
+	    System.out.println("INICIANDO ATUALIZACAO DE DURACAO EM" + time);
 	    Calendar calendar = Calendar.getInstance();
 	 
 	
@@ -56,7 +58,11 @@ public class RolloutAtualizaDuracao implements Job{
 				    				dias=(long) 1;
 				    			}
 					    		
+				    		}else {
+				    			dias=(long) 0;
 				    		}
+				    	}else {
+				    		dias=(long) 0;
 				    	}
 	    			}else {
 	    				if(milestone.get("sdate_"+milestone.getString("Milestone")) != null){
@@ -65,9 +71,29 @@ public class RolloutAtualizaDuracao implements Job{
 				    			if(dias==0) {
 				    				dias=(long) 1;
 				    			}
+				    		}else {
+				    			dias=(long) 0;
 				    		}
+	    				}else {
+	    					dias=(long) 0;
 	    				}
 	    			}
+	    		}else {
+	    			
+	    				if(milestone.get("sdate_"+milestone.getString("Milestone")) != null){
+				    		if(!milestone.get("sdate_"+milestone.getString("Milestone")).toString().equals("")){
+				    			dias=TimeUnit.MILLISECONDS.toDays(calendar.getTimeInMillis()-milestone.getDate("sdate_"+milestone.getString("Milestone")).getTime());
+				    			if(dias==0) {
+				    				dias=(long) 1;
+				    			}
+					    		
+				    		}else {
+				    			dias=(long) 0;
+				    		}
+				    	}else {
+				    		dias=(long) 0;
+				    	}
+	    			
 	    		}
 	    		filtro.append("recid",site.get("recid"));
 	    		filtro.append("Milestone.Milestone",milestone.getString("Milestone"));

@@ -25,10 +25,12 @@ function carrega_PO(opc){
 					 datatype: "json",
 			         datafields: [
 			        	 { name: 'id' , type: 'int'},
+			        	 { name: 'SITE', type: 'string' },
 			        	 { name: 'PO NUMBER', type: 'string' },
 			             { name: 'ITEM', type: 'string' },
 			             { name: 'ITEM_CODE', type: 'string' },
 			             { name: 'PO LINE', type: 'string' },
+			             { name: 'SHIPMENT', type: 'string' },
 			             { name: 'PUBLISHED' , type: 'string'},
 			             { name: 'Carregada' , type: 'string'},
 			             { name: 'VALOR UNITARIO' , type: 'string'},
@@ -99,7 +101,9 @@ function carrega_PO(opc){
 		                       { text: 'PO', datafield: 'PO NUMBER',align: "center",cellsalign: "center",width: 150,filtertype: 'textbox'},
 		                       { text: 'Publicada', align: "center",datafield: 'PUBLISHED', width: 150,cellsalign: "center",filtertype: 'checkedlist' },
 		                       { text: 'Carregada', align: "center",datafield: 'Carregada', width: 150,cellsalign: "center",filtertype: 'checkedlist' },
+		                       { text: 'Site', align: "center",datafield: 'SITE',cellsalign: "center", width: 330,filtertype: 'textbox' },
 		                       { text: 'Descrição do Item', align: "center",datafield: 'ITEM',cellsalign: "center", width: 330,filtertype: 'checkedlist' },
+		                       { text: 'Shipment NO', align: "center",datafield: 'SHIPMENT',cellsalign: "center", width: 130,filtertype: 'checkedlist' },
 		                       { text: 'Valor Unitário', align: "center",datafield: 'VALOR UNITARIO', width: 100,cellsalign: "center",filtertype: 'checkedlist' },
 		                       { text: 'Quantidade', align: "center",datafield: 'QTDE', width: 100,cellsalign: "center", filtertype: 'checkedlist' },
 		                       { text: 'Valor Total', align: "center",datafield: 'VALOR TOTAL', width: 100,cellsalign: "center", filtertype: 'checkedlist' }

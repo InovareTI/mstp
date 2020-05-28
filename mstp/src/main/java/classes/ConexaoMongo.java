@@ -35,12 +35,12 @@ public class ConexaoMongo {
 	public ConexaoMongo() {
 		
 	
-	String host = "10.100.17.24:27017";
-	//String host = "localhost:27017";
+	//String host = "10.100.17.24:27017";
+	String host = "localhost:27017";
 	String dbname = "mstpDB";
     String user = "mstpwebDB";
-    String password = "Zuvka6-7noxfy-d@hf1k";
-    //String password = "r2d2c3p0";
+    //String password = "Zuvka6-7noxfy-d@hf1k";
+    String password = "r2d2c3p0";
 	
     //System.out.println("host: " + host + "\ndbname: " + dbname + "\nuser: " + user + "\npassword: " + password);
      //password = "";
@@ -170,6 +170,10 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 		ordenacao.append(CampoOrdem, ordem);
 		
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(filtros)).sort(ordenacao).limit(1);
+		return findIterable;
+	}
+	public FindIterable<Document> ConsultaFiltroListaLimit(String Collection,int limite,List<Bson>filtros){
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(filtros)).limit(limite);
 		return findIterable;
 	}
 	public FindIterable<Document> ConsultaOrdenadaSemFiltroListaLimit1(String Collection,String CampoOrdem,int ordem){
@@ -325,7 +329,9 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 		if(resultado2.hasNext()) {
 			return resultado2.next();
 		}else {
-			return null;
+			Document retorno = new Document();
+			retorno.append("sum", 0.0);
+			return retorno;
 		}
 	}
 	public Long ConsultaCountComplexa(String Collection,List<Bson> filtro){
@@ -450,6 +456,7 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 		//System.out.println("Update:"+campo_valor.toJson());
 		resultado=coll.findOneAndUpdate(campo_condicao, campo_valor);
 		if(resultado.isEmpty()) {
+			System.out.println("Sem alterações para essa atualização");
 			return false;
 		}else {
 			System.out.println("Update Realizado com Sucesso!");
@@ -459,7 +466,7 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 	public boolean AtualizaMuitos(String Collection,List<Bson> campo_condicao, Document campo_valor) {
 		MongoCollection<Document> coll = db.getCollection(Collection);
 		UpdateResult resultado;
-		
+		try {
 		resultado=coll.updateMany(Filters.and(campo_condicao), campo_valor);
 		if(resultado.getModifiedCount()==0) {
 			System.out.println(resultado.getModifiedCount()+" - documentos atualizados");
@@ -468,6 +475,12 @@ public FindIterable<Document> ConsultaSimplesComFiltro(String Collection,List<Do
 			System.out.println(resultado.getModifiedCount()+" - documentos atualizados");
 			return true;
 		}
+		}catch(Exception e) {
+			System.out.println(e.getCause());
+			System.out.println(e.getMessage());
+			return false;
+		}
+		
 	}
 	public boolean AtualizaMuitos(String Collection,Document campo_condicao, Document campo_valor) {
 		MongoCollection<Document> coll = db.getCollection(Collection);

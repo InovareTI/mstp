@@ -1,4 +1,4 @@
-package servlets;
+	package servlets;
 
 import java.awt.Rectangle;
 import java.io.ByteArrayInputStream;
@@ -78,6 +78,7 @@ import classes.Conexao;
 import classes.ConexaoMongo;
 import classes.Pessoa;
 import classes.ProjetoCliente;
+import classes.Rollout;
 import classes.Semail;
 
 
@@ -139,7 +140,7 @@ public class POControl_Servlet extends HttpServlet {
 		String query;
 		
 		
-		
+		SimpleDateFormat formatPOPublishDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
 		
 		int last_id;
 		
@@ -245,12 +246,49 @@ public class POControl_Servlet extends HttpServlet {
 				dados_tabela=dados_tabela + "</tbody>";
 				dados_tabela=dados_tabela + "</table>";
 				//System.out.println(dados_tabela);
-				
-			if(p.getEmpresa().getEmpresa_id()==1) {
-				dados_tabela="";
 				Bson filtro;
 				Document poItemLinha;
+				Document atualizacao;
+				Document atualizacao_comando;
 				List<Bson> filtros= new ArrayList<>();
+				/*if(p.get_PessoaUsuario().toUpperCase().equals("MASTERADMIN")) {
+				filtro=Filters.eq("PO_ATIVA","Y");
+				filtros.add(filtro);
+				FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("PO", filtros);
+				MongoCursor<Document> resultado =findIterable.iterator();
+				if(resultado.hasNext()){
+					System.out.println("iniciando ajuste de Publish Date");
+					
+					while(resultado.hasNext()) {
+						poItemLinha= resultado.next();
+						if(poItemLinha.get("Publish Date")!=null) {
+							
+							if(!poItemLinha.get("Publish Date").toString().equals("")) {
+								try {
+								
+								atualizacao=new Document();
+								atualizacao_comando=new Document();
+								//Calendar publish= Calendar.getInstance();
+								time.setTime(formatPOPublishDate.parse(poItemLinha.getString("Publish Date")).getTime());
+								atualizacao.append("Publish Date 2", time);
+								atualizacao_comando.append("$set", atualizacao);
+								mongo.AtualizaUm("PO", poItemLinha, atualizacao_comando);
+								}catch(Exception e)
+								{
+									e.printStackTrace();
+									break;}
+								}
+						}
+					}
+				}
+				
+				}*/
+				
+			if(p.getEmpresa().getEmpresa_id()==1) {
+				
+				dados_tabela="";
+				
+				filtros= new ArrayList<>();
 				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
 				filtros.add(filtro);
 				filtro=Filters.eq("PO_ATIVA","Y");
@@ -274,9 +312,11 @@ public class POControl_Servlet extends HttpServlet {
 							dados_tabela=dados_tabela+"\"PUBLISHED\":\"NO DATE FOUND\",";
 						}
 						
-						dados_tabela=dados_tabela+"\"Carregada\":\""+poItemLinha.getDate("DT_CARREGADA")+"\",";
+						dados_tabela=dados_tabela+"\"Carregada\":\""+f3.format(poItemLinha.getDate("DT_CARREGADA"))+"\",";
 						dados_tabela=dados_tabela+"\"VALOR UNITARIO\":\""+poItemLinha.getString("Unit Price")+"\",";
 						dados_tabela=dados_tabela+"\"QTDE\":\""+poItemLinha.getString("Requested Qty")+"\",";
+						dados_tabela=dados_tabela+"\"SITE\":\""+poItemLinha.getString("Site Name")+"\",";
+						dados_tabela=dados_tabela+"\"SHIPMENT\":\""+poItemLinha.getString("Shipment NO")+"\",";
 						dados_tabela=dados_tabela+"\"VALOR TOTAL\":\""+poItemLinha.getString("Line Amount")+"\"},";
 					}
 					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
@@ -597,7 +637,7 @@ public class POControl_Servlet extends HttpServlet {
 		    			dados_tabela="";
 		    			if(rs.next()){
 		    				rs.beforeFirst();
-		    				dados_tabela=dados_tabela+"<option value='0' >- - - - - - - - </option>\n";
+		    				
 		    				while(rs.next()){
 		    				dados_tabela=dados_tabela+"<option value='"+rs.getString("project_id")+"' >"+rs.getString("project_name")+"</option>\n";
 		    				}
@@ -615,7 +655,7 @@ public class POControl_Servlet extends HttpServlet {
 		    			dados_tabela="";
 		    			if(rs.next()){
 		    				rs.beforeFirst();
-		    				dados_tabela=dados_tabela+"<option value='0' >- - - - - - - - </option>\n";
+		    				
 		    				while(rs.next()){
 		    				dados_tabela=dados_tabela+"<option value='"+rs.getString("customer_id")+"' >"+rs.getString("customer_name")+"</option>\n";
 		    				}
@@ -637,6 +677,7 @@ public class POControl_Servlet extends HttpServlet {
 							ProjetoCliente projetoObj = new ProjetoCliente();
 							ServletContext context = req.getSession().getServletContext();
 							InputStream inputStream=null;
+							String rolloutid="";
 							if (ServletFileUpload.isMultipartContent(req)) {
 								List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
 								//System.out.println("Multipart size: " + multiparts.size());
@@ -648,11 +689,15 @@ public class POControl_Servlet extends HttpServlet {
 									if (item.isFormField()) {
 										if(item.getFieldName().equals("cliente")){
 											cliente=item.getString();
+											//System.out.println("CLiente:"+cliente);
 											clienteObj.setClienteEmpresaById(mysql, Integer.parseInt(cliente));
-												
-											
+										}else if(item.getFieldName().equals("rolloutid")){
+											rolloutid=item.getString();
+											//System.out.println("Rollout:"+rolloutid);
+											//projetoObj.setProjetoClienteById(mysql, Integer.parseInt(projeto));
 										}else if(item.getFieldName().equals("projeto")){
 											projeto=item.getString();
+											//System.out.println("Projeto:"+projeto);
 											projetoObj.setProjetoClienteById(mysql, Integer.parseInt(projeto));
 										}else if(item.getFieldName().equals("po_orinal")) {
 											po_original="Y";
@@ -960,16 +1005,38 @@ public class POControl_Servlet extends HttpServlet {
 									    		document.close();
 									     
 									    
-						    				
+									    		
 									        	}else if(p.getEmpresa().getEmpresa_id()==1 ) {// if de empresas
+									        			Rollout r = new Rollout();
+									        			String moeda_aux="";
+									        		    Timestamp timePublishDate = new Timestamp(System.currentTimeMillis());
 									        			Bson filtro;
+									        			FindIterable<Document> findIterable=mongo.LastRegisterCollention("rollout", "recid");
+											        	Document linha_rollout = new Document();
+											        	Document ultimoRegistro=findIterable.first();
+											        	Integer last_recid=ultimoRegistro.getInteger("recid");
 									        			List<Bson> filtros = new ArrayList<>();
 									        		    inputStream= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
 									        		    String po_numberNumero=item.getName();
 													    DataFormatter dataFormatter = new DataFormatter();
 													    int indexCell=0;
 											    		XSSFWorkbook wb = new XSSFWorkbook(inputStream);
-											    		//System.out.println("chegou aqui 2");
+											    		String[] CamposRollout=r.getCampos().getCamposOrdenados(mysql, p, rolloutid);
+											    		JSONObject campo_tipo=r.getCampos().getCampos_tipo(mysql, p,rolloutid);
+											    		String nomeRolloutCampoPO="";
+											    		String nomeRolloutCampoPOLinha="";
+											    		String nomeRolloutCampoPOITEMCOD="";
+											    		for(int indice=0;indice<CamposRollout.length;indice++) {
+											    			if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("PO NUMERO")){
+											    				nomeRolloutCampoPO=campo_tipo.getJSONArray(CamposRollout[indice]).getString(3);
+											    			}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM LINHA PO")) {
+											    				nomeRolloutCampoPOLinha=campo_tipo.getJSONArray(CamposRollout[indice]).getString(3);
+											    			}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM CODIGO")) {
+											    				nomeRolloutCampoPOITEMCOD=campo_tipo.getJSONArray(CamposRollout[indice]).getString(3);
+											    			}
+											    		}
+											    		//System.out.println("DADOS DO ROLLOUT CARREGADOS");
+											    		List<Document> milestones = new ArrayList<>();
 											    		Sheet sheet1 = wb.getSheetAt(0);
 											    		Cell cell;
 											    		String cellValue;
@@ -990,11 +1057,15 @@ public class POControl_Servlet extends HttpServlet {
 											    		//System.out.println("chegou aqui 3");
 											    		Calendar d = Calendar.getInstance();
 											    		String po_inserida="Y";
+											    		String campo_nome_aux="";
+											    		Document linhaPO = new Document();
 											    		while(rowIterator.hasNext()) {
-											    			po_inserida="Y";
+											    			try {
+											    				System.out.println("_________________________________________________________");
+											    			po_inserida="N";
 											    			filtros = new ArrayList<>();
 											    			row_aux = rowIterator.next();
-											    			Document linhaPO = new Document();
+											    			linhaPO = new Document();
 											    			linhaPO.append("Empresa",p.getEmpresa().getEmpresa_id());
 											    			linhaPO.append("PO_ATIVA","Y");
 											    			linhaPO.append("PO_VALIDADA","N");
@@ -1012,7 +1083,23 @@ public class POControl_Servlet extends HttpServlet {
 											    				cellValue=cellValue.replace("\"","");
 											    				cellValue=cellValue.replace("\\\"","_");
 											    				cellValue=cellValue.replace("\n","|");
-											    				linhaPO.append(campos[i], cellValue);
+											    				campo_nome_aux = campos[i];
+											    				campo_nome_aux=campo_nome_aux.replace("'","");
+											    				campo_nome_aux=campo_nome_aux.replace(".","");
+											    				linhaPO.append(campo_nome_aux, cellValue);
+											    				//System.out.println("Adicionando Campo:"+campo_nome_aux+" | Valor:"+cellValue);
+											    				if(campo_nome_aux.equals("Publish Date")) {
+											    					if(!cellValue.equals("")) {
+											    						timePublishDate.setTime((formatPOPublishDate.parse(cellValue).getTime()));
+											    						linhaPO.append("Publish Date 2", timePublishDate);
+											    					}
+											    				}
+											    			}
+											    			if(linhaPO.get("ID")==null) {
+											    				break;
+											    			}
+											    			if(linhaPO.getString("ID").equals("")) {
+											    				break;
 											    			}
 											    			filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
 											    			filtros.add(filtro);
@@ -1024,54 +1111,433 @@ public class POControl_Servlet extends HttpServlet {
 											    			filtros.add(filtro);
 											    			filtro=Filters.eq("Publish Date",linhaPO.getString("Publish Date"));
 											    			filtros.add(filtro);
-											    			FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("PO", filtros);
+											    			filtro=Filters.eq("Site Name",linhaPO.getString("Site Name"));
+											    			filtros.add(filtro);
+											    			filtro=Filters.eq("Shipment NO",linhaPO.getString("Shipment NO"));
+											    			filtros.add(filtro);
+											    			
+											    			findIterable = mongo.ConsultaCollectioncomFiltrosLista("PO", filtros);
+											    			System.out.println("INSERINDO PO:"+linhaPO.getString("PO NO")+" LINHA:"+linhaPO.getString("PO Line NO")+"SITE: "+linhaPO.getString("Site Name"));
 											    			String recurso="";
 											    			if(!findIterable.iterator().hasNext()) {
+											    				System.out.println("LINHA PO NAO ENCONTRADA:"+linhaPO.getString("PO NO"));
+											    				if(!linhaPO.isEmpty()) {
+											    					
 											    				mongo.InserirSimples("PO", linhaPO);
+											    				System.out.println("NOVA LINHA DE PO INSERIDA");
+											    				Document milestone;
+											    				
+											    				last_recid=last_recid+1;
+											    				linha_rollout=new Document();
+											    				linha_rollout.append("recid", last_recid);
+											    				linha_rollout.append("Empresa", p.getEmpresa().getEmpresa_id());
+											    				linha_rollout.append("Linha_ativa", "Y");
+											    				linha_rollout.append("rolloutId", rolloutid);
+											    				//System.out.println(linhaPO.getString("Site Name"));
+											    				//System.out.println(linhaPO.getString("Site Name").subSequence(0, linhaPO.getString("Site Name").indexOf("_")));
+											    				
+											    				for(int indice=0;indice<CamposRollout.length;indice++) {
+											    					if(CamposRollout[indice].toUpperCase().equals("SITE ID") || CamposRollout[indice].toUpperCase().equals("SITEID")) {
+											    						if(linhaPO.getString("Site Name").indexOf("_")>0) {
+											    							linha_rollout.append("Site ID", linhaPO.getString("Site Name").substring(0, linhaPO.getString("Site Name").indexOf("_")));
+											    						}else {
+											    							linha_rollout.append("Site ID", linhaPO.getString("Site Name"));
+											    						}
+											    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("PO NUMERO")) {
+											    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPO.getString("PO NO"));
+											    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("PROJETO COD")) {
+											    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPO.getString("Project Code"));
+											    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM CODIGO")) {
+											    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPO.getString("Item Code"));
+											    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM DESCRICAO")) {
+											    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPO.getString("Item Description"));
+											    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("PROJETO NOME")) {
+											    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPO.getString("Project Name"));
+											    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM LINHA PO")) {
+											    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPO.getString("PO Line NO"));
+											    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM VALOR")) {
+											    						if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Moeda")) {
+											    							moeda_aux=linhaPO.getString("Unit Price").replace("R$", "").trim().replace(".", "").replace(",", ".");
+											    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),Double.parseDouble(moeda_aux));
+											    						}else {
+											    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPO.getString("Unit Price"));
+											    						}
+											    						
+											    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM VALOR TOTAL")) {
+											    						if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Moeda")) {
+											    							moeda_aux=linhaPO.getString("Line Amount").replace("R$", "").trim().replace(".", "").replace(",", ".");
+											    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),Double.parseDouble(moeda_aux));
+											    						}else {
+											    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPO.getString("Line Amount"));
+											    						}
+											    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM QUANTIDADE")) {
+											    						if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Numero")) {
+											    							moeda_aux=linhaPO.getString("Requested Qty").trim().replace(".", "").replace(",", ".");
+											    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),Double.parseDouble(moeda_aux));
+											    						}else {
+											    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPO.getString("Requested Qty"));
+											    						}
+											    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("SINGLE STATUS")) {
+											    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),"PO NOVA INSERIDA");
+											    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(0).equals("Atributo")) {
+												    					if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Texto")) {
+												    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),"");
+												    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Numero")) {
+												    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),0);
+												    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Data")) {
+												    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),"");
+												    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Moeda")) {
+												    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),0.0);
+												    					}
+											    					}else {
+											    						milestone = new Document();
+											    						milestone.append("Milestone", CamposRollout[indice]);
+											    						milestone.append("sdate_pre_"+CamposRollout[indice], "");
+											    						milestone.append("edate_pre_"+CamposRollout[indice], "");
+											    						milestone.append("sdate_"+CamposRollout[indice], "");
+											    						milestone.append("sdate_"+CamposRollout[indice], "");
+											    						milestone.append("udate_"+CamposRollout[indice], "");
+											    						milestone.append("resp_"+CamposRollout[indice], "");
+											    						milestone.append("status_"+CamposRollout[indice], "");
+											    						milestone.append("duracao_"+CamposRollout[indice], "");
+											    						milestones.add(milestone);
+											    					}
+											    				}
+											    				linha_rollout.append("Milestone", milestones);
+											    				linha_rollout.append("HojeAtividade", "Não");
+											    				linha_rollout.append("SemanaCorrenteAtividade", "Não");
+											    				linha_rollout.append("MesCorrenteAtividade", "Não");
+											    				linha_rollout.append("update_by", p.get_PessoaUsuario());
+											    				linha_rollout.append("update_time", time);
+											    				mongo.InserirSimples("rollout", linha_rollout);
+											    				System.out.println("NOVA LINHA INSERIDA NO ROLLOUT");
+											    				milestones = new ArrayList<>();
+											    				Document atualizacao = new Document();
+											    				atualizacao.append("recid", last_recid);
+											    				Document atualizacaoComando = new Document();
+											    				atualizacaoComando.append("$set",atualizacao);
+											    				mongo.AtualizaUm("PO", linhaPO, atualizacaoComando);
+											    				System.out.println("PO ATUALIZADA RECID");
+											    				po_numberNumero=linhaPO.getString("PO NO");
 											    				po_inserida="Y";
-											    				JSONObject params = new JSONObject();
-											    				Long ticket=time.getTime();
-																params.append("po_num",linhaPO.getString("PO NO"));
-																params.append("ticket",ticket.toString());
-																params.append("item",req.getParameter("item"));
-																params.append("item_code",linhaPO.getString("Item Code"));
-																params.append("po_line",linhaPO.getString("PO Line NO"));
-																params.append("published",linhaPO.getString("Publish Date"));
-																params.append("site",linhaPO.getString("Site Name"));
-																params.append("projeto",linhaPO.getString("Project Name"));
-																params.append("tags",linhaPO.getString("Project Name"));
-																if(linhaPO.getString("Project Name").equals("Brazil TIM Lithium Battery Project")) {
-																	recurso = "luciano_spazio";
-																}else if(linhaPO.getString("Project Name").equals("Brazil TIM Mobile Access - G&U 2014~2020")) {
-																	recurso = "peterson_spazio";
-																}else if(linhaPO.getString("Project Name").equals("Brazil TIM MW 2018 3 years")) {
-																	recurso = "peterson_spazio";
-																}else if(linhaPO.getString("Project Name").equals("Brazil VIVO GUL 2020-2021")) {
-																	recurso = "peterson_spazio";
-																}else {
-																	recurso = "324_FERNANDO";
-																}
-																Calendar plano = Calendar.getInstance();
-																params.append("recurso",recurso);
-																params.append("incio_planejado_bl",f3.format(plano));
-																plano.add(Calendar.DAY_OF_MONTH, 3);
-																params.append("fim_planejado_bl",f3.format(plano));
-																params.append("todos_itens","Y");
-																params.append("quantidade_itens",linhaPO.getString("Requested Qty"));
-																params.append("quantidade_pos_restante","0");
-																criaTicket(mysql,mongo,params,p);
+											    				
+											    				}else {
+											    					po_inserida="N";
+											    				}
 											    			}else {
 											    				po_inserida="N";
-											    				System.out.println("___________________________");
-											    				System.out.println("PO DUPLICADA NAO INSERIDA!" + time);
-											    				System.out.println("___________________________");
+											    				
+											    				System.out.println("PO DUPLICADA");
+											    				//System.out.println(linhaPO.toJson());
+											    				Document linhaPOExiste = findIterable.iterator().next();
+											    				System.out.println("linhaPOExiste.toJson()");
+											    				System.out.println(linhaPOExiste.toJson());
+											    				if(linhaPOExiste.get("recid")!=null){
+											    					if(linhaPOExiste.get("recid").toString().equals("")) {
+											    						System.out.println("PO DUPLICADA PORÉM NAO SINCRONIZADA NO ROLLOUT RECID VAZIO");
+													    				filtros = new ArrayList<>();
+													    				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+														    			filtros.add(filtro);
+														    			filtro=Filters.eq("Linha_ativa", "Y");
+														    			filtros.add(filtro);
+														    			filtro=Filters.eq("rolloutId",rolloutid);
+														    			filtros.add(filtro);
+														    			filtro=Filters.eq(nomeRolloutCampoPO,linhaPOExiste.getString("PO NO"));
+														    			filtros.add(filtro);
+														    			//System.out.println(nomeRolloutCampoPO);
+														    			//System.out.println(linhaPOExiste.getString("PO NO"));
+														    			filtro=Filters.eq(nomeRolloutCampoPOLinha,linhaPOExiste.getString("PO Line NO"));
+														    			filtros.add(filtro);
+														    			//System.out.println(nomeRolloutCampoPOLinha);
+														    			//System.out.println(linhaPOExiste.getString("PO Line NO"));
+														    			filtro=Filters.eq(nomeRolloutCampoPOITEMCOD,linhaPOExiste.getString("Item Code"));
+														    			filtros.add(filtro);
+														    			//System.out.println(nomeRolloutCampoPOITEMCOD);
+														    			//System.out.println(linhaPOExiste.getString("Item Code"));
+														    			findIterable = mongo.ConsultaCollectioncomFiltrosLista("rollout", filtros);
+														    			if(findIterable.iterator().hasNext()) {
+														    				
+														    				System.out.println("Achou linha do rollout ");
+														    				Document atualizacao = new Document();
+														    				atualizacao.append("recid", findIterable.iterator().next().getInteger("recid"));
+														    				Document atualizacaoComando = new Document();
+														    				atualizacaoComando.append("$set",atualizacao);
+														    				mongo.AtualizaUm("PO", linhaPOExiste, atualizacaoComando);
+														    				System.out.println("LINHA de PO ATUALIDA O RECID");
+														    			}else {
+														    				System.out.println("LINHA DE ROLLOUT NAO ENCONTRADA PARA LINHA DE PO JA EXISTENTE");
+														    				Document milestone;
+														    				
+														    				last_recid=last_recid+1;
+														    				linha_rollout=new Document();
+														    				linha_rollout.append("recid", last_recid);
+														    				linha_rollout.append("Empresa", p.getEmpresa().getEmpresa_id());
+														    				linha_rollout.append("Linha_ativa", "Y");
+														    				linha_rollout.append("rolloutId", rolloutid);
+														    				//System.out.println(linhaPO.getString("Site Name"));
+														    				//System.out.println(linhaPO.getString("Site Name").subSequence(0, linhaPO.getString("Site Name").indexOf("_")));
+														    				
+														    				for(int indice=0;indice<CamposRollout.length;indice++) {
+														    					if(CamposRollout[indice].toUpperCase().equals("SITE ID") || CamposRollout[indice].toUpperCase().equals("SITEID")) {
+														    						if(linhaPO.getString("Site Name").indexOf("_")>0) {
+														    							linha_rollout.append("Site ID", linhaPOExiste.getString("Site Name").substring(0, linhaPOExiste.getString("Site Name").indexOf("_")));
+														    						}else {
+														    							linha_rollout.append("Site ID", linhaPOExiste.getString("Site Name"));
+														    						}
+														    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("PO NUMERO")) {
+														    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("PO NO"));
+														    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("PROJETO COD")) {
+														    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("Project Code"));
+														    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM CODIGO")) {
+														    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("Item Code"));
+														    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM DESCRICAO")) {
+														    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("Item Description"));
+														    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("PROJETO NOME")) {
+														    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("Project Name"));
+														    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM LINHA PO")) {
+														    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("PO Line NO"));
+														    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM VALOR")) {
+														    						if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Moeda")) {
+														    							moeda_aux=linhaPOExiste.getString("Unit Price").replace("R$", "").trim().replace(".", "").replace(",", ".");
+														    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),Double.parseDouble(moeda_aux));
+														    						}else {
+														    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("Unit Price"));
+														    						}
+														    						
+														    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM VALOR TOTAL")) {
+														    						if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Moeda")) {
+														    							moeda_aux=linhaPOExiste.getString("Line Amount").replace("R$", "").trim().replace(".", "").replace(",", ".");
+														    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),Double.parseDouble(moeda_aux));
+														    						}else {
+														    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("Line Amount"));
+														    						}
+														    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM QUANTIDADE")) {
+														    						if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Numero")) {
+														    							moeda_aux=linhaPOExiste.getString("Requested Qty").trim().replace(".", "").replace(",", ".");
+														    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),Double.parseDouble(moeda_aux));
+														    						}else {
+														    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("Requested Qty"));
+														    						}
+														    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("SINGLE STATUS")) {
+														    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),"PO NOVA INSERIDA");
+														    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(0).equals("Atributo")) {
+															    					if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Texto")) {
+															    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),"");
+															    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Numero")) {
+															    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),0);
+															    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Data")) {
+															    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),"");
+															    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Moeda")) {
+															    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),0.0);
+															    					}
+														    					}else {
+														    						milestone = new Document();
+														    						milestone.append("Milestone", CamposRollout[indice]);
+														    						milestone.append("sdate_pre_"+CamposRollout[indice], "");
+														    						milestone.append("edate_pre_"+CamposRollout[indice], "");
+														    						milestone.append("sdate_"+CamposRollout[indice], "");
+														    						milestone.append("sdate_"+CamposRollout[indice], "");
+														    						milestone.append("udate_"+CamposRollout[indice], "");
+														    						milestone.append("resp_"+CamposRollout[indice], "");
+														    						milestone.append("status_"+CamposRollout[indice], "");
+														    						milestone.append("duracao_"+CamposRollout[indice], "");
+														    						milestones.add(milestone);
+														    					}
+														    				}
+														    				linha_rollout.append("Milestone", milestones);
+														    				linha_rollout.append("HojeAtividade", "Não");
+														    				linha_rollout.append("SemanaCorrenteAtividade", "Não");
+														    				linha_rollout.append("MesCorrenteAtividade", "Não");
+														    				linha_rollout.append("update_by", p.get_PessoaUsuario());
+														    				linha_rollout.append("update_time", time);
+														    				mongo.InserirSimples("rollout", linha_rollout);
+														    				System.out.println("LINHA DE ROLLOUT ADICIONADA PARA LINHA DE PO JA EXISTENTE");
+														    				milestones = new ArrayList<>();
+														    				Document atualizacao = new Document();
+														    				atualizacao.append("recid", last_recid);
+														    				Document atualizacaoComando = new Document();
+														    				atualizacaoComando.append("$set",atualizacao);
+														    				mongo.AtualizaUm("PO", linhaPOExiste, atualizacaoComando);
+														    				System.out.println("LINHA DE PO SINCRONIZADA COM ROLLOUT");
+														    			}
+											    					}else {
+											    						System.out.println("LINHA DE PO EXISTENTE JÁ SINCRONIZADA COM ROLLOUT");
+											    					}
+											    				}else {
+											    					System.out.println("PO DUPLICADA PORÉM NAO SINCRONIZADA NO ROLLOUT RECID NULO");
+											    					
+												    				filtros = new ArrayList<>();
+												    				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+													    			filtros.add(filtro);
+													    			filtro=Filters.eq("Linha_ativa", "Y");
+													    			filtros.add(filtro);
+													    			filtro=Filters.eq("rolloutId",rolloutid);
+													    			filtros.add(filtro);
+													    			filtro=Filters.eq(nomeRolloutCampoPO,linhaPOExiste.getString("PO NO"));
+													    			filtros.add(filtro);
+													    			//System.out.println(nomeRolloutCampoPO);
+													    			//System.out.println(linhaPOExiste.getString("PO NO"));
+													    			filtro=Filters.eq(nomeRolloutCampoPOLinha,linhaPOExiste.getString("PO Line NO"));
+													    			filtros.add(filtro);
+													    			//System.out.println(nomeRolloutCampoPOLinha);
+													    			//System.out.println(linhaPOExiste.getString("PO Line NO"));
+													    			filtro=Filters.eq(nomeRolloutCampoPOITEMCOD,linhaPOExiste.getString("Item Code"));
+													    			filtros.add(filtro);
+													    			//System.out.println(nomeRolloutCampoPOITEMCOD);
+													    			//System.out.println(linhaPOExiste.getString("Item Code"));
+													    			findIterable = mongo.ConsultaCollectioncomFiltrosLista("rollout", filtros);
+													    			
+													    			if(findIterable.iterator().hasNext()) {
+													    				System.out.println("LINHA DE ROLLOUT EXISTENTE");
+													    				Integer aux = findIterable.first().getInteger("recid");
+													    				System.out.println("RECID:"+aux);
+													    				Document atualizacao = new Document();
+													    				atualizacao.append("recid", aux);
+													    				Document atualizacaoComando = new Document();
+													    				atualizacaoComando.append("$set",atualizacao);
+													    				
+													    				mongo.AtualizaUm("PO", linhaPOExiste, atualizacaoComando);
+													    				System.out.println("ATUALIZANDO LINHA DE PO COM LINHA DE ROLLOUT EXISTENTE");
+													    			}else {
+													    				
+													    				Document milestone;
+													    				
+													    				last_recid=last_recid+1;
+													    				linha_rollout=new Document();
+													    				linha_rollout.append("recid", last_recid);
+													    				linha_rollout.append("Empresa", p.getEmpresa().getEmpresa_id());
+													    				linha_rollout.append("Linha_ativa", "Y");
+													    				linha_rollout.append("rolloutId", rolloutid);
+													    				//System.out.println(linhaPO.getString("Site Name"));
+													    				//System.out.println(linhaPO.getString("Site Name").subSequence(0, linhaPO.getString("Site Name").indexOf("_")));
+													    				
+													    				for(int indice=0;indice<CamposRollout.length;indice++) {
+													    					//System.out.println("Adicionando atributo sincronizados:"+CamposRollout[indice]);
+													    					if(CamposRollout[indice].toUpperCase().equals("SITE ID") || CamposRollout[indice].toUpperCase().equals("SITEID")) {
+													    						if(linhaPOExiste.getString("Site Name").indexOf("_")>0) {
+													    							linha_rollout.append("Site ID", linhaPOExiste.getString("Site Name").substring(0, linhaPOExiste.getString("Site Name").indexOf("_")));
+													    						}else {
+													    							linha_rollout.append("Site ID", linhaPOExiste.getString("Site Name"));
+													    						}
+													    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("PO NUMERO")) {
+													    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("PO NO"));
+													    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("PROJETO COD")) {
+													    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("Project Code"));
+													    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM CODIGO")) {
+													    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("Item Code"));
+													    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM DESCRICAO")) {
+													    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("Item Description"));
+													    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("PROJETO NOME")) {
+													    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("Project Name"));
+													    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM LINHA PO")) {
+													    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("PO Line NO"));
+													    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM VALOR")) {
+													    						if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Moeda")) {
+													    							moeda_aux=linhaPOExiste.getString("Unit Price").replace("R$", "").trim().replace(".", "").replace(",", ".");
+													    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),Double.parseDouble(moeda_aux));
+													    						}else {
+													    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("Unit Price"));
+													    						}
+													    						
+													    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM VALOR TOTAL")) {
+													    						if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Moeda")) {
+													    							moeda_aux=linhaPOExiste.getString("Line Amount").replace("R$", "").trim().replace(".", "").replace(",", ".");
+													    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),Double.parseDouble(moeda_aux));
+													    						}else {
+													    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("Line Amount"));
+													    						}
+													    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("ITEM QUANTIDADE")) {
+													    						if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Numero")) {
+													    							moeda_aux=linhaPOExiste.getString("Requested Qty").trim().replace(".", "").replace(",", ".");
+													    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),Double.parseDouble(moeda_aux));
+													    						}else {
+													    							linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),linhaPOExiste.getString("Requested Qty"));
+													    						}
+													    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(5).equals("SINGLE STATUS")) {
+													    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),"PO NOVA INSERIDA");
+													    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(0).equals("Atributo")) {
+													    						//System.out.println("Adicionando atributo:"+CamposRollout[indice]);
+														    					if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Texto")) {
+														    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),"");
+														    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Numero")) {
+														    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),0);
+														    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Data")) {
+														    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),"");
+														    					}else if(campo_tipo.getJSONArray(CamposRollout[indice]).get(1).equals("Moeda")) {
+														    						linha_rollout.append(campo_tipo.getJSONArray(CamposRollout[indice]).getString(3),0.0);
+														    					}
+														    					//System.out.println("atributo adicionado:"+CamposRollout[indice]);
+													    					}else {
+													    						milestone = new Document();
+													    						milestone.append("Milestone", CamposRollout[indice]);
+													    						milestone.append("sdate_pre_"+CamposRollout[indice], "");
+													    						milestone.append("edate_pre_"+CamposRollout[indice], "");
+													    						milestone.append("sdate_"+CamposRollout[indice], "");
+													    						milestone.append("sdate_"+CamposRollout[indice], "");
+													    						milestone.append("udate_"+CamposRollout[indice], "");
+													    						milestone.append("resp_"+CamposRollout[indice], "");
+													    						milestone.append("status_"+CamposRollout[indice], "");
+													    						milestone.append("duracao_"+CamposRollout[indice], "");
+													    						milestones.add(milestone);
+													    					}
+													    					//System.out.println(linha_rollout.toJson());
+													    				}
+													    				if(!milestones.isEmpty()) {
+														    				if(milestones.size()>0) {
+														    					System.out.println("Tamanho do milestone:"+milestones.size());
+														    				}
+													    				}else {
+													    					System.out.println("Milestone esta vazio");
+													    				}
+													    				linha_rollout.append("Milestone", milestones);
+													    				linha_rollout.append("HojeAtividade", "Não");
+													    				linha_rollout.append("SemanaCorrenteAtividade", "Não");
+													    				linha_rollout.append("MesCorrenteAtividade", "Não");
+													    				linha_rollout.append("update_by", p.get_PessoaUsuario());
+													    				linha_rollout.append("update_time", time);
+													    				mongo.InserirSimples("rollout", linha_rollout);
+													    				System.out.println("LINHA DE ROLLOUT ADICIONADA PARA LINHA DE PO JA EXISTENTE");
+													    				milestones = new ArrayList<>();
+													    				Document atualizacao = new Document();
+													    				atualizacao.append("recid", last_recid);
+													    				Document atualizacaoComando = new Document();
+													    				atualizacaoComando.append("$set",atualizacao);
+													    				if(linhaPOExiste==null) {
+													    					System.out.println("linhaPOExiste é nulo");
+													    				}
+													    				if(linhaPOExiste.isEmpty()) {
+													    					System.out.println("linhaPOExiste esta vazio");
+													    				}
+													    				
+													    				mongo.AtualizaUm("PO", linhaPOExiste, atualizacaoComando);
+													    				System.out.println("LINHA DE PO SINCRONIZADA COM ROLLOUT");
+													    			}
+											    				}
 											    			}
 											    			filtros.clear();
+											    		}catch(Exception e) {
+											    			System.out.println("ERRO: NA INSERCAO DE PO/ROLLOUT");
+											    			if(!linhaPO.isEmpty()) {
+											    				System.out.println(linhaPO.toJson());
+											    			}
+											    			System.out.println(e.getLocalizedMessage());
+											    			System.out.println(e.getMessage());
+											    			e.printStackTrace();
+											    			System.out.println(e.getCause());
+											    			po_inserida="N";
 											    		}
 											    		
-											    		
-											    		//
-											    		
+											    		if(po_inserida.equals("Y")) {
+											        	 Semail email= new Semail();
+											        	 rs=mysql.Consulta("select distinct usuarios.nome,usuarios.email from usuarios,perfil_funcoes where perfil_funcoes.funcao_nome='POManager'  and perfil_funcoes.empresa_id="+p.getEmpresa().getEmpresa_id()+" and perfil_funcoes.usuario_id=usuarios.id_usuario and usuarios.ativo='Y'");
+										    			 if(rs.next()) {
+										    				 rs.beforeFirst();
+										    				 while(rs.next()) {
+										    					 //email.enviaEmailSimples(rs.getString("email"), "MSTP - Notificação de Inserção de PO","Prezado "+rs.getString("nome")+", \n \n Informamos que uma nova PO foi carregada no sistema MSTP. \n\nEmpresa Emissora:"+clienteObj.getNome()+". \nPO Número:"+linhaPO.getString("PO NO")+" \nProjeto:"+linhaPO.getString("Project Name")+" \nCódigo do Item:"+linhaPO.getString("Item Code")+" \nData de Publicada pelo Cliente:"+linhaPO.getString("Publish Date")+" \n\n Mensagem Automática.Favor não responder!\n  Operação realizada em: "+time);
+										    				 }
+										    			 }
+											        	}
+									        	}//
 											    		wb.close();
 											    		resp.setContentType("application/json"); 
 											        	JSONObject jsonObject = new JSONObject(); 
@@ -1080,25 +1546,15 @@ public class POControl_Servlet extends HttpServlet {
 											        	pw.print(jsonObject); 
 											        	pw.close();
 											        	mongo.fecharConexao();
-											        	if(po_inserida.equals("Y")) {
-											        	 Semail email= new Semail();
-											        	 rs=mysql.Consulta("select distinct usuarios.nome,usuarios.email from usuarios,perfil_funcoes where perfil_funcoes.funcao_nome='POManager'  and perfil_funcoes.empresa_id="+p.getEmpresa().getEmpresa_id()+" and perfil_funcoes.usuario_id=usuarios.id_usuario and usuarios.ativo='Y'");
-										    			 if(rs.next()) {
-										    				 rs.beforeFirst();
-										    				 while(rs.next()) {
-										    					 email.enviaEmailSimples(rs.getString("email"), "MSTP - Notificação de Inserção de PO","Prezado "+rs.getString("nome")+", \n \n Informamos que uma nova PO foi carregada no sistema MSTP. \n\nEmpresa Emissora:"+clienteObj.getNome()+". \nPO Número:"+po_numberNumero+" \nProjeto:"+projetoObj.getNome()+" \n\nMensagem Automática.Favor não responder!\n  Operação realizada em: "+time);
-										    				 }
-										    			 }
-											        	}
-									        	}
 								    		}// if upload do arquivo ok
 									    
 									        
 								    }//fim do else se for arquivo ou form field
 									 
 								}//while de itens no req paramenter
+									
 							}
-							}catch(Exception erro) {
+							}}catch(Exception erro) {
 								System.out.println(erro.getCause());
 								System.out.println(erro.getStackTrace());
 							}
@@ -1162,18 +1618,83 @@ public class POControl_Servlet extends HttpServlet {
 		    			 time = new Timestamp(System.currentTimeMillis());
 		    			
 		    			insere="";
-		    			//System.out.println("select * from rollout_campos where field_id="+param9+" and empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param8+"'");
+		    			
 		    			rs=mysql.Consulta("select * from rollout_campos where field_id="+param9+" and empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param8+"'");
-		    			if(param2.equals("Milestone")){
-		    				param4="Milestone";
-		    			}
 		    			if(rs.next()){
+		    				System.out.println("Achou Resultado");
+		    				if(rs.getString("field_type").equals("Milestone")){
+		    					System.out.println("1");
+			    				param4="Milestone";
+			    				List<Bson> filtros = new ArrayList<>();
+			    				Bson filtroaux;
+			    				filtroaux = Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+			    				filtros.add(filtroaux);
+			    				filtroaux = Filters.eq("rolloutId",param8);
+			    				filtros.add(filtroaux);
+			    				Document milestone_antigo;
+			    				Document milestone_novo;
+			    				Document linha;
+			    				Document linhaFiltro;
+			    				List<Document> milestones = new ArrayList<>();
+			    				Document update;
+			    				Document update_comando;
+			    				//update.append("Milestone."+posicao+".Milestone", param1);
+			    				//update_comando.append("$set",update);
+			    				FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("rollout", filtros);
+			    				MongoCursor<Document> resultado = findIterable.iterator();
+			    				System.out.println("2");
+			    				if(resultado.hasNext()) {
+			    					System.out.println("3");
+			    					while(resultado.hasNext()) {
+			    						System.out.println("4");
+			    						milestone_novo=new Document();
+			    						linhaFiltro = new Document();
+			    						linha = resultado.next();
+			    						linhaFiltro.append("recid", linha.getInteger("recid"));
+			    						milestones = (List<Document>) linha.get("Milestone");
+			    						System.out.println("5");
+			    						for(int indice=0;indice<milestones.size();indice++) {
+			    							milestone_antigo=milestones.get(indice);
+			    							System.out.println("6");
+			    							if(milestone_antigo.getString("Milestone").equals(rs.getString("field_name"))) {
+			    								System.out.println("7");
+			    								milestone_novo.append("Milestone", param1);
+			    								milestone_novo.append("sdate_pre_"+param1,milestone_antigo.get("sdate_pre_"+rs.getString("field_name")));
+			    								milestone_novo.append("edate_pre_"+param1,milestone_antigo.get("edate_pre_"+rs.getString("field_name")));
+			    								milestone_novo.append("sdate_"+param1,milestone_antigo.get("sdate_"+rs.getString("field_name")));
+			    								milestone_novo.append("edate_"+param1,milestone_antigo.get("edate_"+rs.getString("field_name")));
+			    								milestone_novo.append("udate_"+param1,milestone_antigo.get("udate"+rs.getString("field_name")));
+			    								milestone_novo.append("resp_"+param1,milestone_antigo.get("resp_"+rs.getString("field_name")));
+			    								milestone_novo.append("status_"+param1,milestone_antigo.get("status_"+rs.getString("field_name")));
+			    								milestone_novo.append("duracao_"+param1,milestone_antigo.get("duracao"+rs.getString("field_name")));
+			    								milestones.remove(indice);
+			    								milestones.add(indice,milestone_novo);
+			    								break;
+			    							}
+			    						}
+			    						if(!milestone_novo.isEmpty()) {
+			    							System.out.println("8");
+				    						update = new Document();
+				    						update.append("Milestone", milestones);
+				    						update_comando = new Document();
+				    						update_comando.append("$set", update);
+				    						mongo.AtualizaUm("rollout", linhaFiltro, update_comando);
+				    						System.out.println("9");
+			    						}
+			    					}
+			    				}
+			    				
+			    				mysql.Alterar("update rollout_campos set field_name='"+param1+"',field_type='"+param2+"',tipo='"+param4+"',Atributo_parametro='"+param5+"',trigger_pagamento="+param6+",percent_pagamento='"+param7+"' where field_id="+rs.getInt(1));
+			    				last_id=rs.getInt(1);
+			    				
+			    				retorno="Campo editado com Sucesso. ID do campo: "+last_id;
+			    			}else {
 		    				//System.out.println("update rollout_campos set field_name='"+param1+"',field_type='"+param2+"',tipo='"+param4+"',Atributo_parametro='"+param5+"',trigger_pagamento="+param6+",percent_pagamento='"+param7+"' where field_id="+rs.getInt(1));
 		    				Document rename=new Document();
 		    				Document rename_comand=new Document();
 		    				Document filtro = new Document();
 		    				filtro.append("Empresa", p.getEmpresa().getEmpresa_id());
-		    				filtro .append("rolloutId", param8);
+		    				filtro.append("rolloutId", param8);
 		    				rename.append(rs.getString("field_name"), param1);
 		    				rename_comand.append("$rename", rename);
 		    				mongo.AtualizaMuitos("rollout", filtro, rename_comand);
@@ -1181,6 +1702,7 @@ public class POControl_Servlet extends HttpServlet {
 		    				last_id=rs.getInt(1);
 		    				
 		    				retorno="Campo editado com Sucesso. ID do campo: "+last_id;
+			    			}
 		    			}else{
 		    			rs=mysql.Consulta("select ordenacao from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param8+"' order by ordenacao desc limit 1");	
 		    			if(rs.next()) {
@@ -1215,17 +1737,19 @@ public class POControl_Servlet extends HttpServlet {
 						if(p.getPerfil_funcoes().contains("RolloutManager")) {
 		                param1=req.getParameter("ordem");
 		                param2=req.getParameter("rollout");
-		                
-		                JSONObject jObj = new JSONObject(param1); 
-		    			JSONArray campos = jObj.getJSONArray("ordem"); 
+		                if(param1.equals("") || param1.equals(null) || param1==null) {
+		                	return;
+		                }
+		    			JSONArray campos = new JSONArray(param1); 
 		    			
 		    			
-		    			 time = new Timestamp(System.currentTimeMillis());
-		    			int tamanho=(int) jObj.get("tamanho");
+		    			time = new Timestamp(System.currentTimeMillis());
+		    			int tamanho=campos.length();
 		    			int i=0;
-		    			//System.out.println(jObj.get("ordem"));
+		    			//System.out.println(campos.toString());
 		    			while(i<tamanho){
-		    				query="update rollout_campos set ordenacao="+campos.getJSONObject(i).getInt("posicao")+" where field_id="+campos.getJSONObject(i).getInt("campoid")+" and empresa="+p.getEmpresa().getEmpresa_id() +" and rollout_nome='"+param2+"'";
+		    				query="update rollout_campos set ordenacao="+campos.getJSONObject(i).getInt("Ordem")+" where field_name='"+campos.getJSONObject(i).getString("Campo")+"' and empresa="+p.getEmpresa().getEmpresa_id() +" and rollout_nome='"+param2+"'";
+		    				//System.out.println(query);
 		    				mysql.Alterar(query);
 		    				//query="update rollout set ordenacao="+campos.getJSONObject(i).getInt("posicao")+" where milestone='"+campos.getJSONObject(i).getString("campo_nome")+"' and empresa="+p.getEmpresa().getEmpresa_id();
 		    				//mysql.Alterar(query);
@@ -1312,38 +1836,21 @@ public class POControl_Servlet extends HttpServlet {
 							query="Select usuarios.* from usuarios where  usuarios.ativo='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"'";
 						}
 						rs=mysql.Consulta(query);
+						Integer contador=0;
 						if(rs.next()){
+							dados_tabela="{\"draw\": 1,\n";
+							dados_tabela=dados_tabela+"\"recordsTotal\": replace1 ,\n";
+							dados_tabela=dados_tabela+"\"recordsFiltered\": 10 ,\n";
+							dados_tabela=dados_tabela+"\"data\":[";
 							
-							dados_tabela="<table id=\"tabela_usuario\" data-use-row-attr-func=\"true\" data-toolbar=\"#toolbar_tabela_usuario\" data-reorderable-rows=\"true\" data-show-refresh=\"true\" data-toggle=\"table\"  data-filter-control=\"true\" data-click-to-select=\"true\" data-pagination=\"true\" data-page-size=\"10\" data-search=\"true\">" +"\n";
-							dados_tabela=dados_tabela + "<thead>"+"\n";
-							dados_tabela=dados_tabela +"<tr>"+"\n";
-							dados_tabela=dados_tabela +" <th data-checkbox=\"true\"></th>"+"\n";
-							dados_tabela=dados_tabela +" <th data-field=\"user\" data-filter-control=\"select\">Usuario</th>"+"\n";
-							dados_tabela=dados_tabela +" <th data-field=\"user_name\" data-filter-control=\"select\">Nome</th>"+"\n";
-							dados_tabela=dados_tabela +" <th data-field=\"user_email\">Email</th>"+"\n";
-							dados_tabela=dados_tabela +" <th style data-field=\"user_profile\">Perfil</th>"+"\n";
-							dados_tabela=dados_tabela +" <th style data-field=\"user_tipo\">Tipo</th>"+"\n";
-							dados_tabela=dados_tabela +" <th style data-field=\"user_valid\">Validado</th>"+"\n";
-							dados_tabela=dados_tabela +" <th style data-field=\"user_lastlogin\">Ultimo Acesso</th>"+"\n";
-							dados_tabela=dados_tabela +"</tr>"+"\n";
-							dados_tabela=dados_tabela +"</thead>"+"\n";
-							dados_tabela=dados_tabela +"<tbody>"+"\n";
 							rs.beforeFirst();
 							while(rs.next()){
-								dados_tabela=dados_tabela + "<tr data-index=\""+rs.getRow()+"\">"+"\n";
-								dados_tabela=dados_tabela + " <td></td>"+"\n";
-								dados_tabela=dados_tabela + " <td>"+rs.getString("id_usuario")+"</td>"+"\n";
-								dados_tabela=dados_tabela + " <td>"+rs.getString("nome")+"</td>"+"\n";
-								dados_tabela=dados_tabela + " <td>"+rs.getString("email")+"</td>"+"\n";
-								dados_tabela=dados_tabela + " <td>"+rs.getString("perfil")+"</td>"+"\n";
-								dados_tabela=dados_tabela + " <td>"+rs.getString("tipo")+"</td>"+"\n";
-								dados_tabela=dados_tabela + " <td>"+rs.getString("validado")+"</td>"+"\n";
-								dados_tabela=dados_tabela + " <td>"+rs.getString("ultimo_acesso")+"</td>"+"\n";
-								dados_tabela=dados_tabela + "</tr>"+"\n";
+								dados_tabela=dados_tabela+"[\""+rs.getString("id_usuario")+"\",\""+rs.getString("nome")+"\",\""+rs.getString("email")+"\",\""+rs.getString("perfil")+"\",\""+rs.getString("tipo")+"\",\""+rs.getString("validado")+"\",\""+rs.getString("ultimo_acesso")+"\"],\n";
+								
 							}
-							dados_tabela=dados_tabela + "</tbody>";
-							dados_tabela=dados_tabela + "</table>";
-							
+							dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+							dados_tabela=dados_tabela + "]}";
+							dados_tabela=dados_tabela.replace("replace1", Integer.toString(contador));
 							resp.setContentType("application/html");  
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
@@ -1874,66 +2381,42 @@ public class POControl_Servlet extends HttpServlet {
 						rs=mysql.Consulta(query);
 						String Classe;
 						String color;
-							dados_tabela="<table id=\"tabela_modulo_mstp\" data-use-row-attr-func=\"true\" data-toggle=\"table\"  data-pagination=\"true\" data-search=\"true\">" +"\n";
-							dados_tabela=dados_tabela + "<thead>"+"\n";
-							dados_tabela=dados_tabela +"<tr>"+"\n";
-							dados_tabela=dados_tabela +" <th data-checkbox=\"true\"></th>"+"\n";
-							dados_tabela=dados_tabela +" <th data-field=\"id_modulo_nome\" data-filter-control=\"select\">Nome Módulo</th>"+"\n";
-							dados_tabela=dados_tabela +" <th data-field=\"modulo_desc\" data-filter-control=\"select\">Descrição</th>"+"\n";
-							dados_tabela=dados_tabela +" <th data-field=\"modulo_dt_assinado\" data-filter-control=\"select\">Data da Assinatura</th>"+"\n";
-							dados_tabela=dados_tabela +" <th style data-field=\"modulo_valor\">Valor Módulo</th>"+"\n";
-							dados_tabela=dados_tabela +" <th style data-field=\"modulo_termo\">Termo de Aceito</th>"+"\n";
-							dados_tabela=dados_tabela +" <th style data-field=\"modulo_dt_termo\">Data de Aceite</th>"+"\n";
-							dados_tabela=dados_tabela +" <th style data-field=\"modulo_Status_Assinatura\">Assinar</th>"+"\n";
-							
-							dados_tabela=dados_tabela +"</tr>"+"\n";
-							dados_tabela=dados_tabela +"</thead>"+"\n";
-							dados_tabela=dados_tabela +"<tbody>"+"\n";
+						dados_tabela="{\"draw\": 1,\n";
+						dados_tabela=dados_tabela+"\"recordsTotal\": replace1 ,\n";
+						dados_tabela=dados_tabela+"\"recordsFiltered\": 10 ,\n";
+						dados_tabela=dados_tabela+"\"data\":[";
+						int contador=0;
 							if(rs.next()){
 								rs.beforeFirst();
 								while(rs.next()){
+									dados_tabela=dados_tabela+"[\""+rs.getString("modulo_nome")+"\",\""+rs.getString("modulo_descricao")+"\",\""+rs.getString("dt_assinado")+"\",\""+rs.getString("valor")+"\",\""+rs.getString("termo_aceite")+"\",\""+rs.getString("dt_termo_aceite")+"\",";
 									
-									dados_tabela=dados_tabela + "<tr   data-index=\""+rs.getRow()+"\">"+"\n";
-									dados_tabela=dados_tabela + " <td ></td>"+"\n";
-									dados_tabela=dados_tabela + " <td >"+rs.getString("modulo_nome")+"</td>"+"\n";
-									dados_tabela=dados_tabela + " <td >"+rs.getString("modulo_descricao")+"</td>"+"\n";
-									dados_tabela=dados_tabela + " <td >"+rs.getString("dt_assinado")+"</td>"+"\n";
-									dados_tabela=dados_tabela + " <td >"+rs.getString("valor")+"</td>"+"\n";
-									dados_tabela=dados_tabela + " <td >"+rs.getString("termo_aceite")+"</td>"+"\n";
-									dados_tabela=dados_tabela + " <td >"+rs.getString("dt_termo_aceite")+"</td>"+"\n";
 									if(rs.getString("assinado").equals("Y")){
-										dados_tabela=dados_tabela + " <td >Assinado</td>"+"\n";
+										dados_tabela=dados_tabela + "\"Assinado\"],"+"\n";
 									}else{
 										if(rs.getString("termo_aceite").equals("Y")){
-											dados_tabela=dados_tabela + " <td >"+rs.getString("botao")+"</td>"+"\n";
+											dados_tabela=dados_tabela+"\""+rs.getString("botao")+"\"],"+"\n";
+											
 										}else {
 											
-											dados_tabela=dados_tabela + " <td ><button type=\"button\" class=\"btn btn-info\" onclick=\"inicia_assinatura(1)\">Termo de Aceite</button></td>"+"\n";
+											dados_tabela=dados_tabela + "\"<button type='button' class='btn btn-info' onclick='inicia_assinatura(1)'>Termo de Aceite</button>\"],"+"\n";
 										}
 										
 									}
 									
-									
-									
-									dados_tabela=dados_tabela + "</tr>"+"\n";
 								}
 								
-								dados_tabela=dados_tabela + "</tbody>";
-								dados_tabela=dados_tabela + "</table>";
+								dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+								dados_tabela=dados_tabela + "]}";
+								dados_tabela=dados_tabela.replace("replace1", Integer.toString(contador));
+								//System.out.println(dados_tabela);
 								resp.setContentType("application/text")  ;
 								resp.setCharacterEncoding("UTF-8"); 
 								PrintWriter out = resp.getWriter();
 								out.print(dados_tabela);
 								out.close();
 							}else {
-								
-								dados_tabela=dados_tabela + "</tbody>";
-								dados_tabela=dados_tabela + "</table>";
-								resp.setContentType("application/text")  ;
-								resp.setCharacterEncoding("UTF-8"); 
-								PrintWriter out = resp.getWriter();
-								out.print(dados_tabela);
-								out.close();
+								System.out.println("Assinaturas nao encontradas");
 							}
 					}else if(opt.equals("38")) {
 						int contador=0;
@@ -3088,7 +3571,7 @@ public class POControl_Servlet extends HttpServlet {
 					Timestamp time2 = new Timestamp(System.currentTimeMillis());
 					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 					
-				} catch (SQLException e) {
+			} catch (SQLException e) {
 				mongo.fecharConexao();
 				mysql.fecharConexao();
 				// TODO Auto-generated catch block

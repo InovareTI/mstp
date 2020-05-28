@@ -38,6 +38,7 @@ function atualiza_select_cliente(){
 		$("#cliente_carrega_po").html(data);
 		$("#projeto_nome_cliente").html(data);
 		$("#select_conta_faturamento").html(data);
+		$("#cliente_carrega_po").selectpicker('refresh');
 		//alert (data);
 		
 	}

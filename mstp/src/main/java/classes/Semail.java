@@ -26,7 +26,7 @@ public class Semail {
 	        email.setFrom("mstp@inovare-ti.com", "MSTP WEB- Notificação por email"); // remetente  
 	        email.setSubject(assunto); // assunto do e-mail  
 	        email.setMsg(mgs); //conteudo do e-mail  
-	        email.setAuthentication("mstp@inovare-ti.com", "ci8aaq-k37nyP-7pisicp5");  
+	        email.setAuthentication("mstp@inovare-ti.com", "mysna1-banKec");  
 	        email.setSmtpPort(587);  
 	        //email.setSSLOnConnect(true); 
 	        email.setStartTLSRequired(true);
@@ -53,7 +53,7 @@ public class Semail {
 	    	  email.setTextMsg("Your email client does not support HTML messages");
 
 	    	  // send the email
-	    	  email.setAuthentication("mstp@inovare-ti.com", "ci8aaq-k37nyP-7pisicp5");  
+	    	  email.setAuthentication("mstp@inovare-ti.com", "mysna1-banKec");  
 		       email.setSmtpPort(587);  
 		       
 		        email.setStartTLSRequired(true);

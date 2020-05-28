@@ -53,11 +53,47 @@ public class RegrasRollout implements Job{
 						filtro = Filters.regex(condicaoAux.getString("campo"), condicaoAux.getString("valor"));
 						filtros.add(filtro);
 					}else if(condicaoAux.getString("condicao").equals("vazio")) {
-						filtro = Filters.eq(condicaoAux.getString("campo"), "");
-						filtros.add(filtro);
+						if(condicaoAux.getString("campo").startsWith("BL_Inicio_")) {
+							filtro=Filters.elemMatch("Milestone", Filters.eq("sdate_pre_"+condicaoAux.getString("campo").substring(10),""));
+							filtros.add(filtro);
+						}else if(condicaoAux.getString("campo").startsWith("BL_Fim_")) {
+							filtro=Filters.elemMatch("Milestone", Filters.eq("edate_pre_"+condicaoAux.getString("campo").substring(7),""));
+							filtros.add(filtro);
+						}else if(condicaoAux.getString("campo").startsWith("Inicio_")) {
+							filtro=Filters.elemMatch("Milestone", Filters.eq("sdate_"+condicaoAux.getString("campo").substring(7),""));
+							filtros.add(filtro);
+						}else if(condicaoAux.getString("campo").startsWith("Fim_")) {
+							filtro=Filters.elemMatch("Milestone", Filters.eq("edate_"+condicaoAux.getString("campo").substring(4),""));
+							filtros.add(filtro);
+						}else if(condicaoAux.getString("campo").startsWith("Resp_")) {
+							filtro=Filters.elemMatch("Milestone", Filters.eq("resp_"+condicaoAux.getString("campo").substring(5),""));
+							filtros.add(filtro);
+						}else {
+							filtro = Filters.eq(condicaoAux.getString("campo"), "");
+							filtros.add(filtro);
+						}
+						
 					}else if(condicaoAux.getString("condicao").equals("n_vazio")) {
-						filtro = Filters.not((Filters.eq(condicaoAux.getString("campo"), "")));
-						filtros.add(filtro);
+						if(condicaoAux.getString("campo").startsWith("BL_Inicio_")) {
+							filtro=Filters.not(Filters.elemMatch("Milestone", Filters.eq("sdate_pre_"+condicaoAux.getString("campo").substring(10),"")));
+							filtros.add(filtro);
+						}else if(condicaoAux.getString("campo").startsWith("BL_Fim_")) {
+							filtro=Filters.not(Filters.elemMatch("Milestone", Filters.eq("edate_pre_"+condicaoAux.getString("campo").substring(7),"")));
+							filtros.add(filtro);
+						}else if(condicaoAux.getString("campo").startsWith("Inicio_")) {
+							filtro=Filters.not(Filters.elemMatch("Milestone", Filters.eq("sdate_"+condicaoAux.getString("campo").substring(7),"")));
+							filtros.add(filtro);
+						}else if(condicaoAux.getString("campo").startsWith("Fim_")) {
+							filtro=Filters.not(Filters.elemMatch("Milestone", Filters.eq("edate_"+condicaoAux.getString("campo").substring(4),"")));
+							filtros.add(filtro);
+						}else if(condicaoAux.getString("campo").startsWith("Resp_")) {
+							filtro=Filters.not(Filters.elemMatch("Milestone", Filters.eq("resp_"+condicaoAux.getString("campo").substring(5),"")));
+							filtros.add(filtro);
+						}else {
+							filtro = Filters.not(Filters.eq(condicaoAux.getString("campo"), ""));
+							filtros.add(filtro);
+						}
+						
 					}
 				}
 				atualizacao=new Document();

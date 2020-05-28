@@ -150,13 +150,22 @@ function carrega_tree_rollout(){
 		 var records = dataAdapter.getRecordsHierarchy('id', 'parentid', 'items', [{ name: 'text', map: 'label'}]);
          $('#jqxTree_rollout').jqxTree({  theme:'light',source: records, hasThreeStates: true, checkboxes: true,height: '100%', width: '100%'});
          $('#jqxTree_rollout').jqxTree('expandAll');
-         $("#jqxTree_rollout").jqxTree('selectItem', $("#Rollout1")[0]);
+         //alert(sessionStorage.getItem("rolloutsid_"+geral.empresa_id));
+         var aux1 = sessionStorage.getItem("rolloutsid_"+geral.empresa_id);
+         var aux;
+         if(aux1){
+        	 aux = aux1.substr(aux1.indexOf("value='")+7);
+        	 aux = aux.substr(0,aux.indexOf("'"));
+        	 $("#jqxTree_rollout").jqxTree('selectItem', $("#"+aux)[0]);
+         }
+         
          $('#jqxTree_rollout').on('select',function (event)
         		 {
         	       $('#jqxgrid').jqxGrid('destroy');
         	       $('#container_rollout').html('<div id="jqxgrid"></div>')
         	 		carrega_gant();
         		 });
+        
          var contextMenu = $("#jqxMenu_tree_rollout").jqxMenu({  theme:'light',width: '120px',  height: '56px', autoOpenPopup: false, mode: 'popup' });
          var clickedItem = null;
          var attachContextMenu = function () {
@@ -207,6 +216,7 @@ function carrega_tree_rollout(){
              return rightclick;
          }
 	});
+	carrega_gant();
 }
 function atualiza_nome_rollout(){
 	var nome_rollout = document.getElementById("novo_nome_rollout").value;
@@ -316,13 +326,14 @@ function corrigerolloutspazio() {
 	}
 }
 function busca_rollouts(){
-	//alert("testando campos");
-	if(sessionStorage.getItem("rolloutsid")){
-		//alert("usando dados offline");
-		var aux=sessionStorage.getItem("rolloutsid_"+geral.empresa_id);
+	var rolloutid=sessionStorage.getItem("rolloutsid_"+geral.empresa_id);
+	if(rolloutid){
+		
+		var aux=rolloutid;
 			$('#select_rollout_campos').html(aux);
 			$('#select_rollout_campos').selectpicker();
 			$('#select_rollout_campos').selectpicker('refresh');
+			carrega_tree_rollout();
 	}else{
 		//alert("buscando rollouts no banco");
 		$.ajax({
@@ -335,74 +346,99 @@ function busca_rollouts(){
 			  success: atualiza_select_rollout
 			});
 		function atualiza_select_rollout(data){
-			//alert(data);
+			var nome="rolloutsid_"+geral.empresa_id;
+			
+			sessionStorage.setItem(nome, data);
 			$('#select_rollout_campos').html(data);
 			$('#select_rollout_regra_rollout').html(data);
+			$('#select_dashboard_rollout').html(data);
+			$('#select_rollout_carrega_po').html(data);
 			$('#select_rollout_campos').selectpicker();
 			$('#select_rollout_campos').selectpicker('refresh');
 			$('#select_rollout_regra_rollout').selectpicker('refresh');
-			sessionStorage.setItem("rolloutsid_"+geral.empresa_id, data);
+			$('#select_dashboard_rollout').selectpicker('refresh');
+			$('#select_rollout_carrega_po').selectpicker('refresh');
+			aux = data.substr(data.indexOf("value='")+7);
+			aux = aux.substr(0,aux.indexOf("'"));
+			$('#select_dashboard_rollout').selectpicker('val',aux);
+			$('#select_dashboard_rollout').selectpicker('refresh');
+			carrega_tree_rollout();
 		}
 	}
+	//alert("sem erros no busca rollout");
 }
 function carrega_tabela_campos_rollout(rollout) {
 	
 	document.getElementById("rolloutid_campos_conf").value=rollout;
-	if(rollout==null || rollout==""){
-		rollout="Rollout1";
-		document.getElementById("rolloutid_campos_conf").value="Rollout1";
+	
+	if(rollout){
+		
+	}else{
+		var aux1 = sessionStorage.getItem("rolloutsid_"+geral.empresa_id);
+		var aux;
+		if(aux1){
+	     aux = aux1.substr(aux1.indexOf("value='")+7);
+		 aux = aux.substr(0,aux.indexOf("'"));
+		 rollout=aux;
+		 document.getElementById("rolloutid_campos_conf").value=aux;
+		}else{
+			alert("ERRO: Rollout 001");
+			return;
+		}
 	}
-	
-	$.ajax({
-		  type: "POST",
-		  data: {"opt":"2","rollout":rollout},		  
-		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
-		  url: "./RolloutServlet",
-		  cache: false,
-		  dataType: "text",
-		  success: onSuccess13
-		});
-	
-	function onSuccess13(data)
-	{
-		$("#div_tabela_campos_rollout").html("<div id=\"toolbar_campos_rollout\" role=\"toolbar\" class=\"btn-toolbar\">"+
-        		
-    			"<button type=\"button\" class=\"btn btn-info\" data-toggle=\"modal\" data-target=\"#Modal_campos_rollout\">Novo Campo</button>"+
-    			"<button id=\"edita_campo\" type=\"button\" class=\"btn btn-info\">Editar</button>"+
-    			"<button id=\"desabilita_campo\" type=\"button\" class=\"btn btn-danger\">Desabilitar Campo</button>"+
-    			"<button type=\"button\" class=\"btn btn-primary\" onclick=\"carrega_tabela_campos_rollout()\">Atualizar</button>"+
-    			"<button type=\"button\" class=\"btn btn-primary\" onclick=\"ordem_tabela()\">Salvar</button>"+
-    		    "<select id=\"select_rollout_campos\" class=\"selectpicker\" data-live-search=\"true\" title=\"Escolha o Rollout\" onchange=\"carrega_tabela_campos_rollout(this.value)\"></select>"+
-    			"</div>" + data);
+	if( ! $.fn.DataTable.isDataTable( '#tabela_campos_rollout' )){
 		
-		$('#tabela_campos_rollout').bootstrapTable();
+	var tabelaCmpos = $('#tabela_campos_rollout').DataTable({
 		
-		$('#select_rollout_campos').selectpicker('refresh');
-		busca_rollouts();
-		var $table = $('#tabela_campos_rollout'),
-		$button = $('#desabilita_campo');
-		$(function () {
-	        $button.click(function () {
-	        	var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
-	                return row.campo_id;
-	            });
-	            $table.bootstrapTable('remove', {
-	                field: 'campo_id',
-	                values: ids
-	            });
-	            //alert(ids);
-	            deleta_campos_rollout(String(ids));
-	        });
-	    });
-		$button2 = $('#edita_campo');
-		$(function () {
-	        $button2.click(function () {
-	        	var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
-	                return row.campo_id;
-	            });
-	            edita_campos_rollout(String(ids));
-	        });
-	    });
+        "scrollY": 500,
+        "paging": false,
+        "ajax": "./RolloutServlet?opt=2&rollout="+rollout,
+        "columns": [
+            { data: 'Ordem' },
+            { data: 'Campo' },
+            { data: 'Tipo' },
+            { data: 'Valor' },
+            { data: 'Status' }
+            
+        ],
+        "rowReorder": {dataSrc: 'Ordem'},
+	});
+	tabelaCmpos.draw();
+	 
+	tabelaCmpos.on( 'row-reordered', function ( e, diff, edit ) {
+		
+	    var dadosTabela=tabelaCmpos.data().toArray();
+	    $.ajax({
+			  type: "POST",
+			  data: {"opt":"15","ordem":JSON.stringify(dadosTabela),"rollout":document.getElementById("rolloutid_campos_conf").value},		  
+			  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+			  url: "./POControl_Servlet",
+			  cache: false,
+			  dataType: "text",
+			  success: onSuccess15
+			});
+		function onSuccess15(data)
+		{
+			$.alert(data.toString());
+			carrega_gant();
+		}
+		
+	} );
+	$('#tabela_campos_rollout tbody').on( 'click', 'tr', function () {
+        if ( $(this).hasClass('selected') ) {
+            $(this).removeClass('selected');
+        }
+        else {
+        	tabelaCmpos.$('tr.selected').removeClass('selected');
+            $(this).addClass('selected');
+        }
+    } );
+
+	}else{
+		
+		$('#tabela_campos_rollout').DataTable().ajax.url( "./RolloutServlet?opt=2&rollout="+rollout ).load();
+		
+	
 	}
 }
 function stateFormatter(value, row, index) {
@@ -425,11 +461,27 @@ function stateFormatter(value, row, index) {
     }
     return value;
 }
-function edita_campos_rollout(campos){
+function edita_campos_rollout(){
+	
+	var rollout =  $('#select_rollout_campos').val();
+	if(rollout){
+		
+	}else{
+		$.alert("Selecione o rollout antes de iniciar a edição de um campo.");
+		return;
+	}
+    var table = $('#tabela_campos_rollout').DataTable();
+	var campos;
+	
+	table.rows('.selected').every( function ( rowIdx, tableLoop, rowLoop ) {
+		//console.log(this.data());
+		campos=this.data()['IDCAMPO'];
+	});
+	
 	$.ajax({
 		  type: "POST",
 		  data: {"opt":"26",
-			     "campos":campos},		  
+			     "campos":campos,"rollout":rollout},		  
 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
 		  url: "./POControl_Servlet",
 		  cache: false,
@@ -506,44 +558,15 @@ function deleta_campos_rollout(campos){
 	}
 
 }
-function ordem_tabela(){
-	data_ordem=$('#tabela_campos_rollout').bootstrapTable('getData');
-	var ordem_campo_padrao = '{"tamanho":0,"ordem":[]}';
-	var ordem_campo = JSON.parse(ordem_campo_padrao);
-	var rollout = document.getElementById("rolloutid_campos_conf").value;
-	i=0;
-	//alert(JSON.stringify(data_ordem));
-	
-	ordem_campo.tamanho=data_ordem.length;
-	while(i<data_ordem.length){
-		localizacao={campoid:data_ordem[i]['campo_id'],posicao:i+1,campo_nome:data_ordem[i]['campo2']};
-		ordem_campo.ordem.push(localizacao);
-		i++;
-	}
-	
-	$.ajax({
-		  type: "POST",
-		  data: {"opt":"15","ordem":JSON.stringify(ordem_campo),"rollout":rollout},		  
-		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
-		  url: "./POControl_Servlet",
-		  cache: false,
-		  dataType: "text",
-		  success: onSuccess15
-		});
-	function onSuccess15(data)
-	{
-		$.alert(data.toString());
-		carrega_gant();
-	}
-	
-	
-	
-	
-	//alert(JSON.stringify(ordem_campo));
-    
-}
+
 function add_campo_rollout(){
 	//alert("adicionando campos");
+	$('#btn_novo_campo_rollout').addClass( "disabled" );
+	$('#btn_novo_campo_rollout').text('Aguarde a Finalização...');
+	$('#btn_novo_campo_rollout').prop('disabled', true);
+	$('#btn_edita_campo_rollout').addClass( "disabled" );
+	$('#btn_edita_campo_rollout').text('Aguarde a Finalização...');
+	$('#btn_edita_campo_rollout').prop('disabled', true);
 	var e,tipoc,tipoa,nome,desc,lista,chk,percent;
 	var rollout=document.getElementById("rolloutid_campos_conf").value;
 	e= document.getElementById("tipo_campo_rollout");
@@ -581,9 +604,18 @@ function add_campo_rollout(){
 	
 	function onSuccess14(data)
 	{
+		
 		document.getElementById("id_aux_campo").value="";
-		ordem_tabela();
-		carrega_gant();
+		//ordem_tabela();
+		carrega_tabela_campos_rollout(rollout);
+		//carrega_gant();
+		$('#btn_novo_campo_rollout').removeClass( "disabled" );
+		$('#btn_novo_campo_rollout').text('Novo Campo');
+		$('#btn_novo_campo_rollout').prop('disabled', false);
+		$('#btn_edita_campo_rollout').removeClass( "disabled" );
+		$('#btn_edita_campo_rollout').text('Editar Campo');
+		$('#btn_edita_campo_rollout').prop('disabled', false);
+		$.alert(data.toString());
 	}
 	}
 function carrega_campos_rollout(){
@@ -596,7 +628,7 @@ function carrega_campos_rollout(){
   	 }
 	$.ajax({
 		  type: "POST",
-		  data: {"opt":"7","rolloutid":rolloutid
+		  data: {"opt":"7.1","rolloutid":rolloutid
 			
 			
 			},		  
@@ -873,6 +905,7 @@ function carrega_gant(){
 	 var me,container,save_button,addButton,cFilterButton,deleteButton = "";
 	 
 	 var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
+	 
 	 var rolloutid;
 	 if (item != null) {
 		 rolloutid=item.value;
@@ -880,8 +913,16 @@ function carrega_gant(){
 			 return;
 		 }
 	 }else{
-		 
-		 rolloutid="Rollout1";
+		    
+		    var aux1 = sessionStorage.getItem("rolloutsid_"+geral.empresa_id);
+		    var aux
+		    if(aux1){
+		    	aux = aux1.substr(aux1.indexOf("value='")+7);
+		    	aux = aux.substr(0,aux.indexOf("'"));
+		    	rolloutid=aux;
+		    }else{
+		    	rolloutid="";
+		    }
 	 }
 	$.getJSON('./RolloutServlet?opt=1&rolloutid='+rolloutid+'&_='+timestamp, function(data) {
 			
@@ -1015,6 +1056,27 @@ function carrega_gant(){
             	data.opt=9;
             	data.rolloutid=rolloutid;
             	data._=timestamp;
+            	if($("#AtividadeHoje").length){
+            		data.atividadehoje= $("#AtividadeHoje").jqxCheckBox('checked');
+            	}else{
+            		data.atividadehoje="false";
+            	}
+            	if($("#AtividadeSemana").length){
+            		data.atividadesemana=$("#AtividadeSemana").jqxCheckBox('checked');
+            	}else{
+            		data.atividadesemana="false";
+            	}
+            	if($("#AtividadeMes").length){
+            		data.atividademes=$("#AtividadeMes").jqxCheckBox('checked');
+            	}else{
+            		data.atividademes="false";
+            	}
+            	if($("#inputBusca").length){
+            		data.buscaSite=$("#inputBusca").jqxInput('val');
+            	}else{
+            		data.buscaSite="";
+            	}
+            	
             	
 				//alert(JSON.stringify(data));
                 return data;
@@ -1053,7 +1115,10 @@ function carrega_gant(){
 	                        // filter date comparison operators.
 	                        filterdatecomparisonoperators: ['menor que', 'maior que','maior ou igual a','menor ou igual a','igual a','vazio','não vazio'],
 	                        // filter bool comparison operators.
-	                        filterbooleancomparisonoperators: ['equal', 'not equal']
+	                        filterbooleancomparisonoperators: ['equal', 'not equal'],
+	                        currencysymbol : "R$",
+	                        decimalseparator : ",",
+	                    	thousandsseparator : "."
 	                    }
 	                    $("#jqxgrid").jqxGrid('localizestrings', localizationObject);
 	                },
@@ -1081,85 +1146,110 @@ function carrega_gant(){
 	                    toolbar.empty();
 	                    container = $("<div style='overflow: hidden; position: relative; margin: 1px;'></div>");
 	                    save_button = $("<input type=\"button\" class=\"btn btn-primary\" style='float: left; margin-left: 5px' value=\"Salvar\" id='jqxButton_salvar'>");
-	                    drop_button=$("<div style='float: left;' id='dropDownButton_op_rollout'><div style='border: none;' id='jqxTree_bt_rollout'><ul><li><a style='float: left; margin-left: 5px;' href='#' onclick='SyncRollout();'>Atualizar</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_upload_rollout\">Importar</a></li><li><a style='float: left; margin-left: 5px;' href='#' onclick='downloadFunc()'>Exportar</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_rollout_history\">Histórico de Mudanças</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" onclick=menu('checklist_review')>Checklists</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" onclick='atualiza_status()' >Atualiza Status</a></li></ul></div></div>");
-	                    addButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Nova Atividade</a>");
-	                    msgButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Nova Mensagem</a>");
-	                    batchButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Atualização em Lotes</a>");
+	                    drop_button=$("<div style='float: left;' id='dropDownButton_op_rollout'><div style='border: none;' id='jqxTree_bt_rollout'><ul><li><a style='float: left; margin-left: 5px;' href='#' onclick='SyncRollout();'>Atualizar</a></li><li><a style='float: left; margin-left: 5px;' href='#' onclick=\"preparaAddnewLine()\">Nova Atividade</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_upload_rollout\">Importar</a></li><li><a style='float: left; margin-left: 5px;' href='#' onclick='downloadFunc()'>Exportar</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_rollout_history\">Histórico de Mudanças</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" onclick=menu('checklist_review')>Checklists</a></li><li><a style='float: left; margin-left: 5px;' href=\"#\" onclick='atualizaperiodo()' >Atualiza Status</a></li><li><a style='float: left; margin-left: 5px;' href='#' onclick=\"preparaAtualizacaoLotes()\">Atualização em Lotes</a></li><li><a style='float: left; margin-left: 5px;' href='#' data-toggle=\"modal\" data-target=\"#Modal_EnviaMengagem\">Nova Mensagem</a></li></ul></div></div>");
+	                    drop_button_filtro=$("<div style='float: left;' id='dropDownButton_filtro_rollout'><div style='border: none;height:150px' id='jqxTree_bt_rollout_filtro'><ul><li> <div id='AtividadeHoje'>Atividades para hoje</div></li><li><div id='AtividadeSemana'>Atividades para semana</div></li><li><div id='AtividadeMes'>Atividades para o mes</div></li></ul></div></div>");
+	                    divtextoBusca=$("<div style=\"float:right\"></div>");
+	                    textoBusca=$("<input type=\"text\" id=\"inputBusca\"/>");
+	                   
 	                    cFilterButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Remover Filtros</a>");
 	                    deleteButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Remover Atividade</a>");
-	                    checkEquipeOnSite = $("<div id='jqxcheckbox_EquipesOnSite' style='margin-top:10px'>Exibir Apenas Sites com Equipe</div>");
+	                    checkEquipeOnSite = $("<div id='jqxcheckbox_EquipesOnSite' style='margin-top:10px;float:left'>Exibir Apenas Sites com Equipe</div>");
 	                    //syncButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Sync</a>");
 	                    //downloadButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href='#'>Exportar</a>");
 	                    //uploadButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href=\"#\" data-toggle=\"modal\" data-target=\"#modal_upload_rollout\">Importar</a>");
 	                    //syncMongoButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href=\"#\" >Sync TO Mongo</a>");
-	                    RolloutMapButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href=\"#\" >Mapa(Beta)</a>");
+	                    //RolloutMapButton = $("<a class=\"btn btn-primary\" style='float: left; margin-left: 5px;' href=\"#\" >Mapa(Beta)</a>");
 	                    container.append(save_button);
-	                    container.append(addButton);
-	                    container.append(msgButton);
-	                    container.append(batchButton);
+	                    
+	                    
+	                   
 	                    container.append(drop_button);
+	                    container.append(drop_button_filtro);
 	                    container.append(cFilterButton);
 	                    //container.append(downloadButton);
 	                    //container.append(uploadButton);
 	                    //container.append(syncButton);
 	                    container.append(deleteButton);
-	                    container.append(RolloutMapButton);
+	                    //container.append(RolloutMapButton);
 	                    container.append(checkEquipeOnSite);
-	                    //container.append(syncMongoButton);
+	                    container.append(divtextoBusca);
 	                    toolbar.append(container);
 	                    save_button.jqxButton({theme:'light'});
-	                    msgButton.jqxButton({theme:'light'});
-	                    batchButton.jqxButton({theme:'light'});
+	                    divtextoBusca.append(textoBusca);
+	                    
 	                    checkEquipeOnSite.jqxCheckBox({theme:'light'});
+	                    textoBusca.jqxInput({placeHolder: "Busca por Site", width: 250, minLength: 1});
+	                   
 	                    drop_button.jqxDropDownButton({ width: 150, height: 30,theme:'light'});
+	                    drop_button_filtro.jqxDropDownButton({ width: 230, height: 30,theme:'light'});
 	                    $('#dropDownButton_op_rollout').jqxDropDownButton('setContent', '<div style="position: relative; margin-left: 3px; margin-top: 5px;">Operações</div>'); 
+	                    $('#dropDownButton_filtro_rollout').jqxDropDownButton('setContent', '<div style="position: relative; margin-left: 3px; margin-top: 5px;">Filtros de Atividades</div>'); 
+	                    $('#inputBusca').on('change', function (event) { 
+	                    	carrega_gant(); 
+	                    }); 
 	                    $("#jqxcheckbox_EquipesOnSite").on('change', function (event) {
 	                        carrega_gant();
 	                    });
+	                   
 	                    $('#jqxTree_bt_rollout').on('select', function (event) {
 	                       
 	                        $("#dropDownButton_op_rollout").jqxDropDownButton('close'); 
 	                    });
+	                    $('#jqxTree_bt_rollout_filtro').on('select', function (event) {
+		                       
+	                        $("#dropDownButton_filtro_rollout").jqxDropDownButton('close'); 
+	                    });
+	                    
 	                    $("#jqxTree_bt_rollout").jqxTree({ width: 200});
-	                    addButton.jqxButton({theme:'light'});
+	                    $("#jqxTree_bt_rollout_filtro").jqxTree({ width: 220});
+	                    $("#AtividadeHoje").jqxCheckBox({ width: 220, height: 25});
+	                    $("#AtividadeSemana").jqxCheckBox({ width: 220, height: 25});
+	                    $("#AtividadeMes").jqxCheckBox({ width: 220, height: 25});
+	                    $("#AtividadeHoje").on('change', function (event) {
+	                        carrega_gant();
+	                    });
+	                    $("#AtividadeSemana").on('change', function (event) {
+	                    	
+	                        carrega_gant();
+	                    });
+	                    $("#AtividadeMes").on('change', function (event) {
+	                        carrega_gant();
+	                    });
+	                   
 	                    cFilterButton.jqxButton({theme:'light'});
 	                    //downloadButton.jqxButton();
-	                    RolloutMapButton.jqxButton({theme:'light'});
+	                    //RolloutMapButton.jqxButton({theme:'light'});
 	                    //uploadButton.jqxButton();
 	                    //syncButton.jqxButton();
 	                    //syncMongoButton.jqxButton();
 	                    deleteButton.jqxButton({template: "danger"});
 	                    
-	                    RolloutMapButton.click(function(event){
-	                    	$.alert("Função em Manutenção. Utilize o Mapa Operacional no Menu.");
-	                    	return;
-	                    	filtros={"filtros":[]};
-	                    	var aux={};
-	                    	var filtersinfo = $('#jqxgrid').jqxGrid('getfilterinformation');
+	                   // RolloutMapButton.click(function(event){
+	                   // 	$.alert("Função em Manutenção. Utilize o Mapa Operacional no Menu.");
+	                   // 	return;
+	                   // 	filtros={"filtros":[]};
+	                   // 	var aux={};
+	                   // 	var filtersinfo = $('#jqxgrid').jqxGrid('getfilterinformation');
 	                    	//console.log(filtersinfo);
-	                    	for(var j=0;j<filtersinfo.length;j++){
-		                    	for (var i = 0; i < filtersinfo[j].filter.getfilters().length; i++) {
-			                    	aux.filtersvalue=filtersinfo[j].filter.getfilters()[i].value;
-			                    	aux.filtercondition=filtersinfo[j].filter.getfilters()[i].condition;
-			                    	aux.datafield = filtersinfo[j].filtercolumn;
+	                   // 	for(var j=0;j<filtersinfo.length;j++){
+		               //     	for (var i = 0; i < filtersinfo[j].filter.getfilters().length; i++) {
+			           //         	aux.filtersvalue=filtersinfo[j].filter.getfilters()[i].value;
+			           //         	aux.filtercondition=filtersinfo[j].filter.getfilters()[i].condition;
+			           //         	aux.datafield = filtersinfo[j].filtercolumn;
 			                    	
-			                    	filtros.filtros.push(aux);
-			                    	aux={};
-		                    	}
+			           //         	filtros.filtros.push(aux);
+			           //         	aux={};
+		               //     	}
 		                    	
-		                    }
-	                    	sessionStorage.setItem("rollout_map_filtro",JSON.stringify(filtros));
-	                    	$(".janelas").hide();
-	                		document.getElementById("mapa_central").style.display = "block";
-	                		inicializa_mapa_full(1);
+		               //     }
+	                   // 	sessionStorage.setItem("rollout_map_filtro",JSON.stringify(filtros));
+	                   // 	$(".janelas").hide();
+	                	//	document.getElementById("mapa_central").style.display = "block";
+	                	//	inicializa_mapa_full(1);
 	                		
 	                    	
-	                    });
-	                    msgButton.click(function (event) {
-	                    	$('#Modal_EnviaMengagem').modal('show');
-	                    	
-	                    });
-	                   
+	                   // });
+	                    
 	                    cFilterButton.click(function (event) {
 	                    	$("#jqxgrid").jqxGrid('clearfilters');
 	                    });
@@ -1175,58 +1265,9 @@ function carrega_gant(){
 	                    deleteButton.click(function (event) {
 	                    	rm_row_rollout();
 	                    });
-	                    batchButton.click(function (event) {
-	                    	if(g_changes.atualizacoes>0){
-	                    		$.confirm({
-	                    		    title: '!',
-	                    		    type:'red',
-	                    		    content: 'Dectamos mudanças não salvas. Essas mudanças serão descartadas caso deseje continuar.',
-	                    		    buttons: {
-	                    		        Continuar: function () {
-	                    		        	g_changes.atualizacoes=0;
-	                    		        	g_changes.campos=[];
-	                    		        	document.getElementById("linhas_selecionadas_lote").value=$('#jqxgrid').jqxGrid('getselectedrowindexes').length + " Linhas Selecionadas";
-	            	                    	carrega_campos_rollout();
-	            	                    	$('#modal_update_lotes').modal('show');
-	                    		        },
-	                    		        Cancelar: function () {
-	                    		            
-	                    		        }
-	                    		        
-	                    		    }
-	                    		});
-	                    	}else{
-	                    	document.getElementById("linhas_selecionadas_lote").value=$('#jqxgrid').jqxGrid('getselectedrowindexes').length + " Linhas Selecionadas";
-	                    	carrega_campos_rollout();
-	                    	$('#modal_update_lotes').modal('show');
-	                    	}
-	                    	//console.log($('#jqxgrid').jqxGrid('getselectedrowindexes').length + " Linhas Selecionadas");
-	                    });
+	                    
 	                   
-	                    addButton.click(function (event) {
-	                    	 $.ajax({
-	                   		  type: "POST",
-	                   		  data: {"opt":"23","rolloutid":rolloutid
-	                   			
-	                   			},		  
-	                   		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
-	                   		  url: "./POControl_Servlet",
-	                   		  cache: false,
-	                   		  dataType: "text",
-	                   		  success: onSuccess23
-	                   		});
-	                   	 function onSuccess23(data){
-	                   		 var aux=new Array();
-	                   		$("#row_add_fields").html(data);
-	                   		
-	                   		$("#table_row_fields").bootstrapTable();
-	                   		$('input[type=data_row]').w2field('date', { format: 'dd/mm/yyyy'});
-	                   		
-	                   		$('#modal_row_add').modal('show');
-	                   	 }
-	                   	
-	                        
-	                    });
+	                    
 	                    },
 	                altrows: true,
 	                editmode: 'click',
@@ -1244,7 +1285,7 @@ function carrega_gant(){
 	 //$("#jqxgrid").jqxGrid('selectionmode', 'multiplerows');
 	 $("#jqxgrid").on('cellendedit', function (event) {
          var args = event.args;
-        // console.log(args);
+         console.log(args);
          //alert(args.datafield);
          //alert(args.row.recid);
          //alert(args.row);
@@ -1254,6 +1295,68 @@ function carrega_gant(){
 	 
 	 
 	}
+function preparaAddnewLine(){
+	var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
+	 
+	 var rolloutid;
+	 if (item != null) {
+		 rolloutid=item.value;
+		 if(rolloutid=="Rollout"){
+			 return;
+		 }
+	 }else{
+		   alert("Selecione um rollout para adicionar uma nova atividade");
+		   return;
+	 }
+	 $.ajax({
+		  type: "POST",
+		  data: {"opt":"23","rolloutid":rolloutid
+			
+			},		  
+		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+		  url: "./POControl_Servlet",
+		  cache: false,
+		  dataType: "text",
+		  success: onSuccess23
+		});
+	 function onSuccess23(data){
+		 var aux=new Array();
+		$("#row_add_fields").html(data);
+		
+		$("#table_row_fields").bootstrapTable();
+		$('input[type=data_row]').w2field('date', { format: 'dd/mm/yyyy'});
+		
+		$('#modal_row_add').modal('show');
+	 }
+	
+}
+function preparaAtualizacaoLotes(){
+
+	if(g_changes.atualizacoes>0){
+		$.confirm({
+		    title: '!',
+		    type:'red',
+		    content: 'Dectamos mudanças não salvas. Essas mudanças serão descartadas caso deseje continuar.',
+		    buttons: {
+		        Continuar: function () {
+		        	g_changes.atualizacoes=0;
+		        	g_changes.campos=[];
+		        	document.getElementById("linhas_selecionadas_lote").value=$('#jqxgrid').jqxGrid('getselectedrowindexes').length + " Linhas Selecionadas";
+                	carrega_campos_rollout();
+                	$('#modal_update_lotes').modal('show');
+		        },
+		        Cancelar: function () {
+		            
+		        }
+		        
+		    }
+		});
+	}else{
+	document.getElementById("linhas_selecionadas_lote").value=$('#jqxgrid').jqxGrid('getselectedrowindexes').length + " Linhas Selecionadas";
+	carrega_campos_rollout();
+	$('#modal_update_lotes').modal('show');
+	}
+}
 function envia_mensagem_rollout(){
 	var usuarios=$("#func_mensagem").selectpicker('val');
 	var mensagem=document.getElementById("mensagem_input").value;
@@ -1295,7 +1398,8 @@ function SyncToMongoDB() {
 }
 function SyncRollout(){
 	
-	carrega_gant();
+	//carrega_gant();
+	$("#jqxgrid").jqxGrid("updatebounddata");
 }
 function downloadFunc(){
 	//$.alert("Função Temporariamente desabilitada, devido migracao do banco de dados! estimativa de retorno da função 22/02/2019 as 18:00hs!");
@@ -1422,7 +1526,8 @@ function downloadFunc(){
 	});
 }		
 function registra_mudança_campos(index,campo,valor,tipo,oldvalue){
-	//alert(tipo);
+	var recid=$("#jqxgrid").jqxGrid('getrowid', index);
+	if(recid){
 	if(campo=="check_linha"){
 		$("#jqxgrid").jqxGrid('selectrow', index);
 		aux=deletar.indexOf($("#jqxgrid").jqxGrid('getrowid', index));
@@ -1432,7 +1537,7 @@ function registra_mudança_campos(index,campo,valor,tipo,oldvalue){
 		
 		//console.log(deletar);
 	}else{
-	if(tipo.length>0){
+	if(tipo){
 	if (tipo=='datetimeinput'){
 		//alert(valor);
 		//var d = new Date(valor);
@@ -1440,18 +1545,22 @@ function registra_mudança_campos(index,campo,valor,tipo,oldvalue){
 		//alert(localdata);
 		if(localdata!='Invalid date'){
 			
-			localizacao={id:$("#jqxgrid").jqxGrid('getrowid', index),colum:campo,value:localdata,tipoc:tipo,oldvalue:oldvalue};
+			localizacao={id:recid,colum:campo,value:localdata,tipoc:tipo,oldvalue:oldvalue};
 		}else{
 			
-			localizacao={id:$("#jqxgrid").jqxGrid('getrowid', index),colum:campo,value:'',tipoc:'textbox',oldvalue:oldvalue};
+			localizacao={id:recid,colum:campo,value:'',tipoc:'textbox',oldvalue:oldvalue};
 		}
 	}else{
-		localizacao={id:$("#jqxgrid").jqxGrid('getrowid', index),colum:campo,value:valor,tipoc:tipo,oldvalue:oldvalue}
+		localizacao={id:recid,colum:campo,value:valor,tipoc:tipo,oldvalue:oldvalue}
 	}
 	g_changes.atualizacoes=g_changes.atualizacoes+1;
 	g_changes.campos.push(localizacao);
+	}else{
+		localizacao={id:recid,colum:campo,value:valor,tipoc:'textbox',oldvalue:oldvalue}
+		g_changes.atualizacoes=g_changes.atualizacoes+1;
+		g_changes.campos.push(localizacao);
 	}
-	}
+	}}
 	//var valor_novo=w2ui['grid'].getCellValue(record,field_change);
 	//alert(valor_novo);
 }
@@ -1524,6 +1633,31 @@ function busca_historico_rollout_filtros(){
   		
   		
 	}
+}
+
+function atualizaperiodo(){
+	var item = $('#jqxTree_rollout').jqxTree('getSelectedItem');
+	var rolloutid;
+	 if (item != null) {
+		 rolloutid=item.value;
+		 if(rolloutid=="Rollout"){
+			 return;
+		 }
+	 }else{
+		 rolloutid="Rollout1";
+	 }
+	$.ajax({
+		  type: "POST",
+		  data: {"opt":"41","rolloutid":rolloutid},		  
+		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+		  url: "./RolloutServlet",
+		  cache: false,
+		  dataType: "text",
+		  success: atualizaperiodook
+		});
+	 function atualizaperiodook(data){
+		 $.alert("terminou");
+	 }
 }
 function rm_row_rollout(){
 	

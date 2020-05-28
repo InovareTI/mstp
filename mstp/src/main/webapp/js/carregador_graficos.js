@@ -142,7 +142,7 @@ function g1 (opcao,local) {
 			moment().locale('pt-br');
 			
 			  var s,p;
-			  
+			  var rolloutid;
 			if (opcao==0){
 			     var date = new Date();
 			     var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -154,18 +154,22 @@ function g1 (opcao,local) {
 				  var selection = $("#from").jqxDateTimeInput('getRange');
 				  s=moment(selection.from).format('L');
 				  p=moment(selection.to).format('L');
+				  
 			  }
 			 
-			     
+			 rolloutid = $('#select_dashboard_rollout').val();
+			if (rolloutid){
+				rolloutid = $('#select_dashboard_rollout').val();
+				$('#seleciona_rollout_modal').modal('hide');
+			}else{
+				rolloutid=0;
+			}
 			
 			   //$.getJSON('http://inovareti.jelasticlw.com.br/DashTM/Dashboard_Servlet?opt=1&dtfrom='+s.value+'&dtto='+p.value, function(data) {
-			  $.getJSON('./Dashboard_Servlet?opt=3&dtfrom='+s+'&dtto='+p, function(data) {	
+			  $.getJSON('./Dashboard_Servlet?opt=3&dtfrom='+s+'&dtto='+p+'&rollout='+rolloutid, function(data) {	
 			    	//alert(JSON.stringify(data));
-			    	options.xAxis.categories = data[0]['data'];
-			    	options.series[0] = data[1];
-			    	options.series[1] = data[2];
-			    	options.series[2] = data[3];
-			    	options.series[3] = data[4];
+			    	options.xAxis.categories = data['categorias'];
+			    	options.series = data['dados'];
 			    	
 			       
 			        var chart = new Highcharts.Chart(options);
