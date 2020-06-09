@@ -1,5 +1,6 @@
     var text = '{ "atualizacoes":0, "campos" : []}';
 	var g_changes = JSON.parse(text);
+	var g_changes_site = JSON.parse(text);
 	var text = '{ "rows":[]}';
 	var deletar=[];
 	var geral={};
@@ -17,10 +18,9 @@ $(document).ready(function () {
 	        geral.perfil="";
 	        geral.banco="0";
 	        carrega_perfil();
-	        
 	        carrega_portal();
             carrega_cliente_table();
-           
+          
             var Meusdockings = function (tab) {
                 switch (tab) {
                 case 1:
@@ -59,7 +59,7 @@ $(document).ready(function () {
             		 g8('grafico_container4');
                 	break;    
                 case 2:
-                    	$('#docking_rollout').jqxDocking({  orientation: 'horizontal',width:1200, mode: 'docked',theme: 'material' });
+                    	$('#docking_rollout').jqxDocking({  orientation: 'horizontal', mode: 'docked',theme: 'material' });
                     	
                     	carrega_portalRollout();
                     	break;
@@ -433,6 +433,19 @@ $(document).ready(function () {
 			        return obj;
 			    }
 			});
+            $("#input_6_arq").fileinput({
+            	language: "pt-BR",
+			    uploadUrl: "./RelatoriosServlet?opt=10", // server upload action
+			    uploadAsync: false,
+			    allowedFileExtensions: ['jpeg','jpg','png'],
+			    maxFileCount: 5,
+			    uploadExtraData:function (previewId, index) {
+			        var obj = {item_id:$("#temp_id_txt").val()};
+			        //obj[0]=$("#cliente_carrega_po").val();
+			        //obj[1]=$("#projeto_carrega_po").val()
+			        return obj;
+			    }
+			});
            
             $("#input_PO_file").fileinput({
 			    uploadUrl: "./POControl_Servlet?opt=12", 
@@ -500,7 +513,8 @@ $(document).ready(function () {
             load_site_markers();
             carrega_select_func_ponto();
             carrega_usuarios();
-            
+            carregaSelectOperadora();
+            carregaSelectOperadoraExport();
             $('#PO_upload_Modal').on('show.bs.modal', function (event) {
             	atualiza_select_cliente();
             });

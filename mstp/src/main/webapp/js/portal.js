@@ -120,12 +120,12 @@ function operacional1(){
 	         localdata: dataaux,
 	         id: 'recid',
 	     };
-		 var dataAdapter = new $.jqx.dataAdapter(source);
-		 var photorenderer = function (row, column, value) {
-	         var name = $('#grid_func_mapaOperacional').jqxGrid('getrowdata', row).usuario;
-	         var imgurl = './UserMgmt?opt=32&usuario='+name;
-	         var img = '<div style="background: white;"><img style="margin:2px; margin-left: 10px;" width="42" height="52" src="' + imgurl + '"></div>';
-	         return img;
+		 	var dataAdapter = new $.jqx.dataAdapter(source);
+		 	var photorenderer = function (row, column, value) {
+	        var name = $('#grid_func_mapaOperacional').jqxGrid('getrowdata', row).usuario;
+	        var imgurl = './UserMgmt?opt=32&usuario='+name;
+	        var img = '<div style="background: white;"><img style="margin:2px; margin-left: 10px;" width="42" height="52" src="' + imgurl + '"></div>';
+	        return img;
 	     }
 		 
 	     var renderer = function (row, column, value) {
@@ -326,6 +326,11 @@ function carrega_portalRollout(){
 	    });
 		 g1(0,'grafico_container1_rollout');
 		 g9(1,'grafico_container2_rollout');
+		 g13('grafico_container3_rollout');
+		  $("#jqxRadioButton_rollout").jqxRadioButton({ width: 150, height: 25, checked: true});
+          $("#jqxRadioButton2_rollout").jqxRadioButton({ width: 150, height: 25});
+          $("#jqxRadioButton3_rollout").jqxRadioButton({ width: 150, height: 25});
+		 g14('grafico_container4_rollout');
 		
 	}
 }

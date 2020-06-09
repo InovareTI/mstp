@@ -1,11 +1,14 @@
+
 function aprova_item(id,id_vistoria){
 	var timestamp =Date.now();
+	var recid = sessionStorage.getItem("checklist_recid_aux");
 	$.ajax({
 		  type: "POST",
 		  data: {"opt":"35",
 			  "_": timestamp,
 			  "idvistoria":id_vistoria,
-			  "id":id
+			  "id":id,
+			  "recid":recid
 			},		  
 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
 		  url: "./RolloutServlet",
@@ -18,13 +21,15 @@ function aprova_item(id,id_vistoria){
 	}
 }
 function rejeita_item(id,id_vistoria){
+	var recid = sessionStorage.getItem("checklist_recid_aux");
 	var timestamp =Date.now();
 	$.ajax({
 		  type: "POST",
 		  data: {"opt":"36",
 			  "_": timestamp,
 			  "idvistoria":id_vistoria,
-			  "id":id
+			  "id":id,
+			  "recid":recid
 			},		  
 		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
 		  url: "./RolloutServlet",
@@ -75,7 +80,8 @@ function carrega_checklist(){
 		             { name: 'siteID', type: 'string' },
 		             { name: 'statusCheckList' , type: 'string'},
 		             { name: 'owner', type: 'string' },
-		             { name: 'executorCheklist', type: 'string' }
+		             { name: 'executorCheklist', type: 'string' },
+		             { name: 'recid', type: 'number' },
 		         ],
 	         localdata: dataaux,
 	         id: 'id',
@@ -111,15 +117,36 @@ function carrega_checklist(){
 				{
 				    // event arguments.
 				    var args = event.args;
-				    //console.log(args);
+				    console.log(args);
 				    var rowBoundIndex = args.rowindex;
 				    // row's data. The row's data object or null(when all rows are being selected or unselected with a single action). If you have a datafield called "firstName", to access the row's firstName, use var firstName = rowData.firstName;
 				    var rowData = args.row;
 				    //console.log(rowData);
+				    sessionStorage.setItem("checklist_recid_aux",rowData.recid);
 				    carrega_dados_checklist(rowData.id);
 				});
 		
 	}
+}
+function gerarReport(id_vistoria){
+	var timestamp =Date.now();
+	$.ajax({
+        url: './RelatoriosServlet?opt=9&idvistoria='+id_vistoria,
+        method: 'GET',
+        data:{"op":9,"idvistoria":id_vistoria},
+        xhrFields: {
+            responseType: 'blob'
+        },
+        success: function (data) {
+            var a = document.createElement('a');
+            var url = window.URL.createObjectURL(data);
+            a.href = url;
+            a.download = 'relatorio_checklist.xlsx';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+    });
+	
 }
 function carrega_dados_checklist(id_vistoria){
 	var timestamp =Date.now();

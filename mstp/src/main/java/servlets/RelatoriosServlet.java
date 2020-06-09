@@ -3,31 +3,50 @@ package servlets;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.sql.Blob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.ClientAnchor;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.Drawing;
+import org.apache.poi.ss.usermodel.Picture;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.json.JSONObject;
 
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.Filters;
+
 import classes.Conexao;
+import classes.ConexaoMongo;
 import classes.Pessoa;
 
 /**
@@ -79,6 +98,9 @@ public class RelatoriosServlet extends HttpServlet {
 		String param4;
 		String param5;
 		String param6;
+		String param7;
+		String param8;
+		String param9;
 		String query;
 		Locale locale_ptBR = new Locale( "pt" , "BR" ); 
 		Locale.setDefault(locale_ptBR);
@@ -86,6 +108,7 @@ public class RelatoriosServlet extends HttpServlet {
 		Pessoa p = (Pessoa) session.getAttribute("pessoa");
 		Conexao conn = (Conexao) session.getAttribute("conexao");
 		double money; 
+		ConexaoMongo mongo = new ConexaoMongo();
 		NumberFormat number_formatter = NumberFormat.getCurrencyInstance();
 		String moneyString;
 		Timestamp time = new Timestamp(System.currentTimeMillis());
@@ -154,6 +177,9 @@ public class RelatoriosServlet extends HttpServlet {
 				param4=req.getParameter("parent_id_item");
 				param5=req.getParameter("relatorio_id_item");
 				param6=req.getParameter("tipo_item");
+				param7=req.getParameter("linha");
+				param8=req.getParameter("coluna");
+				param9=req.getParameter("planilha");
 				String tipo="";
 				query="select field_id from vistoria_campos where tree_id="+param3+" and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5;
 				rs=conn.Consulta(query);
@@ -178,7 +204,7 @@ public class RelatoriosServlet extends HttpServlet {
 						}
 						conn.Update_simples("update vistoria_campos set field_type='SubGrupo' where tree_id="+param4+" and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5);
 						}
-						conn.Alterar("update vistoria_campos set field_type='"+tipo+"',field_name='"+param1+"',tipo='"+param6+"',field_desc='"+param2+"' where tree_id="+param3+" and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5);
+						conn.Alterar("update vistoria_campos set field_type='"+tipo+"',field_name='"+param1+"',tipo='"+param6+"',field_desc='"+param2+"',linhaExcel="+param7+",colunaExcel="+param8+",sheetExcel="+param9+" where tree_id="+param3+" and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5);
 					}
 					resp.setContentType("application/text");  
 					resp.setCharacterEncoding("UTF-8"); 
@@ -201,7 +227,7 @@ public class RelatoriosServlet extends HttpServlet {
 				if(param4.equals("")) {
 					param4="0";
 				}
-				query="insert into vistoria_campos (field_name,tree_id,parent_id,empresa,relatorio_id,tipo,field_desc,field_type) values ('"+param1+"',"+param3+","+param4+","+p.getEmpresa().getEmpresa_id()+","+param5+",'"+param6+"','"+param2+"','"+tipo+"')";
+				query="insert into vistoria_campos (field_name,tree_id,parent_id,empresa,relatorio_id,tipo,field_desc,field_type,linhaExcel,colunaExcel,sheetExcel) values ('"+param1+"',"+param3+","+param4+","+p.getEmpresa().getEmpresa_id()+","+param5+",'"+param6+"','"+param2+"','"+tipo+"',"+param7+","+param8+","+param9+")";
 				if(conn.Inserir_simples(query)) {
 					resp.setContentType("application/text");  
 					resp.setCharacterEncoding("UTF-8"); 
@@ -219,7 +245,7 @@ public class RelatoriosServlet extends HttpServlet {
 					rs.beforeFirst();
 					dados_tabela="[";
 					while(rs.next()) {
-						dados_tabela=dados_tabela+"{\"id\":\""+rs.getInt("tree_id")+"\",\"parentid\":\""+rs.getInt("parent_id")+"\",\"text\":\""+rs.getString("field_name")+"\"},";
+						dados_tabela=dados_tabela+"{\"id\":\""+rs.getInt("tree_id")+"\",\"parentid\":\""+rs.getInt("parent_id")+"\",\"text\":\""+rs.getString("field_name")+"\",\"nivel\":\""+rs.getString("field_type")+"\",\"value\":"+rs.getInt("field_id")+"},";
 			                
 					}
 					dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
@@ -331,7 +357,178 @@ public class RelatoriosServlet extends HttpServlet {
 						}
 					}
 				}
+			}else if(opt.equals("9")){
+				ResultSet rs3=null;
+				System.out.println("Iniciando geracao de report automático");
+				
+				param1=req.getParameter("idvistoria");
+				dados_tabela="";
+				query="select * from vistoria_dados where id_vistoria="+param1+" and empresa="+p.getEmpresa().getEmpresa_id()+" and status_vistoria='APROVADO'";
+				rs=conn.Consulta(query);
+				String siteid="";
+				String enderecoSite="";
+				String UF="";
+				int recid=0;
+				if(rs.next()) {
+					siteid= rs.getString("SiteID");
+					recid= rs.getInt("recid");
+					Bson filtro;
+					List<Bson> filtros = new ArrayList<>();
+					filtro = Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+					filtros.add(filtro);
+					filtro = Filters.eq("site_id",siteid);
+					filtros.add(filtro);
+					FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("sites", filtros);
+					Document site = findIterable.first();
+					query="select * from vistoria_report where id="+rs.getInt("relatorio_id")+" and empresa="+p.getEmpresa().getEmpresa_id();
+					rs2=conn.Consulta(query);
+					if(rs2.next()) {
+						XSSFWorkbook wb = new XSSFWorkbook(rs2.getBlob("report_template").getBinaryStream());
+						Sheet sheet = wb.getSheetAt(0); 
+						Row row = sheet.getRow(2);
+						Cell cell = row.getCell(1);
+						cell.setCellValue(siteid);
+						cell = row.getCell(3);
+						cell.setCellValue(site.getString("site_endereco"));
+						cell = row.getCell(13);
+						cell.setCellValue(site.getString("site_uf"));
+						CreationHelper helper = wb.getCreationHelper();
+						Drawing drawing = sheet.createDrawingPatriarch();
+						
+						int col1=1;
+						int col2=6;
+						int row1=7;
+						int row2=22;
+						
+						
+			    		rs.beforeFirst();
+			    		int pictureIndex;
+			    		while(rs.next()) {
+			    			ClientAnchor anchor = helper.createClientAnchor();
+							
+							anchor.setAnchorType( ClientAnchor.AnchorType.DONT_MOVE_AND_RESIZE);
+			    			query="select * from vistoria_campos where field_id="+rs.getInt("campo_id")+" and empresa="+p.getEmpresa().getEmpresa_id();
+							rs3=conn.Consulta(query);
+							if(rs3.next()) {
+								anchor.setCol1(rs3.getInt("colunaExcel"));
+								anchor.setCol2(rs3.getInt("colunaExcel")+5);
+								anchor.setRow1(rs3.getInt("linhaExcel"));
+								anchor.setRow2(rs3.getInt("linhaExcel")+15);
+								
+							}else {
+								anchor.setCol1(col1);
+								anchor.setCol2(col2);
+								anchor.setRow1(row1);
+								anchor.setRow2(row2);
+							}
+			    			 pictureIndex = wb.addPicture(IOUtils.toByteArray(rs.getBlob("campo_valor_foto").getBinaryStream()), wb.PICTURE_TYPE_JPEG);
+			    			Picture pict = drawing.createPicture( anchor, pictureIndex );
+			    			//pict.resize();
+			    			
+							
+			    			
+			    		}
+			    		resp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		                resp.setHeader("Content-Disposition", "attachment; filename="+time.toString()+"_rollout_mstp.xlsx");
+		                wb.write(resp.getOutputStream());
+		                wb.close();
+					}
+				rs2.close();
+				rs3.close();
+				}
+				rs.close();
+			}else if(opt.equals("10")){
+				InputStream inputStream=null;
+				
+				if (ServletFileUpload.isMultipartContent(req)) {
+					List<FileItem> multiparts;
+					
+						multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
+					
+					Iterator<FileItem> iter = multiparts.iterator();
+					Integer num_item = 0;
+					while (iter.hasNext()) {
+						FileItem item = iter.next();
+						if (item.isFormField()) {
+							num_item=Integer.parseInt(item.getString());
+							System.out.println("valor do item é:" + item.getString());
+						}
+					}
+					iter = multiparts.iterator();
+					while (iter.hasNext()) {
+						FileItem item = iter.next();
+						if (item.isFormField()) {
+						       
+						}else{
+							System.out.println("Iniciando Uplaod de Foto Modelo");
+							inputStream = item.getInputStream();
+							String sql = "update vistoria_campos set foto_modelo=?,foto_modelo_nome=?,foto_modelo_tipo=? where field_id="+num_item+" and empresa="+p.getEmpresa().getEmpresa_id();
+							PreparedStatement statement;
+							statement = conn.getConnection().prepareStatement(sql);
+							statement.setBlob(1, inputStream);
+							statement.setString(2,item.getName());
+							statement.setString(3,item.getContentType());
+							int linha = statement.executeUpdate();
+						    statement.getConnection().commit();
+						    resp.setContentType("application/json"); 
+				        	JSONObject jsonObject = new JSONObject(); 
+				        	jsonObject.put("Sucesso", "Sucesso"); 
+				        	PrintWriter pw = resp.getWriter();
+				        	pw.print(jsonObject); 
+						}
+					}
+				}
+			}else if(opt.equals("11")) {
+				System.out.println("Buscando fotos de checklist");
+				param1=req.getParameter("id");
+				
+				query="select foto_modelo from vistoria_campos where field_id="+param1+" and empresa="+p.getEmpresa().getEmpresa_id();
+				//System.out.println(query);
+				rs=conn.Consulta(query);
+				ServletOutputStream out = resp.getOutputStream();
+				InputStream in=null;
+				if(rs.next()){
+					//System.out.println("Entrou no Blob");
+					Blob imageBlob = rs.getBlob(1);
+					in = imageBlob.getBinaryStream(1,(int)imageBlob.length());
+					
+			        int length = (int) imageBlob.length();
+
+			        int bufferSize = 1024;
+			        byte[] buffer = new byte[bufferSize];
+
+			        while ((length = in.read(buffer)) != -1) {
+			            //System.out.println("writing " + length + " bytes");
+			            out.write(buffer, 0, length);
+			        }
+
+			        
+				    //System.out.println(dados_tabela);
+			        resp.setContentType("image/png");  
+			    	//resp.setCharacterEncoding("UTF-8"); 
+			    	in.close();
+			        out.flush();
+			    	//out.print(dados_tabela);
 			}
+				Timestamp time2 = new Timestamp(System.currentTimeMillis());
+				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
+		}else if(opt.equals("12")){
+			param1=req.getParameter("id_item");
+			rs=conn.Consulta("select *,now() from vistoria_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and field_id="+param1);
+			if(rs.next()) {
+				resp.setContentType("application/Text");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				out.print("[\""+rs.getString("field_name")+"\",\""+rs.getString("field_desc")+"\","+rs.getInt("linhaExcel")+","+rs.getInt("colunaExcel")+","+rs.getInt("sheetExcel")+"]");
+			
+			}else {
+				resp.setContentType("application/Text");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				out.print("[\"vazio\"]");
+			
+			}
+		}
 		}catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

@@ -65,6 +65,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -300,6 +301,7 @@ public class POControl_Servlet extends HttpServlet {
 					while(resultado.hasNext()) {
 						poItemLinha=resultado.next();
 						dados_tabela=dados_tabela+"{";
+						dados_tabela=dados_tabela+"\"ID\":\""+poItemLinha.get("_id").toString()+"\",";
 						dados_tabela=dados_tabela+"\"PO NUMBER\":\""+poItemLinha.getString("PO NO")+"\",";
 						dados_tabela=dados_tabela+"\"ITEM\":\""+poItemLinha.getString("Item Description")+"\",";
 						dados_tabela=dados_tabela+"\"ITEM_CODE\":\""+poItemLinha.getString("Item Code")+"\",";
@@ -313,6 +315,16 @@ public class POControl_Servlet extends HttpServlet {
 						}
 						
 						dados_tabela=dados_tabela+"\"Carregada\":\""+f3.format(poItemLinha.getDate("DT_CARREGADA"))+"\",";
+						if(poItemLinha.containsKey("DT_VALIDADA")) {
+							if(poItemLinha.get("DT_VALIDADA")!=null) {
+								dados_tabela=dados_tabela+"\"Validada\":\""+f3.format(poItemLinha.getDate("DT_VALIDADA"))+"\",";
+							}else {
+								dados_tabela=dados_tabela+"\"Validada\":\"PO NAO VALIDADA\",";
+							}
+						}else {
+							dados_tabela=dados_tabela+"\"Validada\":\"PO NAO VALIDADA\",";
+						}
+						
 						dados_tabela=dados_tabela+"\"VALOR UNITARIO\":\""+poItemLinha.getString("Unit Price")+"\",";
 						dados_tabela=dados_tabela+"\"QTDE\":\""+poItemLinha.getString("Requested Qty")+"\",";
 						dados_tabela=dados_tabela+"\"SITE\":\""+poItemLinha.getString("Site Name")+"\",";
@@ -331,24 +343,28 @@ public class POControl_Servlet extends HttpServlet {
 				out.print(dados_tabela);
 				out.close();
 			}else if(opt.equals("2")){
-				//System.out.println("Deletando PO's");
+				
 				param1=req.getParameter("po");
-				//System.out.println(param1);
-				if(param1.indexOf("'")>0){
-					param1.replace("'","");
+				System.out.println("Deletando PO's" + param1);
+				JSONObject po_aux = new JSONObject(param1);
+				JSONArray po_aux2 = po_aux.getJSONArray("filtros");
+				Document update = new Document();
+				update.append("PO_ATIVA", "N");
+				Document comando_update = new Document();
+				comando_update.append("$set", update);
+				Document filtro;
+				for(int cont=0;cont<po_aux2.length();cont++) {
+					filtro = new Document();
+					ObjectId id = new ObjectId(po_aux2.getString(cont));
+					filtro.append("_id", id);
+					mongo.AtualizaUm("PO", filtro, comando_update);
 				}
-				if(param1.indexOf(",")>0){
-					String[] po=param1.split(",");
-					for(int i=0;i<po.length;i++){
-						//System.out.println("delete from po_table where po_number="+po[i]);
-						mysql.Alterar("update po_table set PO_ATIVA='N',DT_PO_DESATIVADA='"+time+"',RESP_PO_DEATIVADA='"+p.get_PessoaUsuario()+"' where po_id="+po[i]);
-						mysql.Excluir("delete from po_item_table where po_number='"+po[i]+"'");
-					}
-				}else{
-					//System.out.println("delete from po_table where po_number="+param1);
-					mysql.Excluir("update po_table set PO_ATIVA='N',DT_PO_DESATIVADA='"+time+"',RESP_PO_DEATIVADA='"+p.get_PessoaUsuario()+"' where po_id="+param1);
-					mysql.Excluir("delete from po_item_table where po_number='"+param1+"'");
-				}
+				
+				resp.setContentType("application/html");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				out.print("Sucesso");
+				out.close();
 			}else if(opt.equals("3")){
 				param1=req.getParameter("po");
 				rs=mysql.Consulta("Select po_item_table.* from po_item_table,po_table where po_table.po_number='"+param1+"' and po_table.PO_ATIVA='Y' and po_table.po_number=po_item_table.po_number and po_item_table.empresa="+p.getEmpresa().getEmpresa_id()+" order by po_item_id");
@@ -413,23 +429,29 @@ public class POControl_Servlet extends HttpServlet {
 				out.print(dados_tabela);
 				out.close();
 			}else if(opt.equals("4")){
-				//System.out.println("Validando PO's");
-				 time = new Timestamp(System.currentTimeMillis());
 				param1=req.getParameter("po");
-				//System.out.println(param1);
-				if(param1.indexOf("'")>0){
-					param1.replace("'","");
+				System.out.println("Valindando PO's" + param1);
+				JSONObject po_aux = new JSONObject(param1);
+				JSONArray po_aux2 = po_aux.getJSONArray("filtros");
+				Document update = new Document();
+				update.append("PO_VALIDADA", "Y");
+				update.append("DT_VALIDADA", time);
+				update.append("PO_VALIDADA_USUARIO", p.get_PessoaUsuario());
+				Document comando_update = new Document();
+				comando_update.append("$set", update);
+				Document filtro;
+				for(int cont=0;cont<po_aux2.length();cont++) {
+					filtro = new Document();
+					ObjectId id = new ObjectId(po_aux2.getString(cont));
+					filtro.append("_id", id);
+					mongo.AtualizaUm("PO", filtro, comando_update);
 				}
-				if(param1.indexOf(",")>0){
-					String[] po=param1.split(",");
-					for(int i=0;i<po.length;i++){
-						
-						mysql.Alterar("update po_table set validada='Y',dt_validada='"+time+"' where po_number='"+po[i]+"'");
-					}
-				}else{
-					
-					mysql.Alterar("update po_table set validada='Y',dt_validada='"+time+"' where po_number='"+param1+"'");
-				}
+				
+				resp.setContentType("application/html");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				out.print("Sucesso");
+				out.close();
 			}else if(opt.equals("5")){
 				
                 //System.out.println("Carregando PO de Subcon");

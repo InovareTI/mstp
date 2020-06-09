@@ -167,12 +167,7 @@ public class SiteMgmt extends HttpServlet {
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("2")) {
-				//Enumeration<String> nomes=req.getParameterNames();
-				//while(nomes.hasMoreElements()) {
-				//	System.out.println(nomes.nextElement().toString());
-				//}
-				//System.out.println("Inicio:"+req.getParameter("start"));
-				//System.out.println("Tamanho:"+req.getParameter("length"));
+				
 				param1 = req.getParameter("operadora");
 				param2=req.getParameter("pagesize");
 				param3=req.getParameter("pagenum");
@@ -192,7 +187,7 @@ public class SiteMgmt extends HttpServlet {
 				filtro_list.add(filtro);
 				filtro=Filters.eq("site_ativo","Y");
 				filtro_list.add(filtro);
-				filtro=Filters.eq("site_operadora",param1);
+				filtro=Filters.regex("site_operadora",param1);
 				filtro_list.add(filtro);
 				for (Integer i=0; i < filterscount; i++)
 				{
@@ -307,6 +302,8 @@ public class SiteMgmt extends HttpServlet {
 						dados_tabela=dados_tabela+"\"site_operadora\":\""+site.getString("site_operadora")+"\",";
 						dados_tabela=dados_tabela+"\"site_uf\":\""+site.getString("site_uf")+"\",";
 						dados_tabela=dados_tabela+"\"site_municipio\":\""+site.getString("site_municipio")+"\",";
+						dados_tabela=dados_tabela+"\"site_endereco\":\""+site.getString("site_endereco")+"\",";
+						dados_tabela=dados_tabela+"\"site_bairro\":\""+site.getString("site_bairro")+"\",";
 						dados_tabela=dados_tabela+"\"site_latitude\":\""+site.getString("site_latitude")+"\",";
 						dados_tabela=dados_tabela+"\"site_longitude\":\""+site.getString("site_longitude")+"\"},\n";
 						chaves="{";
@@ -814,6 +811,8 @@ public class SiteMgmt extends HttpServlet {
 				List<Bson> filtros = new ArrayList<>();
 				filtro = Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
 				filtros.add(filtro);
+				filtro = Filters.eq("site_ativo","Y");
+				filtros.add(filtro);
 				filtro = Filters.eq("site_operadora",param1);
 				filtros.add(filtro);
 				FindIterable<Document> findIterable = c.ConsultaCollectioncomFiltrosLista("sites", filtros);
@@ -1316,7 +1315,128 @@ public class SiteMgmt extends HttpServlet {
 				
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
-			}
+			}else if(opt.equals("14")) {
+				System.out.println("Iniciando Alteração de Dados do Site");
+				if(p.getPerfil_funcoes().contains("Site Manager")) {
+				
+		                param1=req.getParameter("mudancas");
+		                //System.out.println(param1);
+		                
+		                Document filtros;
+		                
+		                Document updates;
+		                Document update = new Document();
+		              
+		                time = new Timestamp(System.currentTimeMillis());
+		                Calendar d =Calendar.getInstance();
+		                //atualiza_sites_integrados(p);
+		                
+		                JSONObject jObj = new JSONObject(param1); 
+		                JSONObject site ; 
+		    			JSONArray campos = jObj.getJSONArray("campos");
+		    			
+		    			for(int cont=0;cont<campos.length();cont++) {
+		    				site = campos.getJSONObject(cont);
+		    				filtros=new Document();
+		    				filtros.append("Empresa", p.getEmpresa().getEmpresa_id());
+		    				filtros.append("site_id", site.getString("id"));
+		    				filtros.append("site_ativo", "Y");
+		    				updates=new Document();
+		    				if(site.getString("colum").equals("site_latitude") || site.getString("colum").equals("site_longitude") ) {
+		    					Bson filtro;
+		    					List<Bson> filtrosLista = new ArrayList<>();
+		    					filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+		    					filtrosLista.add(filtro);
+		    					filtro=Filters.eq("site_id", site.getString("id"));
+		    					filtrosLista.add(filtro);
+		    					filtro=Filters.eq("site_ativo", "Y");
+		    					filtrosLista.add(filtro);
+		    					FindIterable<Document> findInterable = c.ConsultaCollectioncomFiltrosLista("sites", filtrosLista);
+		    					MongoCursor<Document> resultado = findInterable.iterator();
+		    					if(resultado.hasNext()) {
+		    						Document site_buscado = resultado.next();
+		    						//System.out.println(site_buscado.toJson());
+			    					Document geo = (Document) site_buscado.get("GEO");
+			    					//System.out.println(geo.toJson());
+			    					Document geometry=(Document) geo.get("geometry");
+			    					//System.out.println(geometry.toJson());
+			    					List<Double> coordenadas = (List<Double>) geometry.get("coordinates");
+			    					if(site.getString("colum").equals("site_latitude")) {
+			    						coordenadas.set(1, Double.parseDouble(site.getString("value").replace(",", ".")));
+			    						updates.append("site_latitude", site.getString("value"));
+			    					}else {
+			    						coordenadas.set(0, Double.parseDouble(site.getString("value").replace(",", ".")));
+			    						updates.append("site_longitude", site.getString("value"));
+			    					}
+			    					geometry.append("coordinates", coordenadas);
+			    					geo.append("geometry", geometry);
+			    					updates.append("GEO", geo);
+			    					update=new Document();
+			    					update.append("$set", updates);
+			    					c.AtualizaUm("sites", filtros, update);
+			    					resp.setContentType("application/json");  
+			    					resp.setCharacterEncoding("UTF-8"); 
+			    					PrintWriter out = resp.getWriter();
+			    					out.print("Dados Alterados");
+		    					}else {
+		    						resp.setContentType("application/json");  
+		    						resp.setCharacterEncoding("UTF-8"); 
+		    						PrintWriter out = resp.getWriter();
+		    						out.print("Site Não Encontrado");
+		    					}
+		    				}else {
+		    					updates.append(site.getString("colum"), site.getString("value"));
+		    					update=new Document();
+		    					update.append("$set", updates);
+		    					c.AtualizaUm("sites", filtros, update);
+		    					
+		    				}
+		    				site=null;
+		    			}
+		    			resp.setContentType("application/json");  
+    					resp.setCharacterEncoding("UTF-8"); 
+    					PrintWriter out = resp.getWriter();
+    					out.print("Dados Alterados");
+					}else {
+						resp.setContentType("application/json");  
+						resp.setCharacterEncoding("UTF-8"); 
+						PrintWriter out = resp.getWriter();
+						out.print("Permissao Negada");
+					}
+				
+				}else if(opt.equals("15")) {
+					Bson filtro;
+					List<Bson> filtros = new ArrayList<>();
+					filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+					filtros.add(filtro);
+					filtro=Filters.eq("site_ativo","Y");
+					filtros.add(filtro);
+					List<String>operadoras = c.ConsultaSimplesDistinct("sites","site_operadora", filtros);
+					dados_tabela="";
+					for(int cont=0;cont<operadoras.size();cont++) {
+						dados_tabela=dados_tabela+"<option value='"+operadoras.get(cont)+"'>"+operadoras.get(cont).toUpperCase()+"</option>";
+					}
+					resp.setContentType("application/json");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print(dados_tabela);
+				}else if(opt.equals("16")) {
+					Bson filtro;
+					List<Bson> filtros = new ArrayList<>();
+					filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+					filtros.add(filtro);
+					filtro=Filters.eq("site_ativo","Y");
+					filtros.add(filtro);
+					List<String>operadoras = c.ConsultaSimplesDistinct("sites","site_operadora", filtros);
+					dados_tabela="";
+					for(int cont=0;cont<operadoras.size();cont++) {
+						dados_tabela=dados_tabela+"<li><a class=\"dropdown-item\" href=\"#\" onclick=\"exportarTodosSites('"+operadoras.get(cont)+"')\">"+operadoras.get(cont).toUpperCase()+"</a></li>";
+					}
+					resp.setContentType("application/json");  
+					resp.setCharacterEncoding("UTF-8"); 
+					PrintWriter out = resp.getWriter();
+					out.print(dados_tabela);
+				}
 			}catch (SQLException e) {
 			    
 				conn.fecharConexao();

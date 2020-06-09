@@ -492,43 +492,7 @@ function g8(local){
 }
 function g9 (opcao,local) {
 	
-	var options = {
-	        chart: {
-	            renderTo: local,
-	            type: 'column'
-	            
-	        },
-	        title: {
-	            text: 'Quantidade de Sites por dias trabalhados no período selecionado',
-	            style:{
-	            	fontSize: '14px'
-	            },
-	            x: -20 //center
-	        },
-	        xAxis:
-	        {
-	        categories: [],
-	        },
-	        plotOptions: {
-	        	column: {
-	                dataLabels: {
-	                    enabled: true,
-	                    format: '{y}',
-	                    rotation: -90,
-	                    color: '#FFFFFF',
-	                    align: 'right',
-	                    y: 10,
-	                    style: {
-	                        fontSize: '13px',
-	                        fontFamily: 'Verdana, sans-serif'
-	                    }
-	                    
-	                },
-	                enableMouseTracking: true
-	            }
-	        },
-	        series: [{}]
-	    };
+	
 	moment().locale('pt-br');
 	
 	  var s,p;
@@ -546,15 +510,164 @@ function g9 (opcao,local) {
 		  p=moment(selection.to).format('L');
 	  }
 	 
-	     
+	 rolloutid = $('#select_dashboard_rollout').val();
+		if (rolloutid){
+			rolloutid = $('#select_dashboard_rollout').val();
+			$('#seleciona_rollout_modal').modal('hide');
+		}else{
+			rolloutid=0;
+		}
 	
 	   //$.getJSON('http://inovareti.jelasticlw.com.br/DashTM/Dashboard_Servlet?opt=1&dtfrom='+s.value+'&dtto='+p.value, function(data) {
-	  $.getJSON('./Dashboard_Servlet?opt=9&dtfrom='+s+'&dtto='+p, function(data) {	
+	  $.getJSON('./Dashboard_Servlet?opt=9&dtfrom='+s+'&dtto='+p+'&rollout='+rolloutid, function(data) {	
 	    	//alert(JSON.stringify(data));
 	    	
-	    	options.series=data;
-	    	var chart = new Highcharts.Chart(options);
+		  Highcharts.chart(local, {
+			    chart: {
+			        type: 'bar'
+			    },
+			    title: {
+			        text: 'Quantidade de Atividades do Rollout por Usuário'
+			    },
+			    subtitle: {
+			        text: 'Fonte: Rollout'
+			    },
+			    xAxis: {
+			        categories: data.pessoas,
+			        title: {
+			            text: null
+			        }
+			    },
+			    yAxis: {
+			        min: 0,
+			        title: {
+			            text: 'Atividades',
+			            align: 'high'
+			        },
+			        labels: {
+			            overflow: 'justify'
+			        }
+			    },
+			    tooltip: {
+			        valueSuffix: ' Atividades'
+			    },
+			    plotOptions: {
+			        bar: {
+			            dataLabels: {
+			                enabled: true
+			            }
+			        }
+			    },
+			    legend: {
+			        layout: 'vertical',
+			        align: 'right',
+			        verticalAlign: 'top',
+			        x: -40,
+			        y: 80,
+			        borderWidth: 1,
+			        backgroundColor:'#FFFFFF',
+			        shadow: true
+			    },
+			    credits: {
+			        enabled: false
+			    },
+			    series: data.serie
+			});
+			
+			
 	        
 	    });
 
 	}
+function g14(local){
+	Highcharts.chart(local, {
+	    chart: {
+	        type: 'line'
+	    },
+	    title: {
+	        text: 'Planejamento (Milestone.nome) por período'
+	    },
+	    subtitle: {
+	        text: 'Fonte: Rollout'
+	    },
+	    xAxis: {
+	        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+	    },
+	    yAxis: {
+	        title: {
+	            text: 'Atividades'
+	        }
+	    },
+	    plotOptions: {
+	        line: {
+	            dataLabels: {
+	                enabled: true
+	            },
+	            enableMouseTracking: false
+	        }
+	    },
+	    series: [{
+	        name: 'Plano',
+	        data: [7.0, 6.9, 9.5, 14.5, 18.4, 21.5, 25.2, 26.5, 23.3, 18.3, 13.9, 9.6]
+	    }, {
+	        name: 'Realizado',
+	        data: [3.9, 4.2, 5.7, 8.5, 11.9, 15.2, 17.0, 16.6, 14.2, 10.3, 6.6, 4.8]
+	    }]
+	});
+}
+function g13(local){
+	rolloutid = $('#select_dashboard_rollout').val();
+	if (rolloutid){
+		rolloutid = $('#select_dashboard_rollout').val();
+		$('#seleciona_rollout_modal').modal('hide');
+	}else{
+		rolloutid=0;
+	}
+	 $.getJSON('./Dashboard_Servlet?opt=12&rollout='+rolloutid, function(data) {	
+	Highcharts.chart(local, {
+	    chart: {
+	        plotBackgroundColor: null,
+	        plotBorderWidth: 0,
+	        plotShadow: false
+	    },
+	    title: {
+	        text: data.nome+'<br>'+data.porcetagem + ' Concluído',
+	        align: 'center',
+	        verticalAlign: 'middle',
+	        y: 30
+	    },
+	    tooltip: {
+	        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+	    },
+	    accessibility: {
+	        point: {
+	            valueSuffix: '%'
+	        }
+	    },
+	    plotOptions: {
+	        pie: {
+	            dataLabels: {
+	                enabled: true,
+	                distance: -50,
+	                style: {
+	                    fontWeight: 'bold',
+	                    color: 'white'
+	                }
+	            },
+	            startAngle: 0,
+	            endAngle: 360,
+	            center: ['50%', '50%'],
+	            size: '100%'
+	        }
+	    },
+	    series: [{
+	        type: 'pie',
+	        name: 'Milestone',
+	        innerSize: '80%',
+	        data: data.dados
+	    }]
+	});
+
+	 });
+	
+}

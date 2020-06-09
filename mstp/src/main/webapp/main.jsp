@@ -153,6 +153,7 @@ response.setDateHeader ("Expires", -1);
     <script type="text/javascript" src="js/jqwidgets/jqxpivot.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxpivotdesigner.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxpivotgrid.js"></script>
+    <script type="text/javascript" src="js/jqwidgets/jqxradiobutton.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxform.js"></script>
     
     <script type="text/javascript" src="js/jqwidgets/globalization/globalize.js"></script>
@@ -517,7 +518,7 @@ response.setDateHeader ("Expires", -1);
 				            <li>Tickets</li>
 				            <li>Usuários</li>
 				            <li>Rollout</li>
-				            <li>PO</li>
+				            <li>Financeiro</li>
 	        			</ul>
 	        			<div>
 	        			<div style="display:block;width:100%">
@@ -610,8 +611,8 @@ response.setDateHeader ("Expires", -1);
 					    </div>
 					    <div>
 							<div id='jqxWidget_rollout' style="width:100%;margin: auto;float: left">
-					        <div id="docking_rollout" style="width:1200px">
-					            <div style="overflow: hidden;width:400px">
+					        <div id="docking_rollout" style="width:90%">
+					            <div style="overflow: hidden;width:50%">
 					                <div id="window5" style="height: 350px">
 					                    <div><div>
 						                    	<div style="float:left" id='from'></div>
@@ -626,6 +627,24 @@ response.setDateHeader ("Expires", -1);
 					                    <div><div id='from2'></div></div>
 					                   
 					                    <div id='grafico_container2_rollout'><div class="loader"></div></div>
+					                </div>
+					            </div>
+					            <div style="overflow: hidden;width:50%">
+					            <div id="window9" style="height: 350px">
+					                    <div>Evolução de Milestone</div>
+					                   
+					                    <div id='grafico_container3_rollout'><div class="loader"></div></div>
+					                </div>
+					                <div id="window10" style="height: 350px">
+					                    <div>Planejamento por Período
+					                    <div> 
+						                    <div style='float:left' id='jqxRadioButton_rollout'>Diário</div>
+						                    <div style='float:left' id='jqxRadioButton2_rollout'><span>Semanal</span></div>
+	        								<div style='float:left' id='jqxRadioButton3_rollout'><span>Mensal</span></div>
+        								</div>
+        								</div>
+					                   
+					                    <div id='grafico_container4_rollout'><div class="loader"></div></div>
 					                </div>
 					            </div>
 					         </div>
@@ -1707,11 +1726,7 @@ response.setDateHeader ("Expires", -1);
 		        			<div style="float: left">
 		        			<table><tr><td>
 			        			<select  style="float: left" id="select_operadora_site"  onchange="carrega_tabela_site()" class="selectpicker" data-live-search="true" title="Escolha a Operadora">
-			        			<option value="VIVO">VIVO</option>
-			        			<option value="TIM">TIM</option>
-			        			<option value="OI">OI</option>
-			        			<option value="NEXTEL">NEXTEL</option>
-			        			<option value="CLARO">CLARO</option>
+			        			
 			        			</select></td>
 			        			<td>
 			        			
@@ -1738,16 +1753,12 @@ response.setDateHeader ("Expires", -1);
     							     Exportar
     						     <span class="caret"></span> 
     						    </button>
-	    					 <ul class="dropdown-menu" aria-labelledby="btnGroupDropExport">
-	  								<li><a class="dropdown-item" href="#" onclick="exportarTodosSites('VIVO')">VIVO</a></li>
-	  								<li><a class="dropdown-item" href="#" onclick="exportarTodosSites('NEXTEL')">NEXTEL</a></li>
-	  								<li><a class="dropdown-item" href="#" onclick="exportarTodosSites('CLARO')">CLARO</a></li>
-	  								<li><a class="dropdown-item" href="#" onclick="exportarTodosSites('OI')">OI</a></li>
-	  								<li><a class="dropdown-item" href="#" onclick="exportarTodosSites('TIM')">TIM</a></li>
+	    					 <ul id="exportSiteListaOperadora" class="dropdown-menu" aria-labelledby="btnGroupDropExport">
+	  								
 	  						  	</ul>
   						  	 </div>
     					  <a id="template_importar_site" href="templates/templateSiteImportacao.xlsx" type="button" class="btn btn-primary">Template(importação)</a>
-			        			<button id="btn_buscar_sites"  class="btn btn-primary">Buscar</button>
+			        			<button id="btn_salvarSite"  class="btn btn-primary" onclick="registra_mudancas_sites_bd()">Salvar</button>
 			        			<input id="btn_inverter_coordenadas" type="button" class="btn btn-primary" onclick="inverter_coordenadas()" value="Ajustar Coordenadas">
 		        			</div>
 		        			</div>
@@ -2145,7 +2156,7 @@ response.setDateHeader ("Expires", -1);
         <h4 class="modal-title label_janelas">Seleciona Rollout</h4>
       </div>
       <div class="modal-body">
-      	<select  id="select_dashboard_rollout" class="selectpicker" data-live-search="true" title="Escolha o rollout" onchange="g1(2,'grafico_container1_rollout');"></select>
+      	<select  id="select_dashboard_rollout" class="selectpicker" data-live-search="true" title="Escolha o rollout" onchange="g1(2,'grafico_container1_rollout');g9(2,'grafico_container2_rollout')"></select>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
@@ -2719,6 +2730,31 @@ response.setDateHeader ("Expires", -1);
   </div>
 </div>
 
+<div id="modal_upload_foto_modelo" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+      <input type="hidden" value='' id='temp_id_txt'/>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title" style="color:black">Carregar Foto Modelo do Item</h4>
+      </div>
+      <div class="modal-body">
+     
+			<hr>
+        <label class="control-label" style="color:black">Selecionar Arquivo</label>
+		<input id="input_6_arq" name="total_input6[]" type="file" >	
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <div id="modal_campos_vistoria2" class="modal fade" role="dialog">
   <div class="modal-dialog modal-lg">
 
@@ -2760,8 +2796,26 @@ response.setDateHeader ("Expires", -1);
 						</select>
 					</td>
     		 	</tr>
-    		 	
     		 	<tr>
+    		 		<td><label class="control-label" style="color:black">Linha</label></td>
+    		 		<td><input id="item_vistoria_linha" class="form-control" type="text"></td>
+    		 	</tr>
+    		 	<tr>
+    		 		<td><label class="control-label" style="color:black">Coluna</label></td>
+    		 		<td><input id="item_vistoria_coluna" class="form-control" type="text"></td>
+    		 	</tr>
+    		 	<tr>
+    		 		<td><label class="control-label" style="color:black">Planilha</label></td>
+    		 		<td><input id="item_vistoria_planilha" class="form-control" type="text" value="0"></td>
+    		 	</tr>
+    		 	<tr>
+    		 	 <td><a href="#" style="color:blue" onclick="uploadFotoModeloItem()">Inserir Foto Modelo</a></td>
+    		 	 <td><img src="img/album.jpg" alt="Foto Modelo" width="40" height="40" onclick="visualiza_foto2()"></td>
+    		   </tr>
+    		   	<tr>
+    		 	 <td colspan=2 align="right"></td>
+    		   </tr>
+    		   	<tr>
     		 	 <td colspan=2 align="right"></td>
     		   </tr>
     		 	</table>

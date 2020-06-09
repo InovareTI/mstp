@@ -16,15 +16,12 @@ function carrega_PO(opc){
 	
 	function onSuccess1(data)
 	{
-		
-		if(geral.empresa_id==1){
-			
-			var POrecords=JSON.parse(data);
+		    var POrecords=JSON.parse(data);
 			var source =
 		     {
 					 datatype: "json",
 			         datafields: [
-			        	 { name: 'id' , type: 'int'},
+			        	 { name: 'ID' , type: 'string'},
 			        	 { name: 'SITE', type: 'string' },
 			        	 { name: 'PO NUMBER', type: 'string' },
 			             { name: 'ITEM', type: 'string' },
@@ -33,15 +30,26 @@ function carrega_PO(opc){
 			             { name: 'SHIPMENT', type: 'string' },
 			             { name: 'PUBLISHED' , type: 'string'},
 			             { name: 'Carregada' , type: 'string'},
+			             { name: 'Validada' , type: 'string'},
 			             { name: 'VALOR UNITARIO' , type: 'string'},
 			             { name: 'QTDE', type: 'string' },
 			             { name: 'VALOR TOTAL', type: 'string' }
 			             
 			         ],
 		         localdata: POrecords,
-		         id: 'id',
+		         id: 'ID',
 		     };
-			 var initrowdetails = function (index, parentElement, gridElement, datarecord) {
+			var cellclass = function(row,columnfield,value){
+				if(value=='PO NAO VALIDADA'){
+					return 'yellow';
+				}
+				if(value == 'REJEITADA'){
+					return 'red';
+				}
+				return 'green';
+			}
+
+			var initrowdetails = function (index, parentElement, gridElement, datarecord) {
 				 tabsdiv = $($(parentElement).children()[0]);
 				 if (tabsdiv != null) {
 					 information = tabsdiv.find('.information');
@@ -90,68 +98,44 @@ function carrega_PO(opc){
 			                 toolbar.empty();
 			                 container = $("<div style='overflow: hidden; position: relative; margin: 1px;'></div>");
 			                 addPO_button = $("<button type=\"button\" class=\"btn btn-info\" data-toggle=\"modal\" data-target=\"#PO_upload_Modal\">Carregar PO</button>");
-			                 rmPO_button = $("<button id=\"apagar_po\" type=\"button\" class=\"btn btn-danger\">Desabilitar PO</button>");
+			                 ValidaPO_button = $("<button id=\"btn_valida_po\" onclick=\"validacao_PO()\" type=\"button\" class=\"btn btn-info\" >Validar Item de PO</button>");
+			                 rmPO_button = $("<button id=\"apagar_po\" onclick=\"deleta_PO()\" type=\"button\" class=\"btn btn-danger\">Desabilitar PO</button>");
 			                 exportPO_button = $("<button id=\"export_po_button\" type=\"button\" class=\"btn btn-danger\" onclick=\"exportPOTable()\">Download Controle Master</button>");
 			                 container.append(addPO_button);
+			                 container.append(ValidaPO_button);
 			                 container.append(rmPO_button);
 			                 container.append(exportPO_button);
 			                 toolbar.append(container);
 		                 },
 		                 columns: [
-		                       { text: 'PO', datafield: 'PO NUMBER',align: "center",cellsalign: "center",width: 150,filtertype: 'textbox'},
+		                       { text: 'PO', datafield: 'PO NUMBER',align: "center",cellsalign: "center",width: 140,filtertype: 'textbox'},
 		                       { text: 'Publicada', align: "center",datafield: 'PUBLISHED', width: 150,cellsalign: "center",filtertype: 'checkedlist' },
 		                       { text: 'Carregada', align: "center",datafield: 'Carregada', width: 150,cellsalign: "center",filtertype: 'checkedlist' },
+		                       { text: 'Validada', align: "center",datafield: 'Validada', width: 150,cellclassname:cellclass,cellsalign: "center",filtertype: 'checkedlist' },
 		                       { text: 'Site', align: "center",datafield: 'SITE',cellsalign: "center", width: 330,filtertype: 'textbox' },
 		                       { text: 'Descrição do Item', align: "center",datafield: 'ITEM',cellsalign: "center", width: 330,filtertype: 'checkedlist' },
-		                       { text: 'Shipment NO', align: "center",datafield: 'SHIPMENT',cellsalign: "center", width: 130,filtertype: 'checkedlist' },
-		                       { text: 'Valor Unitário', align: "center",datafield: 'VALOR UNITARIO', width: 100,cellsalign: "center",filtertype: 'checkedlist' },
-		                       { text: 'Quantidade', align: "center",datafield: 'QTDE', width: 100,cellsalign: "center", filtertype: 'checkedlist' },
-		                       { text: 'Valor Total', align: "center",datafield: 'VALOR TOTAL', width: 100,cellsalign: "center", filtertype: 'checkedlist' }
+		                       { text: 'Shipment NO', align: "center",datafield: 'SHIPMENT',cellsalign: "center", width: 110,filtertype: 'checkedlist' },
+		                       { text: 'V.Unitário', align: "center",datafield: 'VALOR UNITARIO', width: 90,cellsalign: "center",filtertype: 'checkedlist' },
+		                       { text: 'Qty', align: "center",datafield: 'QTDE', width: 80,cellsalign: "center", filtertype: 'checkedlist' },
+		                       { text: 'V.Total', align: "center",datafield: 'VALOR TOTAL', width: 100,cellsalign: "center", filtertype: 'checkedlist' }
 		                       
 		                   ]
 		             });
 			
-		}else{
-		$("#div_tabela_po").html("<div id=\"toolbar_po_control\" role=\"toolbar\" class=\"btn-toolbar\">"+
-        		
-    			"<button type=\"button\" class=\"btn btn-info\" data-toggle=\"modal\" data-target=\"#PO_upload_Modal\">Carregar PO</button>"+
-    			"<button type=\"button\" class=\"btn btn-primary\" onclick=\"carrega_PO(1)\">Atualizar</button>"+
-    			"<button id=\"apagar_po\" type=\"button\" class=\"btn btn-danger\">Apagar PO</button>"+
-    			"<button id=\"validar_po\" type=\"button\" class=\"btn btn-danger\">Validar PO</button>"+
-    			"<button type=\"button\" class=\"btn btn-danger\" onclick='desenvolvimento()'>Delivery Status</button>"+
-      			"<button type=\"button\" class=\"btn btn-danger\" onclick='desenvolvimento()'>Faturamento Status</button>"+
-    			"</div>" + data);
 		
-		$('#tabela_de_po').bootstrapTable();
-		
-	    var $table = $('#tabela_de_po');
-		
-	    $(function () {
-	    	$('#apagar_po').click(function () {
-	        	
-	        	var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
-	                return row.po_mstp_id;
-	            });
-	        	
-	            $table.bootstrapTable('remove', {
-	                field: 'po_mstp_id',
-	                values: ids
-	            });
+			    $('#apagar_po').removeClass( "disabled" );
+				$('#apagar_po').text('Remover PO');
+				$('#apagar_po').prop('disabled', false);
+				
+				$('#btn_valida_po').removeClass( "disabled" );
+				$('#btn_valida_po').text('Valida Item de PO');
+				$('#btn_valida_po').prop('disabled', false);
 	            
-	            deleta_PO(String(ids));
-	        });
-	    });
-	    
-	    $(function () {
-	    	$('#validar_po').click(function () {
-	        	var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
-	                return row.po_mstp_id;
-	            });
-	            validacao_PO(String(ids));
-	        });
-	    });
+	     
+	           // validacao_PO();
+	     
 	    //alert("atualizando PO's");
-		}
+		
 	}
 	if(opc==1){
 		//alert("atualizando itens!");
@@ -291,12 +275,19 @@ function MostraItemPO(po){
 		$('#tabela_de_item_po').bootstrapTable();
 	}
 }
-function deleta_PO(po_number){
-	if(po_number){
+function deleta_PO(){
+	$('#apagar_po').addClass( "disabled" );
+	$('#apagar_po').text('Aguarde a Finalização...');
+	$('#apagar_po').prop('disabled', true);
+	var rows = $('#div_tabela_po').jqxGrid('getdisplayrows');
+	var rowindexes = $('#div_tabela_po').jqxGrid('getselectedrowindexes');
+	for(var v=0;v<rowindexes.length;v++){
+		filtros.filtros.push($('#div_tabela_po').jqxGrid('getrowid', rowindexes[v]));
+	}
 	$.ajax({
 		  type: "POST",
 		  data: {"opt":"2",
-			     "po":po_number},		  
+			     "po":JSON.stringify(filtros)},		  
 		  url: "./POControl_Servlet",
 		  cache: false,
 		  dataType: "text",
@@ -304,32 +295,37 @@ function deleta_PO(po_number){
 		});
 	function onSuccess2(data)
 	{
-		
+		carrega_PO(0);
 		$.alert("PO's Desativadas");
+		$("#div_tabela_po").jqxGrid('clearselection');
+		
 	}
-	}else{
-		$.alert("seleção de PO's parece inválida.");
-	}
+	
 }
 function validacao_PO(po_number){
-	if(po_number){
+	$('#btn_valida_po').addClass( "disabled" );
+	$('#btn_valida_po').text('Aguarde a Finalização...');
+	$('#btn_valida_po').prop('disabled', true);
+	var rows = $('#div_tabela_po').jqxGrid('getdisplayrows');
+	var rowindexes = $('#div_tabela_po').jqxGrid('getselectedrowindexes');
+	for(var v=0;v<rowindexes.length;v++){
+		filtros.filtros.push($('#div_tabela_po').jqxGrid('getrowid', rowindexes[v]));
+	}
 	$.ajax({
 		  type: "POST",
 		  data: {"opt":"4",
-			     "po":po_number},		  
-		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+			     "po":JSON.stringify(filtros)},		  
 		  url: "./POControl_Servlet",
 		  cache: false,
 		  dataType: "text",
-		  success: onSuccess4
+		  success: onSuccessValidaItem
 		});
-	function onSuccess4(data)
+	function onSuccessValidaItem(data)
 	{
-		carrega_ITEM();
-		alert("Pos Validadas");
-	}
-	}else{
-		$.alert("seleção de PO's parece inválida.");
+		carrega_PO(0);
+		$.alert("PO Itens Validados");
+		$("#div_tabela_po").jqxGrid('clearselection');
+		
 	}
 }
 function carrega_ITEM(){

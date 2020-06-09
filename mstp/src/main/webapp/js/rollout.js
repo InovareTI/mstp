@@ -103,6 +103,7 @@ function atualiza_dash_rollout(){
     	
     }
 	}
+	if(geral.empresa_id==1){
 	$.ajax({
 		  type: "POST",
 		  data: {"opt":"29",
@@ -127,7 +128,13 @@ function atualiza_dash_rollout(){
 		$('#quadro_4_2').html(aux.quadro_4_2);
 		$('#quadro_5_2').html(aux.quadro_5_2);
 	}
-	
+	}else{
+		$('#quadro_1_2').html("0");
+		$('#quadro_2_2').html("0");
+		$('#quadro_3_2').html("0");
+		$('#quadro_4_2').html("0");
+		$('#quadro_5_2').html("0");
+	}
 }
 function carrega_tree_rollout(){
 	var timestamp = Date.now();
@@ -328,11 +335,16 @@ function corrigerolloutspazio() {
 function busca_rollouts(){
 	var rolloutid=sessionStorage.getItem("rolloutsid_"+geral.empresa_id);
 	if(rolloutid){
-		
+		console.log(rolloutid);
 		var aux=rolloutid;
 			$('#select_rollout_campos').html(aux);
 			$('#select_rollout_campos').selectpicker();
 			$('#select_rollout_campos').selectpicker('refresh');
+			$('#select_dashboard_rollout').html(aux);
+			aux = rolloutid.substr(rolloutid.indexOf("value='")+7);
+			aux = aux.substr(0,aux.indexOf("'"));
+			$('#select_dashboard_rollout').selectpicker('val',aux);
+			$('#select_dashboard_rollout').selectpicker('refresh');
 			carrega_tree_rollout();
 	}else{
 		//alert("buscando rollouts no banco");
@@ -347,7 +359,7 @@ function busca_rollouts(){
 			});
 		function atualiza_select_rollout(data){
 			var nome="rolloutsid_"+geral.empresa_id;
-			
+			console.log(data);
 			sessionStorage.setItem(nome, data);
 			$('#select_rollout_campos').html(data);
 			$('#select_rollout_regra_rollout').html(data);

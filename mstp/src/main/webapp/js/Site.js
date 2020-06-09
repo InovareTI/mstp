@@ -77,7 +77,7 @@ var siteid,nome,lat,lng,cidade,bairro,endereco,pais,operadora;
 	
 	function onSuccessSite1(data)
 	{
-		alert(data);
+		
 		document.getElementById("site_siteid").value="";
 		document.getElementById("site_sitename").value="";
 		document.getElementById("site_lat").value="";
@@ -106,6 +106,8 @@ function carrega_tabela_site(){
 			        	 { name: 'site_operadora', type: 'string' },
 			             { name: 'site_uf' , type: 'string'},
 			             { name: 'site_municipio', type: 'string' },
+			             { name: 'site_endereco', type: 'string' },
+			             { name: 'site_bairro', type: 'string' },
 			             { name: 'site_latitude', type: 'string' },
 			             { name: 'site_longitude', type: 'string' }
 			             
@@ -153,11 +155,14 @@ function carrega_tabela_site(){
 		                 source: dataAdapter,
 		                 columnsresize: true,
 		                 pageable: true,
+		                 editable: true,
 			             filterable: true,
 			             autoshowfiltericon: true,
 			             altrows: true,
 			             selectionmode: 'checkbox',
 			             pagesize: 20,
+			             editmode: 'click',
+			             
 			             virtualmode: true,
 			             rendergridrows: function(obj) {
 			                    return obj.data;
@@ -198,6 +203,8 @@ function carrega_tabela_site(){
 		                       { text: 'Operadora', datafield: 'site_operadora', width: 100, columntype: 'textbox' },
 		                       { text: 'UF', datafield: 'site_uf', width: 150, columntype: 'textbox' },
 		                       { text: 'Municipio', datafield: 'site_municipio', width: 150, columntype: 'textbox' },
+		                       { text: 'Logradouro', datafield: 'site_endereco', width: 150, columntype: 'textbox' },
+		                       { text: 'Bairro', datafield: 'site_bairro', width: 150, columntype: 'textbox' },
 		                       { text: 'Latitude', datafield: 'site_latitude', width: 150, columntype: 'textbox' },
 		                       { text: 'Longitude', datafield: 'site_longitude', width: 150, columntype: 'textbox' }
 		                   ]
@@ -205,75 +212,97 @@ function carrega_tabela_site(){
 		    
 			
 			
-			
+		     $("#tabela_detalhe_sites").on('cellendedit', function (event) {
+		         var args = event.args;
+		         console.log(args);
+		         //alert(args.datafield);
+		         //alert(args.row.recid);
+		         //alert(args.row);
+		         registra_mudanca_campos_site(args.rowindex,args.datafield,args.value,args.columntype,args.oldvalue);
+		     });
 		
 		
-		
-		
-		//$("#div_tabela_Sites").html("<div id=\"toolbar_tabela_Sites\" role=\"toolbar\" class=\"btn-toolbar\">"+
-        		
-    	//		"<button type=\"button\" class=\"btn btn-info\" data-toggle=\"modal\" data-target=\"#modal_site_add\">Novo Site</button>"+
-    	//		"<button id=\"btn_deletan_sites\" type=\"button\" class=\"btn btn-danger\">Desabilitar Site</button>"+
-    	//		"<div class=\"btn-group\" role=\"group\">"+
-    	//	    "<button id=\"btnGroupDrop1\" type=\"button\" class=\"btn btn-secondary aria-haspopup=\"true\" dropdown-toggle\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">"+
-    	//	     "Importar"+
-    	//	     "<span class=\"caret\"></span> "+
-    	//	    "</button>"+
-    	//	    "<ul class=\"dropdown-menu\" aria-labelledby=\"btnGroupDrop1\">"+
-    	//	    "  <li><a class=\"dropdown-item\" href=\"#\" onclick='atualiza_flag()'>Substuição Completa</a></li>"+
-    	//	     " <li><a class=\"dropdown-item\" href=\"#\" data-toggle=\"modal\" data-target=\"#modal_carrega_sites\">Adicionar novos Sites</a></li>"+
-    	//	     " <li><a class=\"dropdown-item\" href=\"#\">Atualizar informações existentes</a></li>"+
-    	//	    "</ul>"+
-    	//	  "</div>"+
-    	//	  "<div class=\"btn-group\" role=\"group\">"+
-  		//    "<button id=\"btnGroupDrop2\" type=\"button\" class=\"btn btn-secondary aria-haspopup=\"true\" dropdown-toggle\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">"+
-  		//     "Exportar"+
-  		//     "<span class=\"caret\"></span> "+
-  		//    "</button>"+
-  		//    "<ul class=\"dropdown-menu\" aria-labelledby=\"btnGroupDrop1\">"+
-  		//    "  <li><a class=\"dropdown-item\" href=\"#\" onclick=\"exportarTodosSites('VIVO')\">VIVO</a></li>"+
-  		//  "  <li><a class=\"dropdown-item\" href=\"#\" onclick=\"exportarTodosSites('NEXTEL')\">NEXTEL</a></li>"+
-  		//"  <li><a class=\"dropdown-item\" href=\"#\" onclick=\"exportarTodosSites('CLARO')\">CLARO</a></li>"+
-  		//
-  		//"  <li><a class=\"dropdown-item\" href=\"#\" onclick=\"exportarTodosSites('TIM')\">TIM</a></li>"+
-  		//    "</ul>"+
-  		//  "</div>"+
-  		
-    	//		"<a id=\"template_importar_site\" href=\"templates/templateSiteImportacao.xlsx\" type=\"button\" class=\"btn btn-primary\">Template(importação)</a>"+
-    	//		"<input id=\"btnSync_rolloutsites\" type=\"button\" class=\"btn btn-primary\" onclick=\"sync_rollout()\" value=\"Sincronizar Sites\">"+
-    	//	    "</div>" + data);
-		//$('#tabela_sites').bootstrapTable();
-		//var $table = $('#tabela_sites'),
-	   //  $button = $('#btn_deletan_sites');
-	 //$(function () {
-	 //    $button.click(function () {
-	    	 
-	  //       var ids = $.map($table.bootstrapTable('getSelections'), function (row) {
-	  //           return row.siteiDsys_tbl;
-	  //       });
-	         
-	   //      $.ajax({
-	   //		  type: "POST",
-	   //		  data: {"opt":"6",
-	   	//		  "sites":ids.toString()},		  
-	   //		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
-	  // 		  url: "./SiteMgmt",
-	  // 		  cache: false,
-	  // 		  dataType: "text",
-	  // 		  success: Desabilita_site_n
-	  // 		});
-	  //       function Desabilita_site_n(data){
-	  //      	 alert(data);
-	  //      	 $table.bootstrapTable('remove', {
-	//	             field: 'siteiDsys_tbl',
-	//	             values: ids
-	//	         });
-	 //        }
-	         
-	  //   });
-	// });
 	}
 	
+}
+function registra_mudanca_campos_site(index,campo,valor,tipo,oldvalue){
+	var site=$("#tabela_detalhe_sites").jqxGrid('getrowid', index);
+	console.log(site);
+	console.log(campo);
+	console.log(valor);
+	console.log(oldvalue);
+	if(site){
+	
+	localizacao={id:site,colum:campo,value:valor,tipoc:'textbox',oldvalue:oldvalue};
+	
+	g_changes_site.atualizacoes=g_changes_site.atualizacoes+1;
+	g_changes_site.campos.push(localizacao);
+	}
+	console.log(g_changes_site);
+}
+function registra_mudancas_sites_bd(){
+	
+	if(g_changes_site.atualizacoes>0){
+		$('#btn_salvarSite').addClass( "disabled" );
+		$('#btn_salvarSite').text('Aguarde a Finalização...');
+		$('#btn_salvarSite').prop('disabled', true);
+	$.ajax({
+		  type: "POST",
+		  data: {"opt":"14",
+			"mudancas":JSON.stringify(g_changes_site) 
+			},		  
+		  url: "./SiteMgmt",
+		  cache: false,
+		  dataType: "text",
+		  success: SalvaEdicaoSite
+		});
+	
+	function SalvaEdicaoSite(data)
+	{
+		
+	$.alert(data.toString());
+	g_changes_site.atualizacoes=0;
+	g_changes_site.campos=[];
+	 $('#btn_salvarSite').removeClass( "disabled" );
+	 $('#btn_salvarSite').prop('disabled', false);
+	 $('#btn_salvarSite').text('Salvar');
+	}
+	}else{
+		$.alert("Sem Mudanças para registrar!");
+		
+	}
+}
+function carregaSelectOperadora(){
+	$.ajax({
+		  type: "POST",
+		  data: {"opt":"15"
+			 },		  
+		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+		  url: "./SiteMgmt",
+		  cache: false,
+		  dataType: "text",
+		  success: SucessocarregaSelectOperadora
+		});
+	 function SucessocarregaSelectOperadora(data){
+		 $('#select_operadora_site').html(data);
+		 $('#select_operadora_site').selectpicker('refresh');
+	 }
+}
+function carregaSelectOperadoraExport(){
+	$.ajax({
+		  type: "POST",
+		  data: {"opt":"16"
+			 },		  
+		  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+		  url: "./SiteMgmt",
+		  cache: false,
+		  dataType: "text",
+		  success: SucessocarregaSelectOperadora
+		});
+	 function SucessocarregaSelectOperadora(data){
+		 $('#exportSiteListaOperadora').html(data);
+		
+	 }
 }
 function sync_rollout(){
 	if(geral.usuario=='masteradmin'){
