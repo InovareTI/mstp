@@ -106,7 +106,10 @@ public class RelatoriosServlet extends HttpServlet {
 		Locale.setDefault(locale_ptBR);
 		HttpSession session = req.getSession(true);
 		Pessoa p = (Pessoa) session.getAttribute("pessoa");
-		Conexao conn = (Conexao) session.getAttribute("conexao");
+		if(p==null) {
+			return;
+		}
+		Conexao mysql = new Conexao();
 		double money; 
 		ConexaoMongo mongo = new ConexaoMongo();
 		NumberFormat number_formatter = NumberFormat.getCurrencyInstance();
@@ -126,7 +129,7 @@ public class RelatoriosServlet extends HttpServlet {
 			query="";
 			if(param4.equals("atualizar")) {
 				param5=req.getParameter("id_rel");
-				if(conn.Alterar("update vistoria_report set relatorio_nome='"+param1+"',descricao='"+param2+"',tipo_relatorio='"+param3+"' where id="+param5+" and empresa="+p.getEmpresa().getEmpresa_id())) {
+				if(mysql.Alterar("update vistoria_report set relatorio_nome='"+param1+"',descricao='"+param2+"',tipo_relatorio='"+param3+"' where id="+param5+" and empresa="+p.getEmpresa().getEmpresa_id())) {
 					resp.setContentType("application/html");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
@@ -135,7 +138,7 @@ public class RelatoriosServlet extends HttpServlet {
 				
 			}else {
 			query="insert into vistoria_report (relatorio_nome,descricao,tipo_relatorio,dt_generated,generated_by,empresa,obs) values ('"+param1+"','"+param2+"','"+param3+"','"+time+"','"+p.get_PessoaUsuario()+"',"+p.getEmpresa().getEmpresa_id()+",'')";
-			if(conn.Inserir_simples(query)) {
+			if(mysql.Inserir_simples(query)) {
 				resp.setContentType("application/html");  
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
@@ -150,7 +153,7 @@ public class RelatoriosServlet extends HttpServlet {
 		}else if(opt.equals("2")){
 			query="";
 			query="select * from vistoria_report where empresa="+p.getEmpresa().getEmpresa_id()+" and status_ativo='ATIVO'";
-			rs=conn.Consulta(query);
+			rs=mysql.Consulta(query);
 			int contador=0;
 				if(rs.next()) {
 					rs.beforeFirst();
@@ -180,12 +183,17 @@ public class RelatoriosServlet extends HttpServlet {
 				param7=req.getParameter("linha");
 				param8=req.getParameter("coluna");
 				param9=req.getParameter("planilha");
+				String param10=req.getParameter("rolloutid");
+				String param11=req.getParameter("camporollout");
 				String tipo="";
+				if(param6.equals("rollout_campo")) {
+					param6 = param10 +"_"+param11;
+				}
 				query="select field_id from vistoria_campos where tree_id="+param3+" and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5;
-				rs=conn.Consulta(query);
+				rs=mysql.Consulta(query);
 				if(rs.next()) {
 					query="select campo_id from vistoria_dados where campo_id="+rs.getInt(1)+" and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5;
-					rs2=conn.Consulta(query);
+					rs2=mysql.Consulta(query);
 					if(rs2.next()) {
 						resp.setContentType("application/text");  
 						resp.setCharacterEncoding("UTF-8"); 
@@ -196,15 +204,15 @@ public class RelatoriosServlet extends HttpServlet {
 							tipo="Grupo";
 						}else {
 						query="select * from vistoria_campos where tree_id="+param3+" and tree_id=parent_id and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5;
-						rs=conn.Consulta(query);
+						rs=mysql.Consulta(query);
 						if(rs.next()) {
 							tipo="SubGrupo";
 						}else {
 							tipo="item";
 						}
-						conn.Update_simples("update vistoria_campos set field_type='SubGrupo' where tree_id="+param4+" and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5);
+						mysql.Update_simples("update vistoria_campos set field_type='SubGrupo' where tree_id="+param4+" and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5);
 						}
-						conn.Alterar("update vistoria_campos set field_type='"+tipo+"',field_name='"+param1+"',tipo='"+param6+"',field_desc='"+param2+"',linhaExcel="+param7+",colunaExcel="+param8+",sheetExcel="+param9+" where tree_id="+param3+" and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5);
+						mysql.Alterar("update vistoria_campos set field_type='"+tipo+"',field_name='"+param1+"',tipo='"+param6+"',field_desc='"+param2+"',linhaExcel="+param7+",colunaExcel="+param8+",sheetExcel="+param9+" where tree_id="+param3+" and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5);
 					}
 					resp.setContentType("application/text");  
 					resp.setCharacterEncoding("UTF-8"); 
@@ -215,20 +223,20 @@ public class RelatoriosServlet extends HttpServlet {
 					tipo="Grupo";
 				}else {
 				query="select * from vistoria_campos where tree_id="+param3+" and tree_id=parent_id and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5;
-				rs=conn.Consulta(query);
+				rs=mysql.Consulta(query);
 				if(rs.next()) {
 					tipo="SubGrupo";
 				}else {
 					tipo="item";
 				}
-				conn.Update_simples("update vistoria_campos set field_type='SubGrupo' where tree_id="+param4+" and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5);
+				mysql.Update_simples("update vistoria_campos set field_type='SubGrupo' where tree_id="+param4+" and empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param5);
 				}
 				query="";
 				if(param4.equals("")) {
 					param4="0";
 				}
 				query="insert into vistoria_campos (field_name,tree_id,parent_id,empresa,relatorio_id,tipo,field_desc,field_type,linhaExcel,colunaExcel,sheetExcel) values ('"+param1+"',"+param3+","+param4+","+p.getEmpresa().getEmpresa_id()+","+param5+",'"+param6+"','"+param2+"','"+tipo+"',"+param7+","+param8+","+param9+")";
-				if(conn.Inserir_simples(query)) {
+				if(mysql.Inserir_simples(query)) {
 					resp.setContentType("application/text");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
@@ -238,8 +246,8 @@ public class RelatoriosServlet extends HttpServlet {
 			}else if(opt.equals("4")){
 				query="";
 				param1=req.getParameter("rel_id");
-				query="select * from vistoria_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param1+" and field_status<>'CANCELADO'";
-				rs=conn.Consulta(query);
+				query="select * from vistoria_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param1+" and field_status<>'CANCELADO' order by tree_id asc";
+				rs=mysql.Consulta(query);
 				if(rs.next()) {
 					
 					rs.beforeFirst();
@@ -268,7 +276,7 @@ public class RelatoriosServlet extends HttpServlet {
 				query="";
 				param1=req.getParameter("rel_id");
 				query="select * from vistoria_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param1;
-				rs=conn.Consulta(query);
+				rs=mysql.Consulta(query);
 				if(rs.next()) {
 					resp.setContentType("application/Text");  
 					resp.setCharacterEncoding("UTF-8"); 
@@ -276,9 +284,9 @@ public class RelatoriosServlet extends HttpServlet {
 					out.print("Remoção nao permitida, pois existem campos ativos");
 				}else {
 					query="update vistoria_campos set field_status='CANCELADO' where relatorio_id="+param1+ "and empresa="+p.getEmpresa().getEmpresa_id();
-					conn.Alterar(query);
+					mysql.Alterar(query);
 					query="update vistoria_report set status_ativo='CANCELADO' where id="+param1;
-					conn.Alterar(query);
+					mysql.Alterar(query);
 					resp.setContentType("application/Text");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
@@ -290,10 +298,10 @@ public class RelatoriosServlet extends HttpServlet {
 				param2=req.getParameter("id_item");
 				param3=req.getParameter("parent_id_item");
 				query="select * from vistoria_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param1+" and tree_id="+param2+" and parent_id="+param3;
-				rs=conn.Consulta(query);
+				rs=mysql.Consulta(query);
 				if(rs.next()) {
 					query=" select * from vistoria_dados where empresa="+p.getEmpresa().getEmpresa_id()+" and campo_id="+param2+"  and relatorio_id="+param1+" and relatorio_gerado='Y'";
-					rs2=conn.Consulta(query);
+					rs2=mysql.Consulta(query);
 					if(rs2.next()) {
 						resp.setContentType("application/Text");  
 						resp.setCharacterEncoding("UTF-8"); 
@@ -301,7 +309,7 @@ public class RelatoriosServlet extends HttpServlet {
 						out.print("Remoção de Campo nao permita, pois existem vistoria em andamento sem documento gerado");
 					}else {
 						query="update vistoria_campos set field_status='CANCELADO' where empresa="+p.getEmpresa().getEmpresa_id()+" and relatorio_id="+param1+" and tree_id="+param2+" and parent_id="+param3;
-						conn.Alterar(query);
+						mysql.Alterar(query);
 						resp.setContentType("application/Text");  
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
@@ -310,7 +318,7 @@ public class RelatoriosServlet extends HttpServlet {
 				}
 			}else if(opt.equals("7")){
 				param1=req.getParameter("rel_id");
-				rs=conn.Consulta("select * from vistoria_report where id="+param1+" and empresa="+p.getEmpresa().getEmpresa_id());
+				rs=mysql.Consulta("select * from vistoria_report where id="+param1+" and empresa="+p.getEmpresa().getEmpresa_id());
 				if(rs.next()) {
 					resp.setContentType("application/Text");  
 					resp.setCharacterEncoding("UTF-8"); 
@@ -343,7 +351,7 @@ public class RelatoriosServlet extends HttpServlet {
 							inputStream = item.getInputStream();
 							String sql = "update vistoria_report set report_template=?,report_template_nome=?,report_template_tipo=? where id="+num_rel+" and empresa="+p.getEmpresa().getEmpresa_id();
 							PreparedStatement statement;
-							statement = conn.getConnection().prepareStatement(sql);
+							statement = mysql.getConnection().prepareStatement(sql);
 							statement.setBlob(1, inputStream);
 							statement.setString(2,item.getName());
 							statement.setString(3,item.getContentType());
@@ -364,7 +372,7 @@ public class RelatoriosServlet extends HttpServlet {
 				param1=req.getParameter("idvistoria");
 				dados_tabela="";
 				query="select * from vistoria_dados where id_vistoria="+param1+" and empresa="+p.getEmpresa().getEmpresa_id()+" and status_vistoria='APROVADO'";
-				rs=conn.Consulta(query);
+				rs=mysql.Consulta(query);
 				String siteid="";
 				String enderecoSite="";
 				String UF="";
@@ -381,17 +389,31 @@ public class RelatoriosServlet extends HttpServlet {
 					FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("sites", filtros);
 					Document site = findIterable.first();
 					query="select * from vistoria_report where id="+rs.getInt("relatorio_id")+" and empresa="+p.getEmpresa().getEmpresa_id();
-					rs2=conn.Consulta(query);
+					rs2=mysql.Consulta(query);
 					if(rs2.next()) {
 						XSSFWorkbook wb = new XSSFWorkbook(rs2.getBlob("report_template").getBinaryStream());
 						Sheet sheet = wb.getSheetAt(0); 
 						Row row = sheet.getRow(2);
 						Cell cell = row.getCell(1);
 						cell.setCellValue(siteid);
-						cell = row.getCell(3);
-						cell.setCellValue(site.getString("site_endereco"));
-						cell = row.getCell(13);
-						cell.setCellValue(site.getString("site_uf"));
+						if(site!=null) {
+							cell = row.getCell(4);
+							String end = "";
+							if(site.get("site_endereco")!=null) {
+								end = site.getString("site_endereco")+",";
+							}
+							if(site.get("site_bairro")!=null) {
+								end = end + site.getString("site_bairro")+",";
+							}
+							if(site.get("site_municipio")!=null) {
+								end = end + site.getString("site_municipio");
+							}
+							cell.setCellValue(end);
+							cell = row.getCell(13);
+							if(site.get("site_uf")!=null) {
+								cell.setCellValue(site.getString("site_uf"));
+							}
+						}
 						CreationHelper helper = wb.getCreationHelper();
 						Drawing drawing = sheet.createDrawingPatriarch();
 						
@@ -408,21 +430,37 @@ public class RelatoriosServlet extends HttpServlet {
 							
 							anchor.setAnchorType( ClientAnchor.AnchorType.DONT_MOVE_AND_RESIZE);
 			    			query="select * from vistoria_campos where field_id="+rs.getInt("campo_id")+" and empresa="+p.getEmpresa().getEmpresa_id();
-							rs3=conn.Consulta(query);
+							rs3=mysql.Consulta(query);
 							if(rs3.next()) {
-								anchor.setCol1(rs3.getInt("colunaExcel"));
-								anchor.setCol2(rs3.getInt("colunaExcel")+5);
-								anchor.setRow1(rs3.getInt("linhaExcel"));
-								anchor.setRow2(rs3.getInt("linhaExcel")+15);
+								if(rs3.getString("tipo").equals("Foto")) {
+									anchor.setCol1(rs3.getInt("colunaExcel"));
+									anchor.setCol2(rs3.getInt("colunaExcel")+5);
+									anchor.setRow1(rs3.getInt("linhaExcel"));
+									anchor.setRow2(rs3.getInt("linhaExcel")+15);
+									pictureIndex = wb.addPicture(IOUtils.toByteArray(rs.getBlob("campo_valor_foto").getBinaryStream()), wb.PICTURE_TYPE_JPEG);
+									Picture pict = drawing.createPicture( anchor, pictureIndex );
+								}else if(rs3.getString("tipo").contains("Rollout")) {
+									row = sheet.getRow(rs3.getInt("linhaExcel"));
+									cell = row.getCell(rs3.getInt("colunaExcel"));
+									filtros.clear();
+									filtro = Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+									filtros.add(filtro);
+									filtro = Filters.eq("recid",recid);
+									filtros.add(filtro);
+									findIterable = mongo.ConsultaCollectioncomFiltrosLista("rollout", filtros);
+									Document rollout_linha = findIterable.first();
+									System.out.println("Campo pesquisado no rollout é: "+ rs3.getString("tipo").substring(rs3.getString("tipo").indexOf("_")+1));
+									System.out.println(rollout_linha.get(rs3.getString("tipo").substring(rs3.getString("tipo").indexOf("_")+1)).getClass());
+									if(rollout_linha.get(rs3.getString("tipo").substring(rs3.getString("tipo").indexOf("_")+1)).getClass().toString().contains("Double")){
+										//System.out.println("Escreveu o Double");
+										cell.setCellValue(rollout_linha.getDouble(rs3.getString("tipo").substring(rs3.getString("tipo").indexOf("_")+1)));
+									}else {
+										cell.setCellValue(rollout_linha.get(rs3.getString("tipo").substring(rs3.getString("tipo").indexOf("_")+1)).toString());
+									}
+								}
 								
-							}else {
-								anchor.setCol1(col1);
-								anchor.setCol2(col2);
-								anchor.setRow1(row1);
-								anchor.setRow2(row2);
 							}
-			    			 pictureIndex = wb.addPicture(IOUtils.toByteArray(rs.getBlob("campo_valor_foto").getBinaryStream()), wb.PICTURE_TYPE_JPEG);
-			    			Picture pict = drawing.createPicture( anchor, pictureIndex );
+			    			
 			    			//pict.resize();
 			    			
 							
@@ -464,7 +502,7 @@ public class RelatoriosServlet extends HttpServlet {
 							inputStream = item.getInputStream();
 							String sql = "update vistoria_campos set foto_modelo=?,foto_modelo_nome=?,foto_modelo_tipo=? where field_id="+num_item+" and empresa="+p.getEmpresa().getEmpresa_id();
 							PreparedStatement statement;
-							statement = conn.getConnection().prepareStatement(sql);
+							statement = mysql.getConnection().prepareStatement(sql);
 							statement.setBlob(1, inputStream);
 							statement.setString(2,item.getName());
 							statement.setString(3,item.getContentType());
@@ -484,7 +522,7 @@ public class RelatoriosServlet extends HttpServlet {
 				
 				query="select foto_modelo from vistoria_campos where field_id="+param1+" and empresa="+p.getEmpresa().getEmpresa_id();
 				//System.out.println(query);
-				rs=conn.Consulta(query);
+				rs=mysql.Consulta(query);
 				ServletOutputStream out = resp.getOutputStream();
 				InputStream in=null;
 				if(rs.next()){
@@ -514,7 +552,9 @@ public class RelatoriosServlet extends HttpServlet {
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Usuários opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}else if(opt.equals("12")){
 			param1=req.getParameter("id_item");
-			rs=conn.Consulta("select *,now() from vistoria_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and field_id="+param1);
+			//System.out.println(param1);
+			if(!param1.equals("") && !param1.equals(null)) {
+			rs=mysql.Consulta("select *,now() from vistoria_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and field_id="+param1);
 			if(rs.next()) {
 				resp.setContentType("application/Text");  
 				resp.setCharacterEncoding("UTF-8"); 
@@ -528,7 +568,15 @@ public class RelatoriosServlet extends HttpServlet {
 				out.print("[\"vazio\"]");
 			
 			}
+		  }else {
+			  resp.setContentType("application/Text");  
+				resp.setCharacterEncoding("UTF-8"); 
+				PrintWriter out = resp.getWriter();
+				out.print("[\"vazio\"]");
+		  }
 		}
+		mysql.getConnection().commit();
+		mysql.fecharConexao();
 		}catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

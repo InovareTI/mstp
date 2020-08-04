@@ -2,18 +2,20 @@ package classes;
 
 
 
+import java.sql.Blob;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
 /*
  * Created on 19/12/2014
  */
 
 
 import java.sql.SQLException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.DriverManager;
-import java.sql.Statement; 
-import java.sql.Blob;   
+import java.sql.Statement;
+import java.util.List;   
 
 
 
@@ -36,7 +38,7 @@ public class Conexao
 		try	{
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 			
-			String databaseURL = "jdbc:mysql://127.0.0.1/mstpDB?user=root&password=r2d2c3p0";
+			String databaseURL = "jdbc:mysql://127.0.0.1/mstpDB?user=*&password=*";
 			connection = DriverManager.getConnection(databaseURL);
 			connection.setAutoCommit(false);
 			//this.connection=c;
@@ -244,6 +246,43 @@ public class Conexao
 		}
 	}
 	
+	
+	public ResultSet ConsultaLogin(String query,String param1){
+		PreparedStatement statement;
+		try {
+			statement = this.connection.prepareStatement(query);
+			statement.setString(1, param1);
+			return statement.executeQuery();
+		    //statement.getConnection().commit();
+		} catch (SQLException e) {
+			return null;
+			// TODO Auto-generated catch block
+			
+		}
+		 
+	}
+	public boolean InsereUsuario(String query,List<String> parametros){
+		PreparedStatement statement;
+		try {
+			statement = this.connection.prepareStatement(query);
+			for(int indice=0;indice<parametros.size();indice++) {
+				statement.setString(indice+1, parametros.get(indice));
+			}
+			int resultado= statement.executeUpdate();
+			if(resultado>0) {
+				return true;
+
+			}
+			this.connection.commit();
+			statement.close();
+		    return false;
+		} catch (SQLException e) {
+			return false;
+			// TODO Auto-generated catch block
+			
+		}
+		 
+	}
 	public ResultSet ConsultaLogin(String query,String param1, String param2){
 		PreparedStatement statement;
 		try {

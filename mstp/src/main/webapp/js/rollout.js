@@ -1,3 +1,29 @@
+function buscaCamposRolloutById_Select(Rolloutid){
+	var campos_rollout = sessionStorage.getItem("CamposSelect_"+Rolloutid);
+	if(campos_rollout){
+		$('#select_item_vistoria_campo_rollout').html(campos_rollout);
+		$('#select_item_vistoria_campo_rollout').selectpicker();
+		$('#select_item_vistoria_campo_rollout').selectpicker('refresh');
+	}else{
+		$.ajax({
+			  type: "POST",
+			  data: {"opt":"7.1","rolloutid":Rolloutid},		  
+			  //url: "http://localhost:8080/DashTM/D_Servlet",	  
+			  url: "./RolloutServlet",
+			  cache: false,
+			  dataType: "text",
+			  success: salvaCamposRolloutSelect
+			});
+		function salvaCamposRolloutSelect(data){
+			
+			sessionStorage.setItem("CamposSelect_"+Rolloutid, data);
+			$('#select_item_vistoria_campo_rollout').html(data);
+			$('#select_item_vistoria_campo_rollout').selectpicker();
+			$('#select_item_vistoria_campo_rollout').selectpicker('refresh');
+			
+		}
+	}
+}
 function exibe_detalheEquipe(usuario){
 	 $('#Modal_DetalheEquipeRollout').modal('show');
 	 $("#fotos_registros").html("");
@@ -338,6 +364,9 @@ function busca_rollouts(){
 		console.log(rolloutid);
 		var aux=rolloutid;
 			$('#select_rollout_campos').html(aux);
+			$('#select_rollout_carrega_po').html(aux);
+			$('#select_rollout_carrega_po').selectpicker();
+			$('#select_rollout_carrega_po').selectpicker('refresh');
 			$('#select_rollout_campos').selectpicker();
 			$('#select_rollout_campos').selectpicker('refresh');
 			$('#select_dashboard_rollout').html(aux);
@@ -370,6 +399,7 @@ function busca_rollouts(){
 			$('#select_rollout_regra_rollout').selectpicker('refresh');
 			$('#select_dashboard_rollout').selectpicker('refresh');
 			$('#select_rollout_carrega_po').selectpicker('refresh');
+			
 			aux = data.substr(data.indexOf("value='")+7);
 			aux = aux.substr(0,aux.indexOf("'"));
 			$('#select_dashboard_rollout').selectpicker('val',aux);
@@ -1332,11 +1362,34 @@ function preparaAddnewLine(){
 		  success: onSuccess23
 		});
 	 function onSuccess23(data){
-		 var aux=new Array();
-		$("#row_add_fields").html(data);
-		
-		$("#table_row_fields").bootstrapTable();
-		$('input[type=data_row]').w2field('date', { format: 'dd/mm/yyyy'});
+		sessionStorage.setItem("camposRollout",data);
+		var campos=JSON.parse(data);
+		var htmlaux;
+		$("#row_add_fields").html("");
+		for(var indice=0;indice<campos.length;indice++){
+			if(campos[indice].tipo=="Data"){
+				htmlaux=" <div class='row'  style='margin-top:5px;color:black;'>" +
+							"<div class='col-md-3'><label style='color:gray'>"+campos[indice].nome+"</label></div>" +
+							"<div class='col-md-3'><div class='addLinhaRoloutdt row_rollout' nome='"+campos[indice].nome+"' tipo='"+campos[indice].tipo+"' id='_"+campos[indice].nome2+"'></div></div>" +
+						"</div>";
+			}else if(campos[indice].tipo=="Milestone"){
+				htmlaux=" <div class='row'  style='margin-top:5px;color:black;'>" +
+				"<div class='col-md-3'><label style='color:gray'>"+campos[indice].nome+"</label></div>" +
+				"<div class='col-md-3'><div class='addLinhaRoloutMilestone row_rollout' nome='"+campos[indice].nome+"' tipo='"+campos[indice].tipo+"' id='_"+campos[indice].nome2+"'></div></div>" +
+			"</div>";
+			}else{
+				htmlaux=" <div class='row'  style='margin-top:5px;color:black;'>" +
+							"<div class='col-md-3'><label style='color:gray'>"+campos[indice].nome+"</label></div>" +
+							"<div class='col-md-3'><input class='form-control row_rollout' nome='"+campos[indice].nome+"' tipo='"+campos[indice].tipo+"' id='_"+campos[indice].nome2+"'/></div>" +
+						"</div>";
+			}
+			$("#row_add_fields").append(htmlaux);
+			
+		}
+		$('.addLinhaRoloutdt').jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap'});
+		$('.addLinhaRoloutMilestone').jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode:'range'});
+		//$("#table_row_fields").bootstrapTable();
+		//$('input[type=data_row]').w2field('date', { format: 'dd/mm/yyyy'});
 		
 		$('#modal_row_add').modal('show');
 	 }
@@ -1734,35 +1787,21 @@ function add_new_row_rollout(){
 		 $.alert("Selecione o rollout na árvore de rollout");
 		 return;
 	 }
-	var map = {};
-	//var datainformation = $('#jqxgrid').jqxGrid('getdatainformation');
-	//var rowscount = datainformation.rowscount;
-	//if(rowscount > 0){
-	 //id = $('#jqxgrid').jqxGrid('getrowid', rowscount-1);
-	 //alert("esse é o id:"+id);
-	 //alert("esse é o rowscount:"+rowscount);
-	 //alert("esse é o jqxgrid funcao com menos 1:"+$('#jqxgrid').jqxGrid('getrowid', rowscount-1));
-	 //alert("esse é o jqxgrid funcao sem menos 1:"+$('#jqxgrid').jqxGrid('getrowid', rowscount));
-	//}else{id= 0 ;}
-	//alert(rowscount+" - "+id);
-	row.rows=[];
-	$(".row_rollout").each(function(){
-		if($(this).attr('name').indexOf("_inicio")>0){
-			//alert("sdate_pre_" + $(this).attr('name').replace("_inicio",""));
-			map["sdate_pre_" + $(this).attr('name').replace("_inicio","")] = $(this).val();
-		}else if($(this).attr('name').indexOf("_fim")>0){
-			map["edate_pre_" + $(this).attr('name').replace("_fim","")] = $(this).val();
-		}else{
-			map[$(this).attr('name')] = $(this).val();
-		}
-		linha={nome_campo:$(this).attr('name'),valor_campo:$(this).val(),tipo_campo:$(this).attr('tipo_campo'),tipo_info:$(this).attr('tipo_info')}
-		
-		row.rows.push(linha)
-		$(this).val('');
-	});
+	var linha;
 	
-	//linha={nome_campo:"recid",valor_campo:parseInt(id)+1,tipo_campo:"identificador"};
-	//row.rows.push(linha)
+	row.rows=[];
+	var campos=JSON.parse(sessionStorage.getItem("camposRollout"));
+	console.log(campos);
+	for(var indice=0;indice<campos.length;indice++){
+		linha={
+				nome:campos[indice].nome,
+				valor_campo:$('#_'+campos[indice].nome2).val(),
+				tipo_campo:campos[indice].tipo
+			};
+		row.rows.push(linha);
+	}
+	
+	console.log(row);
 	$.ajax({
  		  type: "POST",
  		  data: {"opt":"4",
@@ -1775,9 +1814,7 @@ function add_new_row_rollout(){
  		  success: onSuccess24
  		});
  	 function onSuccess24(data){
- 		map['recid']=data;
-	$("#jqxgrid").jqxGrid('addrow', null,map);
-	//alert(row['rows'][1]['nome_campo']);
+ 	 carrega_gant();
 	 row.rows=[];
  	 }
 }

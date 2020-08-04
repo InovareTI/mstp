@@ -111,8 +111,8 @@ public class SiteMgmt extends HttpServlet {
 			DateFormat f3 = DateFormat.getDateTimeInstance();
 			HttpSession session = req.getSession(true);
 			Pessoa p = (Pessoa) session.getAttribute("pessoa");
-			Conexao conn = (Conexao) session.getAttribute("conexao");
-			ConexaoMongo c = new ConexaoMongo(); 
+			Conexao mysql = new Conexao();
+			ConexaoMongo mongo = new ConexaoMongo(); 
 			
 			
 			param1="";
@@ -146,9 +146,9 @@ public class SiteMgmt extends HttpServlet {
 				param3=param3.replaceAll(",", ".");
 				query="INSERT INTO sites (site_id,site_nome,site_latitude,site_longitude,site_municipio,site_bairro,site_endereco,site_uf,site_operadora,dt_add_site,usuario_add_site,empresa) "
 		                + "VALUES ('"+param1+"','"+param9+"','"+param2+"','"+param3+"','"+param4+"','"+param5+"','"+param6+"','"+param7+"','"+param8+"','"+time+"','"+p.get_PessoaUsuario()+"',"+p.getEmpresa().getEmpresa_id()+")";
-				if(conn.Inserir_simples(query)){
+				if(mysql.Inserir_simples(query)){
 					System.out.println("Site Cadastrado: " + param1);
-					rs=conn.Consulta("Select sys_id from sites order by sys_id desc limit 1");
+					rs=mysql.Consulta("Select sys_id from sites order by sys_id desc limit 1");
 					if(rs.next()){
 						last_id=rs.getInt(1);
 					}
@@ -163,7 +163,7 @@ public class SiteMgmt extends HttpServlet {
 					out.print("Erro no cadastro do site: "+param1 );
 				}
 				//System.out.println(param1+"\n"+param2+"\n"+param3+"\n"+param4+"\n"+param5+"\n"+param6+"\n"+param7+"\n"+param8+"\n"+param9);
-				c.fecharConexao();
+				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("2")) {
@@ -281,15 +281,15 @@ public class SiteMgmt extends HttpServlet {
 				
 				
 				//System.out.println("Iniciando busca de sites operadora:"+param1);
-				//long linhas_total= c.ConsultaCountComplexa("sites", lista_filtro);
+				//long linhas_total= mongo.ConsultaCountComplexa("sites", lista_filtro);
 				
-				long linhas_total_operadora= c.ConsultaCountComplexa("sites", filtro_list);
+				long linhas_total_operadora= mongo.ConsultaCountComplexa("sites", filtro_list);
 				dados_tabela="";
 				dados_tabela=dados_tabela+"[{\"totalRecords\":\""+linhas_total_operadora+"\",";
 				//Integer contador=0;
 				//System.out.println(dados_tabela);
-				FindIterable<Document> findIterable = c.ConsultaSimplesComFiltroInicioLimit("sites", filtro_list,tamanho*pagina,tamanho);
-				//FindIterable<Document> findIterable = c.ConsultaCollectioncomFiltrosLista("sites", lista_filtro);
+				FindIterable<Document> findIterable = mongo.ConsultaSimplesComFiltroInicioLimit("sites", filtro_list,tamanho*pagina,tamanho);
+				//FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("sites", lista_filtro);
 				MongoCursor<Document> resultado = findIterable.iterator();
 				String chaves="";
 				if(resultado.hasNext()) {
@@ -321,7 +321,7 @@ public class SiteMgmt extends HttpServlet {
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print(dados_tabela);
-				c.fecharConexao();
+				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("3")) {
@@ -343,7 +343,7 @@ public class SiteMgmt extends HttpServlet {
 				lista_filtro.add(filtro);
 				filtro=Filters.lte("data_dia",time);
 				lista_filtro.add(filtro);
-				FindIterable<Document> findIterable =c.ConsultaCollectioncomFiltrosLista("Registros", lista_filtro);
+				FindIterable<Document> findIterable =mongo.ConsultaCollectioncomFiltrosLista("Registros", lista_filtro);
 				MongoCursor<Document> resultado= findIterable.iterator();
 				if(resultado.hasNext()) {
 					
@@ -368,7 +368,7 @@ public class SiteMgmt extends HttpServlet {
 					    "\"type\": \"FeatureCollection\","+
 					    "\"features\": []}";
 				}
-				/*rs=conn.Consulta("Select distinct local_registro,usuario,latitude,longitude,tipo_local_registro from registros where data_dia='"+f2.format(d.getTime())+"' and latitude <>'' and longitude <> '' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
+				/*rs=mysql.Consulta("Select distinct local_registro,usuario,latitude,longitude,tipo_local_registro from registros where data_dia='"+f2.format(d.getTime())+"' and latitude <>'' and longitude <> '' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
 				//System.out.println("Carregando sites no mapa2");
 				if(rs.next()){
 					rs.beforeFirst();
@@ -384,7 +384,7 @@ public class SiteMgmt extends HttpServlet {
 						}else {
 							query="select * from sites where site_id='"+rs.getString("local_registro")+"' and site_latitude<>'' and site_longitude<>'' and empresa="+p.getEmpresa().getEmpresa_id()+" limit 1";
 							//System.out.println(query);
-							rs2=conn.Consulta(query);
+							rs2=mysql.Consulta(query);
 							if(rs2.next()) {
 								rs2.beforeFirst();
 							
@@ -422,25 +422,25 @@ public class SiteMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
 				
-				c.fecharConexao();
+				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("4")) {
 				
 				param1=req.getParameter("site");
-				if(conn.Update_simples("update sites set site_ativo='N' where sys_id="+param1)){
+				if(mysql.Update_simples("update sites set site_ativo='N' where sys_id="+param1)){
 					resp.setContentType("application/json");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
 					out.print("Site Desabilitado com Sucesso!");
 				}
-				c.fecharConexao();
+				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("5")) {
 				int tot_linha=0;
 				//query="RESET QUERY CACHE";
-				//rs=conn.Consulta(query);
+				//rs=mysql.Consulta(query);
 				param1=req.getParameter("limit");
 				param2=req.getParameter("offset");
 				param3=req.getParameter("search");
@@ -451,11 +451,11 @@ public class SiteMgmt extends HttpServlet {
 				//System.out.println(param4);
 				if(param3.equals("") || param3.length()==0) {
 				query="Select SQL_NO_CACHE count(site_id) from sites where site_ativo='Y' and empresa="+p.getEmpresa().getEmpresa_id();
-				rs=conn.Consulta(query);
+				rs=mysql.Consulta(query);
 				if(rs.next()){
 					tot_linha=rs.getInt(1);
 				}
-				rs=conn.Consulta("select SQL_NO_CACHE * from sites where site_ativo='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" order by site_id asc limit "+param1+" OFFSET "+param2);
+				rs=mysql.Consulta("select SQL_NO_CACHE * from sites where site_ativo='Y' and empresa="+p.getEmpresa().getEmpresa_id()+" order by site_id asc limit "+param1+" OFFSET "+param2);
 				if(rs.next()){
 					dados_tabela="{"+"\n";
 					
@@ -493,7 +493,7 @@ public class SiteMgmt extends HttpServlet {
 							+ "site_operadora like '%"+param3+"%' or "
 							+ "site_uf like '%"+param3+"%')";
 					//System.out.println(query);		
-					rs=conn.Consulta(query);
+					rs=mysql.Consulta(query);
 					if(rs.next()){
 						tot_linha=rs.getInt(1);
 						//System.out.println(tot_linha);	
@@ -507,7 +507,7 @@ public class SiteMgmt extends HttpServlet {
 							+ "site_operadora like '%"+param3+"%' or "
 							+ "site_uf like '%"+param3+"%') order by site_id DESC limit "+param1+" OFFSET "+param2;
 					
-					rs=conn.Consulta(query);
+					rs=mysql.Consulta(query);
 					if(rs.next()){
 						dados_tabela="{"+"\n";
 						
@@ -536,27 +536,27 @@ public class SiteMgmt extends HttpServlet {
 						out.print(dados_tabela);
 					}
 				}
-				c.fecharConexao();
+				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("6")) {
 				
 				param1=req.getParameter("sites");
 				//System.out.println(param1);
-				if(conn.Update_simples("update sites set site_ativo='N' where sys_id in ("+param1+")")){
+				if(mysql.Update_simples("update sites set site_ativo='N' where sys_id in ("+param1+")")){
 					resp.setContentType("application/json");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
 					out.print("Sites Desabilitados com Sucesso!");
 				}
-				c.fecharConexao();
+				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("7")){
 				System.out.println("carregando sites novos para aprovação");
 				query="";
 				query="select * from site_aprova where aprovado='N' and empresa='"+p.getEmpresa().getEmpresa_id()+"'";
-				rs=conn.Consulta(query);
+				rs=mysql.Consulta(query);
 				if(rs.next()) {
 					rs.beforeFirst();
 					dados_tabela="[\n";
@@ -573,18 +573,18 @@ public class SiteMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(dados_tabela);
 				}
-				c.fecharConexao();
+				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("8")){
 				param1=req.getParameter("id");
 				query="update site_aprova set aprovado='Y',dt_aprovado='"+f3.format(time)+"' where sysid="+param1;
-				if(conn.Update_simples(query)) {
-					rs=conn.Consulta("select * from site_aprova where sysid="+param1);
+				if(mysql.Update_simples(query)) {
+					rs=mysql.Consulta("select * from site_aprova where sysid="+param1);
 					if(rs.next()) {
 						query="INSERT INTO sites (site_id,site_nome,site_latitude,site_longitude,site_uf,site_operadora,dt_add_site,usuario_add_site,empresa) "
 				                + "VALUES ('"+rs.getString("site_id")+"','"+rs.getString("site_nome")+"','"+rs.getString("site_lat").trim()+"','"+rs.getString("site_lng").trim()+"','"+rs.getString("site_estado")+"','"+rs.getString("site_operadora")+"','"+time+"','"+rs.getString("usuario_pedido")+"','"+p.getEmpresa().getEmpresa_id()+"')";
-						if(conn.Inserir_simples(query)) {
+						if(mysql.Inserir_simples(query)) {
 							resp.setContentType("application/text");  
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
@@ -599,19 +599,19 @@ public class SiteMgmt extends HttpServlet {
 					
 					
 				}
-				c.fecharConexao();
+				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("9")){
 				param1=req.getParameter("id");
 				query="update site_aprova set aprovado='R',dt_aprovado='"+f3.format(time)+"' where sysid="+param1;
-				if(conn.Update_simples(query)) {
+				if(mysql.Update_simples(query)) {
 					resp.setContentType("application/text");  
 					resp.setCharacterEncoding("UTF-8"); 
 					PrintWriter out = resp.getWriter();
 					out.print("Solicitação rejeitada com sucesso");
 				}
-				c.fecharConexao();
+				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("10")) {
@@ -623,12 +623,12 @@ public class SiteMgmt extends HttpServlet {
 				Document document_featurecollection = new Document();
 				JSONObject aux_json = new JSONObject();
 				dados_tabela="";
-				FindIterable<Document> findIterable=c.ConsultaSimplesSemFiltro("operadora");
+				FindIterable<Document> findIterable=mongo.ConsultaSimplesSemFiltro("operadora");
 				findIterable.forEach((Block<Document>) doc -> {
 					//System.out.println("Entrou no loope da operadora");
 					document_featurecollection.append("type", "FeatureCollection");
 					document_featurecollection.append("operadora", doc.get("nome").toString());
-					FindIterable<Document> findIterable2=c.ConsultaSimplesComFiltro("Rollout_Sites","GEO.properties.Operadora",doc.get("nome").toString(),p.getEmpresa().getEmpresa_id());
+					FindIterable<Document> findIterable2=mongo.ConsultaSimplesComFiltro("Rollout_Sites","GEO.properties.Operadora",doc.get("nome").toString(),p.getEmpresa().getEmpresa_id());
 					findIterable2.forEach((Block<Document>) doc2 -> {
 						lista_sites.add((Document)doc2.get("GEO"));
 						
@@ -637,7 +637,7 @@ public class SiteMgmt extends HttpServlet {
 					document_featurecollection.append("features",lista_sites);
 					document_operadora.append("\""+doc.get("nome").toString()+"\"", document_featurecollection.toJson());
 					aux_json.append(doc.get("nome").toString(), document_featurecollection.toJson());
-					//operadora_aux=operadora_aux+"\""+doc.get("nome").toString()+"\":"+document_featurecollection.toJson();
+					//operadora_aux=operadora_aux+"\""+domongo.get("nome").toString()+"\":"+document_featurecollection.toJson();
 					lista_sites.clear();
 					document_featurecollection.clear();
 					//System.out.println(document_operadora.toString());
@@ -648,7 +648,7 @@ public class SiteMgmt extends HttpServlet {
 				filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
 				usuarios_logados_filtros.add(filtro);
 				FindIterable<Document> findIterable2;
-				List<String> logins=c.ConsultaSimplesDistinct("Localiza_Usuarios", "GEO.properties.Usuario", usuarios_logados_filtros);
+				List<String> logins=mongo.ConsultaSimplesDistinct("Localiza_Usuarios", "GEO.properties.Usuario", usuarios_logados_filtros);
 				document_featurecollection.append("type", "FeatureCollection");
 				document_featurecollection.append("operadora", "USUARIOS");
 				lista_sites.clear();
@@ -661,9 +661,9 @@ public class SiteMgmt extends HttpServlet {
 					usuarios_logados_filtros.add(filtro);
 					filtro=Filters.eq("GEO.properties.Usuario",logins.get(indice));
 					usuarios_logados_filtros.add(filtro);
-					findIterable2=c.ConsultaOrdenadaFiltroListaLimit1("Localiza_Usuarios", "GEO.properties.Data", -1, usuarios_logados_filtros);
+					findIterable2=mongo.ConsultaOrdenadaFiltroListaLimit1("Localiza_Usuarios", "GEO.properties.Data", -1, usuarios_logados_filtros);
 				
-				//findIterable2=c.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",checa_formato_data(f2.format(time).toString()),p.getEmpresa().getEmpresa_id());
+				//findIterable2=mongo.ConsultaSimplesComFiltroDate("Localiza_Usuarios","GEO.properties.Data",checa_formato_data(f2.format(time).toString()),p.getEmpresa().getEmpresa_id());
 				
 				
 				findIterable2.forEach((Block<Document>) doc2 -> {
@@ -681,7 +681,7 @@ public class SiteMgmt extends HttpServlet {
 				document_operadora.append("\"USUARIOS\"", document_featurecollection.toJson().toString());
 				lista_sites.clear();
 				document_featurecollection.clear();
-				/*rs=conn.Consulta("SELECT distinct rollout.value_atbr_field,sites.site_operadora FROM rollout,sites WHERE rollout.linha_ativa='Y' and rollout.empresa="+p.getEmpresa().getEmpresa_id()+" and   rollout.value_atbr_field=sites.site_id order by sites.site_operadora");
+				/*rs=mysql.Consulta("SELECT distinct rollout.value_atbr_field,sites.site_operadora FROM rollout,sites WHERE rollout.linha_ativa='Y' and rollout.empresa="+p.getEmpresa().getEmpresa_id()+" and   rollout.value_atbr_field=sites.site_id order by sites.site_operadora");
 				dados_tabela="";
 				System.out.println("Query executada");
 				if(rs.next()) {
@@ -697,7 +697,7 @@ public class SiteMgmt extends HttpServlet {
 						//System.out.println(rs.getString("site_operadora"));
 						//System.out.println(dados_tabela);
 						if(operadora_aux.equals(rs.getString(2))) {
-							rs2=conn.Consulta("select * from sites where site_id='"+rs.getString(1)+"' and site_ativo='Y' and site_latitude<>'' and site_longitude<>'' and site_operadora<>'' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
+							rs2=mysql.Consulta("select * from sites where site_id='"+rs.getString(1)+"' and site_ativo='Y' and site_latitude<>'' and site_longitude<>'' and site_operadora<>'' and empresa='"+p.getEmpresa().getEmpresa_id()+"'");
 							if(rs2.next()) {
 							
 										dados_tabela=dados_tabela+"{" +
@@ -740,7 +740,7 @@ public class SiteMgmt extends HttpServlet {
 				*/
 				/*query="select *  from localiza_usuarios where SUBSTRING(dt_add,1,10) = '"+time.toString().substring(0, 10)+"' and empresa="+p.getEmpresa().getEmpresa_id();
 				System.out.println(query);
-				rs=conn.Consulta(query);
+				rs=mysql.Consulta(query);
 				if(rs.next()) {
 					rs.beforeFirst();
 					dados_tabela=dados_tabela+"\"USUARIOS\":{"+
@@ -793,7 +793,7 @@ public class SiteMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print(resultado);
 					System.out.println("Todos os Sites Carregados");
-					c.fecharConexao();
+					mongo.fecharConexao();
 					Timestamp time2 = new Timestamp(System.currentTimeMillis());
 					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("11")) {
@@ -815,12 +815,12 @@ public class SiteMgmt extends HttpServlet {
 				filtros.add(filtro);
 				filtro = Filters.eq("site_operadora",param1);
 				filtros.add(filtro);
-				FindIterable<Document> findIterable = c.ConsultaCollectioncomFiltrosLista("sites", filtros);
+				FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("sites", filtros);
 				MongoCursor<Document> resultado=findIterable.iterator();
 				
 				//query="Select sys_id,site_id,site_latitude,site_longitude,site_municipio,site_bairro,site_uf,site_nome,site_sequencial,site_operadora,site_cep,site_owner from sites where site_ativo='Y' and site_operadora='"+param1+"' and empresa="+p.getEmpresa().getEmpresa_id()+" order by sys_id asc";
 				//System.out.println(query);
-				//rs=conn.Consulta(query);
+				//rs=mysql.Consulta(query);
 				if(resultado.hasNext()) {
 					rowIndex=1;
 	            	row = sheet.createRow((short) rowIndex);
@@ -1189,7 +1189,7 @@ public class SiteMgmt extends HttpServlet {
 					PrintWriter out = resp.getWriter();
 					out.print("Sites não disponivel para download");
 				}
-				c.fecharConexao();
+				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("12")) {
@@ -1217,7 +1217,7 @@ public class SiteMgmt extends HttpServlet {
 				{
 	        		filtrodoc=Filters.eq("site_id",filtros.get(i).toString());
 	    			filtro_list.add(filtrodoc);
-	    			FindIterable<Document> findIterable=c.ConsultaCollectioncomFiltrosLista("sites", filtro_list);
+	    			FindIterable<Document> findIterable=mongo.ConsultaCollectioncomFiltrosLista("sites", filtro_list);
 	        		MongoCursor<Document> resultado = findIterable.iterator();
 	        		if(resultado.hasNext()) {
 	        			site =resultado.next();
@@ -1233,7 +1233,7 @@ public class SiteMgmt extends HttpServlet {
 	    				coordenadas=verfica_coordenadas(lng, lat);
 	    				update.append("GEO.geometry.coordinates", coordenadas);
 	    				comando.append("$set", update);
-	    				c.AtualizaUm("sites", filtro_site, comando);
+	    				mongo.AtualizaUm("sites", filtro_site, comando);
 	        		}
 	        		filtro_list.remove(filtro_list.size()-1);
 				}
@@ -1255,7 +1255,7 @@ public class SiteMgmt extends HttpServlet {
 				filtroSite.add(filtro);
 				filtro=Filters.eq("site_uf","SC");
 				filtroSite.add(filtro);
-				FindIterable<Document> findIterable = c.ConsultaCollectioncomFiltrosLista("sites", filtroSite);
+				FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("sites", filtroSite);
 				MongoCursor<Document> resultado = findIterable.iterator();
 				while(resultado.hasNext()) {
 					site=resultado.next();
@@ -1272,7 +1272,7 @@ public class SiteMgmt extends HttpServlet {
 						update.append("site_longitude", lng);
 						comando.append("$set", update);
 						System.out.println("Atualizando site "+site.getString("site_id")+" com novas coordenadas "+ lat+","+lng+".fim");
-						c.AtualizaUm("sites", filtro_site, comando);
+						mongo.AtualizaUm("sites", filtro_site, comando);
 						
 					
 				}
@@ -1283,7 +1283,7 @@ public class SiteMgmt extends HttpServlet {
 				resp.setCharacterEncoding("UTF-8"); 
 				PrintWriter out = resp.getWriter();
 				out.print("Sincronização Completa");
-				c.fecharConexao();
+				mongo.fecharConexao();
 				Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Sites opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("13")) {
@@ -1297,7 +1297,7 @@ public class SiteMgmt extends HttpServlet {
 				filtro=Filters.eq("GEO.properties.Usuario",param1);
 				lista_filtro.add(filtro);
 				
-				FindIterable<Document> findIterable=c.ConsultaOrdenadaFiltroListaLimit1("Localiza_Usuarios", "GEO.properties.Data", -1, lista_filtro);
+				FindIterable<Document> findIterable=mongo.ConsultaOrdenadaFiltroListaLimit1("Localiza_Usuarios", "GEO.properties.Data", -1, lista_filtro);
 				MongoCursor<Document> resultado=findIterable.iterator();
 				if(resultado.hasNext()) {
 					localizacao=resultado.next();
@@ -1351,7 +1351,7 @@ public class SiteMgmt extends HttpServlet {
 		    					filtrosLista.add(filtro);
 		    					filtro=Filters.eq("site_ativo", "Y");
 		    					filtrosLista.add(filtro);
-		    					FindIterable<Document> findInterable = c.ConsultaCollectioncomFiltrosLista("sites", filtrosLista);
+		    					FindIterable<Document> findInterable = mongo.ConsultaCollectioncomFiltrosLista("sites", filtrosLista);
 		    					MongoCursor<Document> resultado = findInterable.iterator();
 		    					if(resultado.hasNext()) {
 		    						Document site_buscado = resultado.next();
@@ -1373,7 +1373,7 @@ public class SiteMgmt extends HttpServlet {
 			    					updates.append("GEO", geo);
 			    					update=new Document();
 			    					update.append("$set", updates);
-			    					c.AtualizaUm("sites", filtros, update);
+			    					mongo.AtualizaUm("sites", filtros, update);
 			    					resp.setContentType("application/json");  
 			    					resp.setCharacterEncoding("UTF-8"); 
 			    					PrintWriter out = resp.getWriter();
@@ -1388,7 +1388,7 @@ public class SiteMgmt extends HttpServlet {
 		    					updates.append(site.getString("colum"), site.getString("value"));
 		    					update=new Document();
 		    					update.append("$set", updates);
-		    					c.AtualizaUm("sites", filtros, update);
+		    					mongo.AtualizaUm("sites", filtros, update);
 		    					
 		    				}
 		    				site=null;
@@ -1411,7 +1411,7 @@ public class SiteMgmt extends HttpServlet {
 					filtros.add(filtro);
 					filtro=Filters.eq("site_ativo","Y");
 					filtros.add(filtro);
-					List<String>operadoras = c.ConsultaSimplesDistinct("sites","site_operadora", filtros);
+					List<String>operadoras = mongo.ConsultaSimplesDistinct("sites","site_operadora", filtros);
 					dados_tabela="";
 					for(int cont=0;cont<operadoras.size();cont++) {
 						dados_tabela=dados_tabela+"<option value='"+operadoras.get(cont)+"'>"+operadoras.get(cont).toUpperCase()+"</option>";
@@ -1427,7 +1427,7 @@ public class SiteMgmt extends HttpServlet {
 					filtros.add(filtro);
 					filtro=Filters.eq("site_ativo","Y");
 					filtros.add(filtro);
-					List<String>operadoras = c.ConsultaSimplesDistinct("sites","site_operadora", filtros);
+					List<String>operadoras = mongo.ConsultaSimplesDistinct("sites","site_operadora", filtros);
 					dados_tabela="";
 					for(int cont=0;cont<operadoras.size();cont++) {
 						dados_tabela=dados_tabela+"<li><a class=\"dropdown-item\" href=\"#\" onclick=\"exportarTodosSites('"+operadoras.get(cont)+"')\">"+operadoras.get(cont).toUpperCase()+"</a></li>";
@@ -1439,7 +1439,7 @@ public class SiteMgmt extends HttpServlet {
 				}
 			}catch (SQLException e) {
 			    
-				conn.fecharConexao();
+				mysql.fecharConexao();
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} 

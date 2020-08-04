@@ -1,4 +1,17 @@
-
+function verificaValor(opt){
+	
+	if(opt=="rollout_campo"){
+		document.getElementById("divItemRolloutChecklist").style.display = "block";
+		var rollouts = sessionStorage.getItem("rolloutsid_"+geral.empresa_id);
+		if(rollouts){
+			$('#select_item_vistoria_rollout').html(rollouts);
+			$('#select_item_vistoria_rollout').selectpicker();
+			$('#select_item_vistoria_rollout').selectpicker('refresh');
+		}
+	}else{
+		document.getElementById("divItemRolloutChecklist").style.display = "none";
+	}
+}
 function aprova_item(id,id_vistoria){
 	var timestamp =Date.now();
 	var recid = sessionStorage.getItem("checklist_recid_aux");

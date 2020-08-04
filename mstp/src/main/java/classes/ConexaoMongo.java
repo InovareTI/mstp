@@ -36,11 +36,11 @@ public class ConexaoMongo {
 		
 	
 	
-	String host = "localhost:27017";
-	String dbname = "XXXX";
-    String user = "XXX";
+	String host = "*";
+	String dbname = "*";
+    String user = "*";
     
-    String password = "r2d2c3p0";
+    String password = "*";
 	
     //System.out.println("host: " + host + "\ndbname: " + dbname + "\nuser: " + user + "\npassword: " + password);
      //password = "";
@@ -117,6 +117,12 @@ public void criar2dsphereindex(){
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(new Document()).sort(order).limit(1);
 		return findIterable;
 	}
+	public FindIterable<Document> LastRegisterCollention(String Collection,String campo,List<Bson> filtros){
+		Document order=new Document();
+		order.append(campo, -1);
+		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(filtros)).sort(order).limit(1);
+		return findIterable;
+	}
 	public FindIterable<Document> ConsultaSimplesComFiltroInicioLimit(String Collection,List<Bson> Filtros,Integer inicio,Integer limit){
 		FindIterable<Document> findIterable = db.getCollection(Collection).find(Filters.and(Filtros)).skip(inicio).limit(limit);
 		return findIterable;
@@ -124,6 +130,13 @@ public void criar2dsphereindex(){
 	public Long CountSimplesComFiltroInicioLimit(String Collection,List<Bson> Filtros){
 		Long linhas = db.getCollection(Collection).count(Filters.and(Filtros));
 		return linhas;
+	}
+	public AggregateIterable<Document> SumSimplesComFiltroInicioLimit(String Collection,String campo,List<Bson> Filtros){
+		return db.getCollection(Collection).aggregate(Arrays.asList(
+				Aggregates.match(Filters.and(Filtros)),
+				Aggregates.group(null, Accumulators.sum(campo, "sum")
+				)));
+		
 	}
 	public Long CountSimplesSemFiltroInicioLimit(String Collection){
 		Long linhas = db.getCollection(Collection).count(new Document());

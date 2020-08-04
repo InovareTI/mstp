@@ -2,6 +2,10 @@
  * 
  */
 
+
+
+
+
 function carrega_PO(opc){
 	
 	$.ajax({
@@ -325,7 +329,7 @@ function validacao_PO(po_number){
 		carrega_PO(0);
 		$.alert("PO Itens Validados");
 		$("#div_tabela_po").jqxGrid('clearselection');
-		
+		g15(0,'grafico_container3_PO');
 	}
 }
 function carrega_ITEM(){

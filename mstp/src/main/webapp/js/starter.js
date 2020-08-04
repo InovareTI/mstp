@@ -20,10 +20,11 @@ $(document).ready(function () {
 	        carrega_perfil();
 	        carrega_portal();
             carrega_cliente_table();
-          
+            carregaModulosPortal();
             var Meusdockings = function (tab) {
                 switch (tab) {
                 case 1:
+                	var text = $('#jqxtabs').jqxTabs('getTitleAt', tab); 
                 	$('#docking').jqxDocking({  orientation: 'horizontal', mode: 'docked',theme: 'material' });
                 	$.ajax({
               		  type: "POST",
@@ -64,7 +65,11 @@ $(document).ready(function () {
                     	carrega_portalRollout();
                     	break;
                 case 3:
-                    	$('#docking_PO').jqxDocking({  orientation: 'horizontal',width:1200, mode: 'docked',theme: 'material' });
+                    	$('#docking_PO').jqxDocking({  orientation: 'horizontal', mode: 'docked',theme: 'material' });
+                    	g4(0,'grafico_container1_PO');
+                    	g3(0,'grafico_container2_PO');
+                    	g15(0,'grafico_container3_PO');
+                    	g16(0,'grafico_container4_PO');
                         break;
                 }
             }
@@ -446,7 +451,36 @@ $(document).ready(function () {
 			        return obj;
 			    }
 			});
-           
+            
+            $("#input_LOGOCUSTUMER").fileinput({
+			    uploadUrl: "./POControl_Servlet?opt=9", 
+			    uploadAsync: false,
+			    allowedFileExtensions: ['png', 'jpg'],
+			    maxFileCount: 1,
+			    uploadExtraData:function (previewId, index) {
+			        var obj = {
+			        		nomeCompleto:$("#cliente_nome_completo").val(),
+			        		nome:$("#cliente_nome_resumido").val(),
+			        		cnpj:$("#cliente_cnpj").val(),
+			        		inscEstadual:$("#cliente_ie").val(),
+			        		endereco:$("#cliente_endereco").val(),
+			        		contato:$("#cliente_telefone").val()
+			        		};
+			        //obj[0]=$("#cliente_carrega_po").val();
+			        //obj[1]=$("#projeto_carrega_po").val()
+			        return obj;
+			    }
+			}).on('filebatchpreupload', function(event, data) {
+				
+		        if($("#cliente_nome_completo").val()=="" || $("#cliente_nome_completo").val()==null || $("#cliente_nome_resumido").val()=="" || $("#cliente_nome_resumido").val()==null || $("#cliente_cnpj").val()=="" || $("#cliente_cnpj").val()==null){
+		        	return {
+		                message: "Dados do cliente incompletos", // upload error message
+		                data:{} // any other data to send that can be referred in `filecustomerror`
+		            };
+		        }
+		        
+		    });
+            
             $("#input_PO_file").fileinput({
 			    uploadUrl: "./POControl_Servlet?opt=12", 
 			    uploadAsync: false,
@@ -483,7 +517,13 @@ $(document).ready(function () {
 			    allowedFileExtensions: ['xlsx'],
 			    maxFileCount: 5
 			});
-            
+            $("#input_lpu_file").fileinput({
+            	language: "pt-BR",
+			    uploadUrl: "./POControl_Servlet?opt=56", // server upload action
+			    uploadAsync: false,
+			    allowedFileExtensions: ['xlsx'],
+			    maxFileCount: 1
+			});
             $("#jqxExpander").jqxExpander({ width: '100%'});
             $("#nova_senha").jqxPasswordInput({placeHolder: "Nova Senha:", showStrength: true, showStrengthPosition: "top",
                 passwordStrength: function (password, characters, defaultStrength) {
@@ -586,7 +626,15 @@ $(document).ready(function () {
             	}
             });
             $("#from_ticket").jqxDateTimeInput({selectionMode: 'range'});
-            
+            $('#modal_cria_orcamento').on('show.bs.modal', function (event) {
+            	inicializaTabelaOrcamento();
+            	atualiza_select_cliente();
+            	CarregaSelectCategorias();
+            });
+            $('#Modal_AddItemLPU').on('show.bs.modal', function (event) {
+            	
+            	CarregaSelectCategorias();
+            });
             $('#modal_atualiza_tickets').on('show.bs.modal', function (event) {
             	$("#replanTickect").jqxDateTimeInput({formatString:'dd/MM/yyyy',width:250,height:30,culture: 'pt-BR',theme: 'bootstrap',selectionMode: 'range'});
             	$("#jqxCheckBox_select_func_novo_tickect_id").jqxCheckBox({ width: 200, height: 25});
@@ -868,6 +916,20 @@ function menu(opt){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";
 		CarregaDespesas();
+	}else if(opt=="orcamento" && geral.perfil.search("OrcamentoManager")>=0){
+		$(".janelas").hide();
+		document.getElementById(opt).style.display = "block";
+		carregaTabelaOrcamentos();
+	}else if(opt=="orcamento" && geral.perfil.search("OrcamentoView")>=0){
+		$(".janelas").hide();
+		document.getElementById(opt).style.display = "block";
+	}else if(opt=="lpu" && geral.perfil.search("LPUManager")>=0){
+		$(".janelas").hide();
+		document.getElementById(opt).style.display = "block";
+		carrega_LPU();
+	}else if(opt=="lpu" && geral.perfil.search("LPUView")>=0){
+		$(".janelas").hide();
+		document.getElementById(opt).style.display = "block";
 	}else if(opt=="rollout" && geral.perfil.search("RolloutView")>=0){
 		$(".janelas").hide();
 		document.getElementById(opt).style.display = "block";

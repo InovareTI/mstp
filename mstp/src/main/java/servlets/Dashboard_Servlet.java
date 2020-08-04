@@ -24,8 +24,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 
 import classes.Conexao;
@@ -85,8 +88,14 @@ public class Dashboard_Servlet extends HttpServlet {
 		String dtto;
 		
 		HttpSession session = req.getSession(true);
-		Conexao mysql = (Conexao) session.getAttribute("conexao");
+		
 		Pessoa p= (Pessoa) session.getAttribute("pessoa");
+		if(p==null) {
+			resp.sendRedirect("./mstp_login.html");
+			return;
+		}
+		Conexao mysql = new Conexao();
+		ConexaoMongo mongo= new ConexaoMongo();
 		Timestamp time = new Timestamp(System.currentTimeMillis());
 		DateFormat f3 = DateFormat.getDateTimeInstance();
 		opt=req.getParameter("opt");
@@ -130,60 +139,118 @@ public class Dashboard_Servlet extends HttpServlet {
 	    			Timestamp time2 = new Timestamp(System.currentTimeMillis());
 					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 			}else if(opt.equals("2")){
-				//param1=(req.getParameter("ano"));
-				//param2=(req.getParameter("periodo"));
-				//System.out.println("Pie Chart starts...");
-			//System.out.println("SELECT * FROM opened_task_month_type where YEAR_TASK="+dtano);
-			rs=mysql.Consulta("selECT distinct empresa_emissora from po_table where empresa="+p.getEmpresa().getEmpresa_id());
-			
-			tabela="[";
-    		//System.out.println(tabela);
-    		tabela=tabela+"{\"name\":\"Mes\","+"\n";
-			tabela=tabela+" \"data\":[\"Janeiro\",\"Fevereiro\",\"Março\",\"Abril\",\"Maio\",\"Junho\",\"Julho\",\"Agosto\",\"Setembro\",\"Outubro\",\"Novembro\",\"Dezembro\"]"+"\n";
-			tabela=tabela+" },"+"\n";
-			if(rs.next()){
-    			rs.beforeFirst();
-    			while(rs.next()){
-    			tabela=tabela+"{\"name\":\""+rs.getString(1)+"\","+"\n";
-    			//System.out.println("SELECT id_mes,atividade,quantidade FROM mes left join opened_task_month_type on id_mes=month and YEAR_TASK="+dtano+" and atividade='"+rs.getString(1)+"' order by id_mes");
-    			rs2=mysql.Consulta("SELECT id_mes,mes,empresa_emissora,sum(total_po) FROM mes left join po_table on month(str_to_date(dt_emitida,'%d/%m/%Y'))=id_mes and empresa_emissora='"+rs.getString(1)+"' group by empresa_emissora,mes order by id_mes,empresa_emissora");
-    			tabela=tabela+" \"data\":[";
-    			if(rs2.next()){
-    				rs2.beforeFirst();
-    				int g=1;
-	    			while(rs2.next() && g<13){
-	    				if(rs.getString(1).equals(rs2.getString(3))){
-	    					if(g==rs2.getInt(1)){
-	    						money = rs2.getDouble(4);
-								moneyString = number_formatter.format(money);
-	    						tabela=tabela+rs2.getDouble(4)+",";
-	    					}else{
-	    						tabela=tabela+"0.00,";
-	    					}
-	    				}else{
-	    					tabela=tabela+"0.00,";
-	    				}
-	    				g++;
-	    			}
-	    		}
-	    			//System.out.println("saiu no whilw");
-    			tabela=tabela.substring(0,tabela.length()-1);
-    			tabela=tabela+"]},"+"\n";
-    			}
-    			tabela=tabela.substring(0,tabela.length()-2);
-    			tabela=tabela+"]";
-			}else{
-				tabela=tabela+"{\"name\":\"SEM PO\","+"\n";
-				tabela=tabela+" \"data\":[0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00]}]";
-			}
-			  //System.out.println(tabela);
-    		  resp.setContentType("application/json");  
-    		  resp.setCharacterEncoding("UTF-8"); 
-    		 // resp.getWriter().write(tabela); 
-    		  
-    		  
-    			PrintWriter out = resp.getWriter();
-    			out.print(tabela);
+				
+				
+
+				
+				tabela="{\"mes\":[";
+				Calendar d1 = Calendar.getInstance();
+				int mes = d1.get(Calendar.MONTH);
+				
+				for(int cont=0;cont<=mes;cont++) {
+					if(cont==0) {
+						tabela=tabela+"\"Jan\",";
+					}else if(cont==1) {
+						tabela=tabela+"\"Fev\",";
+					}else if(cont==2) {
+						tabela=tabela+"\"Mar\",";
+					}else if(cont==3) {
+						tabela=tabela+"\"Abr\",";
+					}else if(cont==4) {
+						tabela=tabela+"\"Mai\",";
+					}else if(cont==5) {
+						tabela=tabela+"\"Jun\",";
+					}else if(cont==6) {
+						tabela=tabela+"\"Jul\",";
+					}else if(cont==7) {
+						tabela=tabela+"\"Ago\",";
+					}else if(cont==8) {
+						tabela=tabela+"\"Set\",";
+					}else if(cont==9) {
+						tabela=tabela+"\"Out\",";
+					}else if(cont==10) {
+						tabela=tabela+"\"Nov\",";
+					}else if(cont==11) {
+						tabela=tabela+"\"Dez\",";
+					}
+				}
+				tabela=tabela.substring(0,tabela.length()-1);
+				tabela=tabela+"],";
+				tabela=tabela+"\"recebida\":[";
+				Bson filtro;
+				List<Bson> filtros = new ArrayList<>();
+				Calendar inicio = Calendar.getInstance();
+				Calendar fim = Calendar.getInstance();
+				String tabelaValidada="";
+				String tabelaIniciada="";
+				String tabelaFinalizados="";
+				for(int cont=0;cont<=mes;cont++) {
+					filtros.clear();
+					inicio.set(Calendar.MONTH, cont);
+					inicio.set(Calendar.DAY_OF_MONTH, 1);
+					inicio.set(Calendar.YEAR, 2020);
+					fim.set(Calendar.MONTH, cont);
+					if(cont==1) {
+					fim.set(Calendar.DAY_OF_MONTH, 28);
+					}else if(cont==3 || cont==5 || cont==8 || cont==10){
+						fim.set(Calendar.DAY_OF_MONTH, 30);
+					}else {
+						fim.set(Calendar.DAY_OF_MONTH, 31);
+					}
+					fim.set(Calendar.YEAR, 2020);
+					filtro = Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+					filtros.add(filtro);
+					filtro = Filters.eq("PO_ATIVA","Y");
+					filtros.add(filtro);
+					filtro = Filters.gte("Publish Date 2",inicio.getTime());
+					filtros.add(filtro);
+					filtro = Filters.lte("Publish Date 2",fim.getTime());
+					filtros.add(filtro);
+					Document resultadoRecebida=mongo.ConsultaSomaCampo("PO", filtros,"Line Amount 2");
+					//System.out.println(resultadoRecebida.toJson());
+					tabela=tabela+resultadoRecebida.getDouble("sum")+",";
+					filtro = Filters.eq("STATUS_PO_MSTP","CARREGADA_VALIDADA");
+					filtros.add(filtro);
+					Document resultadoValidada=mongo.ConsultaSomaCampo("PO", filtros,"Line Amount 2");
+					tabelaValidada=tabelaValidada+resultadoValidada.getDouble("sum")+",";
+					filtros.remove(filtros.size()-1);
+					filtro = Filters.eq("STATUS_PO_MSTP","CARREGADA_VALIDADA_INICIADA");
+					filtros.add(filtro);
+					Document resultadoIniciada=mongo.ConsultaSomaCampo("PO", filtros,"Line Amount 2");
+					tabelaIniciada=tabelaIniciada+resultadoIniciada.getDouble("sum")+",";
+					filtros.remove(filtros.size()-1);
+					filtro = Filters.eq("STATUS_PO_MSTP","CARREGADA_VALIDADA_INICIADA_FINALIZADA");
+					filtros.add(filtro);
+					Document resultadoFinalizados=mongo.ConsultaSomaCampo("PO", filtros,"Line Amount 2");
+					tabelaFinalizados=tabelaFinalizados+resultadoFinalizados.getDouble("sum")+",";
+				}
+				tabela=tabela.substring(0,tabela.length()-1);
+				tabela=tabela+"],";
+				tabela=tabela+"\"validada\":[";	
+				
+				tabela=tabela+tabelaValidada;
+				tabela=tabela.substring(0,tabela.length()-1);
+				tabela=tabela+"],";
+				tabela=tabela+"\"iniciadas\":[";	
+				
+				tabela=tabela+tabelaIniciada;
+				tabela=tabela.substring(0,tabela.length()-1);
+				tabela=tabela+"],";
+				tabela=tabela+"\"finalizadas\":[";
+				
+				tabela=tabela+tabelaFinalizados;
+				tabela=tabela.substring(0,tabela.length()-1);
+				tabela=tabela+"]}";
+				
+				
+				//System.out.println(tabela);
+					resp.setContentType("application/json");  
+		  		    resp.setCharacterEncoding("UTF-8"); 
+		  		    PrintWriter out = resp.getWriter();
+				    out.print(tabela);
+				
+				
+				
     			Timestamp time2 = new Timestamp(System.currentTimeMillis());
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}else if(opt.equals("3")){
@@ -194,7 +261,7 @@ public class Dashboard_Servlet extends HttpServlet {
 			SimpleDateFormat format = new SimpleDateFormat(padrao_data_br);
 			Date i = format.parse(dtfrom);
 			Date f = format.parse(dtto);
-			ConexaoMongo mongo= new ConexaoMongo();
+			
 			rs = mysql.Consulta("select field_name,rollout_id,rollout_nome from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+rollout+"' order by rollout_id");
 			Bson filtro;
 			//String milestone="";
@@ -251,71 +318,7 @@ public class Dashboard_Servlet extends HttpServlet {
 				tabela="{\"categorias\":[\"Incio Planejado\",\"Fim Planejado\",\"Inicio Real\",\"Fim Real\"],";
 				tabela=tabela+"\"dados\":[{\"name\":\"Sem Milestone\",\"data\":[0,0,0,0]}]}";
 			}
-			/*
-			if(p.getEmpresa().getEmpresa_id()==8) {
-				milestone="TSS";
-			}else if(p.getEmpresa().getEmpresa_id()==1) {
-				milestone="INSTALAÇÃO";
-			}else if(p.getEmpresa().getEmpresa_id()==5) {
-				milestone="INSTALAÇÃO";
-			}else {
-				milestone="Sem Milestone Definido";
-			}
 			
-			filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
-			filtros.add(filtro);
-			filtro=Filters.eq("Linha_ativa","Y");
-			filtros.add(filtro);
-			filtro=Filters.elemMatch("Milestone", Filters.gte("sdate_pre_"+milestone,i));
-			filtros.add(filtro);
-			filtro=Filters.elemMatch("Milestone", Filters.lte("sdate_pre_"+milestone,f));
-			filtros.add(filtro);
-			
-			Long totalInicioPrevisto= mongo.CountSimplesComFiltroInicioLimit("rollout", filtros);
-			tabela="[";
-			
-			tabela=tabela+"{\"name\":\"Type\",";
-			tabela=tabela+" \"data\":[\""+milestone+"\"]},"+"\n";
-			tabela=tabela+"{\"name\":\"Inicio Previsto\",";
-			tabela=tabela+" \"data\":["+totalInicioPrevisto+"]},"+"\n";
-			tabela=tabela+"{\"name\":\"Fim Previsto\",";
-			filtros = new ArrayList<>();
-			filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
-			filtros.add(filtro);
-			filtro=Filters.eq("Linha_ativa","Y");
-			filtros.add(filtro);
-			filtro=Filters.elemMatch("Milestone", Filters.gte("edate_pre_"+milestone,i));
-			filtros.add(filtro);
-			filtro=Filters.elemMatch("Milestone", Filters.lte("edate_pre_"+milestone,f));
-			filtros.add(filtro);
-			Long totalFimPrevisto= mongo.CountSimplesComFiltroInicioLimit("rollout", filtros);
-			tabela=tabela+" \"data\":["+totalFimPrevisto+"]},";
-			filtros = new ArrayList<>();
-			filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
-			filtros.add(filtro);
-			filtro=Filters.eq("Linha_ativa","Y");
-			filtros.add(filtro);
-			filtro=Filters.elemMatch("Milestone", Filters.gte("sdate_TSS",i));
-			filtros.add(filtro);
-			filtro=Filters.elemMatch("Milestone", Filters.lte("sdate_TSS",f));
-			filtros.add(filtro);
-			Long totalInicioReal= mongo.CountSimplesComFiltroInicioLimit("rollout", filtros);
-			tabela=tabela+"{\"name\":\"Inicio Real\","+"\n";
-			tabela=tabela+" \"data\":["+totalInicioReal+"]},";
-			filtros = new ArrayList<>();
-			filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
-			filtros.add(filtro);
-			filtro=Filters.eq("Linha_ativa","Y");
-			filtros.add(filtro);
-			filtro=Filters.elemMatch("Milestone", Filters.gte("edate_"+milestone,i));
-			filtros.add(filtro);
-			filtro=Filters.elemMatch("Milestone", Filters.lte("edate_"+milestone,f));
-			filtros.add(filtro);
-			Long totalFimReal= mongo.CountSimplesComFiltroInicioLimit("rollout", filtros);
-			tabela=tabela+"{\"name\":\"Fim Real\","+"\n";
-			tabela=tabela+" \"data\":["+totalFimReal+"]}]";
-			*/
-				//System.out.println("Grafico de barras de milestones:"+tabela);
 				resp.setContentType("application/json");  
 	  		    resp.setCharacterEncoding("UTF-8"); 
 	  		    PrintWriter out = resp.getWriter();
@@ -325,86 +328,105 @@ public class Dashboard_Servlet extends HttpServlet {
 				System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}else if(opt.equals("4")){
 			
+			tabela="{\"mes\":[";
+			Calendar d1 = Calendar.getInstance();
+			int mes = d1.get(Calendar.MONTH);
 			
-			if(p.get_PessoaPerfil_nome().equals("Financeiro")){
-			query="select status_faturamento,sum(valor_parcela) from  faturamento  group by status_faturamento";
-			}else{
-				query="select * from  faturamento  where id_faturamento=2343";
+			for(int cont=0;cont<=mes;cont++) {
+				if(cont==0) {
+					tabela=tabela+"\"Jan\",";
+				}else if(cont==1) {
+					tabela=tabela+"\"Fev\",";
+				}else if(cont==2) {
+					tabela=tabela+"\"Mar\",";
+				}else if(cont==3) {
+					tabela=tabela+"\"Abr\",";
+				}else if(cont==4) {
+					tabela=tabela+"\"Mai\",";
+				}else if(cont==5) {
+					tabela=tabela+"\"Jun\",";
+				}else if(cont==6) {
+					tabela=tabela+"\"Jul\",";
+				}else if(cont==7) {
+					tabela=tabela+"\"Ago\",";
+				}else if(cont==8) {
+					tabela=tabela+"\"Set\",";
+				}else if(cont==9) {
+					tabela=tabela+"\"Out\",";
+				}else if(cont==10) {
+					tabela=tabela+"\"Nov\",";
+				}else if(cont==11) {
+					tabela=tabela+"\"Dez\",";
 				}
-			//System.out.println(query);
-			rs=mysql.Consulta(query); 
-			//rs=null;
-			tabela="[{";
-			
-			/*tabela=tabela+"{\"name\":\"Type\","+"\n";
-			
-			tabela=tabela+" \"data\":[";
-			if(rs.next()){
-				
-				rs.beforeFirst();
-				while(rs.next()){
-					tabela=tabela+ "\""+rs.getString(1)+"\",";
-							
-				}
-				tabela=tabela.substring(0,tabela.length()-1);
-				tabela=tabela+"]},"+"\n";*/
-			    if(rs.next()){
-				rs.beforeFirst();
-				tabela=tabela+"\"name\": \"Volume Financeiro\","+"\n";
-				tabela=tabela+"\"data\":[{"+"\n";
-				tabela=tabela+"\"name\": \"Volume Financeiro\","+"\n";
-				tabela=tabela+"\"colorByPoint\": true,"+"\n";
-				tabela=tabela+"\"data\":["+"\n";
-				while(rs.next()){
-					tabela=tabela+"{\"name\":\""+rs.getString(1)+"\","+"\n";
-					tabela=tabela+" \"y\":"+rs.getString(2)+","+"\n";
-					tabela=tabela+ "\"drilldown\": \""+rs.getString(1)+"\"},";
-				
-				}
-				
-				tabela=tabela.substring(0,tabela.length()-1);
-				tabela=tabela+"]}]},{"+"\n";
-				tabela=tabela+"\"name\": \"drilldown\","+"\n";
-				tabela=tabela+ "\"data\":["+"\n";
-				
-				
-				
-					rs.beforeFirst();
-					while(rs.next()){
-						tabela=tabela+"{\"name\":\""+rs.getString(1)+"\","+"\n";
-						tabela=tabela+"\"id\":\""+rs.getString(1)+"\","+"\n";
-						tabela=tabela+"\"data\":["+"\n";
-						if(p.get_PessoaPerfil_nome().equals("Financeiro")){
-							query="select cliente,sum(valor_parcela) from  faturamento where status_faturamento='"+rs.getString(1)+"' group by cliente";
-							}else{
-							query="";
-						}
-						rs2=mysql.Consulta(query); 
-						if(rs2.next()){
-							rs2.beforeFirst();
-							while(rs2.next()){
-								tabela=tabela+"[ \""+rs2.getString(1)+"\","+"\n";
-								tabela=tabela+rs2.getString(2)+"],";
-							}
-							tabela=tabela.substring(0,tabela.length()-1);
-							tabela=tabela+"]},";
-						}
-				}
-					tabela=tabela.substring(0,tabela.length()-1);
-					tabela=tabela+"]}"+"\n";
-					
-              
-					tabela=tabela+"]"+"\n";		
-				
-				
-			}else{
-				tabela="[{\"name\":\"Valor Financeiro\","+
-						"\"data\":[\"Sem Resultado\"]},"+
-				        "{\"name\":\"Valor Financeiro\","+
-				         "\"data\":[0.00]}"+
-				       
-				        "]";
 			}
+			tabela=tabela.substring(0,tabela.length()-1);
+			tabela=tabela+"],";
+			tabela=tabela+"\"recebida\":[";
+			Bson filtro;
+			List<Bson> filtros = new ArrayList<>();
+			Calendar inicio = Calendar.getInstance();
+			Calendar fim = Calendar.getInstance();
+			String tabelaValidada="";
+			String tabelaIniciada="";
+			String tabelaFinalizados="";
+			for(int cont=0;cont<=mes;cont++) {
+				filtros.clear();
+				inicio.set(Calendar.MONTH, cont);
+				inicio.set(Calendar.DAY_OF_MONTH, 1);
+				inicio.set(Calendar.YEAR, 2020);
+				fim.set(Calendar.MONTH, cont);
+				if(cont==1) {
+				fim.set(Calendar.DAY_OF_MONTH, 28);
+				}else if(cont==3 || cont==5 || cont==8 || cont==10){
+					fim.set(Calendar.DAY_OF_MONTH, 30);
+				}else {
+					fim.set(Calendar.DAY_OF_MONTH, 31);
+				}
+				fim.set(Calendar.YEAR, 2020);
+				filtro = Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				filtros.add(filtro);
+				filtro = Filters.eq("PO_ATIVA","Y");
+				filtros.add(filtro);
+				filtro = Filters.gte("Publish Date 2",inicio.getTime());
+				filtros.add(filtro);
+				filtro = Filters.lte("Publish Date 2",fim.getTime());
+				filtros.add(filtro);
+				Long resultadoRecebida=mongo.CountSimplesComFiltroInicioLimit("PO", filtros);
+				tabela=tabela+resultadoRecebida+",";
+				filtro = Filters.eq("STATUS_PO_MSTP","CARREGADA_VALIDADA");
+				filtros.add(filtro);
+				Long resultadoValidada=mongo.CountSimplesComFiltroInicioLimit("PO", filtros);
+				tabelaValidada=tabelaValidada+resultadoValidada+",";
+				filtros.remove(filtros.size()-1);
+				filtro = Filters.eq("STATUS_PO_MSTP","CARREGADA_VALIDADA_INICIADA");
+				filtros.add(filtro);
+				Long resultadoIniciada=mongo.CountSimplesComFiltroInicioLimit("PO", filtros);
+				tabelaIniciada=tabelaIniciada+resultadoIniciada+",";
+				filtros.remove(filtros.size()-1);
+				filtro = Filters.eq("STATUS_PO_MSTP","CARREGADA_VALIDADA_INICIADA_FINALIZADA");
+				filtros.add(filtro);
+				Long resultadoFinalizados=mongo.CountSimplesComFiltroInicioLimit("PO", filtros);
+				tabelaFinalizados=tabelaFinalizados+resultadoFinalizados+",";
+			}
+			tabela=tabela.substring(0,tabela.length()-1);
+			tabela=tabela+"],";
+			tabela=tabela+"\"validada\":[";	
+			
+			tabela=tabela+tabelaValidada;
+			tabela=tabela.substring(0,tabela.length()-1);
+			tabela=tabela+"],";
+			tabela=tabela+"\"iniciadas\":[";	
+			
+			tabela=tabela+tabelaIniciada;
+			tabela=tabela.substring(0,tabela.length()-1);
+			tabela=tabela+"],";
+			tabela=tabela+"\"finalizadas\":[";
+			
+			tabela=tabela+tabelaFinalizados;
+			tabela=tabela.substring(0,tabela.length()-1);
+			tabela=tabela+"]}";
+			
+			
 				//System.out.println(tabela);
 				resp.setContentType("application/json");  
 	  		    resp.setCharacterEncoding("UTF-8"); 
@@ -600,7 +622,7 @@ public class Dashboard_Servlet extends HttpServlet {
 			Date f = format.parse(dtto);
 			
 			tabela="";
-			ConexaoMongo mongo= new ConexaoMongo();
+			
 			query="select id_usuario from usuarios where validado='Y' and ativo='Y' and empresa='"+p.getEmpresa().getEmpresa_id()+"'";
 			rs=mysql.Consulta(query);
 			if(rs.next()) {
@@ -660,7 +682,7 @@ public class Dashboard_Servlet extends HttpServlet {
 			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		}else if(opt.equals("10")){
 			
-			ConexaoMongo mongo = new ConexaoMongo();
+			
 			Bson filtro;
 			List<Bson> filtros = new ArrayList<>();
 			filtro= Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
@@ -700,7 +722,7 @@ public class Dashboard_Servlet extends HttpServlet {
 			String tabela_aux="";
 			tabela="{\"projetos\":[";
 			tabela_aux="\"dados_projetos\":[";
-			ConexaoMongo mongo = new ConexaoMongo();
+			
 			Bson filtro;
 			List<Bson> filtros = new ArrayList<>();
 			filtro= Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
@@ -759,7 +781,7 @@ public class Dashboard_Servlet extends HttpServlet {
 			NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
 			DecimalFormat numberFormat = (DecimalFormat)nf;
 			numberFormat.applyPattern("#0.00");
-			ConexaoMongo mongo= new ConexaoMongo();
+			
 			query="select field_name,rollout_nome from rollout_campos where field_type='Milestone' and empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+rollout+"' order by ordenacao asc";
 			rs=mysql.Consulta(query);
 			if(rs.next()) {
@@ -800,12 +822,80 @@ public class Dashboard_Servlet extends HttpServlet {
 			Timestamp time2 = new Timestamp(System.currentTimeMillis());
 			System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Dashboard opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
 		
-		}
-				
+		}else if(opt.equals("13")){
 			
+			
+
+			
+			tabela="{\"mes\":[";
+			
+			for(int cont=0;cont<12;cont++) {
+				if(cont==0) {
+					tabela=tabela+"\"Jan\",";
+				}else if(cont==1) {
+					tabela=tabela+"\"Fev\",";
+				}else if(cont==2) {
+					tabela=tabela+"\"Mar\",";
+				}else if(cont==3) {
+					tabela=tabela+"\"Abr\",";
+				}else if(cont==4) {
+					tabela=tabela+"\"Mai\",";
+				}else if(cont==5) {
+					tabela=tabela+"\"Jun\",";
+				}else if(cont==6) {
+					tabela=tabela+"\"Jul\",";
+				}else if(cont==7) {
+					tabela=tabela+"\"Ago\",";
+				}else if(cont==8) {
+					tabela=tabela+"\"Set\",";
+				}else if(cont==9) {
+					tabela=tabela+"\"Out\",";
+				}else if(cont==10) {
+					tabela=tabela+"\"Nov\",";
+				}else if(cont==11) {
+					tabela=tabela+"\"Dez\",";
+				}
+			}
+			tabela=tabela.substring(0,tabela.length()-1);
+			tabela=tabela+"],";
+			tabela=tabela+"\"faturamento\":[";
+			Bson filtro;
+			List<Bson> filtros = new ArrayList<>();
+			
+			
+			for(int cont=0;cont<12;cont++) {
+				filtros.clear();
+				
+				filtro = Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+				filtros.add(filtro);
+				filtro = Filters.eq("PO_ATIVA","Y");
+				filtros.add(filtro);
+				filtro = Filters.eq("MES_PO_FATURAMENTO_PREV",cont);
+				filtros.add(filtro);
+				filtro = Filters.eq("ANO_PO_FATURAMENTO_PREV",2020);
+				filtros.add(filtro);
+				Document resultadoRecebida=mongo.ConsultaSomaCampo("PO", filtros,"Line Amount 2");
+				//System.out.println(resultadoRecebida.toJson());
+				tabela=tabela+resultadoRecebida.getDouble("sum")+",";
+				
+			}
+			tabela=tabela.substring(0,tabela.length()-1);
+			tabela=tabela+"]}";
+			
+			
+			
+			//System.out.println(tabela);
+				resp.setContentType("application/json");  
+	  		    resp.setCharacterEncoding("UTF-8"); 
+	  		    PrintWriter out = resp.getWriter();
+			    out.print(tabela);
+		}
+			mongo.fecharConexao();
+			mysql.getConnection().commit();
+			mysql.fecharConexao();
 		}catch (Exception e) {
-			//mysql.fecharConexao();
-			// TODO Auto-generated catch block
+			mongo.fecharConexao();
+			mysql.fecharConexao();
 			e.printStackTrace();
 		}
 		

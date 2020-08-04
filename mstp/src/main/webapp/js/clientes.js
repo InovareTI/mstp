@@ -39,6 +39,8 @@ function atualiza_select_cliente(){
 		$("#projeto_nome_cliente").html(data);
 		$("#select_conta_faturamento").html(data);
 		$("#cliente_carrega_po").selectpicker('refresh');
+		$("#select_cliente_orcamento").html(data);
+		$("#select_cliente_orcamento").selectpicker('refresh');
 		//alert (data);
 		
 	}

@@ -5,6 +5,22 @@
     <welcome-file>index.html</welcome-file>
   </welcome-file-list>
   <servlet>
+    <servlet-name>servlets.Cconta</servlet-name>
+    <servlet-class>servlets.Cconta</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>servlets.Cconta</servlet-name>
+    <url-pattern>/Cconta</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>servlets.OrcamentoServlet</servlet-name>
+    <servlet-class>servlets.OrcamentoServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>servlets.OrcamentoServlet</servlet-name>
+    <url-pattern>/OrcamentoServlet</url-pattern>
+  </servlet-mapping>
+  <servlet>
     <servlet-name>servlets.PermitsServlet</servlet-name>
     <servlet-class>servlets.PermitsServlet</servlet-class>
   </servlet>
@@ -15,7 +31,7 @@
   <servlet>
     <servlet-name>servlets.rolloutDTAtrasada</servlet-name>
     <servlet-class>servlets.rolloutDTAtrasada</servlet-class>
-    <load-on-startup>1</load-on-startup>
+   
   </servlet>
   <servlet-mapping>
     <servlet-name>servlets.rolloutDTAtrasada</servlet-name>
@@ -109,5 +125,7 @@
     <filter-name>SessionFilter</filter-name>
     <url-pattern>/main.jsp</url-pattern>
     <url-pattern>/POControl_Servlet</url-pattern>
+    <url-pattern>/Dashboard_Servlet</url-pattern>
+    <url-pattern>/RolloutServlet</url-pattern>
   </filter-mapping>
 </web-app>

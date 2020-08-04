@@ -233,108 +233,238 @@ function g2(opcao,local) {
 
 			}
 function g3(opcao,local) {
-			 	
-			var options = {
-			        chart: {
-			            renderTo: local,
-			            plotBackgroundColor: null,
-			            plotBorderWidth: null,
-			            plotShadow: false
 
-			        },
-			        title: {
-			            text: 'Empresas emissoras',
-			            style:{
-			            	fontSize: '14px'
-			            },
-			            x: -20 //center
-			        },
-			        tooltip: {
-			            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-			        },
-			        plotOptions: {
-			            pie: {
-			                allowPointSelect: true,
-			                cursor: 'pointer',
-			                dataLabels: {
-			                    enabled: true,
-			                    format: '<b>{point.name}</b>: {point.percentage:.1f} %',
-			                    
-			                },
-		                    showInLegend: true
-			            }
-			        },
-			        series: [{
-			        	type: 'pie',
-						name:'Empresa',		
-			            data:[]
-			        	}]
-			    };
+	$.getJSON('./Dashboard_Servlet?opt=2', function(data) {
+	Highcharts.chart(local, {
+	    chart: {
+	        type: 'column'
+	    },
+	    title: {
+	        text: 'Status(Valor) do item por mes de Emissao da PO'
+	    },
+	    subtitle: {
+	        text: 'Fonte: PO'
+	    },
+	    xAxis: {
+	        categories: data.mes,
+	        crosshair: true
+	    },
+	    yAxis: {
+	        min: 0,
+	        title: {
+	            text: 'Valor Itens de PO'
+	        }
+	    },
+	    tooltip: {
+	        headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+	        pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+	            '<td style="padding:0"><b>{point.y:.1f}</b></td></tr>',
+	        footerFormat: '</table>',
+	        shared: true,
+	        useHTML: true
+	    },
+	    plotOptions: {
+	        column: {
+	            pointPadding: 0.2,
+	            borderWidth: 0,
+	            dataLabels: {
+                    enabled: true,
+                    rotation: 315,
+                    formatter: function () {
+                    	//alert(this.y);
+                        return  accounting.formatMoney(this.y);
+                    },
+                    x: 4,
+                    y: -10
+                    
+                },
+                enableMouseTracking: true
+	        },
+	        
+	    },
+	    series: [{
+	        name: 'Recebida',
+	        data: data.recebida
 
-			        //$.getJSON('http://inovareti.jelasticlw.com.br/DashTM/Dashboard_Servlet?opt=3', function(data) {
-			    	$.getJSON('./Dashboard_Servlet?opt=1', function(data) {
-			    	 //alert(data);
-			    		options.series[0].data = data;
-			    	 var chart3 = new Highcharts.Chart(options);
-			    	 
-			    });
+	    }, {
+	        name: 'Validada',
+	        data: data.validada
 
-			}
-			
+	    }, {
+	        name: 'Em Execução',
+	        data: data.iniciadas
+
+	    }, {
+	        name: 'Finalizado',
+	        data: data.finalizadas
+
+	    }]
+	});
+	 });
+	
+}
+function g16(opcao,local){
+	Highcharts.chart(local, {
+	    chart: {
+	        type: 'line'
+	    },
+	    title: {
+	        text: 'Realizado vs Faturado'
+	    },
+	    subtitle: {
+	        text: 'Fonte: PO,Rollout'
+	    },
+	    xAxis: {
+	        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+	    },
+	    yAxis: {
+	        title: {
+	            text: 'Valor(R$)'
+	        }
+	    },
+	    plotOptions: {
+	        line: {
+	            dataLabels: {
+	                enabled: true
+	            },
+	            enableMouseTracking: false
+	        }
+	    },
+	    series: [{
+	        name: 'Realizado',
+	        data: [7.0, 6.9, 9.5, 14.5, 18.4, 21.5, 25.2, 26.5, 23.3, 18.3, 13.9, 9.6]
+	    }, {
+	        name: 'Faturado',
+	        data: [3.9, 4.2, 5.7, 8.5, 11.9, 15.2, 17.0, 16.6, 14.2, 10.3, 6.6, 4.8]
+	    }]
+	});
+}
+function g15(opcao,local){
+	$.getJSON('./Dashboard_Servlet?opt=13', function(data) {
+		Highcharts.chart(local, {
+		    chart: {
+		        type: 'column'
+		    },
+		    title: {
+		        text: 'Previsão de Faturamento de Itens de PO'
+		    },
+		    subtitle: {
+		        text: 'Fonte: PO'
+		    },
+		    xAxis: {
+		        categories: data.mes,
+		        crosshair: true
+		    },
+		    yAxis: {
+		        min: 0,
+		        title: {
+		            text: 'Previsão de Faturamento de Itens de PO'
+		        }
+		    },
+		    tooltip: {
+		        headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+		        pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+		            '<td style="padding:0"><b>{point.y:.1f}</b></td></tr>',
+		        footerFormat: '</table>',
+		        shared: true,
+		        useHTML: true
+		    },
+		    plotOptions: {
+		        column: {
+		            pointPadding: 0.2,
+		            borderWidth: 0,
+		            dataLabels: {
+	                    enabled: true,
+	                    rotation: 315,
+	                    formatter: function () {
+	                    	//alert(this.y);
+	                        return  accounting.formatMoney(this.y);
+	                    },
+	                    x: 4,
+	                    y: -10
+	                    
+	                },
+	                enableMouseTracking: true
+		        },
+		        
+		    },
+		    series: [{
+		        name: 'Faturamento Previsto',
+		        data: data.faturamento
+
+		    }]
+		});
+		 });
+		
+}			
 function g4 (opcao,local) {
-	//alert("tentando carregar o g4");
-	 $.getJSON('./Dashboard_Servlet?opt=4', function(data) {	
-	    	//alert("carregadndo grfico");
-	    	$('#'+local).highcharts({
-	            chart: {
-	                type: 'column'
-	            },
-	            title: {
-	                text: 'Volume Financeiro por Status de Faturamento',
-	                	style:{
-			            	fontSize: '10px'
-			            }
-	            },
-	            subtitle: {
-	                text: 'Clque nas barras ver mais detalhes'
-	            },
-	            xAxis: {
-	                type: 'category'
-	            },
-	            yAxis: {
-	                title: {
-	                    text: 'Volume Financeiro'
-	                }
-	                
-	            },
-	            legend: {	
-	                enabled: false
-	            },
-	            plotOptions: {
-	            	column: {
-	                    borderWidth: 0,
-	                    dataLabels: {
-	                    	enabled: true,
-	                    	formatter: function () {
-		                    	//alert(this.y);
-		                        return  accounting.formatMoney(this.y);
-		                    }
-	                    }
-	                }
-	            },
+	$.getJSON('./Dashboard_Servlet?opt=4', function(data) {
+	Highcharts.chart(local, {
+	    chart: {
+	        type: 'column'
+	    },
+	    title: {
+	        text: 'Status do item por mes de Emissao da PO'
+	    },
+	    subtitle: {
+	        text: 'Fonte: PO'
+	    },
+	    xAxis: {
+	        categories: data.mes,
+	        crosshair: true
+	    },
+	    yAxis: {
+	        min: 0,
+	        title: {
+	            text: 'Itens de PO'
+	        }
+	    },
+	    tooltip: {
+	        headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+	        pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+	            '<td style="padding:0"><b>{point.y:.1f} Itens</b></td></tr>',
+	        footerFormat: '</table>',
+	        shared: true,
+	        useHTML: true
+	    },
+	    plotOptions: {
+	        column: {
+	            pointPadding: 0.2,
+	            borderWidth: 0,
+	            dataLabels: {
+                    enabled: true,
+                    rotation: 315,
+                    formatter: function () {
+                    	//alert(this.y);
+                        return  this.y;
+                    },
+                    x: 4,
+                    y: -10
+                    
+                },
+                enableMouseTracking: true
+	        },
+	        
+	    },
+	    series: [{
+	        name: 'Recebida',
+	        data: data.recebida
 
-	            tooltip: {
-	                headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
-	                pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b><br/>'
-	            },
+	    }, {
+	        name: 'Validada',
+	        data: data.validada
 
-	            series: data[0]['data'],
-	            drilldown: {
-	                series: data[1]['data']
-	            }
-	        });
-	    });
+	    }, {
+	        name: 'Em Execução',
+	        data: data.iniciadas
 
+	    }, {
+	        name: 'Finalizado',
+	        data: data.finalizadas
+
+	    }]
+	});
+	 });
 	}
 function g5(opcao,local) {
 	

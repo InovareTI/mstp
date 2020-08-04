@@ -360,6 +360,23 @@ function carrega_portal(){
 		 
 	 
  }
+function carregaModulosPortal(){
+	var timestamp =Date.now();
+	$.ajax({
+		  type: "POST",
+		  data: {"opt":"48",
+			  "_": timestamp
+			},		  
+		  url: "./UserMgmt",
+		  cache: false,
+		  dataType: "text",
+		 success: carregaModulosOK
+		});
+	function carregaModulosOK(data){
+		//alert(data);
+	}
+}
+
 function grid_ticket_chart(){
 	var timestamp =Date.now();
 	$.ajax({

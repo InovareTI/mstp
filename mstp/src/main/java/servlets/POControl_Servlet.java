@@ -18,6 +18,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -41,7 +42,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
@@ -167,7 +170,11 @@ public class POControl_Servlet extends HttpServlet {
 		Locale.setDefault(locale_ptBR);
 		HttpSession session = req.getSession(true);
 		Pessoa p = (Pessoa) session.getAttribute("pessoa");
-		Conexao mysql = (Conexao) session.getAttribute("conexao");
+		if(p==null) {
+			resp.sendRedirect("./mstp_login.html");
+			return;
+		}
+		Conexao mysql = new Conexao();
 		ConexaoMongo mongo = new ConexaoMongo();
 		double money; 
 		NumberFormat number_formatter = NumberFormat.getCurrencyInstance();
@@ -177,7 +184,7 @@ public class POControl_Servlet extends HttpServlet {
 		DateFormat f3 = DateFormat.getDateTimeInstance();
 		opt=req.getParameter("opt");
 		//System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" acessando servlet de Operações Gerais opt - "+ opt );
-		//System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações Gerais do MSTP Web - "+f3.format(time)+" opt:"+opt);
+		System.out.println(p.get_PessoaUsuario()+" Chegou no servlet de Operações Gerais do MSTP Web - "+f3.format(time)+" opt:"+opt);
 		try {
 		if(opt.equals("1")){
 			query="";
@@ -434,9 +441,19 @@ public class POControl_Servlet extends HttpServlet {
 				JSONObject po_aux = new JSONObject(param1);
 				JSONArray po_aux2 = po_aux.getJSONArray("filtros");
 				Document update = new Document();
+				Calendar detalhe = Calendar.getInstance();
+				
+				
 				update.append("PO_VALIDADA", "Y");
-				update.append("DT_VALIDADA", time);
+				update.append("DT_VALIDADA", detalhe.getTime());
+				update.append("PO_VALIDADA_MES", detalhe.get(Calendar.MONTH));
+				update.append("PO_VALIDADA_ANO", detalhe.get(Calendar.YEAR));
+				update.append("STATUS_PO_MSTP","CARREGADA_VALIDADA");
 				update.append("PO_VALIDADA_USUARIO", p.get_PessoaUsuario());
+				detalhe.add(Calendar.DAY_OF_MONTH, 30);
+				update.append("DT_PO_FATURAMENTO_PREV",detalhe.getTime());
+				update.append("MES_PO_FATURAMENTO_PREV",detalhe.get(Calendar.MONTH));
+				update.append("ANO_PO_FATURAMENTO_PREV",detalhe.get(Calendar.YEAR));
 				Document comando_update = new Document();
 				comando_update.append("$set", update);
 				Document filtro;
@@ -626,8 +643,74 @@ public class POControl_Servlet extends HttpServlet {
 								out.print(dados_tabela);
 								out.close();
 						}else if(opt.equals("9")){
-							//System.out.println("Cadastrando Cliente...");
-			                param1=req.getParameter("nomeCompleto");
+							System.out.println("Cadastrando Cliente...");
+							
+							ServletContext context = req.getSession().getServletContext();
+							InputStream inputStream=null;
+							String rolloutid="";
+							if (ServletFileUpload.isMultipartContent(req)) {
+								List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
+								//System.out.println("Multipart size: " + multiparts.size());
+								Iterator<FileItem> iter = multiparts.iterator();
+								
+								while (iter.hasNext()) {
+									FileItem item = iter.next();
+									
+									if (item.isFormField()) {
+										if(item.getFieldName().equals("nomeCompleto")){
+											param1=item.getString();
+											
+										}else if(item.getFieldName().equals("nome")){
+											param2=item.getString();
+											
+										}else if(item.getFieldName().equals("cnpj")){
+											param3=item.getString();
+											
+										}else if(item.getFieldName().equals("inscEstadual")) {
+											param4=item.getString();
+										}else if(item.getFieldName().equals("endereco")) {
+											param5=item.getString();
+										}else if(item.getFieldName().equals("contato")) {
+											param6=item.getString();
+										}
+								    }
+									}
+								
+								iter = multiparts.iterator();
+								while (iter.hasNext()) {
+									FileItem item = iter.next();
+									
+									if (item.isFormField()) {
+										
+								    } else {
+								    	inputStream = item.getInputStream();
+								    	insere="INSERT INTO customer_table (customer_name,customer_fullname,customer_cnpj,customer_adress,customer_ie,customer_owner_creator,customer_created_date,empresa,logoblob,logoBase64) "
+		    					                + "VALUES ('"+param2+"','"+param1+"','"+param3+"','"+param5+"','"+param4+"','"+p.get_PessoaUsuario()+"','"+time+"',"+p.getEmpresa().getEmpresa_id()+",?,?)";
+									     PreparedStatement statement;
+										 statement = mysql.getConnection().prepareStatement(insere);
+										
+										 byte[] imageBytes = IOUtils.toByteArray(inputStream);
+										 
+										 String imageStr = Base64.encodeBase64String(imageBytes);
+										 InputStream inputStream2= new ByteArrayInputStream(imageBytes);
+										 //System.out.println(imageStr);
+										 statement.setBlob(1, inputStream2);
+										 statement.setString(2, imageStr);
+										 int row = statement.executeUpdate();
+									     statement.getConnection().commit();
+									     
+									    	 if (row>0) {
+										        	rs=mysql.Consulta("select file_po_id from po_table_file where empresa="+p.getEmpresa().getEmpresa_id() +" and carregada_por='"+p.get_PessoaUsuario()+"' order by file_po_id desc limit 1");
+										        	int id_arquivo=0;
+										        	if(rs.next()) {
+										        		id_arquivo=rs.getInt(1);
+										        	}
+									    	 }
+									    	 statement.close();
+								    }
+								}
+							}
+			                /*param1=req.getParameter("nomeCompleto");
 			    			param2=req.getParameter("nome");
 			    			param3=req.getParameter("cnpj");
 			    			param4=req.getParameter("inscEstadual");
@@ -652,7 +735,13 @@ public class POControl_Servlet extends HttpServlet {
 							resp.setCharacterEncoding("UTF-8"); 
 							PrintWriter out = resp.getWriter();
 							out.print(last_id);
-							out.close();
+							out.close();*/
+							resp.setContentType("application/json"); 
+				        	JSONObject jsonObject = new JSONObject(); 
+				        	jsonObject.put("Sucesso", "Sucesso"); 
+				        	PrintWriter pw = resp.getWriter();
+				        	pw.print(jsonObject); 
+				        	pw.close();
 						}else if(opt.equals("10")){
 						param1=req.getParameter("cliente");	
 						rs= mysql.Consulta("select * from project_table where customer_id='"+param1+"' and empresa="+p.getEmpresa().getEmpresa_id());
@@ -1031,7 +1120,7 @@ public class POControl_Servlet extends HttpServlet {
 									        	}else if(p.getEmpresa().getEmpresa_id()==1 ) {// if de empresas
 									        			Rollout r = new Rollout();
 									        			String moeda_aux="";
-									        		    Timestamp timePublishDate = new Timestamp(System.currentTimeMillis());
+									        		    Calendar timePublishDate = Calendar.getInstance();
 									        			Bson filtro;
 									        			FindIterable<Document> findIterable=mongo.LastRegisterCollention("rollout", "recid");
 											        	Document linha_rollout = new Document();
@@ -1078,6 +1167,7 @@ public class POControl_Servlet extends HttpServlet {
 											    		}
 											    		//System.out.println("chegou aqui 3");
 											    		Calendar d = Calendar.getInstance();
+											    		
 											    		String po_inserida="Y";
 											    		String campo_nome_aux="";
 											    		Document linhaPO = new Document();
@@ -1091,13 +1181,18 @@ public class POControl_Servlet extends HttpServlet {
 											    			linhaPO.append("Empresa",p.getEmpresa().getEmpresa_id());
 											    			linhaPO.append("PO_ATIVA","Y");
 											    			linhaPO.append("PO_VALIDADA","N");
+											    			linhaPO.append("STATUS_PO_MSTP","CARREGADA");
 											    			linhaPO.append("DT_CARREGADA",d.getTime());
+											    			linhaPO.append("DT_CARREGADA_MES",d.get(Calendar.MONTH));
+											    			linhaPO.append("DT_CARREGADA_ANO",d.get(Calendar.YEAR));
 											    			linhaPO.append("USER_CARREGADA",p.get_PessoaUsuario());
 											    			linhaPO.append("CLIENTE",clienteObj.getNome());
 											    			linhaPO.append("PROJETO",projetoObj.getNome());
 											    			linhaPO.append("ARQUIVO_PO_ORIGINAL",po_original);
 											    			for(int i=0;i<row_aux.getLastCellNum();i++) {
-											    				
+											    				campo_nome_aux = campos[i];
+											    				campo_nome_aux=campo_nome_aux.replace("'","");
+											    				campo_nome_aux=campo_nome_aux.replace(".","");
 											    				cell = row_aux.getCell(i);
 											    				cellValue = dataFormatter.formatCellValue(cell);
 											    				cellValue=cellValue.replace("'","");
@@ -1105,16 +1200,22 @@ public class POControl_Servlet extends HttpServlet {
 											    				cellValue=cellValue.replace("\"","");
 											    				cellValue=cellValue.replace("\\\"","_");
 											    				cellValue=cellValue.replace("\n","|");
-											    				campo_nome_aux = campos[i];
-											    				campo_nome_aux=campo_nome_aux.replace("'","");
-											    				campo_nome_aux=campo_nome_aux.replace(".","");
+											    				
 											    				linhaPO.append(campo_nome_aux, cellValue);
 											    				//System.out.println("Adicionando Campo:"+campo_nome_aux+" | Valor:"+cellValue);
 											    				if(campo_nome_aux.equals("Publish Date")) {
 											    					if(!cellValue.equals("")) {
-											    						timePublishDate.setTime((formatPOPublishDate.parse(cellValue).getTime()));
-											    						linhaPO.append("Publish Date 2", timePublishDate);
+											    						timePublishDate.setTimeInMillis((formatPOPublishDate.parse(cellValue).getTime()));
+											    						linhaPO.append("Publish Date 2", timePublishDate.getTime());
+											    						linhaPO.append("Publish Date 2 MONTH", timePublishDate.get(Calendar.MONTH));
+											    						linhaPO.append("Publish Date 2 YEAR", timePublishDate.get(Calendar.YEAR));
 											    					}
+											    				}else if(campo_nome_aux.equals("Unit Price")) {
+											    					linhaPO.append("Unit Price 2",Double.parseDouble(cellValue.replace(",", ".")));
+											    				}else if(campo_nome_aux.equals("Requested Qty")) {
+											    					linhaPO.append("Requested Qty 2",Double.parseDouble(cellValue.replace(",", ".")));
+											    				}else if(campo_nome_aux.equals("Line Amount")) {
+											    					linhaPO.append("Line Amount 2",Double.parseDouble(cellValue.replace(",", ".")));
 											    				}
 											    			}
 											    			if(linhaPO.get("ID")==null) {
@@ -1217,11 +1318,11 @@ public class POControl_Servlet extends HttpServlet {
 											    						milestone.append("sdate_pre_"+CamposRollout[indice], "");
 											    						milestone.append("edate_pre_"+CamposRollout[indice], "");
 											    						milestone.append("sdate_"+CamposRollout[indice], "");
-											    						milestone.append("sdate_"+CamposRollout[indice], "");
+											    						milestone.append("edate_"+CamposRollout[indice], "");
 											    						milestone.append("udate_"+CamposRollout[indice], "");
 											    						milestone.append("resp_"+CamposRollout[indice], "");
-											    						milestone.append("status_"+CamposRollout[indice], "");
-											    						milestone.append("duracao_"+CamposRollout[indice], "");
+											    						milestone.append("status_"+CamposRollout[indice], "Nao Iniciada");
+											    						milestone.append("duracao_"+CamposRollout[indice], 0);
 											    						milestones.add(milestone);
 											    					}
 											    				}
@@ -1555,11 +1656,15 @@ public class POControl_Servlet extends HttpServlet {
 										    			 if(rs.next()) {
 										    				 rs.beforeFirst();
 										    				 while(rs.next()) {
-										    					 //email.enviaEmailSimples(rs.getString("email"), "MSTP - Notificação de Inserção de PO","Prezado "+rs.getString("nome")+", \n \n Informamos que uma nova PO foi carregada no sistema MSTP. \n\nEmpresa Emissora:"+clienteObj.getNome()+". \nPO Número:"+linhaPO.getString("PO NO")+" \nProjeto:"+linhaPO.getString("Project Name")+" \nCódigo do Item:"+linhaPO.getString("Item Code")+" \nData de Publicada pelo Cliente:"+linhaPO.getString("Publish Date")+" \n\n Mensagem Automática.Favor não responder!\n  Operação realizada em: "+time);
+										    					 email.enviaEmailSimples(rs.getString("email"), "MSTP - Notificação de Inserção de PO","Prezado "+rs.getString("nome")+", \n \n Informamos que uma nova PO foi carregada no sistema MSTP. \n\nEmpresa Emissora:"+clienteObj.getNome()+". \nPO Número:"+linhaPO.getString("PO NO")+" \nProjeto:"+linhaPO.getString("Project Name")+" \nCódigo do Item:"+linhaPO.getString("Item Code")+" \nData de Publicada pelo Cliente:"+linhaPO.getString("Publish Date")+" \n\n Mensagem Automática.Favor não responder!\n  Operação realizada em: "+time);
 										    				 }
 										    			 }
 											        	}
 									        	}//
+											    		//TemplateEngine thymeleaf= new TemplateEngine();
+											    		//Context objCtx = new Context();
+											    		//objCtx.setVariable("pedido", linhaPO);
+											    		//thymeleaf.process("", objCtx);
 											    		wb.close();
 											    		resp.setContentType("application/json"); 
 											        	JSONObject jsonObject = new JSONObject(); 
@@ -1957,73 +2062,24 @@ public class POControl_Servlet extends HttpServlet {
 		    				mysql.Inserir_simples(query);
 		    			}
 		    		}else if(opt.equals("23")){
-		    			
-		    			
 		    			param1=req.getParameter("rolloutid");
 		    			//System.out.println("Buscando campos do rollout ...");
 		    			//param1=req.getParameter("portal");
 		    			query="select * from rollout_campos where empresa="+p.getEmpresa().getEmpresa_id()+" and rollout_nome='"+param1+"' order by ordenacao";
 		    			rs=mysql.Consulta(query);
-		    			dados_tabela="<table id=\"table_row_fields\" data-toggle=\"table\" data-use-row-attr-func=\"true\" >" +"\n";
+		    			dados_tabela="[";
 		    			if(rs.next()){
 		    				rs.beforeFirst();
-		    				
-		    				dados_tabela=dados_tabela +"<thead>"+"\n";
-		    				dados_tabela=dados_tabela + "<tr>"+"\n";
-		    				
-		    					dados_tabela=dados_tabela + "<th class=\"label_janelas\"> Campo"+"\n";
-		    					
-		    					dados_tabela=dados_tabela + "</th>"+"\n";
-		    					dados_tabela=dados_tabela + "<th class=\"label_janelas\"> Valor"+"\n";
-		    					
-		    					dados_tabela=dados_tabela + "</th>"+"\n";
-		    				dados_tabela=dados_tabela + "</tr>"+"\n";
-		    				dados_tabela=dados_tabela +"</thead>"+"\n";
-		    				dados_tabela=dados_tabela +"<tbody>"+"\n";
-		    				
-		    				rs.beforeFirst();
 		    				while(rs.next()){
-		    					dados_tabela=dados_tabela + "<tr>"+"\n";
-		    					dados_tabela=dados_tabela +"<td>"+rs.getString("field_name")+"</td>";
-		    					if(rs.getString("tipo").equals("Data")){
-		    						dados_tabela=dados_tabela + " <td><input type=\"data_row\" class=\"form-control row_rollout label_janelas\" name=\""+rs.getString(2)+"\" id=\""+rs.getString(2)+"\" tipo_info=\""+rs.getString("tipo")+"\" tipo_campo=\""+rs.getString("field_type")+"\"></td>"+"\n";	
-								}else if(rs.getString("tipo").equals("Milestone")){
-									dados_tabela=dados_tabela + "<td class=\"label_janelas\">Plano de Início:<input type=\"data_row\" class=\"form-control row_rollout label_janelas\" tipo_info=\""+rs.getString("tipo")+"\" tipo_campo=\""+rs.getString("field_type")+"\" name=\""+rs.getString(2)+"_inicio\" id=\""+rs.getString(2)+"_inicio\" >Plano de Fim:<input type=\"data_row\" class=\"form-control row_rollout label_janelas\" tipo_campo=\""+rs.getString("field_type")+"\" name=\""+rs.getString(2)+"_fim\" id=\""+rs.getString(2)+"_fim\" ></td>"+"\n";
-								}else {
-									dados_tabela=dados_tabela + " <td class=\"label_janelas\"><input type=\"text\" class=\"form-control row_rollout label_janelas\" tipo_info=\""+rs.getString("tipo")+"\" tipo_campo=\""+rs.getString("field_type")+"\" name=\""+rs.getString(2)+"\" id=\"row_field_"+rs.getRow()+"\" ></td>"+"\n";
-								}
-		    					dados_tabela=dados_tabela + "</tr>"+"\n";
+		    					dados_tabela=dados_tabela + "{";
+		    					dados_tabela=dados_tabela +"\"nome\":\""+rs.getString("field_name")+"\",";
+		    					dados_tabela=dados_tabela +"\"nome2\":\""+rs.getString("field_name").replaceAll(" ", "_").replaceAll("/", "_").replaceAll("////", "_")+"\",";
+		    					dados_tabela=dados_tabela +"\"tipo\":\""+rs.getString("tipo")+"\"},\n";
 		    				}
-		    				/*	dados_tabela=dados_tabela + " <td class=\"label_janelas\">"+rs.getString(2)+"</td>"+"\n";
-									if(rs.getString("tipo").equals("Data")){
-										dados_tabela=dados_tabela + " <td><input type=\"data_row\" class=\"form-control row_rollout label_janelas\" name=\""+rs.getString(2)+"\" id=\""+rs.getString(2)+"\" tipo_campo=\""+rs.getString("field_type")+"\"></td>"+"\n";	
-									}else if(rs.getString("tipo").equals("Lista")){
-									valores	=rs.getString("Atributo_parametro").split(",");
-									dados_tabela=dados_tabela + " <td><div type=\"lista\" class=\"row_rollout label_janelas\" name=\""+rs.getString(2)+"\"  tipo_campo=\""+rs.getString("field_type")+"\" id=\""+rs.getString(2)+"\" valores='";
-									for(i=0;i<valores.length;i++){
-										dados_tabela=dados_tabela +valores[i]+",";
-									}
-									dados_tabela=dados_tabela.substring(0,dados_tabela.length()-1);
-									dados_tabela=dados_tabela +"'></div></td>"+"\n";
-									}else if(rs.getString("tipo").equals("Milestone")){
-										dados_tabela=dados_tabela + "<td class=\"label_janelas\">Início<input type=\"data_row\" class=\"form-control row_rollout label_janelas\" tipo_campo=\""+rs.getString("field_type")+"\" name=\""+rs.getString(2)+"_inicio\" id=\""+rs.getString(2)+"_inicio\" >Fim<input type=\"data_row\" class=\"form-control row_rollout label_janelas\" tipo_campo=\""+rs.getString("field_type")+"\" name=\""+rs.getString(2)+"_fim\" id=\""+rs.getString(2)+"_fim\" ></td>"+"\n";
-									}else{
-										dados_tabela=dados_tabela + " <td class=\"label_janelas\"><input type=\"text\" class=\"form-control row_rollout label_janelas\" tipo_campo=\""+rs.getString("field_type")+"\" name=\""+rs.getString(2)+"\" id=\"row_field_"+rs.getRow()+"\" ></td>"+"\n";
-									}
-									
-								
-								
-		    				}*/
-		    				
-		    				dados_tabela=dados_tabela + "</tbody>";
-							dados_tabela=dados_tabela + "</table>";
-							//System.out.println(dados_tabela);
-							
-		    			}else{
-		    				//System.out.println("Sem campos do rollout ...");
-		    				dados_tabela=dados_tabela +"</table>" +"\n";
 		    			}
-		    			//System.out.println(dados_tabela);
+		    			dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+		    			dados_tabela=dados_tabela+"]";
+		    			System.out.println(dados_tabela);
 		    			resp.setContentType("application/html");  
 						resp.setCharacterEncoding("UTF-8"); 
 						PrintWriter out = resp.getWriter();
@@ -2330,6 +2386,7 @@ public class POControl_Servlet extends HttpServlet {
 							}
 						}
 					}else if(opt.equals("33")){
+						System.out.println("iniciando busca de perfil");
 						query="";
 						query="select * from perfil_funcoes where usuario_id='"+p.get_PessoaUsuario()+"' and ativo='Y'";
 						rs=mysql.Consulta(query);
@@ -3588,7 +3645,390 @@ public class POControl_Servlet extends HttpServlet {
 						PrintWriter out = resp.getWriter();
 						out.print(dados_tabela);
 						out.close();
+					}else if(opt.equals("56")) {
+						try {
+							int itemid=0;
+							FindIterable<Document> findIterable=mongo.LastRegisterCollention("lpu", "MSTP_ITEM_ID");
+							if(findIterable.first()==null) {
+								itemid=1;
+							}else {
+								itemid=findIterable.first().getInteger("MSTP_ITEM_ID")+1;
+							}
+							
+							ServletContext context = req.getSession().getServletContext();
+							InputStream inputStream=null;
+							
+							if (ServletFileUpload.isMultipartContent(req)) {
+								List<FileItem> multiparts;
+								
+									multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(req);
+								
+								//System.out.println("Multipart size: " + multiparts.size());
+								Iterator<FileItem> iter = multiparts.iterator();
+								
+								while (iter.hasNext()) {
+									FileItem item = iter.next();
+									
+									if (item.isFormField()) {
+									
+									}else {
+										    //System.out.println("Achou InputStream");
+							        		inputStream= new ByteArrayInputStream(IOUtils.toByteArray(item.getInputStream()));
+							        		DataFormatter dataFormatter = new DataFormatter();
+											int indexCell=0;
+									    	XSSFWorkbook wb = new XSSFWorkbook(inputStream);
+									    	//System.out.println("Arquivo Excel criado");
+									    	Sheet sheet1 = wb.getSheetAt(0);
+								    		Cell cell;
+								    		String cellValue;
+								    		Iterator<Row> rowIterator = sheet1.iterator();
+								    		Row row_aux = rowIterator.next();
+								    		Calendar hoje = Calendar.getInstance();
+								    		while(rowIterator.hasNext()) {
+								    			row_aux = rowIterator.next();
+								    			Document linhaLPU = new Document();
+								    			for(int cellindice=0;cellindice<row_aux.getLastCellNum();cellindice++) {
+								    				//System.out.println("Lendo linha:"+row_aux.getRowNum()+" ,coluna:"+cellindice);
+								    				cell = row_aux.getCell(cellindice);
+								    				cellValue = dataFormatter.formatCellValue(cell);
+								    				cellValue=cellValue.replace("'","");
+								    				//cellValue=cellValue.replace(".","");
+								    				cellValue=cellValue.replace("\"","");
+								    				cellValue=cellValue.replace("\\","_");
+								    				cellValue=cellValue.replace("\\\"","_");
+								    				cellValue=cellValue.replace("\n","|");
+								    				linhaLPU.append("Empresa", p.getEmpresa().getEmpresa_id());
+								    				linhaLPU.append("ATIVA", "Y");
+								    				linhaLPU.append("USUARIO_ADD", p.get_PessoaUsuario());
+								    				linhaLPU.append("DT_ADD", hoje.getTime());
+								    				linhaLPU.append("MSTP_ITEM_ID",itemid);
+								    				if(cellindice==0) {
+								    					linhaLPU.append("ITEM_NUM",cellValue);
+								    				}else if(cellindice==1) {
+								    					linhaLPU.append("ITEM_CATEGORIA",cellValue);
+								    					
+								    				}else if(cellindice==2) {
+								    					
+								    					linhaLPU.append("ITEM_DESC",cellValue);
+								    				}else if(cellindice==3) {
+								    					linhaLPU.append("ITEM_UNIDADE",cellValue);
+								    				}else if(cellindice==4) {
+								    					linhaLPU.append("ITEM_VALOR_C_ISS_STR",cellValue);
+								    					//System.out.println(cellValue);
+								    					cellValue=cellValue.replace(",",".");
+								    					linhaLPU.append("ITEM_VALOR_C_ISS",Double.parseDouble(cellValue));
+								    				}else if(cellindice==5) {
+								    					linhaLPU.append("ITEM_LPU_UF",cellValue);
+								    				}else if(cellindice==6) {
+								    					linhaLPU.append("ITEM_LPU_VERSAO",cellValue);
+								    				}
+								    			}
+								    			//System.out.println("Inserindo linha no mongo");
+								    			mongo.InserirSimples("LPU", linhaLPU);
+								    			itemid=itemid+1;
+								    		}
+								    		
+									}
+								}
+							}
+							resp.setContentType("application/json"); 
+				        	JSONObject jsonObject = new JSONObject(); 
+				        	jsonObject.put("Sucesso", "Sucesso"); 
+				        	PrintWriter pw = resp.getWriter();
+				        	pw.print(jsonObject); 
+				        	pw.close();
+							} catch (FileUploadException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+					}else if(opt.equals("57")) {
+						dados_tabela="";
+						Bson filtro;
+						List<Bson>filtros= new ArrayList<>();
+						filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+						filtros.add(filtro);
+						filtro=Filters.eq("ATIVA","Y");
+						filtros.add(filtro);
+						Document lpuItemLinha;
+						FindIterable<Document> findIterable = mongo.ConsultaCollectioncomFiltrosLista("LPU", filtros);
+						MongoCursor<Document> resultado =findIterable.iterator();
+						dados_tabela= dados_tabela+"[";
+						if(resultado.hasNext()){
+							while(resultado.hasNext()) {
+								lpuItemLinha=resultado.next();
+								dados_tabela=dados_tabela+"{";
+								dados_tabela=dados_tabela+"\"ID\":\""+lpuItemLinha.getInteger("MSTP_ITEM_ID", 0)+"\",";
+								dados_tabela=dados_tabela+"\"ID_LPU\":\""+lpuItemLinha.getString("ITEM_NUM")+"\",";
+								dados_tabela=dados_tabela+"\"CATEGORIA\":\""+lpuItemLinha.getString("ITEM_CATEGORIA")+"\",";
+								dados_tabela=dados_tabela+"\"DESCRICAO\":\""+lpuItemLinha.getString("ITEM_DESC")+"\",";
+								dados_tabela=dados_tabela+"\"UF\":\""+lpuItemLinha.getString("ITEM_LPU_UF")+"\",";
+								dados_tabela=dados_tabela+"\"UNIDADE\":\""+lpuItemLinha.getString("ITEM_UNIDADE")+"\",";
+								dados_tabela=dados_tabela+"\"VALOR\":\""+lpuItemLinha.getDouble("ITEM_VALOR_C_ISS")+"\"},\n";
+								
+							}
+							dados_tabela=dados_tabela.substring(0,dados_tabela.length()-2);
+						}
+						dados_tabela=dados_tabela+"]";
+						//System.out.println(dados_tabela);
+						resp.setContentType("application/html");  
+						resp.setCharacterEncoding("UTF-8"); 
+						PrintWriter out = resp.getWriter();
+						out.print(dados_tabela);
+						out.close();
+					}else if(opt.equals("58")) {
+						param1=req.getParameter("ids");
+						System.out.println(param1);
+						Calendar hoje = Calendar.getInstance();
+						Document update = new Document();
+						Document comando = new Document();
+						Bson filtro;
+						JSONArray itens = new JSONArray(param1);
+						List<Bson> filtros = new ArrayList<>();
+						update.append("ATIVA", "N");
+						update.append("LAST_ACTION","DELETED");
+						update.append("LAST_ACTION_BY",p.get_PessoaUsuario());
+						update.append("LAST_ACTION_DT",hoje.getTime());
+						filtro=Filters.eq("Empresa", p.getEmpresa().getEmpresa_id());
+						filtros.add(filtro);
+						filtro=Filters.in("MSTP_ITEM_ID", itens.toList());
+						filtros.add(filtro);
+						comando.append("$set",update);
+						if(mongo.AtualizaMuitos("LPU", filtros, comando)) {
+							resp.setContentType("application/html");  
+							resp.setCharacterEncoding("UTF-8"); 
+							PrintWriter out = resp.getWriter();
+							out.print("Remoção Efetuada com sucesso!");
+							out.close();
+						}else {
+							resp.setContentType("application/html");  
+							resp.setCharacterEncoding("UTF-8"); 
+							PrintWriter out = resp.getWriter();
+							out.print("Erro na Deleção");
+							out.close();
+						}
+					}else if(opt.equals("59")) {
+						param1 = req.getParameter("item");
+						System.out.println(param1);
+						JSONObject item = new JSONObject(param1);
+						Document itemlpu = new Document();
+						Calendar hoje = Calendar.getInstance();
+						int itemid=0;
+						FindIterable<Document> findIterable=mongo.LastRegisterCollention("LPU", "MSTP_ITEM_ID");
+						if(findIterable.first()==null) {
+							itemid=1;
+						}else {
+							itemid=findIterable.first().getInteger("MSTP_ITEM_ID")+1;
+						}
+						
+						
+						
+						itemlpu.append("Empresa", p.getEmpresa().getEmpresa_id());
+						itemlpu.append("ATIVA", "Y");
+						itemlpu.append("USUARIO_ADD", p.get_PessoaUsuario());
+						itemlpu.append("DT_ADD", hoje.getTime());
+						itemlpu.append("MSTP_ITEM_ID", itemid);
+						if(item.getString("codigo").equals("") || item.getString("codigo").trim().length()==0){
+							Bson filtro;
+							List<Bson> filtros = new ArrayList<>();
+							filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+							filtros.add(filtro);
+							filtro=Filters.eq("ITEM_CATEGORIA",item.getString("categoria"));
+							filtros.add(filtro);
+							filtro=Filters.eq("ITEM_LPU_UF",item.getString("uf"));
+							filtros.add(filtro);
+							
+							findIterable=mongo.LastRegisterCollention("LPU", "MSTP_ITEM_ID",filtros);
+							DecimalFormat df;
+							Double itemNum ;
+							
+							if(findIterable.first().getString("ITEM_NUM").length()>3) {
+								 df = new DecimalFormat("#.##");
+								 itemNum = Double.parseDouble(findIterable.first().getString("ITEM_NUM"));
+								 itemNum = itemNum + 0.01;
+							}else {
+								 df = new DecimalFormat("#.#");
+								 itemNum = Double.parseDouble(findIterable.first().getString("ITEM_NUM"));
+								 itemNum = itemNum + 0.1;
+							}
+							itemlpu.append("ITEM_NUM", df.format(itemNum).replace(",", "."));
+						}else {
+							itemlpu.append("ITEM_NUM", item.getString("codigo"));
+						}
+						
+						itemlpu.append("ITEM_CATEGORIA", item.getString("categoria"));
+						itemlpu.append("ITEM_DESC", item.getString("descricao"));
+						itemlpu.append("ITEM_UNIDADE", item.getString("unidade"));
+						itemlpu.append("ITEM_VALOR_C_ISS_STR", item.get("valor").toString());
+						itemlpu.append("ITEM_VALOR_C_ISS", item.getDouble("valor"));
+						itemlpu.append("ITEM_LPU_UF", item.getString("uf"));
+						itemlpu.append("ITEM_LPU_VERSAO", "1.0");
+						
+						if(mongo.InserirSimples("LPU", itemlpu)) {
+							resp.setContentType("application/html");  
+							resp.setCharacterEncoding("UTF-8"); 
+							PrintWriter out = resp.getWriter();
+							out.print("Adicionado com sucesso!");
+							out.close();
+						}else {
+							resp.setContentType("application/html");  
+							resp.setCharacterEncoding("UTF-8"); 
+							PrintWriter out = resp.getWriter();
+							out.print("Erro ao adicionar!");
+							out.close();
+						}
+					}else if(opt.equals("60")) {
+						XSSFWorkbook workbook = new XSSFWorkbook();
+						XSSFSheet sheet = workbook.createSheet("LPU JTEL");
+						Row row;
+						Row row2;
+						Cell cell;
+						List<Bson> filtros = new ArrayList<Bson>();
+						Bson filtro;
+						filtro=Filters.eq("Empresa",p.getEmpresa().getEmpresa_id());
+						filtros.add(filtro);
+						filtro=Filters.eq("ATIVA","Y");
+						filtros.add(filtro);
+						FindIterable<Document> findIterable = mongo.ConsultaOrdenadaFiltroLista("LPU", "ITEM_NUM", 1, filtros);
+						MongoCursor<Document> resultado = findIterable.iterator();
+						int rowIndex=0;
+						int colIndex=0;
+						if(resultado.hasNext()) {
+							//System.out.println("tem resultado");
+			            	row = sheet.createRow((short) rowIndex);
+			            	row.setHeight((short) 48);
+			            	XSSFCellStyle cellStyle = workbook.createCellStyle();
+			            	
+			                cellStyle.setAlignment(HorizontalAlignment.CENTER);
+			                cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+			                cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+			                cellStyle.setFillBackgroundColor(IndexedColors.BLUE_GREY.getIndex());
+			                cellStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+			                cellStyle.setBorderBottom(BorderStyle.THIN);
+			                cellStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+			                cellStyle.setBorderLeft(BorderStyle.THIN);
+			                cellStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+			                cellStyle.setBorderRight(BorderStyle.THIN);
+			                cellStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
+			                cellStyle.setBorderTop(BorderStyle.THIN);
+			                cellStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
+			                
+			                XSSFCellStyle cellStyle2 = workbook.createCellStyle();
+			            	
+			                cellStyle2.setAlignment(HorizontalAlignment.CENTER);
+			                cellStyle2.setVerticalAlignment(VerticalAlignment.CENTER);
+			                
+			                cellStyle2.setBorderBottom(BorderStyle.THIN);
+			                cellStyle2.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+			                cellStyle2.setBorderLeft(BorderStyle.THIN);
+			                cellStyle2.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+			                cellStyle2.setBorderRight(BorderStyle.THIN);
+			                cellStyle2.setRightBorderColor(IndexedColors.BLACK.getIndex());
+			                cellStyle2.setBorderTop(BorderStyle.THIN);
+			                cellStyle2.setTopBorderColor(IndexedColors.BLACK.getIndex());
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("ITEM");
+			                sheet.autoSizeColumn(colIndex);
+			                cell.setCellStyle(cellStyle);
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("CATEGORIA");
+			                sheet.autoSizeColumn(colIndex);
+			                cell.setCellStyle(cellStyle);
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("DESCRIÇÂO");
+			                sheet.autoSizeColumn(colIndex);
+			                cell.setCellStyle(cellStyle);
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("UNID.");
+			                sheet.autoSizeColumn(colIndex);
+			                cell.setCellStyle(cellStyle);
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("SERVIÇOS (com ISS)");
+			                sheet.autoSizeColumn(colIndex);
+			                cell.setCellStyle(cellStyle);
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("UF");
+			                sheet.autoSizeColumn(colIndex);
+			                cell.setCellStyle(cellStyle);
+			                colIndex=colIndex+1;
+			                cell = row.createCell((short) colIndex);
+			                cell.setCellValue("VERSAO");
+			                sheet.autoSizeColumn(colIndex);
+			                cell.setCellStyle(cellStyle);
+			                Document itemLPU;
+			                System.out.println("Iniciando montagem do arquivo de LPU");
+			                while(resultado.hasNext()) {
+			                	colIndex=0;
+			                	rowIndex=rowIndex+1;
+			                	row = sheet.createRow((short) rowIndex);
+			                	itemLPU=resultado.next();
+			                	
+			                	 cell = row.createCell((short) colIndex);
+					                cell.setCellValue(itemLPU.getString("ITEM_NUM"));
+					               
+					                cell.setCellStyle(cellStyle2);
+					                colIndex=colIndex+1;
+					                cell = row.createCell((short) colIndex);
+					                cell.setCellValue(itemLPU.getString("ITEM_CATEGORIA"));
+					                
+					                cell.setCellStyle(cellStyle2);
+					                colIndex=colIndex+1;
+					                cell = row.createCell((short) colIndex);
+					                cell.setCellValue(itemLPU.getString("ITEM_DESC"));
+					                
+					                cell.setCellStyle(cellStyle2);
+					                colIndex=colIndex+1;
+					                cell = row.createCell((short) colIndex);
+					                cell.setCellValue(itemLPU.getString("ITEM_UNIDADE"));
+					               
+					                cell.setCellStyle(cellStyle2);
+					                colIndex=colIndex+1;
+					                cell = row.createCell((short) colIndex);
+					                cell.setCellValue(itemLPU.getString("ITEM_VALOR_C_ISS_STR"));
+					                
+					                cell.setCellStyle(cellStyle2);
+					                colIndex=colIndex+1;
+					                cell = row.createCell((short) colIndex);
+					                cell.setCellValue(itemLPU.getString("ITEM_LPU_UF"));
+					               
+					                cell.setCellStyle(cellStyle2);
+					                colIndex=colIndex+1;
+					                cell = row.createCell((short) colIndex);
+					                cell.setCellValue(itemLPU.getString("ITEM_LPU_VERSAO"));
+					                
+					                cell.setCellStyle(cellStyle2);
+			                }
+			                System.out.println("finalizando montagem do arquivo de LPU");
+						}else {
+							System.out.println("Sem resultado no Mongo");
+						}
+						 colIndex=0;
+						 sheet.autoSizeColumn(colIndex);
+						 colIndex=colIndex+1;
+						 sheet.autoSizeColumn(colIndex);
+						 colIndex=colIndex+1;
+						 sheet.autoSizeColumn(colIndex);
+						 colIndex=colIndex+1;
+						 sheet.autoSizeColumn(colIndex);
+						 colIndex=colIndex+1;
+						 sheet.autoSizeColumn(colIndex);
+						 colIndex=colIndex+1;
+						 sheet.autoSizeColumn(colIndex);
+						 colIndex=colIndex+1;
+						 sheet.autoSizeColumn(colIndex);
+						 colIndex=colIndex+1;
+						resp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		                resp.setHeader("Content-Disposition", "attachment; filename="+time.toString()+"_lpu_mstp.xlsx");
+		                workbook.write(resp.getOutputStream());
+		                workbook.close();
 					}
+					mysql.getConnection().commit();
+					mysql.fecharConexao();
 					mongo.fecharConexao();
 					Timestamp time2 = new Timestamp(System.currentTimeMillis());
 					System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Servlet de Operações Gerais opt - "+ opt +" tempo de execução " + TimeUnit.MILLISECONDS.toSeconds((time2.getTime()-time.getTime())) +" segundos");
@@ -3607,7 +4047,10 @@ public class POControl_Servlet extends HttpServlet {
 			} catch (EmailException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				} catch (ParseException e) {
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

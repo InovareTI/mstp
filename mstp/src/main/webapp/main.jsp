@@ -109,7 +109,7 @@ response.setDateHeader ("Expires", -1);
     <script type="text/javascript" src="js/jqwidgets/jqxscrollbar.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxmenu.js"></script>
     
-    <script defer src="https://use.fontawesome.com/releases/v5.0.2/js/all.js"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.13.1/js/all.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.filter.js"></script>
      <script type="text/javascript" src="js/jqwidgets/jqxtreegrid.js"></script>
@@ -129,6 +129,7 @@ response.setDateHeader ("Expires", -1);
     <script type="text/javascript" src="js/jqwidgets/jqxlayout.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.pager.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxgrid.edit.js"></script>
+    <script type="text/javascript" src="js/jqwidgets/jqxgrid.aggregates.js"></script>
     <script type="text/javascript" src="js/jqwidgets/jqxpanel.js"></script>
      <script type="text/javascript" src="js/jqwidgets/jqxsplitter.js"></script>
      <script type="text/javascript" src="js/jqwidgets/jqxtabs.js"></script>
@@ -187,7 +188,9 @@ response.setDateHeader ("Expires", -1);
 	<script type="text/javascript" src="js/importacoes.js"></script>
 	<script type="text/javascript" src="js/pivot.js"></script>
 	<script type="text/javascript" src="js/checklist.js"></script>
+	<script type="text/javascript" src="js/lpu.js"></script>
 	<script type="text/javascript" src="js/despesas.js"></script>
+	<script type="text/javascript" src="js/orcamento.js"></script>
 	<script type="text/javascript" src="js/Ticket.js"></script>
 	<script src='https://api.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.js'></script>
      <link href='https://api.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.css' rel='stylesheet' />
@@ -421,6 +424,17 @@ response.setDateHeader ("Expires", -1);
 						<ul>
 							<li><a class="icon icon-display" href="#" onclick="menu('portal')">Dashboard</a></li>
 							 <li class="icon icon-arrow-left">
+								<a  href="#"><span style="padding:5px"><i class="fas fa-hand-holding-usd"></i></span>Financeiro</a>
+								<div class="mp-level">
+									<h2 ><span style="padding:5px"><i class="fas fa-hand-holding-usd"></i></span>Financeiro</h2>
+									<ul>
+										<li><a href="#" onclick="menu('PO')"><span style="padding:5px"><i class="fas fa-hand-holding-usd fa-sm"></i></span><span>Gestão de PO's</span></a></li>
+										<li><a href="#" onclick="menu('orcamento')"><span style="padding:5px"><i class="fas fa-hand-holding-usd fa-sm"></i></span><span>Orçamentos</span></a></li>
+										<li><a href="#" onclick="menu('lpu')"><span style="padding:5px"><i class="fas fa-hand-holding-usd fa-sm"></i></span><span>LPU</span></a></li>
+										</ul>
+								</div>
+							</li>
+							 <li class="icon icon-arrow-left">
 								<a class="icon icon-settings" href="#">RH</a>
 								<div class="mp-level">
 									<h2 class="icon icon-settings">Recursos Humanos</h2>
@@ -438,7 +452,7 @@ response.setDateHeader ("Expires", -1);
 									</ul>
 								</div>
 							</li>
-							<li><a class="icon icon-display" href="#" onclick="menu('PO')">Gestão de PO's</a></li>
+							
 							<li><a class="icon icon-display" href="#" onclick="menu('permits')">Aquisições(PERMITS)</a></li>
 							<li><a href="#" onclick="menu('aprovacoes');carrega_aprovacoes_hh();"><i class="fas fa-list-ul"></i>&nbsp;&nbsp;Aprovações</a></li>
 							
@@ -471,7 +485,7 @@ response.setDateHeader ("Expires", -1);
 									</ul>
 								</div>
 							</li>
-							<li><a class="icon icon-wallet" href="#">Financeiro</a></li>
+							
                             <li class="icon icon-arrow-left">
 								<a class="icon icon-settings" href="#">Configurações</a>
 								<div class="mp-level">
@@ -608,7 +622,7 @@ response.setDateHeader ("Expires", -1);
 					        </div>
 					        
 					    </div><!-- fim do widget -->
-					    </div>
+					    </div><!-- fim da  -->
 					    <div>
 							<div id='jqxWidget_rollout' style="width:100%;margin: auto;float: left">
 					        <div id="docking_rollout" style="width:90%">
@@ -652,17 +666,29 @@ response.setDateHeader ("Expires", -1);
 						</div><!-- Fim da Tab Rollout -->
 						<div>
 						<div id='jqxWidget_PO' style="width:100%;margin: auto;float: left">
-					        <div id="docking_PO" style="width:1200px">
-					            <div style="overflow: hidden;width:400px">
+					        <div id="docking_PO" style="width:90%">
+					            <div style="overflow: hidden;width:50%">
 					                <div id="window7" style="height: 350px">
-					                    <div>Empresas Emissoras de PO</div>
+					                    <div>Itens de PO</div>
 					                   
 					                    <div id='grafico_container1_PO'><div class="loader"></div></div>
 					                </div>
 					                <div id="window8" style="height: 350px">
-					                    <div>Valor Acumulado Recebido por Mes</div>
+					                    <div>Valor Acumulado por Status de Item de PO</div>
 					                   
 					                    <div id='grafico_container2_PO'><div class="loader"></div></div>
+					                </div>
+					            </div>
+					            <div style="overflow: hidden;width:50%">
+					                <div id="window11" style="height: 350px">
+					                    <div>Previsao de Faturamento</div>
+					                   
+					                    <div id='grafico_container3_PO'><div class="loader"></div></div>
+					                </div>
+					                <div id="window12" style="height: 350px">
+					                    <div>Faturado x Realizado</div>
+					                   
+					                    <div id='grafico_container4_PO'><div class="loader"></div></div>
 					                </div>
 					            </div>
 					         </div>
@@ -740,6 +766,44 @@ response.setDateHeader ("Expires", -1);
 					<div class="janelas" id="permitsCampos" style="display:none;">
 						<div id="div_tabela_campos_permits"></div>
 					</div>
+					<div class="janelas" id="orcamento" style="display:none;width:100%;height: 100%">
+						<div class="panel panel-primary" style="width:90%;margin:0 auto">
+			        				<div class="panel-heading">Controle de Orçamentos</div>
+				        				<div class="panel-body">
+					        				<button class="btn btn-primary" data-toggle="modal" data-target="#modal_cria_orcamento">+ Orçamento</button>
+					        				<button class="btn btn-primary" >Download(emDesenvolvimento)</button>
+					        				<button class="btn btn-primary" >Edição(emDesenvolvimento)</button>
+					        				<button class="btn btn-primary" onclick="GerarDocumentoOrcamento()" >Gerar Documento</button>
+					        				<button class="btn btn-danger" >Remoção de Orçamento(emDesenvolvimento)</button>
+				        				</div>
+			        		</div>
+			        		<div class="panel panel-primary" style="width:90%;height:75%;margin:0 auto">
+		        				<div class="panel-heading">Tabela de Orçamentos</div>
+			        				<div class="panel-body">
+				        				<div id="div_grid_orcamento" style="height:100%;"></div>
+			        				</div>
+		        		</div>
+					</div>
+					<div class="janelas" id="lpu" style="display:none;width:100%;height: 100%">
+					<div class="panel panel-primary" style="width:90%;margin:0 auto">
+		        				<div class="panel-heading">Controles LPU</div>
+			        				<div class="panel-body">
+				        				<button class="btn btn-primary" data-toggle="modal" data-target="#lpu_upload_Modal">Upload de LPU</button>
+				        				<button class="btn btn-primary" id="btnDownloadLPU" onclick="DownloadLPU()">Download de LPU</button>
+				        				<button class="btn btn-primary" data-toggle="modal" data-target="#Modal_AddItemLPU">Novo Item</button>
+				        				<button class="btn btn-danger" id="btnRemoveItemLpu" onclick="RemoveItemLPU()">Remoção de Item</button>
+				        				<a id="template_importar_site" style="color:blue" href="templates/templateLPUImportacao.xlsx">Template(importação)</a>
+			        				</div>
+		        		</div>
+		        		<div class="panel panel-primary" style="width:90%;height:75%;margin:0 auto">
+		        				<div class="panel-heading">LPU</div>
+			        				<div class="panel-body">
+				        				<div id="div_grid_lpu" style="height:100%;"></div>
+			        				</div>
+		        		</div>
+					</div>
+					
+					
 					<div class="janelas" id="mapa_central" style="display:none;">
 					
             
@@ -1996,7 +2060,7 @@ response.setDateHeader ("Expires", -1);
       		</tr>
       	</table>
 			<hr>
-	      
+	      <input id="input_LOGOCUSTUMER" name="total_input[]" type="file" >
 		</div>
       </div>
       <div class="modal-footer">
@@ -2040,6 +2104,100 @@ response.setDateHeader ("Expires", -1);
 
   </div>
 </div>	
+
+<div id="modal_cria_orcamento" class="modal fade" role="dialog">
+  <div style="width:90%" class="modal-dialog modal-lg modal-dialog-centered">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title label_janelas"><label style="color:gray">Criando Novo Orçamento</label></h4>
+      </div>
+      <div class="modal-body" >
+      <div style="height:700px;overflow: auto;">
+      <div class="row"  style="margin-left:10px;color:gray;"><h4><label>Dados do Cliente</label></h4></div>
+      	<div class="row"  style="color:black;">
+	      	<div class="col-md-6"><select class="selectpicker" data-live-search="true" title="Selecione o Cliente" id="select_cliente_orcamento" ></select></div>
+	      	<div class="col-md-6"><select class="selectpicker" data-live-search="true" title="Selecione o Contrato" id="select_cliente_contrato_orcamento" ></select></div>
+	    </div>
+	    <hr>
+	    <div class="row"  style="margin-left:10px;color:gray;"><h4><label>Dados do Local</label></h4></div>
+	    <div class="row"  style="color:black;">
+	      	<div class="col-md-6"><div><input type="text" style="float:left;width:50%" class="form-control" id="site_orcamento_pesquisa" placeholder="Digite o Site"/><button onclick="PesquisaSiteOrcamento()"><i class="fas fa-search"></i></button></div></div>
+	     </div>
+	     <div class="row"  style="margin-top:5px;color:black;">
+	      	<div class="col-md-4"><label style="color:gray">Endereço</label></div>
+	      	<div class="col-md-4"><label style="color:gray">Bairro</label></div>
+	      	<div class="col-md-4"><label style="color:gray">Município</label></div>
+	     </div>
+	      <div class="row"  style="color:black;">
+	      	<div class="col-md-4"><input type="text" style="float:left;width:90%" class="form-control" id="site_orcamento_endereco" placeholder="Endereco"/></div>
+	      	<div class="col-md-4"><input type="text" style="float:left;width:90%" class="form-control" id="site_orcamento_bairro" placeholder="Bairro"/></div>
+	      	<div class="col-md-4"><input type="text" style="float:left;width:90%" class="form-control" id="site_orcamento_municipio" placeholder="Municipio"/></div>
+	     </div>
+	     <div class="row"  style="margin-top:5px;color:black;">
+	      	<div class="col-md-4"><label style="color:gray">UF</label></div>
+	      	<div class="col-md-4"><label style="color:gray">GRAM</label></div>
+	      	<div class="col-md-4"><label style="color:gray">Sigla/Código</label></div>
+	     </div>
+	     <div class="row"  style="color:black;">
+	      	<div class="col-md-4"><input type="text" style="float:left;width:90%" class="form-control" id="site_orcamento_uf" placeholder="UF"/></div>
+	      	<div class="col-md-4"><input type="text" style="float:left;width:90%" class="form-control" id="site_orcamento_GRAM" placeholder="Digite o Site"/></div>
+	      	<div class="col-md-4"><input type="text" style="float:left;width:90%" class="form-control" id="site_orcamento_SIGLA_LOCAL" placeholder="Digite o Site"/></div>
+	     </div>
+	     <hr>
+	     <div class="row"  style="margin-left:10px;color:gray;"><h4><label>Informações Adicionais</label></h4></div>
+	      <div class="row"  style="color:black;">
+	      	<div class="col-md-4"><label style="color:gray">Deslocamento(km)</label></div>
+	      	<div class="col-md-4"><label style="color:gray">OBS1</label></div>
+	      	<div class="col-md-4"><label style="color:gray">OBS2</label></div>
+	      
+	     </div>
+	      <div class="row"  style="color:black;">
+	      	<div class="col-md-4"><input type="text" style="float:left;width:90%" class="form-control" id="site_orcamento" placeholder="Digite o Site"/></div>
+	      	<div class="col-md-4"><input type="text" style="float:left;width:90%" class="form-control" id="site_orcamento" placeholder="Digite o Site"/></div>
+	      	<div class="col-md-4"><input type="text" style="float:left;width:90%" class="form-control" id="site_orcamento" placeholder="Digite o Site"/></div>
+	     </div>
+	     <hr>
+	     <div style="margin-left:10px;color:gray;" class="row"><h4><label>Dados do Serviço</label></h4></div>
+	      <div class="row"  style="color:black;">
+	      	<div class="col-md-4"><label style="color:gray">Descrição do Serviço</label></div>
+	      	<div class="col-md-4"><label style="color:gray">Motivo do Serviço</label></div>
+	     </div>
+	      <div class="row"  style="color:black;">
+	      	<div class="col-md-4"><input type="text" style="float:left;width:90%" class="form-control" id="site_orcamento_descricao_servico" placeholder="Descrição do Serviço"/></div>
+	      	<div class="col-md-4"><input type="text" style="float:left;width:90%" class="form-control" id="site_orcamento_motivo_servico" placeholder="Motivo do Serviço"/></div>
+	     </div>
+	     <div class="row"  style="padding:5px;color:black;">
+	      	<div class="col-md-3"><label style="color:gray">Categoria</label></div>
+	      	<div class="col-md-3"><label style="color:gray">Item</label></div>
+	      	<div class="col-md-2"><label style="color:gray">Unidade</label></div>
+	      	<div class="col-md-2"><label style="color:gray">Valor Unit.</label></div>
+	      	<div class="col-md-2"><label style="color:gray"></label></div>
+	     </div>
+	     <div style="color:black;" class="row">
+	      	<div class="col-md-3"><select class="selectpicker" data-live-search="true" title="Selecione a Categoria do Item" onchange="CarregaSelectItens(this.value)" id="select_categorias_item_orcamento" ></select></div>
+	      	<div class="col-md-3"><select class="selectpicker" data-live-search="true" title="Selecione o Item" onchange="RecuperaDadosItem(this.value)" id="select_item_orcamento" ></select></div>
+	      	<div class="col-md-2"><input readonly style="font-weight: bold;" type="text"  class="form-control" id="lbl_item_unidade" /></div>
+	      	<div class="col-md-2"><input readonly style="font-weight: bold;" type="text"  class="form-control" id="lbl_item_valor" /></div>
+	      	<div class="col-md-2"><button class="btn" onclick="AddLinhaItemOrcamento()">Adicionar</button><button class="btn btn-danger" onclick="RemoverLinhaItemOrcamento()">Remover</button></div>
+	     </div>
+	     <input readonly style="font-weight: bold;" type="hidden"  class="form-control" id="lbl_item_desc" />
+	     <input readonly style="font-weight: bold;" type="hidden"  class="form-control" id="lbl_item_valor2" />
+	     <div id="grid_orcamento_itens"></div>
+	     </div>
+      </div>
+      <div class="modal-footer">
+        <button id="add_orcamento_btn0" type="button" class="btn btn-info" onclick="RegistraOrcamento(0)">Salvar</button><button id="add_orcamento_btn1" type="button" class="btn btn-info" onclick="RegistraOrcamento(1)">Salvar & Enviar</button><button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div>	
+
+
 <div id="modal_row_add" class="modal fade subconpo" role="dialog">
   <div class="modal-dialog modal-lg modal-dialog-centered">
 
@@ -2051,7 +2209,7 @@ response.setDateHeader ("Expires", -1);
         <h4 class="modal-title label_janelas">Adicionar Nova Atividade</h4>
       </div>
       <div class="modal-body">
-      	<div class="form-group" id="row_add_fields" style="height: 400px;overflow: auto;">
+      	<div id="row_add_fields" style="height: 400px;overflow: auto;">
       	
 	    </div>
       </div>
@@ -2773,7 +2931,7 @@ response.setDateHeader ("Expires", -1);
                     <li id='1'>Item</li>
                 </ul>
             </div>
-    		 <div style='float:right;margin-left: 20px;height:450px;border-style:solid;border-width:1px;border-color: gray;padding:20px'>
+    		 <div style='float:right;margin-left: 20px;height:500px;border-style:solid;border-width:1px;border-color: gray;padding:20px'>
     		 	<table>
     		 	<tr>
     		 		<td><label class="control-label" style="color:black">Nome do Item</label></td>
@@ -2785,17 +2943,28 @@ response.setDateHeader ("Expires", -1);
     		 	</tr>
     		 	<tr>
     		 		<td><label class="control-label" style="color:black">Tipo do Item</label></td>
-    		 		<td><select id="select_tipo_item_vistoria" class="selectpicker" data-live-search="true" title="Escolha o Tipo do Item">
+    		 		<td><select id="select_tipo_item_vistoria" onchange="verificaValor(this.value)" class="selectpicker" data-live-search="true" title="Escolha o Tipo do Item">
 		        			<option value="Texto">Texto</option>
 		        			<option value="Numero">Número</option>
 		        			<option value="Foto">Foto</option>
 		        			<option value="oneSelect">Seleção Unica</option>
 		        			<option value="MultiSelect">Multiplas seleções</option>
 		        			<option value="Data">Data</option>
+		        			<option value="rollout_campo">Campo do Rollout</option>
+						</select><div id="divItemRolloutChecklist" style="display:none">
+						
+						<select id="select_item_vistoria_rollout" onchange="buscaCamposRolloutById_Select(this.value)" class="selectpicker" data-live-search="true" title="Escolha o Rollout">
+		        			<option value="NO_CAMPO">Sem Campo</option>
 		        			
 						</select>
+						<br>
+						<select id="select_item_vistoria_campo_rollout" class="selectpicker" data-live-search="true" title="Escolha o campo do Rollout">
+		        			<option value="NO_CAMPO">Sem Campo</option>
+		        			
+						</select></div>
 					</td>
     		 	</tr>
+    		 	
     		 	<tr>
     		 		<td><label class="control-label" style="color:black">Linha</label></td>
     		 		<td><input id="item_vistoria_linha" class="form-control" type="text"></td>
@@ -2985,6 +3154,74 @@ response.setDateHeader ("Expires", -1);
   </div>
 </div> 
 
+<div id="lpu_upload_Modal" class="modal fade" role="dialog">
+  <div class="modal-dialog modal-lg">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title"><label style="color:black">Carregar LPU</label></h4>
+      </div>
+      <div class="modal-body">
+     
+			<hr>
+        <label class="control-label">Selecionar Arquivo</label>
+		<input id="input_lpu_file" name="total_input[]" type="file"  multiple>	
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div> 
+
+<div id="Modal_AddItemLPU" class="modal fade" role="dialog">
+  <div style="width:90%" class="modal-dialog modal-lg">
+
+    <!-- Modal content-->
+    
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title" style="color:black">Adcionar Item LPU</h4>
+      </div>
+      <div class="modal-body" >
+      
+       <div class="row"  style="margin-top:5px;color:black;">
+	      	<div class="col-md-3"><label style="color:gray">Categoria</label></div>
+	      	<div class="col-md-3"><label style="color:gray">Codigo Item</label></div>
+	      	<div class="col-md-6"><label style="color:gray">Descrição do Item</label></div>
+	   </div>
+	      <div class="row"  style="margin-top:5px;color:black;">
+	      	<div class="col-md-3"><select class="selectpicker" data-live-search="true" title="Selecione a Categoria do Item" id="select_categorias_item_lpu" ></select></div>
+	      	<div class="col-md-3"><input type="text" placeholder="Código do Item" id="addcodigo_item_lpu" class="form-control" value=""/></div>
+	      	<div class="col-md-6"><input type="text" placeholder="Descrição do Item" id="adddescricao_item_lpu" class="form-control" value=""/></div>
+	     </div>
+	     <br>
+	     <div class="row"  style="margin-top:10px;color:black;">
+	      	<div class="col-md-3"><label style="color:gray">Unidade</label></div>
+	      	<div class="col-md-3"><label style="color:gray">UF</label></div>
+	      	<div class="col-md-4"><label style="color:gray">Preço Unitário(somente numeros)</label></div>
+	   </div>
+	      <div class="row"  style="margin-top:5px;color:black;">
+	      	<div class="col-md-3"><select class="selectpicker" data-live-search="true" title="" id="select_unidade_item_lpu" ><option value="m">Metro(m)</option><option value="kg">Kilo(kg)</option><option value="unid">Unidade(unid)</option><option value="rl">Rolo(rl)</option><option value="m3">Volume(m3)</option><option value="m2">Area(m2)<option value="h">Hora(h)</option><option value="h/h">HomemHora(h/h)</option><option value="km">Distancia(km)</option></select></div>
+	      	<div class="col-md-3"><select class="selectpicker" data-live-search="true" title="" id="select_uf_item_lpu" ><option value="RJ">RJ</option><option value="SP">SP</option><option value="MG">MG</option><option value="ES">ES</option><option value="DF">DF</option><option value="PR">PR</option></select></div>
+	      	<div class="col-md-3"><input type="number" id="addvalor_item_lpu" placeholder="valor" class="form-control" value="0.0"/></div>
+	      	
+	     </div>
+			
+      </div>
+      <div class="modal-footer">
+        <button type="button" onclick ="addItemLPU()" class="btn btn-default" data-dismiss="modal" >Adicionar</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal" >Fechar</button>
+      </div>
+    </div>
+
+  </div>
+</div> 
 
 
 <div id="Modal_DetalheEquipeRollout" class="modal fade" role="dialog">

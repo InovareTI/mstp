@@ -134,7 +134,7 @@ public void run_login(HttpServletRequest req, HttpServletResponse resp) throws S
                 //System.out.println("MSTP WEB - "+f3.format(time)+" "+p.getEmpresa().getNome_fantasia()+" - "+ p.get_PessoaUsuario()+" Usuário validado e logado");
                 //System.out.println(req.getParameter("user")+" Usuário validado e logado");
                 rs.close();
-               
+               con.getConnection().commit();
                resp.sendRedirect("./main.jsp");
         	}
 	        

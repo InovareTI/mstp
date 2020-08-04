@@ -205,7 +205,9 @@ function carrega_campos_relatorio(relatorio_id){
          }
          $('#campos_relatorio').jqxTree('refresh');
          var item = $('#campos_relatorio').jqxTree('getSelectedItem');
-         var tipo_item=$('#select_tipo_item_vistoria').val()
+         var tipo_item=$('#select_tipo_item_vistoria').val();
+         var tipo_item_rollout=$('#select_item_vistoria_rollout').val()
+         var tipo_item_rollout_campo=$('#select_item_vistoria_campo_rollout').val()
          $.ajax({
    		  type: "POST",
    		  data: {"opt":"3",
@@ -217,7 +219,10 @@ function carrega_campos_relatorio(relatorio_id){
    			  "tipo_item":tipo_item,		  
    		      "linha":document.getElementById('item_vistoria_linha').value,
    			  "coluna":document.getElementById('item_vistoria_coluna').value,
-   			  "planilha":document.getElementById('item_vistoria_planilha').value},
+   			  "planilha":document.getElementById('item_vistoria_planilha').value,
+   			  "rolloutid":tipo_item_rollout,
+ 			  "camporollout":tipo_item_rollout_campo
+   		  },
    		  url: "./RelatoriosServlet",
    		  cache: false,
    		  dataType: "text",

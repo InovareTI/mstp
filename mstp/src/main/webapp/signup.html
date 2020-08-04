@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge" /><![endif]-->
+     <title>MSTP - Managed Services Telecom Platform</title>
+    <meta name="description" content="MSTP Managed Services Telecom Platform">
+     <meta http-equiv="Content-Security-Policy" content="default-src * https://* data: gap: cdvfile: https://ssl.gstatic.com; style-src * 'unsafe-inline'; script-src https://* * 'unsafe-inline' 'unsafe-eval'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Registro de Usuário .MSTP - Managed Services Telecom Platform" />
+	<meta name="keywords" content="MSTP, INOVARE TI, Servico, telecom,Telecom" />
+	<meta name="Inovare TI" content="MSTP - Managed Services Telecom Platform" />
+	<meta property=”og:title” content="MSTP"/>
+    <meta property=”og:type” content="product"/>
+    <meta property=”og:description” content="Managed Services Telecom Platform"/>
+    <meta property=”og:url” content="http://www.mstp.com.br"/>
+    <meta property=”og:site_name” content="MSTP"/>
+    <meta name=”twitter:url” content="http://www.mstp.com.br">
+    <meta name=”twitter:title” content="MSTP">
+    <meta name=”twitter:description” content="Managed Services Telecom Platform">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Place favicon.ico in the root directory -->
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" href="favicon.ico">
+
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/bootstrap_i.css" />
+    <link rel="stylesheet" href="css/aos.css" />
+    <link rel="stylesheet" href="css/swiper_i.css" />
+    <link rel="stylesheet" href="css/font-awesome_i.css" />
+    <link rel="stylesheet" href="css/styles_i.css">
+   
+    
+    <script>
+   function registro(token){
+	   console.log(token);
+    	if(document.getElementById("radio1_opt").checked){
+    		
+    	}else if(document.getElementById("signup_empresa").value==""){
+    		alert("Nome da Empresa eh Obrigatório!");
+    		return;
+    	}
+      if(document.getElementById("signup_nome").value==""){
+    		alert("Nome é Obrigatório!");
+    		return;
+    	}
+      if(document.getElementById("signup_username").value==""){
+  		alert("Usuário é Obrigatório!");
+  		return;
+  		}
+      if(document.getElementById("signup_email").value==""){
+    		alert("Usuário é Obrigatório!");
+    		return;
+    		}
+      if(document.getElementById("signup_password").value=="" || (document.getElementById("signup_password").value).length<6){
+    		alert("Senha não pode ser vazia e deve ter 6 caracteres no minimo");
+    		return;
+    		}
+      $('#btn_submit').addClass( "disabled" );
+  	  $('#btn_submit').text('Criando Conta...');
+  	  $('#btn_submit').prop('disabled', true);
+    	  $.post("./Cconta",
+    	  {
+    		  signup_username: document.getElementById("signup_username").value,
+    		  signup_nome: document.getElementById("signup_nome").value,
+    		  signup_email:  document.getElementById("signup_email").value,
+    		  signup_password:  document.getElementById("signup_password").value,
+    		  signup_empresa:  document.getElementById("signup_empresa").value,
+    		  MSTP_FREE:  document.getElementById("radio1_opt").checked,
+    	  },
+    	  function(data, status){
+    	   if(status=="success" && data=="ContaCriada"){
+    	   		$('#btn_submit').text('Finalizado Com Successo');
+    	   		document.getElementById("div_resposta").style.display = "block";
+    	   }else{
+    		   $('#btn_submit').removeClass( "disabled" );
+    		   $('#btn_submit').prop('disabled', false);
+    		   $('#btn_submit').text('ops algo deu errado - Criar Conta');
+    	   }
+    	  });
+    	  }
+    function mostraEmpresa(opt){
+    	if(opt==1){
+    		document.getElementById("div_empresa").style.display = "block";
+    	}else{
+    		document.getElementById("div_empresa").style.display = "none";
+    	}
+    }
+    
+    
+    </script>
+</head>
+<body>
+<!--[if lt IE 8]>
+<p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+<![endif]-->
+
+
+    <!-- < NAVIGATION WITH BACKGROUND COLOR NAVBAR >............................................ -->
+<!-- removed navbar-toggleable-md because responsive issues. Find out why ..... -->
+<nav class="navbar navbar-expand-md navigation fixed-top sidebar-left">
+    <div class="container">
+    <button class="navbar-toggler" type="button">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+    </button>
+    <a href="index.html" class="navbar-brand">
+        <img src="img/llogo.png" alt="MSTP" class="logo logo-sticky d-block d-md-none">
+        <img src="img/logo.png" alt="MSTP" class="logo d-none d-md-block">
+    </a>
+
+    <div class="collapse navbar-collapse ml-auto" id="main-navbar">
+        <div class="sidebar-brand">
+            <a href="index.html">
+                <img src="img/llogo.png" alt="MSTP" class="logo">
+            </a>
+        </div>
+
+        <ul class="nav navbar-nav mr-auto">
+            <li class="nav-item"><a class="nav-link" href="index.html">Principal</a></li>
+          
+            <li class="nav-item"><a class="nav-link" href="pricing.html">Preços</a></li>
+            <li class="nav-item"><a class="nav-link" href="contact.html">Contato</a></li>
+         
+        </ul>
+
+        <nav class="nav navbar-nav ml-md-auto justify-content-center mt-4 mt-md-0 flex-row">
+            <a class="btn btn-rounded btn-outline mr-3 px-3" href="mstp_login.html">
+                <i class="fa-sign-in d-none d-md-inline mr-md-0 mr-lg-2"></i>
+                <span class="d-md-none d-lg-inline">Login</span>
+            </a>
+            
+        </nav>
+
+    </div>
+</div>
+
+</nav>
+
+
+
+<div class="nav-overlay bg-5 alpha-8 gradient"></div>
+
+<main>
+    
+    
+    <header class="page header bg-3 color-1">
+    <div class="container">
+        <h1 class="font-lg bold color-1">Registro de conta</h1>
+        <p class="lead">Excelente, estamos felizes de ter voce a bordo!</p>
+    </div>
+</header>
+
+
+    <section class="section bg-6-gradient b-b">
+    <div class="container">
+        <div class="section-heading">
+            <h2 class="mb-3">Gerencie  seus projetos</h2>
+            <p class="lead">Comece com 14 dias Gratuito para Empresas e free para profissionais autonomos</p>
+        </div>
+
+        <div class="row gap-y align-items-center">
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-box">
+                    <div class="card-body">
+                        <form action="Cconta" method="post" class="form form-signup" name="form-signup" data-response-message-animation="slide-in-up">
+						    <div class="form-group">
+						        <label for="signup_username">Nome</label>
+						        <input type="text" name="signup_nome" id="signup_nome" class="form-control bg-1" placeholder="Nome Completo" required>
+						    </div>
+						    <div class="form-group">
+						        <label for="signup_username">Usuário</label>
+						        <input type="text" name="signup_username" id="signup_username" class="form-control bg-1" placeholder="Entre com usuario desejado" required>
+						    </div>
+							<div class="form-group">
+						        <label for="signup_email">Email</label>
+						        <input type="email"  name="signup_email" id="signup_email" class="form-control bg-1" placeholder="Email Válido" required>
+						        <small id="emailHelp" class="form-text text-muted">Nunca iremos compartilhar seu email</small>
+						    </div>
+	
+						    <div class="radio">
+						  		<input style="padding:5px" type="radio" name="optradio" id="radio1_opt" onchange="mostraEmpresa(0)"><label for="radio1_opt" style="padding:5px;font-size:20px">MSTP FREE</label>
+							</div>
+							<div class="radio">
+							  	<input style="padding:5px" type="radio" name="optradio" id="radio2_opt" onchange="mostraEmpresa(1)"><label for="radio2_opt" style="padding:5px;font-size:20px">MSTP EMPRESA</label>
+							</div>
+						<div style="display:none" id ="div_empresa"  class="form-group">
+					        <label for="signup_empresa">Empresa</label>
+					        <input type="text"   name="signup_empresa" id="signup_empresa" class="form-control bg-1" placeholder="Empresa" required>
+					    </div>
+				    <div class="form-group">
+				        <label for="signup_password">Senha</label>
+				        <input type="password" name="signup_password" id="signup_password" class="form-control bg-1" placeholder="Senha" required>
+				    </div>
+
+			    <div class="form-group">
+			        <button  id="btn_submit" type="button" data-sitekey="6LeRJbIZAAAAAAMLOWghjw3Pr43eD06tANFAE2zD" onclick="registro()" class="btn btn-rounded btn-primary px-5 py-3 mt-5 g-recaptcha">
+			            Criar Conta
+			        </button>
+			
+			        <p class="small">
+			           Clicando nesse butão voce concorda com <a href="#" class="dotted">Termos de privacidade</a> &nbsp;&amp;&nbsp; <a href="#" class="dotted">Termo de Serviço</a>
+			        </p>
+			    </div>
+			</form>
+
+
+<div id="div_resposta" style="display:none">
+    <i class="fa-envelope-o font-lg mb-2"></i>
+
+    <p class="font-md m-0">Verifique seu email</p>
+
+    <p class="response">Enviamos um link de ativação para começarmos.</p>
+</div>
+
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="browser" data-aos="fade-left">
+                    <img src="img/screens/dash-1.jpg" class="img-responsive" alt="...">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+    <section>
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-md-4">
+                <h2>Nós respondemos suas  <span class="bold">dúvidas</span></h2>
+
+                <p class="lead">Não  sabe como o MSTP pode ajudar? Porque comprar o MSTP?</p>
+
+                <p class="text-muted">Aqui estão algumas perguntas e respostas mais comuns de nossos queridos clientes e usuários</p>
+            </div>
+
+            <div class="col-12 col-md-8">
+                <div class="card mb-3">
+                    <div class="p-3">
+                        <h5 class="mb-0">
+                            <a href="#" data-toggle="collapse" data-target="#q1">
+                                O que o pacote FREE inclui?
+                            </a>
+                        </h5>
+                    </div>
+
+                    <div id="q1" class="collapse show">
+                        <div class="card-body">
+                            O pacote free permite ao técnico de campo gerenciar suas atividades, adicionar novos sites,compartilhar  localização, e emitir relatório fotográfico simples. Tudo através do app MSTP MOBILE.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="p-3">
+                        <h5 class="mb-0">
+                            <a href="#" class="collapsed" data-toggle="collapse" data-target="#q2">
+                                Qual a diferença do MSTP para empresas e o MSTP FREE?
+                            </a>
+                        </h5>
+                    </div>
+                    <div id="q2" class="collapse">
+                        <div class="card-body">
+                            Gestão Integrada. O  MSTP para empresa é pensando em integração de times, gestão de projetos, recebimento e emissão de pedidos de compra (PO), rollout de projeto e muitos dashBoards. O MSTP FREE dá suporte o time de campo de forma individual, sem integrações com empresas ou outros técnicos. 
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="p-3">
+                        <h5 class="mb-0">
+                            <a href="#" class="collapsed" data-toggle="collapse" data-target="#q3">
+                                Minha empresa possui processos específicos de gestão e controle de projetos, O MSTP pode ser customizazdo?
+                            </a>
+                        </h5>
+                    </div>
+                    <div id="q3" class="collapse">
+                        <div class="card-body">
+                            SIM.SIM.SIM x 100. Adoramos essa parte! o MSTP para empresas é modular e podemos adptá-lo para sua empresa. O Custo e o tempo de cada customização vai depender de avaliação técnica. 
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="p-3">
+                        <h5 class="mb-0">
+                            <a href="#" class="collapsed" data-toggle="collapse" data-target="#q4">
+                                Posso solicitar novos recursos?
+                            </a>
+                        </h5>
+                    </div>
+                    <div id="q4" class="collapse">
+                        <div class="card-body">
+                            Definitivamente <span class="bold">SIM</span>, mesmo que não seja nosso cliente ou usuário ,mas de alguma forma já conhece a ferramenta, accesse nossos canais de contato e nos informe sobre sua idéia.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+</main>
+
+
+    <!-- FOOTER -->
+<footer class="site-footer section b-t">
+    <div class="container pb-3">
+        <div class="row gap-y text-center text-md-left">
+            <div class="col-md-5 mr-auto">
+                <img src="img/llogo.png" alt="" class="icon-lg logo">
+
+                <p class="color-2 alpha-5">Cronos, a carefully crafted and powerful HTML5 template, it's perfect to showcase your startup or software</p>
+
+                <nav class="nav mt-3 color-3 justify-content-center justify-content-md-start">
+                    <a class="nav-link pl-0" href="#"><i class="fa-facebook"></i></a>
+                    <a class="nav-link" href="#"><i class="fa-twitter"></i></a>
+                    <a class="nav-link" href="#"><i class="fa-behance"></i></a>
+                    <a class="nav-link" href="#"><i class="fa-instagram"></i></a>
+                </nav>
+            </div>
+
+            <div class="col-md-2">
+                <h6 class="bold text-uppercase">Product</h6>
+
+                <nav class="nav flex-column mt-3">
+                    <a href="#">Features</a>
+                    <a href="#" class="my-2">API</a>
+                    <a href="#">Customers</a>
+                    <a href="#" class="my-2">Support</a>
+                </nav>
+            </div>
+
+            <div class="col-md-2">
+                <h6 class="bold text-uppercase">Company</h6>
+
+                <nav class="nav flex-column mt-3">
+                    <a href="#">Blog</a>
+                    <a href="#" class="my-2">Contact</a>
+                    <a href="#">Careers</a>
+                    <a href="#" class="my-2">Terms</a>
+                </nav>
+            </div>
+        </div>
+
+        <hr class="mt-5 bg-6">
+        <div class="row small align-items-center text-center text-md-left">
+            <div class="col-md-4">
+                <p class="mt-2 mb-0">© 2018 5studios. All Rights Reserved</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="js/index/js/jquery.min.js"></script>
+<script src="js/index/js/popper.min.js"></script>
+<script src="js/index/js/bootstrap.min.js"></script>
+<script src="js/index/js/jquery.easing.min.js"></script>
+<script src="js/index/js/aos.min.js"></script>
+<script src="js/index/js/swiper.min.js"></script>
+<script src="js/index/js/jquery.validate.min.js"></script>
+
+<script src="js/index/js/main.js"></script>
+
+
+</body>
+</html>
