@@ -411,7 +411,7 @@ public class RelatoriosServlet extends HttpServlet {
 							cell.setCellValue(end);
 							cell = row.getCell(13);
 							if(site.get("site_uf")!=null) {
-								cell.setCellValue(site.getString("site_uf"));
+								cell.setCellValue(site.get("site_uf").toString());
 							}
 						}
 						CreationHelper helper = wb.getCreationHelper();

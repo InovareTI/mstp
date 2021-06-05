@@ -18,8 +18,8 @@ response.setDateHeader ("Expires", -1);
 		<meta name="Inovare TI" content="MSTP - Managed Services Telecom Platform" />
 		<link type="text/css" rel="stylesheet" href="css/mfb/mfb.min.css"/>
 		
-		 <link rel="stylesheet" href="js/plugins/leaflet/leaflet.css" type="text/css"/>
-		 <script src="js/plugins/leaflet/leaflet.js"></script>
+		 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+         <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 		<link rel="stylesheet" type="text/css" href="css/div_graph.css" />
 	
     
@@ -192,8 +192,10 @@ response.setDateHeader ("Expires", -1);
 	<script type="text/javascript" src="js/despesas.js"></script>
 	<script type="text/javascript" src="js/orcamento.js"></script>
 	<script type="text/javascript" src="js/Ticket.js"></script>
-	<script src='https://api.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.js'></script>
-     <link href='https://api.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.css' rel='stylesheet' />
+	
+<script src='https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css' rel='stylesheet' />
+
 
 	<link rel="manifest" href="/manifest.json" />
 	
@@ -813,17 +815,15 @@ response.setDateHeader ("Expires", -1);
 						
 						function inicializa_mapa_full(opt){
 							$('#map_full').html('');
-							
-							
-						mapboxgl.accessToken = 'pk.eyJ1IjoiZmFiaW9zYWxidXF1ZXJxdWUiLCJhIjoiY2pjMjYxYzFoMGludzJxczR1ZWp2aTBpaiJ9.KptnIvfz_61BmkgGIR_ZWA';
+							mapboxgl.accessToken = 'pk.eyJ1IjoiZmFiaW9zYWxidXF1ZXJxdWUiLCJhIjoiY2tnamJldTI5MDg0djJ0bXNyZGVyenozeCJ9.qmVVng-6k8FdjiJRUde_iw';
 						map = new mapboxgl.Map({
 						    container: 'map_full',
-						    style: 'mapbox://styles/fabiosalbuquerque/cjl100xt72fci2ro3s9y5b1re',
+                            style: 'mapbox://styles/mapbox/streets-v11', 
 						    zoom: 3,
 						    center: [-51.549, -11.811]
 						});
 						map.on('load', function () {
-							if(opt==1){load_site_markers_mapa_central_rollout();}else{load_site_markers_mapa_central();}
+							if(opt==1)				{load_site_markers_mapa_central_rollout();}else{load_site_markers_mapa_central();}
 							
 						});
 						
@@ -2157,8 +2157,8 @@ response.setDateHeader ("Expires", -1);
 	     </div>
 	      <div class="row"  style="color:black;">
 	      	<div class="col-md-4"><input type="text" style="float:left;width:90%" class="form-control" id="site_orcamento" placeholder="Digite o Site"/></div>
-	      	<div class="col-md-4"><input type="text" style="float:left;width:90%" class="form-control" id="site_orcamento" placeholder="Digite o Site"/></div>
-	      	<div class="col-md-4"><input type="text" style="float:left;width:90%" class="form-control" id="site_orcamento" placeholder="Digite o Site"/></div>
+	      	<div class="col-md-4"><input type="text" style="float:left;width:90%" class="form-control" id="site_orcamento_1" placeholder="Digite o Site"/></div>
+	      	<div class="col-md-4"><input type="text" style="float:left;width:90%" class="form-control" id="site_orcamento_2" placeholder="Digite o Site"/></div>
 	     </div>
 	     <hr>
 	     <div style="margin-left:10px;color:gray;" class="row"><h4><label>Dados do Serviço</label></h4></div>
@@ -2209,7 +2209,7 @@ response.setDateHeader ("Expires", -1);
         <h4 class="modal-title label_janelas">Adicionar Nova Atividade</h4>
       </div>
       <div class="modal-body">
-      	<div id="row_add_fields" style="height: 400px;overflow: auto;">
+      	<div class="form-group" id="row_add_fields" style="height: 400px;overflow: auto;">
       	
 	    </div>
       </div>
@@ -3548,15 +3548,21 @@ response.setDateHeader ("Expires", -1);
 		<script>
 			new mlPushMenu( document.getElementById( 'mp-menu' ), document.getElementById( 'trigger' ) );
 			var mymap = L.map('mapid').setView([-22.9, -43.1], 8);
-			 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiZmFiaW9zYWxidXF1ZXJxdWUiLCJhIjoiY2pjMjYxYzFoMGludzJxczR1ZWp2aTBpaiJ9.KptnIvfz_61BmkgGIR_ZWA', {
-				    attribution: 'MSTP',
-				    maxZoom: 18,
-				    id: 'mapbox.streets',
-				    
-				}).addTo(mymap);
-			 
-			 
+          L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+    			attribution: 'MSTP',
+    			maxZoom: 18,
+    			id: 'mapbox/streets-v11',
+    			tileSize: 512,
+    			zoomOffset: -1,
+    			accessToken: 'pk.eyJ1IjoiZmFiaW9zYWxidXF1ZXJxdWUiLCJhIjoiY2tnamJldTI5MDg0djJ0bXNyZGVyenozeCJ9.qmVVng-6k8FdjiJRUde_iw'
+		}).addTo(mymap);
+          
 			 
 		</script>
 	</body>
 </html>
+
+
+
+
+

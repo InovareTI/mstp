@@ -2,13 +2,13 @@
 function map_init_manual(){
  mymap.remove();
  
- mymap = L.map('mapid').setView([51.505, -0.09],4);
-			 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiZmFiaW9zYWxidXF1ZXJxdWUiLCJhIjoiY2pjMjYxYzFoMGludzJxczR1ZWp2aTBpaiJ9.KptnIvfz_61BmkgGIR_ZWA', {
-				    attribution: 'MSTP by Inovare TI',
-				    maxZoom: 18,
-				    id: 'MSTP.WEB',
-				    accessToken: 'pk.eyJ1IjoiZmFiaW9zYWxidXF1ZXJxdWUiLCJhIjoiY2pjMjYxYzFoMGludzJxczR1ZWp2aTBpaiJ9.KptnIvfz_61BmkgGIR_ZWA'
-				}).addTo(mymap);
+	mymap = new mapboxgl.Map({
+	container: 'mapid',
+	style: 'mapbox://styles/mapbox/streets-v11', // stylesheet location
+	center: [51.505, -0.09], // starting position [51.505, -0.09]
+	zoom: 18 // starting zoom
+	});
+
 }
 function load_site_markers(){
 	

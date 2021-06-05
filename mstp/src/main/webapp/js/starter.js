@@ -18,6 +18,7 @@ $(document).ready(function () {
 	        geral.perfil="";
 	        geral.banco="0";
 	        carrega_perfil();
+	        mapboxgl.accessToken = 'pk.eyJ1IjoiZmFiaW9zYWxidXF1ZXJxdWUiLCJhIjoiY2tnamJldTI5MDg0djJ0bXNyZGVyenozeCJ9.qmVVng-6k8FdjiJRUde_iw';
 	        carrega_portal();
             carrega_cliente_table();
             carregaModulosPortal();
